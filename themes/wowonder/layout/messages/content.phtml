@@ -40,7 +40,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
         </div>
         <ul class="nav nav-tabs wo_msg_tabs">
           <li>
-            <a data-toggle="tab" data-target="#multi-chat" href="javascript:void(0)" id="tab-multi-chat"
+            <a data-toggle="tab" data-target="#messages-multi-chat" href="javascript:void(0)" id="tab-messages-multi-chat"
               title="<?php echo $wo['lang']['message']; ?> (multi)">
               <!-- SVG icon -->
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
@@ -58,34 +58,42 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
               </svg> <?php echo $wo['lang']['groups']; ?></a></li>
         </ul>
         <div class="tab-content messages-users-list">
-          <div id="multi-chat" class="tab-pane fade tab-mul">
+          <div id="messages-multi-chat" class="tab-pane fade tab-mul">
             <div class="multi-send-controls" style="padding:10px;">
               <div class="form-group">
                 <label>Nội dung</label>
                 <div class="form-group">
                   <label>Gửi đến: </label>
-                  <div id="chips-inline" class="chips-inline"></div>
+                  <div id="messages-chips-inline" class="chips-inline"></div>
                 </div>
-                <textarea id="multi-text" class="form-control" rows="3" placeholder="Nhập tin nhắn..."></textarea>
+                <textarea id="messages-multi-text" class="form-control" rows="3" placeholder="Nhập tin nhắn..."></textarea>
               </div>
 
               <div class="form-group">
                 <label>Đính kèm (tùy chọn)</label>
-                <input type="file" id="multi-file">
+                <input type="file" id="messages-multi-file">
               </div>
 
               <div class="d-flex align-items-center mb-2">
-                <label class="mr-3"><input type="checkbox" id="multi-select-all">Chọn tất cả</label>
-                <button class="btn btn-primary btn-sm ml-auto" id="multi-send-btn">
+                <label class="mr-3"><input type="checkbox" id="messages-multi-select-all" onchange="MessagesMultiToggleAll(this)">Chọn tất cả</label>
+                <button type="button" class="btn btn-primary btn-sm ml-auto" id="messages-multi-send-btn">
                   Gửi tin nhắn
                 </button>
-                <select name="select_tag_user" id="tag_user_id">
+                <select name="select_tag_user" id="messages_tag_user_id" onchange="MessagesMultiApplyTagFilter(this)">
+                  <option value="" disabled selected>Chọn thẻ…</option>
+                  <option value="0">Tất cả người đã gắn thẻ</option>
                   <!-- <option value="0">Chọn thẻ</option> -->
                   <?php
-                  // $allTags = Wo_GetAllTagsForUser();
-                  // foreach ($allTags as $tag) {
-                  //   echo '<option value="' . $tag['tag_id'] . '">' . htmlspecialchars($tag['name'], ENT_QUOTES, 'UTF-8') . '</option>';
-                  // }
+                  $messageTagLabels = Wo_ListUserTagLabels($wo['user']['user_id']);
+                  if (!empty($messageTagLabels)) {
+                    foreach ($messageTagLabels as $tag) {
+                      $tagId = (int) ($tag['id'] ?? $tag['label_id'] ?? 0);
+                      $tagName = $tag['name'] ?? '';
+                      if ($tagId > 0) {
+                        echo '<option value="' . $tagId . '">' . htmlspecialchars($tagName, ENT_QUOTES, 'UTF-8') . '</option>';
+                      }
+                    }
+                  }
                   ?>
                 </select>
               </div>
@@ -98,25 +106,40 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
             <div class="row" style="padding:20px 5px 20px 20px;">
               <div class="col-12">
                 <h5>Người dùng</h5>
-                <ul class="list-unstyled" id="multi-all">
+                <ul class="list-unstyled" id="messages-multi-all">
                   <?php
-                  $onlineUsers  = Wo_GetChatUsers('online');
-                  $offlineUsers = Wo_GetChatUsers('offline');
+                  $RecentChatUsers = Wo_GetMessagesUsers($wo['user']['user_id'], '', 50, false, 0, 'recent');
+                  $onlineUsers = [];
+                  $offlineUsers = [];
+                  if (!empty($RecentChatUsers)) {
+                    foreach ($RecentChatUsers as $chat_user) {
+                      if (empty($chat_user['user_id'])) {
+                        continue;
+                      }
+                      if (Wo_IsOnline($chat_user['user_id']) === true) {
+                        $onlineUsers[] = $chat_user;
+                      } else {
+                        $offlineUsers[] = $chat_user;
+                      }
+                    }
+                  }
                   // Chuẩn hoá & gắn cờ
                   $all = [];
                   foreach ($onlineUsers as $u) {
+                    $display_name = !empty($u['first_name']) ? $u['first_name'] : $u['name'];
                     $all[] = [
                       'id'       => (int)$u['user_id'],
-                      'name'     => htmlspecialchars($u['name'], ENT_QUOTES, 'UTF-8'),
+                      'name'     => htmlspecialchars($display_name, ENT_QUOTES, 'UTF-8'),
                       'avatar'   => $u['avatar'],
                       'lastseen' => isset($u['lastseen']) ? (int)$u['lastseen'] : 0,
                       'is_online' => true
                     ];
                   }
                   foreach ($offlineUsers as $u) {
+                    $display_name = !empty($u['first_name']) ? $u['first_name'] : $u['name'];
                     $all[] = [
                       'id'       => (int)$u['user_id'],
-                      'name'     => htmlspecialchars($u['name'], ENT_QUOTES, 'UTF-8'),
+                      'name'     => htmlspecialchars($display_name, ENT_QUOTES, 'UTF-8'),
                       'avatar'   => $u['avatar'],
                       'lastseen' => isset($u['lastseen']) ? (int)$u['lastseen'] : 0,
                       'is_online' => false
@@ -145,14 +168,14 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
                     $avatar = $u['avatar'];
                     $dot    = $u['is_online'] ? '#60d465' : '#CDCDCD'; // xanh online, xám offline
 
-                    echo  '<li class="multi-user-item" 
+                    echo  '<li class="messages-multi-user-item" 
         data-uid="' . $id . '"
         data-name="' . $name . '"
         data-avatar="' . $avatar . '">
-  <div class="recipient-chat-user-mul">
+  <div class="messages-recipient-chat-user-mul">
     <div class="user-information" >  
       <img src="' . $avatar . '" width="36" height="36" alt="" style="border-radius:50%; object-fit:cover;">
-      <span class="chat-user-text-mul" style="margin-left:10px;">' . $name . '</span>
+      <span class="messages-chat-user-text-mul" style="margin-left:10px;">' . $name . '</span>
        <div class="user-status-dot" style="padding-left:70px!important;" title="' . ($u['is_online'] ? 'Online' : 'Offline') . '">
         <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" aria-hidden="true">
           <path fill="' . $dot . '" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
@@ -164,7 +187,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
      
 
       <label style="margin:0 8px;">
-        <input type="checkbox" class="multi-ck" value="' . $id . '" data-name="' . $name . '"  > Chọn
+        <input type="checkbox" class="messages-multi-ck" value="' . $id . '" data-name="' . $name . '" onchange="MessagesMultiUpdateUI()" > Chọn
       </label>
 
       <button class="btn btn-default btn-xs" onclick="Wo_GetUserMessages(' . $id . ',\''.$name.'\');return false;">
@@ -2450,7 +2473,12 @@ $('.delete-icon').empty();
 <script>
   (function($) {
     const ajaxUrl = (typeof Wo_Ajax_Requests_File === 'function') ? Wo_Ajax_Requests_File() : '/requests.php';
-    const csrf = (window.wo && wo.user && wo.user.session_hash) ? wo.user.session_hash : null;
+    function getTagHash() {
+      return $('input[name="hash_id"]').val() ||
+        $('.main_session').val() ||
+        (window.wo && wo.user && wo.user.session_hash) ||
+        '';
+    }
 
     // Lưu target hiện hành
     const TARGET = {
@@ -2470,7 +2498,7 @@ $('.delete-icon').empty();
     // API
     function apiListLabels() {
       return $.post(`${ajaxUrl}?f=tags&s=list_labels`, {
-        hash_id: csrf
+        hash_id: getTagHash()
       }, null, 'json');
     }
 
@@ -2482,7 +2510,7 @@ $('.delete-icon').empty();
       return $.post(`${ajaxUrl}?f=tags&s=list_target_tags`, {
         target_type: TARGET.type,
         target_id: TARGET.id,
-        hash_id: csrf
+        hash_id: getTagHash()
       }, null, 'json');
       // console.log(target_type, target_id);
     }
@@ -2492,7 +2520,7 @@ $('.delete-icon').empty();
         label_id,
         target_type: TARGET.type,
         target_id: TARGET.id,
-        hash_id: csrf
+        hash_id: getTagHash()
       }, null, 'json');
     }
 
@@ -2501,7 +2529,7 @@ $('.delete-icon').empty();
         label_id,
         target_type: TARGET.type,
         target_id: TARGET.id,
-        hash_id: csrf
+        hash_id: getTagHash()
       }, null, 'json');
     }
 
@@ -2509,14 +2537,14 @@ $('.delete-icon').empty();
       return $.post(`${ajaxUrl}?f=tags&s=create_label`, {
         label_name: name,
         label_color: color,
-        hash_id: csrf
+        hash_id: getTagHash()
       }, null, 'json');
     }
 
     function apiDelete(label_id) {
       return $.post(`${ajaxUrl}?f=tags&s=delete_label`, {
         label_id,
-        hash_id: csrf
+        hash_id: getTagHash()
       }, null, 'json');
     }
 
@@ -2736,7 +2764,7 @@ $('#edit_chat_group_form').ajaxForm({
     });
 
     function getSelectUserId() {
-      return $('.multi-ck:checked').map(function() {
+      return $('#messages-multi-all .messages-multi-user-item:visible .messages-multi-ck:checked').map(function() {
         return {
           id: $(this).val(),
           name: $(this).data('name') || $(this).attr('data-name') || ''
@@ -2746,11 +2774,12 @@ $('#edit_chat_group_form').ajaxForm({
 
     function updateUI() {
       const select = getSelectUserId();
-      $('#chips-inline').text(select.map(u => u.name).join(', '));
+      $('#messages-chips-inline').text(select.map(u => u.name).join(', '));
 
-      const $all = $('#multi-select-all');
-      const total = $('.multi-ck').length;
-      const checked = $('.multi-ck:checked').length;
+      const $all = $('#messages-multi-select-all');
+      const $visible = $('#messages-multi-all .messages-multi-user-item:visible .messages-multi-ck');
+      const total = $visible.length;
+      const checked = $visible.filter(':checked').length;
 
       if (checked === 0) {
         $all.prop('indeterminate', false).prop('checked', false);
@@ -2760,11 +2789,22 @@ $('#edit_chat_group_form').ajaxForm({
         $all.prop('indeterminate', true).prop('checked', false);
       }
     }
-    $(document).on('change', '.multi-ck', updateUI);
+    window.MessagesMultiGetSelected = getSelectUserId;
+    window.MessagesMultiUpdateUI = updateUI;
+    window.MessagesMultiToggleAll = function(el) {
+      const isChecked = $(el).is(':checked');
+      $('#messages-multi-all .messages-multi-user-item:visible .messages-multi-ck').prop('checked', isChecked);
+      $(el).prop('indeterminate', false);
+      updateUI();
+    };
+    window.MessagesMultiApplyTagFilter = function(el) {
+      $('#messages_tag_user_id').val($(el).val()).triggerHandler('change');
+    };
+    $(document).on('change', '.messages-multi-ck', updateUI);
 
-    $('#multi-select-all').on('change', function() {
+    $('#messages-multi-select-all').on('change', function() {
       const isChecked = $(this).is(':checked');
-      $('.multi-ck').prop('checked', isChecked);
+      $('#messages-multi-all .messages-multi-user-item:visible .messages-multi-ck').prop('checked', isChecked);
       $(this).prop('indeterminate', false);
       updateUI();
     });
@@ -2772,9 +2812,9 @@ $('#edit_chat_group_form').ajaxForm({
     $(document).ready(function() {
       updateUI(); // sync UI ban đầu
     });
-    $('#tag_user_id').on('change', function() {
+    $('#messages_tag_user_id').on('change', function() {
       const tagId = $(this).val();
-      var tagText = $('#tag_user_id option:selected').text() || '';
+      var tagText = $('#messages_tag_user_id option:selected').text() || '';
       const main_hash_id =
         $('input[name="hash_id"]').val() ||
         $('.main_session').val() ||
@@ -2794,17 +2834,18 @@ $('#edit_chat_group_form').ajaxForm({
           success: function(resp) {
             var ids = Array.isArray(resp && resp.user_ids) ? resp.user_ids : [];
             ids = ids.map(x => parseInt(x, 10) || null).filter(Boolean);
-            $('.multi-ck').prop('checked', false);
+            $('.messages-multi-ck').prop('checked', false);
 
             // Hiển thị chỉ những user có thẻ + tick (tuỳ bạn)
             var set = {};
             ids.forEach(i => set[i] = 1);
-            $('.multi-user-item').each(function() {
+            $('.messages-multi-user-item').each(function() {
               var uid = parseInt($(this).data('uid'), 10) || 0;
               $(this).toggle(!!set[uid]);
             });
-            // $('.multi-ck').prop('checked', false);
-            // ids.forEach(uid => $('.multi-ck[value="'+uid+'"]').prop('checked', true));
+            ids.forEach(function(uid) {
+              $('.messages-multi-ck[value="' + uid + '"]').prop('checked', true);
+            });
 
             $('#multi-status').text('Tất cả người đã gắn thẻ — ' + ids.length + ' user');
             updateUI();
@@ -2834,9 +2875,9 @@ $('#edit_chat_group_form').ajaxForm({
 
           ids = ids.filter(Boolean); // loại null/NaN
           // 1) Tick checkbox đúng id
-          $('.multi-ck').prop('checked', false);
+          $('.messages-multi-ck').prop('checked', false);
           ids.forEach(function(uid) {
-            $('.multi-ck[value="' + uid + '"]').prop('checked', true);
+            $('.messages-multi-ck[value="' + uid + '"]').prop('checked', true);
           });
 
           // 2) LỌC LIST: chỉ hiển thị user thuộc thẻ
@@ -2845,14 +2886,14 @@ $('#edit_chat_group_form').ajaxForm({
             ids.forEach(function(id) {
               set[id] = 1;
             });
-            $('.multi-user-item').each(function() {
+            $('.messages-multi-user-item').each(function() {
               var uid = parseInt($(this).data('uid'), 10) || 0;
               $(this).toggle(!!set[uid]);
             });
             $('#multi-status').text('Đang lọc theo thẻ "' + tagText + '" — ' + ids.length + ' user');
           } else {
             // Không có ai thuộc thẻ → ẩn tất cả cho rõ ràng
-            $('.multi-user-item').hide();
+            $('.messages-multi-user-item').hide();
             $('#multi-status').text('Không có user nào gán thẻ "' + tagText + '"');
           }
 
@@ -2868,7 +2909,7 @@ $('#edit_chat_group_form').ajaxForm({
       preserve = true,
       selectId = null
     } = {}) {
-      const $sel = $('#tag_user_id');
+      const $sel = $('#messages_tag_user_id');
       const prev = preserve ? $sel.val() : null;
 
       return apiListLabels().done(function(res) {
@@ -2918,13 +2959,13 @@ $('#edit_chat_group_form').ajaxForm({
         preserve: true
       });
     });
-    $('#multi-send-btn').on('click', function(e) {
+    window.MessagesMultiSubmitLegacy = function(e) {
       e.preventDefault();
 
       const selected = getSelectUserId();
       const ids = selected.map(u => parseInt(u.id, 10)).filter(Boolean);
-      const text = ($('#multi-text').val() || '').trim();
-      const file = $('#multi-file')[0]?.files?.[0] || null;
+      const text = ($('#messages-multi-text').val() || '').trim();
+      const file = $('#messages-multi-file')[0]?.files?.[0] || null;
 
       const $btn = $(this);
       const $status = $('#multi-status');
@@ -2939,8 +2980,13 @@ $('#edit_chat_group_form').ajaxForm({
       }
 
       const fd = new FormData();
-      const main_hash_id = $('.main_session').val() || (window.wo?.user?.session_hash || '');
+      const main_hash_id =
+        $('input[name="hash_id"]').val() ||
+        $('.main_session').val() ||
+        (window.wo && window.wo.user && window.wo.user.session_hash) ||
+        '';
       fd.append('textSendMessage', text);
+      fd.append('hash_id', main_hash_id);
       ids.forEach(id => fd.append('recipients[]', id));
       if (file) fd.append('sendMessageFile', file, file.name);
 
@@ -2963,16 +3009,17 @@ $('#edit_chat_group_form').ajaxForm({
           }
 
           if (res.status === 200) {
-            $status.text(`Đã gửi thành công cho ${res.sent_ids?.length || 0} người.`);
+            const sentCount = Array.isArray(res.sent_ids) ? res.sent_ids.length : (parseInt(res.sent, 10) || 0);
+            $status.text(`Đã gửi thành công cho ${sentCount} người.`);
             // Chỉ xóa input SAU KHI thành công:
-            // $('#multi-text').val('');
-            // $('#multi-file').val('');
-            if (res.sent_ids?.length && typeof Wo_OpenChatTab === 'function') {
-              Wo_OpenChatTab(res.sent_ids[0]);
-            }
+            $('#messages-multi-text').val('');
+            $('#messages-multi-file').val('');
+            $('#messages-multi-select-all').prop('checked', false).prop('indeterminate', false);
+            $('#messages-multi-all .messages-multi-ck').prop('checked', false);
+            updateUI();
           } else if (res.status === 207) {
-            const ok = res.sent_ids?.length || 0;
-            const bad = res.failed?.length || 0;
+            const ok = Array.isArray(res.sent_ids) ? res.sent_ids.length : (parseInt(res.sent, 10) || 0);
+            const bad = Array.isArray(res.failed) ? res.failed.length : (parseInt(res.failed_count, 10) || 0);
             $status.text(`Đã gửi cho ${ok} người, lỗi ${bad} người.`);
           } else if (res.status === 422) {
             $status.text(res.error || 'Thiếu dữ liệu.');
@@ -2993,7 +3040,8 @@ $('#edit_chat_group_form').ajaxForm({
         .always(function() {
           $btn.prop('disabled', false).text('Send messages');
         });
-    });
+    };
+    $('#messages-multi-send-btn').off('click');
 
 
 
@@ -3011,6 +3059,252 @@ $('#edit_chat_group_form').ajaxForm({
     // });
 
   })(jQuery);
+</script>
+
+<script>
+  (function() {
+    function qs(sel, root) {
+      return (root || document).querySelector(sel);
+    }
+
+    function qsa(sel, root) {
+      return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+    }
+
+    function messagesVisibleItems() {
+      return qsa('#messages-multi-all .messages-multi-user-item').filter(function(item) {
+        return item.style.display !== 'none';
+      });
+    }
+
+    function messagesVisibleChecks() {
+      return messagesVisibleItems().map(function(item) {
+        return qs('.messages-multi-ck', item);
+      }).filter(Boolean);
+    }
+
+    function messagesCheckedData() {
+      return messagesVisibleChecks().filter(function(input) {
+        return input.checked;
+      }).map(function(input) {
+        return {
+          id: input.value,
+          name: input.getAttribute('data-name') || ''
+        };
+      });
+    }
+
+    function getMessagesHash() {
+      return (qs('input[name="hash_id"]') && qs('input[name="hash_id"]').value) ||
+        (qs('.main_session') && qs('.main_session').value) ||
+        ((window.wo && wo.user && wo.user.session_hash) ? wo.user.session_hash : '');
+    }
+
+    function renderMessagesMultiState() {
+      var chips = qs('#messages-chips-inline');
+      var selectAll = qs('#messages-multi-select-all');
+      var visibleChecks = messagesVisibleChecks();
+      var checked = visibleChecks.filter(function(input) { return input.checked; }).length;
+      if (chips) {
+        chips.textContent = messagesCheckedData().map(function(x) { return x.name; }).join(', ');
+      }
+      if (selectAll) {
+        if (!visibleChecks.length || checked === 0) {
+          selectAll.checked = false;
+          selectAll.indeterminate = false;
+        } else if (checked === visibleChecks.length) {
+          selectAll.checked = true;
+          selectAll.indeterminate = false;
+        } else {
+          selectAll.checked = false;
+          selectAll.indeterminate = true;
+        }
+      }
+    }
+
+    function applyMessagesIds(ids) {
+      var set = {};
+      ids.forEach(function(id) { set[String(id)] = true; });
+
+      qsa('#messages-multi-all .messages-multi-user-item').forEach(function(item) {
+        var uid = item.getAttribute('data-uid') || '';
+        var input = qs('.messages-multi-ck', item);
+        var matched = !!set[String(uid)];
+        item.style.display = matched ? '' : 'none';
+        if (input) {
+          input.checked = matched;
+        }
+      });
+
+      renderMessagesMultiState();
+    }
+
+    window.MessagesMultiUpdateUI = function() {
+      renderMessagesMultiState();
+    };
+
+    window.MessagesMultiToggleAll = function(el) {
+      messagesVisibleChecks().forEach(function(input) {
+        input.checked = !!el.checked;
+      });
+      renderMessagesMultiState();
+    };
+
+    window.MessagesMultiApplyTagFilter = function(el) {
+      var tagId = el && el.value ? String(el.value) : '';
+      var status = qs('#multi-status');
+      var ajaxUrl = (typeof Wo_Ajax_Requests_File === 'function') ? Wo_Ajax_Requests_File() : '/requests.php';
+      var hash = getMessagesHash();
+
+      if (!tagId) {
+        qsa('#messages-multi-all .messages-multi-user-item').forEach(function(item) {
+          item.style.display = '';
+          var input = qs('.messages-multi-ck', item);
+          if (input) input.checked = false;
+        });
+        if (status) status.textContent = '';
+        renderMessagesMultiState();
+        return;
+      }
+
+      var endpoint = tagId === '0' ? 'all_tags' : 'selected_tags';
+
+      jQuery.ajax({
+        url: ajaxUrl + '?f=tags&s=' + endpoint + '&hash=' + encodeURIComponent(hash),
+        type: 'POST',
+        dataType: 'json',
+        data: tagId === '0' ? { hash_id: hash } : { tag_id: tagId, hash_id: hash }
+      }).done(function(resp) {
+        var ids = [];
+        if (tagId === '0') {
+          ids = Array.isArray(resp && resp.user_ids) ? resp.user_ids : [];
+        } else if (Array.isArray(resp && resp.user_ids)) {
+          ids = resp.user_ids;
+        } else if (Array.isArray(resp && resp.data)) {
+          ids = resp.data.map(function(r) { return parseInt(r.target_user_id, 10) || null; }).filter(Boolean);
+        }
+
+        applyMessagesIds(ids.map(function(x) { return parseInt(x, 10) || 0; }).filter(Boolean));
+        if (status) {
+          status.textContent = ids.length ? ('Đã chọn ' + ids.length + ' người dùng') : 'Không có người dùng phù hợp';
+        }
+      }).fail(function() {
+        if (status) status.textContent = 'Không tải được danh sách người dùng theo thẻ';
+      });
+    };
+
+    window.MessagesMultiSubmit = function(e) {
+      if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+      }
+
+      var status = qs('#multi-status');
+      var button = qs('#messages-multi-send-btn');
+      var textInput = qs('#messages-multi-text');
+      var fileInput = qs('#messages-multi-file');
+      var selected = messagesCheckedData();
+      var ids = selected.map(function(item) {
+        return parseInt(item.id, 10) || 0;
+      }).filter(Boolean);
+      var text = textInput ? (textInput.value || '').trim() : '';
+      var file = (fileInput && fileInput.files && fileInput.files[0]) ? fileInput.files[0] : null;
+
+      if (!ids.length) {
+        if (status) status.textContent = 'Chưa chọn người nhận.';
+        return false;
+      }
+      if (!text && !file) {
+        if (status) status.textContent = 'Nhập nội dung hoặc chọn file.';
+        return false;
+      }
+
+      var fd = new FormData();
+      var hash = getMessagesHash();
+      fd.append('textSendMessage', text);
+      fd.append('hash_id', hash);
+      ids.forEach(function(id) {
+        fd.append('recipients[]', id);
+      });
+      if (file) {
+        fd.append('sendMessageFile', file, file.name);
+      }
+
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Đang gửi...';
+      }
+      if (status) status.textContent = 'Đang gửi...';
+
+      jQuery.ajax({
+        url: ((typeof Wo_Ajax_Requests_File === 'function') ? Wo_Ajax_Requests_File() : '/requests.php') +
+          '?f=messages&s=multi_send&hash=' + encodeURIComponent(hash),
+        type: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        dataType: 'json'
+      }).done(function(res) {
+        if (!res || typeof res.status === 'undefined') {
+          if (status) status.textContent = 'Có lỗi không xác định.';
+          return;
+        }
+
+        if (res.status === 200) {
+          var sentCount = Array.isArray(res.sent_ids) ? res.sent_ids.length : (parseInt(res.sent, 10) || 0);
+          if (status) status.textContent = 'Đã gửi thành công cho ' + sentCount + ' người.';
+          if (textInput) textInput.value = '';
+          if (fileInput) fileInput.value = '';
+          messagesVisibleChecks().forEach(function(input) {
+            input.checked = false;
+          });
+          var selectAll = qs('#messages-multi-select-all');
+          if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+          }
+          renderMessagesMultiState();
+        } else if (res.status === 207) {
+          var ok = Array.isArray(res.sent_ids) ? res.sent_ids.length : (parseInt(res.sent, 10) || 0);
+          var bad = Array.isArray(res.failed) ? res.failed.length : (parseInt(res.failed_count, 10) || 0);
+          if (status) status.textContent = 'Đã gửi cho ' + ok + ' người, lỗi ' + bad + ' người.';
+        } else if (res.status === 422) {
+          if (status) status.textContent = res.error || 'Thiếu dữ liệu.';
+        } else if (res.status === 500) {
+          if (status) status.textContent = 'Gửi thất bại. Vui lòng thử lại.';
+        } else {
+          if (status) status.textContent = 'Không rõ trạng thái.';
+        }
+
+        if (res.invalid_file === 1 && status) status.textContent = 'File vượt quá giới hạn dung lượng.';
+        if (res.invalid_file === 2 && status) status.textContent = 'Định dạng file không được hỗ trợ.';
+        if (res.invalid_file === 3 && status) status.textContent = 'Chỉ tài khoản Pro mới được gửi file/ghi âm.';
+      }).fail(function(xhr) {
+        console.error('messages multi_send error', xhr.status, xhr.responseText);
+        if (status) status.textContent = 'Lỗi kết nối máy chủ.';
+      }).always(function() {
+        if (button) {
+          button.disabled = false;
+          button.textContent = 'Gửi tin nhắn';
+        }
+      });
+
+      return false;
+    };
+
+    document.addEventListener('change', function(e) {
+      if (e.target && e.target.matches('.messages-multi-ck')) {
+        renderMessagesMultiState();
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      renderMessagesMultiState();
+      var btn = qs('#messages-multi-send-btn');
+      if (btn) {
+        btn.addEventListener('click', window.MessagesMultiSubmit);
+      }
+    });
+  })();
 </script>
 
 
@@ -3603,7 +3897,7 @@ $('#edit_chat_group_form').ajaxForm({
 <style>
 
   /* Chỉ áp dụng trong tab multi-chat */
-#multi-chat .message-form {
+#messages-multi-chat .message-form {
   background: #fff;
   padding: 16px;
   border-radius: 8px;
@@ -3615,7 +3909,7 @@ $('#edit_chat_group_form').ajaxForm({
 }
 
 /* Container cho danh sách người dùng */
-#multi-chat #multi-all {
+#messages-multi-chat #messages-multi-all {
   margin: 0;
   padding: 0;
   height: auto;
@@ -3628,21 +3922,21 @@ $('#edit_chat_group_form').ajaxForm({
   box-sizing: border-box;
 }
 
-#multi-chat #multi-all::-webkit-scrollbar {
+#messages-multi-chat #messages-multi-all::-webkit-scrollbar {
   width: 6px;
 }
 
-#multi-chat #multi-all::-webkit-scrollbar-track {
+#messages-multi-chat #messages-multi-all::-webkit-scrollbar-track {
   background: #f5f5f5;
 }
 
-#multi-chat #multi-all::-webkit-scrollbar-thumb {
+#messages-multi-chat #messages-multi-all::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 3px;
 }
 
 /* Item người dùng */
-#multi-chat #multi-all .multi-user-item {
+#messages-multi-chat #messages-multi-all .messages-multi-user-item {
   list-style: none;
   margin: 8px 0;
   padding: 10px;
@@ -3657,13 +3951,13 @@ $('#edit_chat_group_form').ajaxForm({
   transition: background 0.15s, border-color 0.15s;
 }
 
-#multi-chat #multi-all .multi-user-item:hover {
+#messages-multi-chat #messages-multi-all .messages-multi-user-item:hover {
   background: #f5f7fa;
   border-color: #d1d8e4;
 }
 
 /* Wrapper chính */
-#multi-chat .recipient-chat-user-mul {
+#messages-multi-chat .messages-recipient-chat-user-mul {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -3672,7 +3966,7 @@ $('#edit_chat_group_form').ajaxForm({
 }
 
 /* Info user */
-#multi-chat .user-information {
+#messages-multi-chat .user-information {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -3681,7 +3975,7 @@ $('#edit_chat_group_form').ajaxForm({
   box-sizing: border-box;
 }
 
-#multi-chat .user-information img {
+#messages-multi-chat .user-information img {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -3690,7 +3984,7 @@ $('#edit_chat_group_form').ajaxForm({
 }
 
 /* Tên user */
-#multi-chat .chat-user-text-mul {
+#messages-multi-chat .messages-chat-user-text-mul {
   flex: 1 1 auto;
   min-width: 0;
   font-size: 14px;
@@ -3702,20 +3996,20 @@ $('#edit_chat_group_form').ajaxForm({
 }
 
 /* Status + action phía phải */
-#multi-chat .user-status-dot,
-#multi-chat .wow_chat_list-right {
+#messages-multi-chat .user-status-dot,
+#messages-multi-chat .wow_chat_list-right {
   flex: 0 1 auto;
   min-width: 0;
 }
 
-#multi-chat .user-status-dot svg {
+#messages-multi-chat .user-status-dot svg {
   width: 8px;
   height: 8px;
   fill: var(--dot, #CDCDCD);
 }
 
 /* Checkbox + nút */
-#multi-chat .wow_chat_list-right label {
+#messages-multi-chat .wow_chat_list-right label {
   margin: 0;
   display: flex;
   align-items: center;
@@ -3726,7 +4020,7 @@ $('#edit_chat_group_form').ajaxForm({
   flex-shrink: 0;
 }
 
-#multi-chat .wow_chat_list-right input[type="checkbox"] {
+#messages-multi-chat .wow_chat_list-right input[type="checkbox"] {
   margin: 0;
   width: 16px;
   height: 16px;
@@ -3734,7 +4028,7 @@ $('#edit_chat_group_form').ajaxForm({
   flex-shrink: 0;
 }
 
-#multi-chat .wow_chat_list-right .btn {
+#messages-multi-chat .wow_chat_list-right .btn {
   padding: 4px 8px;
   font-size: 12px;
   border: none;
@@ -3747,19 +4041,19 @@ $('#edit_chat_group_form').ajaxForm({
   flex-shrink: 0;
 }
 
-#multi-chat .wow_chat_list-right .btn:hover {
+#messages-multi-chat .wow_chat_list-right .btn:hover {
   background: #0056b3;
 }
 
 /* Chỉ áp dụng cho phần multi-chat, không cho toàn site nữa */
-#multi-chat {
+#messages-multi-chat {
   overflow-x: hidden;
   width: 100%;
   box-sizing: border-box;
 }
 
 /* Select tag user */
-#multi-chat #tag_user_id {
+#messages-multi-chat #messages_tag_user_id {
   padding: 8px 12px;
   border: 1px solid #ced4da;
   border-radius: 4px;
@@ -3778,14 +4072,14 @@ $('#edit_chat_group_form').ajaxForm({
   background-size: 16px;
 }
 
-#multi-chat #tag_user_id:focus {
+#messages-multi-chat #messages_tag_user_id:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
 
 /* Input file */
-#multi-chat #multi-file {
+#messages-multi-chat #messages-multi-file {
   padding: 8px;
   border: 1px solid #ced4da;
   border-radius: 4px;
@@ -3797,26 +4091,26 @@ $('#edit_chat_group_form').ajaxForm({
   transition: border-color 0.2s ease-in-out;
 }
 
-#multi-chat #multi-file:focus {
+#messages-multi-chat #messages-multi-file:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
 
 /* Checkbox chọn tất cả */
-#multi-chat #multi-select-all {
+#messages-multi-chat #messages-multi-select-all {
   margin-right: 8px;
   transform: scale(1.2);
   vertical-align: middle;
 }
 
-#multi-chat #multi-select-all + span {
+#messages-multi-chat #messages-multi-select-all + span {
   font-size: 14px;
   color: #333;
   vertical-align: middle;
 }
 
-#multi-chat label[for="multi-select-all"] {
+#messages-multi-chat label[for="messages-multi-select-all"] {
   display: flex;
   align-items: center;
   font-weight: 500;
@@ -3824,7 +4118,7 @@ $('#edit_chat_group_form').ajaxForm({
 }
 
 /* Nút gửi */
-#multi-chat #multi-send-btn {
+#messages-multi-chat #messages-multi-send-btn {
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 500;
@@ -3835,22 +4129,22 @@ $('#edit_chat_group_form').ajaxForm({
   transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
 }
 
-#multi-chat #multi-send-btn:hover {
+#messages-multi-chat #messages-multi-send-btn:hover {
   background-color: #0056b3;
   transform: translateY(-1px);
 }
 
-#multi-chat #multi-send-btn:active {
+#messages-multi-chat #messages-multi-send-btn:active {
   background-color: #004085;
   transform: translateY(0);
 }
 
 /* Form-group chỉ trong multi-chat */
-#multi-chat .form-group {
+#messages-multi-chat .form-group {
   margin-bottom: 15px;
 }
 
-#multi-chat .form-group label {
+#messages-multi-chat .form-group label {
   font-size: 14px;
   font-weight: 500;
   color: #333;
@@ -3859,7 +4153,7 @@ $('#edit_chat_group_form').ajaxForm({
 }
 
 /* Chips người nhận */
-#multi-chat #chips-inline {
+#messages-multi-chat #messages-chips-inline {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -3872,7 +4166,7 @@ $('#edit_chat_group_form').ajaxForm({
 }
 
 /* Textarea nội dung */
-#multi-chat #multi-text {
+#messages-multi-chat #messages-multi-text {
   width: 100%;
   padding: 10px;
   border: 1px solid #ced4da;
@@ -3884,7 +4178,7 @@ $('#edit_chat_group_form').ajaxForm({
   transition: border-color 0.2s ease-in-out;
 }
 
-#multi-chat #multi-text:focus {
+#messages-multi-chat #messages-multi-text:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
@@ -3892,30 +4186,30 @@ $('#edit_chat_group_form').ajaxForm({
 
 /* Responsive cho multi-chat */
 @media (max-width: 576px) {
-  #multi-chat #tag_user_id {
+  #messages-multi-chat #messages_tag_user_id {
     max-width: 100%;
     margin-left: 0;
     margin-top: 12px;
   }
 
-  #multi-chat #multi-file {
+  #messages-multi-chat #messages-multi-file {
     max-width: 100%;
   }
 
-  #multi-chat #multi-send-btn {
+  #messages-multi-chat #messages-multi-send-btn {
     width: 100%;
     margin-top: 10px;
   }
 
-  #multi-chat label[for="multi-select-all"] {
+  #messages-multi-chat label[for="messages-multi-select-all"] {
     font-size: 13px;
   }
 
-  #multi-chat #chips-inline {
+  #messages-multi-chat #messages-chips-inline {
     min-height: 48px;
   }
 
-  #multi-chat #multi-text {
+  #messages-multi-chat #messages-multi-text {
     min-height: 100px;
   }
 }
