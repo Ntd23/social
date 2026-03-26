@@ -1,0 +1,137 @@
+<?php
+if (empty($_GET['id'])) {
+   header("Location: " . $wo['config']['site_url']);
+   exit();
+}
+$field = Wo_GetFieldData($_GET['id']);
+if (empty($field)) {
+   header("Location: " . $wo['config']['site_url']);
+   exit();
+}
+?>
+<div class="container-fluid">
+    <div>
+        <h3>Edit Custom Field</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="#">Trang chủ</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Người dùng</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Edit Custom Field</li>
+            </ol>
+        </nav>
+    </div>
+    <!-- Vertical Layout -->
+    <div class="row">
+        <div class="col-lg-8 col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Edit Custom Field #<?php echo $_GET['id'] ?></h6>
+                    <div class="add-settings-alert"></div>
+                    <form class="add-settings" method="POST">
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">Tên trường</label>
+                                <input type="text" id="name" name="name" class="form-control" value="<?php echo $field['name']?>">
+                            </div>
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">Chiều dài trường: <small>Giá trị mặc định là 32 và giá trị tối đa là 1000</small></label>
+                                <input type="text" id="length" name="length" class="form-control" value="<?php echo $field['length']?>">
+                            </div>
+                        </div>
+                         <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">Field Description: <small>Mô tả sẽ hiển thị bên dưới trường</small></label>
+                                <textarea name="description" id="description" class="form-control" cols="30" rows="3"><?php echo $field['description']?></textarea>
+                            </div>
+                        </div>
+                        <label for="placement">Vị trí trường</label>
+                        <select class="form-control show-tick " id="placement" name="placement">
+                         	<option value="general" <?php echo ($field['placement'] == 'general') ? 'selected': '';?>>Cài đặt chung</option>
+		                 	<option value="profile" <?php echo ($field['placement'] == 'profile') ? 'selected': '';?>>Cài đặt hồ sơ</option>
+		                 	<option value="social" <?php echo ($field['placement'] == 'social') ? 'selected': '';?>>Liên kết xã hội</option>
+		                 	<option value="none" <?php echo ($field['placement'] == 'none') ? 'selected': '';?>>Không hiển thị trường trong trang cài đặt</option>
+                        </select>
+                        <div class="clearfix"></div>
+                        <br>
+                        <label for="registration_page">Hiển thị trên trang đăng ký</label>
+                        <select class="form-control show-tick" id="registration_page" name="registration_page">
+                         		<option value="0" <?php echo ($field['registration_page'] == '0') ? 'selected': '';?>>Không</option>
+                 				<option value="1" <?php echo ($field['registration_page'] == '1') ? 'selected': '';?>>Có</option>
+                        </select>
+                        <div class="clearfix"></div>
+                        <br>
+                        <label for="profile_page">Hiển thị trên trang hồ sơ người dùng</label>
+                        <select class="form-control show-tick" id="profile_page" name="profile_page">
+                         		<option value="0" <?php echo ($field['profile_page'] == '0') ? 'selected': '';?>>Không</option>
+                  				<option value="1" <?php echo ($field['profile_page'] == '1') ? 'selected': '';?>>Có</option>
+                        </select>
+                        <div class="clearfix"></div>
+                        <br>
+                        <label for="active">Active</label>
+                        <select class="form-control show-tick" id="active" name="active">
+                         		<option value="0" <?php echo ($field['active'] == '0') ? 'selected': '';?>>Không</option>
+                 				 <option value="1" <?php echo ($field['active'] == '1') ? 'selected': '';?>>Có</option>
+                        </select>
+                        <div class="clearfix"></div>
+                        <br><br>
+                        <?php if ($field['select_type'] == 'yes') { ?>
+                        <div class="form-group form-float options">
+                            <div class="form-line">
+                                <label class="form-label">Chọn Tùy chọn Trường: <small>Một lựa chọn trên mỗi dòng.</small></label>
+                                <textarea name="options" id="options" class="form-control" cols="30" rows="3"><?php echo str_replace(',', "\n", $field['type'])?></textarea>
+                            </div>
+                        </div>
+                        <?php } ?>
+                        <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+                        <input type="hidden" name="id" value="<?php echo $field['id'];?>">
+                        <button type="submit" class="btn btn-primary m-t-15 waves-effect">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <!-- #END# Vertical Layout -->
+<script>
+$(function() {
+	$('.chosen-select').on('change', function(evt, params) {
+       var selectedValue = $(this).val();
+       if (selectedValue == 'selectbox') {
+       	  $('.options').fadeIn(200);
+       } else {
+       	  $('.options').fadeOut(200);
+       }
+   });
+});
+
+$(function() {
+    var form_add_settings = $('form.add-settings');
+    form_add_settings.ajaxForm({
+        url: Wo_Ajax_Requests_File() + '?f=admin_setting&s=edit_field',
+        beforeSend: function() {
+            form_add_settings.find('.waves-effect').text('Vui lòng chờ...');
+        },
+        success: function(data) {
+            if (data.status == 200) {
+                $("html, body").animate({ scrollTop: 0 }, "slow");
+                $('.add-settings-alert').html('<div class="alert alert-success"><i class="fa fa-check"></i> Field added successfully</div>');
+                setTimeout(function () {
+		            window.location.href = '<?php echo Wo_LoadAdminLinkSettings('manage-profile-fields'); ?>';
+		        }, 1000);
+            } else if (data.status == 400) {
+	           $('.add-settings-alert').html('<div class="alert alert-danger">'+data.message+'</div>');
+                setTimeout(function () {
+                    $('.add-settings-alert').empty();
+                }, 3000);
+	        }
+	        form_add_settings.find('.waves-effect').text('Save');
+        }
+    });
+});
+</script>

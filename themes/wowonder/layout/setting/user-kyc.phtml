@@ -1,0 +1,61 @@
+<?php
+if (Wo_IsAdmin()) {
+  header('Location: ' . $wo['config']['site_url'] . '/admincp/s_requests');
+  exit();
+}
+?>
+
+
+<script src="<?php echo $wo['config']['theme_url'];?>/javascript/autosize.min.js"></script>
+<script>
+jQuery(function($){
+  // auto grow textarea
+  $("#text").autogrow({vertical:true, horizontal:false});
+
+  // Click để chọn file
+  $("#userverif-passport").on("click", function(){ $("#userfile-passport").trigger("click"); });
+  $("#userverif-selfie").on("click",   function(){ $("#userfile-selfie").trigger("click");  });
+
+  // Preview ảnh
+  $("#userfile-passport").on("change", function(){
+    var f = this.files[0]; if (!f) return;
+    $("#userverif-passport").html("<img src='"+ URL.createObjectURL(f) +"' alt='Passport' class='responsive-img'>");
+  });
+  $("#userfile-selfie").on("change", function(){
+    var f = this.files[0]; if (!f) return;
+    $("#userverif-selfie").html("<img src='"+ URL.createObjectURL(f) +"' alt='Selfie' class='responsive-img'>");
+  });
+
+  // ép chỉ digit cho CCCD
+  $('#cccd').on('input', function(){
+    this.value = this.value.replace(/[^0-9]/g,'').slice(0, 12);
+  });
+
+  // Submit AJAX (giữ endpoint cũ)
+  $(".user-verification-form").ajaxForm({
+    url: Wo_Ajax_Requests_File() + '?f=verificate-user',
+    type: 'POST',
+    dataType: 'json',
+    beforeSend: function(){
+      $('.wo_settings_page').find('.add_wow_loader').addClass('btn-loading');
+      $("#user-verificate-alert").empty();
+    },
+    success: function(data){
+      if (data && data.status == 200) {
+        $("#user-verificate-alert").html('<div class="alert alert-success">'+ (data.message || '') +'</div>');
+        if (data.url) window.location = data.url;
+      } else {
+        $("#user-verificate-alert").html('<div class="alert alert-danger">'+ (data && data.message ? data.message : '<?php echo $wo['lang']['error_msg']?>') +'</div>');
+      }
+    },
+    complete: function(){
+      $('.wo_settings_page').find('.add_wow_loader').removeClass('btn-loading');
+    }
+  });
+});
+</script>
+
+<style>
+.clickable{cursor:pointer}
+.responsive-img{max-width:100%;height:auto;border-radius:6px}
+</style>

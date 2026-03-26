@@ -1,0 +1,618 @@
+<?php
+$fields = Wo_GetWelcomeFileds();
+?>
+<div class="wrapper">
+	<div class="login">
+		<div class="login_left_combo_parent">
+			<div class="login_left_combo">
+				<a href="<?php echo $wo['config']['site_url']; ?>" class="logo"><img src="<?php echo $wo['config']['theme_url']; ?>/img/logo.<?php echo $wo['config']['logo_extension']; ?>" alt="Logo"> </a>
+				<h1><?php echo $wo['lang']['connect_with_friends'] ?></h1>
+				<p><?php echo $wo['lang']['welcome_share_text'] ?></p>
+				<div class="fadeInUp animated animated_6 img"><img src="<?php echo $wo['config']['theme_url']; ?>/img/backgrounds/register.jpg"></div>
+			</div>
+			<svg xmlns="http://www.w3.org/2000/svg" width="793" height="1024" viewBox="0 0 793 1024" preserveAspectRatio="none">
+				<defs>
+					<linearGradient id="linear-gradient" x1="0.066" y1="0.066" x2="1.068" y2="1.075" gradientUnits="objectBoundingBox">
+						<stop offset="0" />
+						<stop offset="1" stop-color="<?php echo $wo['config']['btn_background_color']; ?>" />
+					</linearGradient>
+					<clipPath id="clip-path">
+						<rect id="Rectangle_9" data-name="Rectangle 9" width="793" height="1024" fill="#fff" />
+					</clipPath>
+					<filter id="Path_12714" x="-258.718" y="668.282" width="1450.299" height="710.185" filterUnits="userSpaceOnUse">
+						<feOffset dy="13" input="SourceAlpha" />
+						<feGaussianBlur stdDeviation="15.5" result="blur" />
+						<feFlood flood-opacity="0.161" />
+						<feComposite operator="in" in2="blur" />
+						<feComposite in="SourceGraphic" />
+					</filter>
+					<filter id="Path_12715" x="-105.819" y="797.563" width="1134.181" height="538.486" filterUnits="userSpaceOnUse">
+						<feOffset dy="15" input="SourceAlpha" />
+						<feGaussianBlur stdDeviation="17" result="blur-2" />
+						<feFlood flood-opacity="0.349" />
+						<feComposite operator="in" in2="blur-2" />
+						<feComposite in="SourceGraphic" />
+					</filter>
+				</defs>
+				<g id="Rectangle_8" data-name="Rectangle 8" stroke="<?php echo $wo['config']['btn_background_color']; ?>" stroke-width="1" fill="url(#linear-gradient)" style="mix-blend-mode: multiply;isolation: isolate">
+					<rect width="793" height="1024" stroke="none" />
+					<rect x="0.5" y="0.5" width="792" height="1023" fill="none" />
+				</g>
+				<g id="Mask_Group_4" data-name="Mask Group 4" clip-path="url(#clip-path)">
+					<g id="Group_13906" data-name="Group 13906" transform="translate(1227.782 1153.043) rotate(180)" opacity="0.54">
+						<path id="Path_12713" data-name="Path 12713" d="M-5894.321-7099.4s163.513,301.819,384.911,412.243,267.171-29.452,500.682,29.452,205.095,175.206,371.288,195.191,226.553,0,293.483-144.4-39.545-197.743-39.545-346.053,39.545-218.046,39.545-218.046Z" transform="translate(5874.603 7034.028)" fill="<?php echo $wo['config']['btn_background_color']; ?>" opacity="0.68" />
+						<g transform="matrix(-1, 0, 0, -1, 1227.78, 1153.04)" filter="url(#Path_12714)">
+							<path id="Path_12714-2" data-name="Path 12714" d="M-5894.321-7109.194s141.139,260.521,332.244,355.836,230.614-25.422,432.174,25.422,177.032,151.232,320.484,168.483,195.554,0,253.326-124.639-34.134-170.686-34.134-298.7,34.134-188.211,34.134-188.211Z" transform="translate(-4749.24 -5852.04) rotate(180)" fill="<?php echo $wo['config']['btn_background_color']; ?>" opacity="0.46" />
+						</g>
+						<g transform="matrix(-1, 0, 0, -1, 1227.78, 1153.04)" filter="url(#Path_12715)">
+							<path id="Path_12715-2" data-name="Path 12715" d="M-5894.321-7124s107.332,198.118,252.66,270.6,204.216-38.665,357.5,0,183.031,93.193,210.813,104.632,152.776,42.826,196.709-51.958-25.958-129.8-25.958-227.154,25.958-143.128,25.958-143.128Z" transform="translate(-4916.96 -5900.96) rotate(180)" fill="<?php echo $wo['config']['btn_background_color']; ?>" opacity="0.77" />
+						</g>
+					</g>
+				</g>
+			</svg>
+		</div>
+		<div class="col-md-6">
+			<div class="login_innre">
+				<form id="register" method="post">
+					<p class="title main"><?php echo $wo['lang']['register'] ?></p>
+					<p class="desc"><?php echo str_replace(array('{site_name}', '{Site_Name}', '{sito_name}'), array($wo['config']['siteName'], $wo['config']['siteName'], $wo['config']['siteName']), $wo['lang']['register_create_account']) ?></p>
+					<div class="alert alert-danger errors"></div>
+					<?php if ($wo['config']['auto_username'] == 1) { ?>
+						<div class="register_name_row">
+							<div class="wow_form_fields">
+								<label for="first_name"><?php echo $wo['lang']['first_name'] ?></label>
+								<input id="first_name" name="first_name" type="text" autocomplete="off" autofocus>
+							</div>
+							<!-- <div class="wow_form_fields">
+								<label for="last_name"><?php echo $wo['lang']['last_name'] ?></label>
+								<input id="last_name" name="last_name" type="text" autocomplete="off">
+							</div> -->
+						</div>
+					<?php } else { ?>
+						<div class="wow_form_fields">
+							<label for="username"><?php echo $wo['lang']['username'] ?></label>
+							<input id="username" name="username" type="text" autocomplete="off" autofocus>
+							<span id="username_error" class="validate" style="display:none;"></span>
+						</div>
+					<?php } ?>
+					<div class="wow_form_fields">
+						<label><?php echo $wo['lang']['birthday'] ?></label>
+						<div class="register_name_row birthday_row" style="display:flex;flex-wrap:nowrap;align-items:flex-start;">
+							<div class="wow_form_fields" style="flex:1 1 0;min-width:0;">
+								<select id="birth_day" name="birth_day">
+									<option value=""><?php echo $wo['lang']['day']; ?></option>
+									<?php for ($day = 1; $day <= 31; $day++) { ?>
+										<option value="<?php echo $day; ?>"><?php echo $day; ?></option>
+									<?php } ?>
+								</select>
+							</div>
+							<div class="wow_form_fields" style="flex:1 1 0;min-width:0;">
+								<select id="birth_month" name="birth_month">
+									<option value=""><?php echo $wo['lang']['month']; ?></option>
+									<?php for ($month = 1; $month <= 12; $month++) { ?>
+										<option value="<?php echo $month; ?>"><?php echo $month; ?></option>
+									<?php } ?>
+								</select>
+							</div>
+							<div class="wow_form_fields" style="flex:1 1 0;min-width:0;">
+								<select id="birth_year" name="birth_year">
+									<option value=""><?php echo $wo['lang']['year']; ?></option>
+									<?php for ($year = date('Y'); $year >= 1900; $year--) { ?>
+										<option value="<?php echo $year; ?>"><?php echo $year; ?></option>
+									<?php } ?>
+								</select>
+							</div>
+						</div>
+					</div>
+					<div class="wow_form_fields">
+						<label for="gender"><?php echo $wo['lang']['gender'] ?></label>
+						<select name="gender" id="gender">
+							<option value="0"><?php echo $wo['lang']['gender'] ?></option>
+							<?php foreach ($wo['genders'] as $key => $gender) { ?>
+								<option value="<?php echo ($key) ?>"><?php echo $gender; ?></option>
+							<?php } ?>
+						</select>
+					</div>
+					<?php if ($wo['config']['sms_or_email'] == 'sms') { ?>
+						<div class="wow_form_fields">
+							<label for="phone_num_ex"><?php echo $wo['lang']['phone_num_ex'] ?></label>
+							<input id="phone_num_ex" name="phone_num" type="text" />
+						</div>
+					<?php } ?>
+				
+					<div class="wow_form_fields">
+						<label for="email"><?php echo $wo['lang']['email_address'] ?></label>
+						<input id="email" name="email" type="text" />
+					</div>
+					<div class="wow_form_fields pw-field">
+						<label for="password"><?php echo $wo['lang']['password'] ?></label>
+
+						<div class="pw-wrap">
+							<input id="password" name="password" type="password" />
+							<!-- NÚT HIỆN / ẨN MẬT KHẨU -->
+							<button
+								type="button"
+								class="pw-toggle"
+								aria-label="Hiện/ẩn mật khẩu"
+								aria-pressed="false"
+								title="Hiện/ẩn"
+								style="
+		background: transparent !important;
+		border: none !important;
+		padding: 0;
+		margin: 0;
+		box-shadow: none !important;
+		border-radius: 0 !important;
+	">
+								<!-- eye on -->
+								<svg class="eye-on" width="20" height="20" viewBox="0 0 24 24" fill="none">
+									<path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7S2 12 2 12Z"
+										stroke="currentColor" stroke-width="2"
+										stroke-linecap="round" stroke-linejoin="round" />
+									<circle cx="12" cy="12" r="3"
+										stroke="currentColor" stroke-width="2" />
+								</svg>
+
+								<!-- eye off -->
+								<svg class="eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none">
+									<path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+									<path d="M2 12s3.8-7 10-7c2.2 0 4.1.7 5.7 1.7M22 12s-3.8 7-10 7c-2.2 0-4.1-.7-5.7-1.7"
+										stroke="currentColor" stroke-width="2"
+										stroke-linecap="round" stroke-linejoin="round" />
+									<path d="M9.5 9.5A3 3 0 0012 15a3 3 0 002.5-1.5"
+										stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+								</svg>
+							</button>
+						</div>
+
+						<?php if ($wo['config']['password_complexity_system'] == 1) { ?>
+							<ul class="list-unstyled helper-text">
+								<li class="length"><?php echo $wo['lang']['least_characters']; ?></li>
+								<li class="lowercase"><?php echo $wo['lang']['contain_lowercase']; ?></li>
+								<li class="uppercase"><?php echo $wo['lang']['contain_uppercase']; ?></li>
+								<li class="special"><?php echo $wo['lang']['number_special']; ?></li>
+							</ul>
+						<?php } ?>
+					</div>
+
+					<div class="wow_form_fields" style="display: none;">
+						<label for="confirm_password"><?php echo $wo['lang']['confirm_password'] ?></label>
+						<div class="pw-wrap">
+							<input id="confirm_password" name="confirm_password" type="password"  />
+
+							<!-- NÚT HIỆN / ẨN MẬT KHẨU -->
+							<button
+								type="button"
+								class="pw-toggle"
+								aria-label="Hiện/ẩn mật khẩu"
+								aria-pressed="false"
+								title="Hiện/ẩn"
+								style="
+		background: transparent !important;
+		border: none !important;
+		padding: 0;
+		margin: 0;
+		box-shadow: none !important;
+		border-radius: 0 !important;
+	">
+								<!-- eye on -->
+								<svg class="eye-on" width="20" height="20" viewBox="0 0 24 24" fill="none">
+									<path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7S2 12 2 12Z"
+										stroke="currentColor" stroke-width="2"
+										stroke-linecap="round" stroke-linejoin="round" />
+									<circle cx="12" cy="12" r="3"
+										stroke="currentColor" stroke-width="2" />
+								</svg>
+
+								<!-- eye off -->
+								<svg class="eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none">
+									<path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+									<path d="M2 12s3.8-7 10-7c2.2 0 4.1.7 5.7 1.7M22 12s-3.8 7-10 7c-2.2 0-4.1-.7-5.7-1.7"
+										stroke="currentColor" stroke-width="2"
+										stroke-linecap="round" stroke-linejoin="round" />
+									<path d="M9.5 9.5A3 3 0 0012 15a3 3 0 002.5-1.5"
+										stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+								</svg>
+							</button>
+						</div>
+
+					</div>
+					<?php
+					if (!empty($fields) && count($fields) > 0) {
+						foreach ($fields as $key => $wo['field']) {
+							echo Wo_LoadPage('welcome/fields');
+						}
+					}
+					?>
+					
+					
+					<?php if ($wo['config']['reCaptcha'] == 1) { ?>
+						<div class="form-group" style="margin-top:10px;">
+							<div class="g-recaptcha" data-sitekey="<?php echo $wo['config']['reCaptchaKey'] ?>"></div>
+						</div>
+					<?php } ?>
+					<?php if (!empty($_GET['last_url'])) { ?>
+						<div class="form-group">
+							<input type="hidden" name="last_url" value="<?php echo urldecode(Wo_Secure($_GET['last_url'])); ?>">
+						</div>
+					<?php } ?>
+					<div class="terms">
+						<input type="checkbox" name="is_shop" id="is_shop" value="1">
+						<label for="is_shop">
+							<?php echo $wo['lang']['is_shop']; ?>
+							<a href="<?php echo Wo_SeoLink('index.php?link1=terms&type=terms'); ?>" class="main">
+								<?php echo $wo['lang']['terms_of_use']; ?>
+							</a> &
+							<a href="<?php echo Wo_SeoLink('index.php?link1=terms&type=privacy-policy'); ?>" class="main">
+								<?php echo $wo['lang']['privacy_policy']; ?>
+							</a>
+						</label>
+						<div class="clear"></div>
+					</div>
+
+					<div class="terms">
+						<input type="checkbox" name="accept_terms" id="accept_terms" onchange="activateButton(this)">
+						<label for="accept_terms">
+							<?php echo $wo['lang']['terms_agreement'] ?> <a href="<?php echo Wo_SeoLink('index.php?link1=terms&type=terms'); ?>" class="main"><?php echo $wo['lang']['terms_of_use'] ?></a> & <a href="<?php echo Wo_SeoLink('index.php?link1=terms&type=privacy-policy'); ?>" class="main"><?php echo $wo['lang']['privacy_policy'] ?></a>
+						</label>
+						<div class="clear"></div>
+					</div>
+
+					<div class="login_signup_combo">
+						<div class="login__">
+							<button type="submit" class="btn btn-main btn-mat add_wow_loader" id="sign_submit" disabled><?php echo $wo['lang']['lets_go'] ?></button>
+						</div>
+						<div class="signup__">
+							<p><?php echo $wo['lang']['already_have_account'] ?> <a class="dec main" href="<?php echo $wo['config']['site_url']; ?>"><?php echo $wo['lang']['login'] ?></a></p>
+						</div>
+					</div>
+					<?php
+					if (isset($_GET['invite']) && (Wo_IsAdminInvitationExists($_GET['invite']) || Wo_IsUserInvitationExists($_GET['invite']))): ?>
+						<input type="text" class="hidden" value="<?php echo $_GET['invite']; ?>" name="invited">
+					<?php endif; ?>
+				</form>
+			</div>
+			<div class="footer">
+				<?php echo Wo_LoadPage('footer/welcome'); ?>
+				<div class="clearfix"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	var working = false;
+	var $this = $('#register');
+	var $state = $this.find('.errors');
+	$(function() {
+		var passwordInput = document.getElementById('password');
+		var confirmPasswordInput = document.getElementById('confirm_password');
+		if (passwordInput && confirmPasswordInput) {
+			var syncConfirmPassword = function() {
+				confirmPasswordInput.value = passwordInput.value;
+			};
+			syncConfirmPassword();
+			passwordInput.addEventListener('input', syncConfirmPassword);
+			passwordInput.addEventListener('change', syncConfirmPassword);
+		}
+
+		$this.ajaxForm({
+			url: Wo_Ajax_Requests_File() + '?f=register',
+			beforeSend: function() {
+				if (passwordInput && confirmPasswordInput) {
+					confirmPasswordInput.value = passwordInput.value;
+				}
+				<?php if ($wo['config']['password_complexity_system'] == 1) { ?>
+					if ($('.helper-text .length').hasClass('valid') && $('.helper-text .lowercase').hasClass('valid') && $('.helper-text .uppercase').hasClass('valid') && $('.helper-text .special').hasClass('valid')) {
+						working = true;
+						$this.find('button').attr("disabled", true);
+						$this.find('.add_wow_loader').addClass('btn-loading');
+					} else {
+						$state.html("<?php echo ($wo['lang']['complexity_requirements']) ?>");
+						return false;
+					}
+				<?php } else { ?>
+					working = true;
+					$this.find('button').attr("disabled", true);
+					$this.find('.add_wow_loader').addClass('btn-loading');
+				<?php } ?>
+
+
+			},
+			success: function(data) {
+				if (data.status == 200) {
+					$state.removeClass('alert-danger');
+					$state.addClass('alert-success');
+					$state.html('<?php echo $wo['lang']['welcome_'] ?>');
+					$this.find('.add_wow_loader').removeClass('btn-loading');
+					setTimeout(function() {
+						window.location.href = data.location;
+					}, 1000);
+				} else if (data.status == 300) {
+					window.location.href = data.location;
+				} else {
+					$this.find('button').attr("disabled", false);
+					$this.find('.add_wow_loader').removeClass('btn-loading');
+					$state.html(data.errors);
+				}
+				working = false;
+			}
+		});
+	});
+
+	function activateButton(element) {
+		if (element.checked) {
+			document.getElementById("sign_submit").disabled = false;
+		} else {
+			document.getElementById("sign_submit").disabled = true;
+		}
+	};
+
+	<?php if ($wo['config']['password_complexity_system'] == 1) { ?>
+
+			(function() {
+				var helperText = {
+					charLength: document.querySelector('.helper-text .length'),
+					lowercase: document.querySelector('.helper-text .lowercase'),
+					uppercase: document.querySelector('.helper-text .uppercase'),
+					special: document.querySelector('.helper-text .special')
+				};
+				var password = document.querySelector('#password');
+
+
+
+				var pattern = {
+					charLength: function() {
+						if (password.value.length >= 6) {
+							return true;
+						}
+					},
+					lowercase: function() {
+						var regex = /^(?=.*[a-z]).+$/; // Lowercase character pattern
+
+						if (regex.test(password.value)) {
+							return true;
+						}
+					},
+					uppercase: function() {
+						var regex = /^(?=.*[A-Z]).+$/; // Uppercase character pattern
+
+						if (regex.test(password.value)) {
+							return true;
+						}
+					},
+					special: function() {
+						var regex = /^(?=.*[0-9_\W]).+$/; // Special character or number pattern
+
+						if (regex.test(password.value)) {
+							return true;
+						}
+					}
+				};
+
+				// Listen for keyup action on password field
+				function CheckCPassword() {
+					$('.helper-text').slideDown('slow', function() {
+
+					});
+					// Check that password is a minimum of 8 characters
+					patternTest(pattern.charLength(), helperText.charLength);
+
+					// Check that password contains a lowercase letter		
+					patternTest(pattern.lowercase(), helperText.lowercase);
+
+					// Check that password contains an uppercase letter
+					patternTest(pattern.uppercase(), helperText.uppercase);
+
+					// Check that password contains a number or special character
+					patternTest(pattern.special(), helperText.special);
+
+					// Check that all requirements are fulfilled
+					if (hasClass(helperText.charLength, 'valid') &&
+						hasClass(helperText.lowercase, 'valid') &&
+						hasClass(helperText.uppercase, 'valid') &&
+						hasClass(helperText.special, 'valid')
+					) {
+						addClass(password.parentElement, 'valid');
+					} else {
+						removeClass(password.parentElement, 'valid');
+					}
+				}
+				password.addEventListener('keyup', CheckCPassword);
+				password.addEventListener('input', CheckCPassword);
+
+				function patternTest(pattern, response) {
+					if (pattern) {
+						addClass(response, 'valid');
+					} else {
+						removeClass(response, 'valid');
+					}
+				}
+
+				function addClass(el, className) {
+					if (el.classList) {
+						el.classList.add(className);
+					} else {
+						el.className += ' ' + className;
+					}
+				}
+
+				function removeClass(el, className) {
+					if (el.classList)
+						el.classList.remove(className);
+					else
+						el.className = el.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+				}
+
+				function hasClass(el, className) {
+					if (el.classList) {
+						console.log(el.classList);
+						return el.classList.contains(className);
+					} else {
+						new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className);
+					}
+				}
+
+			})();
+	<?php } ?>
+</script>
+<style>
+	/* Nút trong form (Đăng ký / Đăng nhập / social...) */
+	.login button {
+		color: #D4D3CE !important;
+		border: none !important;
+	}
+
+	/* Ô mật khẩu có icon mắt */
+	.pw-field {
+		position: relative;
+	}
+
+	/* Để icon định vị theo ô */
+	.pw-wrap {
+		position: relative;
+	}
+
+	/* Input: chừa chỗ cho icon bên phải */
+	.pw-wrap input {
+		width: 100%;
+		padding-right: 44px;
+	}
+
+	/* Nút mắt */
+	.pw-toggle {
+		position: absolute;
+		right: 12px;
+		top: 50%;
+		transform: translateY(-50%);
+
+		cursor: pointer;
+		width: 40px;
+		height: 40px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+
+		background: transparent !important;
+		/* KHÔNG nền */
+		border: none !important;
+		/* KHÔNG viền */
+		padding: 0;
+		color: #9ca3af !important;
+		/* viền mắt xám (stroke = currentColor) */
+	}
+
+	.pw-toggle:hover {
+		color: #6b7280;
+		/* hover xám đậm hơn chút */
+	}
+
+	.pw-toggle:focus {
+		outline: 2px solid #93c5fd;
+		border-radius: 6px;
+	}
+
+	/* icon mặc định: eye-on */
+	.pw-toggle .eye-on {
+		display: inline-block;
+	}
+
+	.pw-toggle .eye-off {
+		display: none;
+	}
+
+	/* khi aria-pressed="true" (đang hiển thị mật khẩu) → show eye-off */
+	.pw-toggle[aria-pressed="true"] .eye-on {
+		display: none;
+	}
+
+	.pw-toggle[aria-pressed="true"] .eye-off {
+		display: inline-block;
+	}
+
+	/* spacing & validate text cho username */
+	.wow_form_fields input+span {
+		display: block;
+		margin-top: 8px;
+		line-height: 1.4;
+	}
+
+	.wow_form_fields label {
+		display: block;
+		margin-bottom: 6px;
+	}
+
+	.validate {
+		color: #dc2626;
+		font-size: 1.2rem;
+	}
+
+	.wow_form_fields input.input-error {
+		border-color: #dc2626 !important;
+	}
+</style>
+
+<script>
+	(function() {
+		document.addEventListener('click', function(e) {
+			var btn = e.target.closest('.pw-toggle');
+			if (!btn) return;
+
+			var wrap = btn.closest('.pw-wrap') || btn.closest('.pw-field') || btn.closest('.wow_form_fields');
+			var input = wrap && wrap.querySelector('input[type="password"], input[type="text"]');
+			if (!input) return;
+
+			var show = (input.type === 'password'); // chuẩn bị chuyển sang hiển thị?
+			input.type = show ? 'text' : 'password';
+			btn.setAttribute('aria-pressed', String(show));
+
+			// KHÔNG cần đổi hidden cho SVG nữa; CSS dựa vào aria-pressed sẽ tự đổi icon
+		});
+	})();
+</script>
+<script>
+	// Validate live username: không khoảng trắng, không dấu
+	(function() {
+		var usernameInput = document.getElementById('username');
+		var errorSpan = document.getElementById('username_error');
+		if (!usernameInput || !errorSpan) return;
+
+		function hasAccents(str) {
+			if (!str) return false;
+			// Bóc dấu ra, nếu khác nhau => có dấu
+			try {
+				return str.normalize('NFD').match(/[\u0300-\u036f]/);
+			} catch (e) {
+				// fallback: check ký tự ngoài ASCII
+				return /[^\x00-\x7F]/.test(str);
+			}
+		}
+
+		function validateUsernameLive() {
+			var value = usernameInput.value || '';
+			var hasSpace = /\s/.test(value);
+			var hasAccent = hasAccents(value);
+
+			// Nếu rỗng thì ẩn lỗi
+			if (value.length === 0) {
+				errorSpan.style.display = 'none';
+				errorSpan.textContent = '';
+				usernameInput.classList.remove('input-error');
+				return;
+			}
+
+			if (hasSpace || hasAccent) {
+				errorSpan.style.display = 'block';
+				errorSpan.textContent = 'Tên tài khoản không được chứa khoảng trắng hoặc dấu. Vui lòng dùng chữ không dấu, không khoảng cách.';
+				usernameInput.classList.add('input-error');
+			} else {
+				errorSpan.style.display = 'none';
+				errorSpan.textContent = '';
+				usernameInput.classList.remove('input-error');
+			}
+		}
+
+		usernameInput.addEventListener('input', validateUsernameLive);
+		usernameInput.addEventListener('blur', validateUsernameLive);
+	})();
+</script>

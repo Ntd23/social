@@ -1,0 +1,64 @@
+<div class="container-fluid">
+    <div>
+        <h3>Quản lý trang điều khoản</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="#">Trang chủ</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Trang</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Quản lý trang điều khoản</li>
+            </ol>
+        </nav>
+    </div>
+    <!-- Vertical Layout -->
+    <div class="row">
+        <div class="col-lg-12 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Quản lý trang điều khoản</h6>
+                    <div class="langs-settings-alert"></div>
+                   <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover" style="table-layout: inherit; border-top: 1px solid;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center;">Tên trang</th>
+                                    <th style="text-align: center;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="setting-postlist">
+                                   <td style="text-align: center;">Điều khoản sử dụng</td>
+                                   <td style="text-align: center;">
+                                      <a class="btn bg-success admn_table_btn" href="<?php echo Wo_LoadAdminLinkSettings('edit-terms-pages?type=terms_of_use_page');?>">Chỉnh sửa</a>
+                                   </td>
+                                </tr>
+                                <tr class="setting-postlist">
+                                   <td style="text-align: center;">Chính sách bảo mật</td>
+                                   <td style="text-align: center;">
+                                      <a class="btn bg-success admn_table_btn" href="<?php echo Wo_LoadAdminLinkSettings('edit-terms-pages?type=privacy_policy_page');?>">Chỉnh sửa</a>
+                                   </td>
+                                </tr>
+                                <tr class="setting-postlist">
+                                   <td style="text-align: center;">Giới thiệu</td>
+                                   <td style="text-align: center;">
+                                      <a class="btn bg-success admn_table_btn" href="<?php echo Wo_LoadAdminLinkSettings('edit-terms-pages?type=about_page');?>">Chỉnh sửa</a>
+                                   </td>
+                                </tr>
+                                <tr class="setting-postlist">
+                                   <td style="text-align: center;">Hoàn tiền</td>
+                                   <td style="text-align: center;">
+                                      <a class="btn bg-success admn_table_btn" href="<?php echo Wo_LoadAdminLinkSettings('edit-terms-pages?type=refund_terms_page');?>">Chỉnh sửa</a>
+                                   </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <!-- #END# Vertical Layout -->

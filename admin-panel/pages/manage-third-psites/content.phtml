@@ -1,0 +1,104 @@
+<div class="container-fluid">
+    <div>
+        <h3>Các trang web của bên thứ ba</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="#">Trang chủ</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Cài đặt API</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Các trang web của bên thứ ba</li>
+            </ol>
+        </nav>
+    </div>
+	<div class="row">
+    <div class="col-lg-6 col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Các trang web của bên thứ ba</h6>
+                <div class="third-party-sites-alert"></div>
+                <form class="third-party-sites-settings" method="POST">
+                    <div class="form-group form-float">
+                        <div class="form-line">
+                            <label class="form-label">PlayTube</label>
+                            <input type="text" name="playtube_url" class="form-control" value="<?php echo $wo['config']['playtube_url'];?>">
+                            <small class="admin-info">Trang web của bạn sử dụng PlayTube Script, ví dụ: https://demo.playtubescript.com</small>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning">Tính năng này cho phép bạn tích hợp tập lệnh PlayTube vào trang web của mình, do đó video sẽ được nhúng vào hộp thư nếu ai đó chia sẻ liên kết từ trang web của bạn.</div>
+                    <p> <a href="https://goo.gl/KvoSwz" target="_blank">PlayTube là gì?</a>?</p>
+                    <div class="clearfix"></div>
+                    <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+                    <button type="submit" class="btn btn-primary m-t-15 waves-effect">Lưu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Các trang web của bên thứ ba</h6>
+                <div class="third-party-sites-alert-deep"></div>
+                <form class="third-party-sites-settings-deep" method="POST">
+                    <div class="form-group form-float">
+                        <div class="form-line">
+                            <label class="form-label">DeepSound</label>
+                            <input type="text" name="deepsound_url" class="form-control" value="<?php echo $wo['config']['deepsound_url'];?>">
+                            <small class="admin-info">Trang web của bạn sử dụng DeepSound Script, ví dụ: https://demo.deepsoundscript.com</small>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning">Tính năng này cho phép bạn tích hợp tập lệnh Deep Sound vào trang web của mình, do đó Âm thanh sẽ được nhúng vào hộp thư nếu ai đó chia sẻ liên kết từ trang web của bạn.</div>
+                    <p> <a href="https://codecanyon.net/item/deepsound-the-ultimate-php-music-sharing-platform/23609470?s_rank=1" target="_blank">DeepSound là gì?</a>?</p>
+                    <div class="clearfix"></div>
+                    <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+                    <button type="submit" class="btn btn-primary m-t-15 waves-effect">Lưu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+	</div>
+</div>
+
+
+<script>
+
+$(function() {
+    var form_email_settings = $('form.third-party-sites-settings');
+    var form_deep_settings = $('form.third-party-sites-settings-deep');
+    form_email_settings.ajaxForm({
+        url: Wo_Ajax_Requests_File() + '?f=admin_setting&s=update_general_setting',
+        beforeSend: function() {
+            form_email_settings.find('button').text('Vui lòng chờ...');
+        },
+        success: function(data) {
+            if (data.status == 200) {
+                form_email_settings.find('button').text('Lưu');
+                $("html, body").animate({ scrollTop: 0 }, "slow");
+                $('.third-party-sites-alert').html('<div class="alert alert-success"><i class="fa fa-check"></i> Settings updated successfully</div>');
+                setTimeout(function () {
+                    $('.third-party-sites-alert').empty();
+                }, 2000);
+            }
+        }
+    });
+    form_deep_settings.ajaxForm({
+        url: Wo_Ajax_Requests_File() + '?f=admin_setting&s=update_general_setting',
+        beforeSend: function() {
+            form_deep_settings.find('button').text('Vui lòng chờ...');
+        },
+        success: function(data) {
+            if (data.status == 200) {
+                form_deep_settings.find('button').text('Lưu');
+                $("html, body").animate({ scrollTop: 0 }, "slow");
+                $('.third-party-sites-alert-deep').html('<div class="alert alert-success"><i class="fa fa-check"></i> Settings updated successfully</div>');
+                setTimeout(function () {
+                    $('.third-party-sites-alert-deep').empty();
+                }, 2000);
+            }
+        }
+    });
+});
+</script>

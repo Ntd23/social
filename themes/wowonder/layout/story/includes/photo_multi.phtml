@@ -1,0 +1,224 @@
+<?php
+$photos = $wo['story']['photo_multi'] ?? [];
+if (!$photos) { return; }
+
+$pid     = (int)$wo['story']['id'];             // [1] thêm biến pid
+$count   = count($photos);
+$visible = ($count > 5) ? 5 : $count;
+$layout  = 'collage collage-'.($count >= 5 ? 5 : $count);
+if ($count > 5) $layout .= ' collage-many';
+
+// ===== Blur ảnh đầu (nếu có) =====
+if (!empty($wo['story']['blur']) && $wo['story']['blur'] == 1) { ?>
+  <div class="post-file show_album_<?php echo $pid; ?> blur_multi_images fullsizeimg-wrap"
+       id="fullsizeimg-<?php echo $pid; ?>-multi">  <!-- [2] ID duy nhất + class -->
+    <button class="btn btn-main image_blur_btn remover_blur_btn_<?php echo $pid; ?>"
+            onclick="Wo_RemoveBlurAlbum(this, <?php echo $pid; ?>)">
+      <?php echo $wo['lang']['view_image']; ?>
+    </button>
+    <img src="<?php echo Wo_GetMedia($photos[0]['image_org']); ?>"
+         alt="image"
+         class="image-file pointer image_blur remover_blur_<?php echo $pid; ?>">
+  </div>
+<?php } else { ?>  <!-- [3] mở else: chỉ render collage khi KHÔNG blur -->
+
+<div class="<?php echo $layout; ?>">
+  <?php
+    // đặt sẵn tên vùng grid cho 1..5 ảnh
+    $areas = ['a','b','c','d','e'];
+
+    for ($i = 0; $i < $visible; $i++):
+      $p = $photos[$i];
+
+      // ưu tiên ảnh đã resize (nhẹ) cho tile; fallback sang ảnh gốc nếu thiếu
+      $thumbUrl = $p['image'] ?? $p['image_org'];
+      // var_dump($thumbUrl);
+      $fullUrl  = Wo_GetMedia($p['image_org']);
+
+      // gọi Lightbox như cũ (server tự biết album/parent)
+      $call = "Wo_OpenAlbumLightBox(".$p['id'].", 'album');";
+      if (!empty($p['parent_id'])) { $call = "Wo_OpenLightBox(".$p['parent_id'].", 'album');"; }
+
+      // +N ở tile cuối nếu >5
+      $isMore = ($i === 4 && $count > 5);
+      $tileClass = $areas[$i] ?? '';
+
+      // responsive sizes: ảnh đầu (3/5 tấm) lớn hơn
+      $sizes = ($count == 1)
+        ? '100vw'
+        : (($i === 0 && in_array($count,[3,5]))
+            ? '(max-width:540px) 100vw, 60vw'
+            : '(max-width:540px) 50vw, 33vw');
+
+      // ưu tiên tải: chỉ tile đầu eager + fetchpriority=high
+      $loading = ($i === 0 ? 'eager' : 'lazy');
+      $fetchp  = ($i === 0 ? 'high'  : 'low');
+
+      // srcset: thumb ~600w, full ~1200w
+      $srcset = $thumbUrl . ' 600w, ' . $fullUrl . ' 1200w';
+  ?>
+    <figure class="tile <?php echo $tileClass; ?><?php echo $isMore ? ' tile-more' : ''; ?>"
+            onclick="<?php echo $call; ?>">
+      <img
+        src="<?php echo $thumbUrl; ?>"
+        srcset="<?php echo $srcset; ?>"
+        sizes="<?php echo $sizes; ?>"
+        alt="image"
+        class="image-file"
+        loading="<?php echo $loading; ?>"
+        decoding="async"
+        fetchpriority="<?php echo $fetchp; ?>">
+      <?php if ($isMore): ?>
+        <span class="more-overlay">+<?php echo ($count - 5); ?></span>
+      <?php endif; ?>
+    </figure>
+  <?php endfor; ?>
+</div>
+
+<?php } // đóng else (không blur) ?>
+
+
+<style>
+ /* ===== Collage base (nhẹ) ===== */
+.collage{ --gap:4px; --row:min(240px,24vw); display:grid; gap:var(--gap); width:100% }
+.collage .tile{ position:relative; overflow:hidden; border-radius:10px; background:#111 }
+.collage .tile img.image-file{ width:100%; height:100%; display:block; object-fit:cover }
+
+/* 1 ảnh: không cắt, tối đa 70vh */
+.collage-1{ grid-template-columns:1fr }
+.collage-1 .tile{ aspect-ratio:auto }
+.collage-1 .tile img{ height:auto; object-fit:contain; max-height:70vh }
+
+/* 2 ảnh */
+.collage-2{ grid-template-columns:repeat(2,1fr); grid-auto-rows:var(--row) }
+
+/* 3 ảnh: A cao bên trái; B,C xếp chồng bên phải (desktop) */
+.collage-3{
+  grid-template-columns:1.2fr 1fr;
+  grid-auto-rows:var(--row);
+  grid-template-areas:"a b" "a c";
+}
+.collage-3 .a{ grid-area:a } .collage-3 .b{ grid-area:b } .collage-3 .c{ grid-area:c }
+
+/* 4 ảnh: 2x2 */
+.collage-4{ grid-template-columns:repeat(2,1fr); grid-auto-rows:var(--row) }
+
+/* 5 ảnh: A cao bên trái; phải là 2x2 */
+.collage-5{
+  grid-template-columns:1.2fr 1fr 1fr;
+  grid-auto-rows:var(--row);
+  grid-template-areas:"a b c" "a d e";
+}
+.collage-5 .a{ grid-area:a } .collage-5 .b{ grid-area:b } .collage-5 .c{ grid-area:c }
+.collage-5 .d{ grid-area:d } .collage-5 .e{ grid-area:e }
+
+/* +N overlay */
+.tile-more .more-overlay{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.45); color:#fff; font-weight:800; font-size:22px; border-radius:inherit;
+}
+
+/* Mobile (≤540px): pattern giống FB mobile */
+@media (max-width:540px){
+  .collage{ --row:42vw }
+  .collage-3{
+    grid-template-columns:repeat(2,1fr);
+    grid-template-areas:"a a" "b c";
+  }
+  .collage-5{
+    grid-template-columns:repeat(2,1fr);
+    grid-template-areas:"a a" "b c" "d e";
+  }
+}
+
+/* Desktop rộng tinh chỉnh nhẹ */
+@media (min-width:1024px){
+  .collage{ --row:min(280px,22vw) }
+}
+/* ================= FB MOBILE LAYOUT (≤540px) ================= */
+/* ====== FB-like MOBILE (≤600px) — override dứt điểm ====== */
+@media (max-width:600px){
+  /* Quan trọng: bỏ ghim chiều cao hàng */
+  .collage{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: auto !important;   /* <-- then chốt */
+    gap:4px;
+  }
+
+  /* 1 ảnh: giữ nguyên tỉ lệ, không crop (giống FB) */
+  .collage-1{ grid-template-columns:1fr; }
+  .collage-1 .tile{ aspect-ratio:auto; }
+  .collage-1 .tile img{
+    width:100%;
+    height:auto !important;
+    object-fit:contain !important;
+    max-height:90vh;
+  }
+
+  /* 2 ảnh: 2 ô vuông */
+  .collage-2 .tile{ aspect-ratio:1 / 1; }
+
+  /* 3 ảnh: banner 2:1 trên, dưới 2 ô vuông */
+  .collage-3{
+    grid-template-areas:
+      "a a"
+      "b c";
+  }
+  .collage-3 .a{ grid-area:a; aspect-ratio:2 / 1; }
+  .collage-3 .b{ grid-area:b; aspect-ratio:1 / 1; }
+  .collage-3 .c{ grid-area:c; aspect-ratio:1 / 1; }
+
+  /* 4 ảnh: 2x2 ô vuông */
+  .collage-4 .tile{ aspect-ratio:1 / 1; }
+
+  /* 5 ảnh: banner 2:1 + 2x2 */
+  .collage-5{
+    grid-template-areas:
+      "a a"
+      "b c"
+      "d e";
+  }
+  .collage-5 .a{ grid-area:a; aspect-ratio:2 / 1; }
+  .collage-5 .b{ grid-area:b; aspect-ratio:1 / 1; }
+  .collage-5 .c{ grid-area:c; aspect-ratio:1 / 1; }
+  .collage-5 .d{ grid-area:d; aspect-ratio:1 / 1; }
+  .collage-5 .e{ grid-area:e; aspect-ratio:1 / 1; }
+
+  /* Ảnh fill khung, không méo (có crop nhẹ như FB) */
+  .collage .tile{
+    position:relative;
+    overflow:hidden;
+    border-radius:10px;
+    background:#111;
+  }
+  .collage .tile img.image-file{
+    width:100%;
+    height:100% !important;          /* đảm bảo fill theo ô */
+    object-fit:cover !important;     /* không kéo méo */
+    display:block;
+  }
+
+  /* +N gọn, tránh che ảnh */
+  .collage .tile-more .more-overlay{
+    position:absolute;
+    bottom:8px; left:8px;
+    padding:4px 8px;
+    background:rgba(0,0,0,.6);
+    color:#fff; font-weight:700; font-size:14px; border-radius:6px;
+  }
+}
+/* Hai ảnh cạnh nhau: cho khung dọc thân thiện & đẩy crop lên trên */
+@media (max-width:600px){
+  .collage-2 .tile{ aspect-ratio: 3 / 4 !important; } /* thay vì 1:1 → ít bị cắt người */
+}
+.collage-2 .tile img.image-file{
+  object-position: 50% 30% !important; /* nhìn lên phía trên, hạn chế cắt đầu */
+}
+
+/* Ảnh banner đầu trong layout 3/5 tấm cũng hay bị cắt phần trên → nâng khung nhìn */
+.collage-3 .a img.image-file,
+.collage-5 .a img.image-file{
+  object-position: 50% 35% !important;
+}
+</style>

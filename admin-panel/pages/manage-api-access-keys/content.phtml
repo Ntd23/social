@@ -1,0 +1,106 @@
+<div class="container-fluid">
+    <div>
+        <h3>Quản lý Khóa Máy chủ API</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="#">Trang chủ</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Cài đặt API</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Quản lý Khóa Máy chủ API</li>
+            </ol>
+        </nav>
+    </div>
+    <!-- Vertical Layout -->
+    <div class="row">
+        <div class="col-lg-6 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Cài đặt API (API v1)</h6>
+                    <div class="alert-info alert">Sử dụng các phím này để thiết lập ứng dụng của bạn.</div>
+                    <div class="email-settings-alert"></div>
+                    <form class="email-settings" method="POST">
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">API ID</label>
+                                <input type="text" id="app-id" name="app-id" class="form-control" value="<?php echo $wo['config']['widnows_app_api_id'];?>" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">Khóa bí mật API</label>
+                                <input type="text" id="app-key" name="app-key" class="form-control app-key" value="<?php echo $wo['config']['widnows_app_api_key'];?>" disabled>
+                            </div>
+                        </div>
+                        <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+                        <button type="button" class="btn btn-primary m-t-15 waves-effect" onclick="Wo_ResetKeys('hide')">KHÓA ĐẶT LẠI</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Khóa máy chủ (API v2)</h6>
+                    <div class="alert alert-info">Sử dụng khóa này để thiết lập và truy cập điểm cuối API.<a href="<?php echo $wo['config']['site_url']; ?>/api/v2/Documentation.html" target="_blank">Đọc tài liệu</a></div>
+                    <div class="email-settings-alert"></div>
+                    <form class="email-settings" method="POST">
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">Khóa máy chủ</label>
+                                <input type="text" id="app-key" name="app-key" class="form-control app-key" value="<?php echo $wo['config']['widnows_app_api_key'];?>" disabled>
+                            </div>
+                        </div>
+                        <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+                        <button type="button" class="btn btn-primary m-t-15 waves-effect" onclick="Wo_ResetKeys('hide')">ĐẶT LẠI KHÓA MÁY CHỦ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+    </div>
+    <!-- #END# Vertical Layout -->
+<div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModal1Label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModal1Label">Đặt lại khóa bí mật API?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn đặt lại khóa bí mật API không? Tất cả ứng dụng Windows/điện thoại của bạn sẽ ngừng hoạt động trên tất cả thiết bị của người dùng.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Đặt lại</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+function Wo_ResetKeys(type = 'show') {
+    if (type == 'hide') {
+      $('#DeleteModal').find('.btn-primary').attr('onclick', "Wo_ResetKeys()");
+      $('#DeleteModal').modal('show');
+      return false;
+    }
+    $('.email-settings').find('button').text('Vui lòng chờ...');
+    $.get(Wo_Ajax_Requests_File(), {f:'admin_setting', s: 'reset_windows_app_keys'}, function (data) {
+        if (data.status == 200) {
+            $('.app-key').val(data.app_key);
+        } else {
+            $('.email-settings-alert').html('<div class="alert alert-danger">Đã phát hiện lỗi khi đặt lại, vui lòng thử lại sau.</div>');
+              setTimeout(function () {
+                  $('.email-settings-alert').empty();
+              }, 2000);
+        }
+        $('.email-settings').find('button').text('KHÓA ĐẶT LẠI');
+    });
+}
+</script>

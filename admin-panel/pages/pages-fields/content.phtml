@@ -1,0 +1,316 @@
+<div class="container-fluid">
+    <div>
+        <h3>Trường Trang</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="#">Trang chủ</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Trường tùy chỉnh</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Trường Trang</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="row">
+        <div class="col-lg-12 col-md-12">
+            <div class="card">
+                <div class="card-body">
+					<a href="javascript:void(0)" class="btn btn-warning waves-effect waves-light m-t-20 pull-right" onclick="ShowAddModal()">Tạo trường tùy chỉnh mới</a>
+                  <h6 class="card-title">Trường Trang</h6>
+                  <div class="clearfix"></div>
+                  <br>
+                   <div class="table-responsive1">
+                        <table class="table table-bordered table-striped table-hover">
+                            <thead>
+                                <tr>
+                                  <th><input type="checkbox" id="check-all" class="filled-in check-all" ><label for="check-all"></label></th>
+                                   <th>ID</th>
+					               <th>Tên trường</th>
+					               <th>Loại</th>
+					               <th>Chiều dài</th>
+					               <th>Vị trí</th>
+					               <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+				                foreach (Wo_GetCustomFields('page') as $wo['field']) {
+				                    echo Wo_LoadAdminPage('pages-fields/list');
+				                }
+				                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="clearfix"></div>
+                        <div class="row">
+                            <div class="col-lg-3 col-md-3">
+                                <span>&nbsp;</span>
+                                <button type="button" class="btn btn-info waves-effect delete-selected d-block" disabled>Xóa mục đã chọn<span></span></button>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    </div>
+    <!-- #END# Vertical Layout -->
+<div class="modal fade" id="AddCustomModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content modal_content_back">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editcategoryModalLabel">Thêm trường mới</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="add_custom_field_form_alert"></div>
+       <div class="alert alert-info">Sử dụng để dịch dữ liệu trường. Ví dụ:</div><br>
+        <form class="add_custom_field_form" method="POST" id="modal-body-langs">
+          <label for="type">Loại trường</label>
+          <select class="form-control show-tick chosen-select" id="type" name="type">
+            <option value="textbox">Hộp văn bản</option>
+            <option value="textarea">Vùng văn bản</option>
+            <option value="selectbox">Chọn hộp</option>
+          </select>
+          <div class="clearfix"></div>
+          <br>
+          <div class="form-group form-float">
+              <div class="form-line">
+                <label class="form-label">Tên trường</label>
+                  <input type="text" id="name" name="name" class="form-control">
+              </div>
+          </div>
+         
+          <div class="form-group form-float">
+              <div class="form-line">
+                <label class="form-label">Chiều dài trường</label>
+                  <input type="text" id="length" name="length" class="form-control" value="32">
+                  <small class="admin-info">Giá trị mặc định là 32 và giá trị tối đa là 1000</small>
+              </div>
+          </div>
+           <div class="form-group form-float">
+              <div class="form-line">
+                <label class="form-label">Mô tả trường</label>
+                  <textarea name="description" id="description" class="form-control" cols="30" rows="3"></textarea>
+                  <small class="admin-info">Mô tả sẽ hiển thị bên dưới trường.</small>
+              </div>
+          </div>
+          <label for="required">Trường bắt buộc </label>
+          <select class="form-control show-tick chosen-select" id="required" name="required">
+            <option value="on">Bắt buộc</option>
+            <option value="off">Không bắt buộc</option>
+          </select>
+          <small class="admin-info">Trường này có bắt buộc không?</small>
+          <div class="clearfix"></div>
+          <br>
+          <div class="form-group form-float options" style="display:none">
+              <div class="form-line">
+                <label class="form-label">Chọn Tùy chọn Trường</label>
+                  <textarea name="options" id="options" class="form-control" cols="30" rows="3"></textarea>
+                  <small class="admin-info">Một lựa chọn trên mỗi dòng.</small>
+              </div>
+          </div>
+          <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+          <input type="hidden" name="placement" id="placement" value="page">
+          <div class="modal-footer">
+        
+        <button type="button" class="btn btn-primary modal_close_btn" data-dismiss="modal">Đóng</button>
+        <button type="submit" class="btn btn-success" id="add_custom_field_button">TẠO</button>
+      </div>
+        </form>
+        
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="EditCustomModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content modal_content_back">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editcategoryModalLabel">Chỉnh sửa trường</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="edit_custom_field_form_alert"></div>
+        <div class="alert alert-info">Sử dụng để dịch dữ liệu trường. Ví dụ:</div><br>
+        <form class="edit_custom_field_form" method="POST" id="modal-body-langs">
+          <div class="edit_custom_field_data"></div>
+
+          <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+          <input type="hidden" name="placement" id="placement" value="page">
+          <div class="modal-footer">
+        
+        <button type="button" class="btn btn-primary modal_close_btn" data-dismiss="modal">Đóng</button>
+        <button type="submit" class="btn btn-success" id="edit_custom_field_button">LƯU THAY ĐỔI</button>
+      </div>
+        </form>
+        
+      </div>
+      
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModal1Label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModal1Label">Xóa trường??</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+               Bạn có chắc chắn muốn xóa trường này không??
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="SelectedDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModal1Label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModal1Label">Xóa trường??</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa trường đã chọn không??
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="DeleteSelected()" data-dismiss="modal">Gửi</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+var add_custom_field_form = $('form.add_custom_field_form');
+
+add_custom_field_form.ajaxForm({
+    url: Wo_Ajax_Requests_File() + '?f=admin_setting&s=add_custom_field_form',
+    beforeSend: function() {
+        $('#add_custom_field_button').text("Please wait..");
+    },
+    success: function(data) {
+        if (data.status == 200) {
+            $('#add_custom_field_button').text('SAVE CHANGES');
+            $('.add_custom_field_form_alert').html('<div class="alert alert-success"><i class="fa fa-check"></i> Custom Field successfully added</div>');
+            setTimeout(function () {
+                $('.add_custom_field_form_alert').empty();
+            }, 2000);
+            window.location.reload();
+        }
+        else{
+          $('.add_custom_field_form_alert').html('<div class="alert alert-danger"><i class="fa fa-check"></i> '+data.message+'</div>');
+            setTimeout(function () {
+                $('.add_custom_field_form_alert').empty();
+            }, 2000);
+        }
+    }
+});
+
+var edit_custom_field_form = $('form.edit_custom_field_form');
+
+edit_custom_field_form.ajaxForm({
+    url: Wo_Ajax_Requests_File() + '?f=admin_setting&s=edit_custom_field_form',
+    beforeSend: function() {
+        $('#edit_custom_field_button').text("Please wait..");
+    },
+    success: function(data) {
+        if (data.status == 200) {
+            $('#edit_custom_field_button').text('SAVE CHANGES');
+            $('.edit_custom_field_form_alert').html('<div class="alert alert-success"><i class="fa fa-check"></i> Custom Field successfully edited</div>');
+            setTimeout(function () {
+                $('.edit_custom_field_form_alert').empty();
+            }, 2000);
+            window.location.reload();
+        }
+        else{
+          $('.edit_custom_field_form_alert').html('<div class="alert alert-danger"><i class="fa fa-check"></i> '+data.message+'</div>');
+            setTimeout(function () {
+                $('.edit_custom_field_form_alert').empty();
+            }, 2000);
+        }
+    }
+});
+
+
+$(function() {
+  $('.chosen-select').on('change', function(evt, params) {
+       var selectedValue = $(this).val();
+       if (selectedValue == 'selectbox') {
+          $('.options').fadeIn(200);
+       } else {
+          $('.options').fadeOut(200);
+       }
+   });
+});
+function ShowAddModal() {
+  $('#AddCustomModal').modal('show');
+}
+function ShowEditModal(self,id) {
+  $(self).text("Please wait..");
+  $.post(Wo_Ajax_Requests_File() + '?f=admin_setting&s=get_custom_field_info', {id: id,type: 'page'}, function(data, textStatus, xhr) {
+    if (data.status == 200) {
+      $('.edit_custom_field_data').html(data.html);
+      $('#EditCustomModal').modal('show');
+    }
+    $(self).text("EDIT");
+  });
+  
+}
+function Wo_DeleteField(id,type = 'show') {
+  if (id == '') {
+    return false;
+  }
+  if (type == 'hide') {
+      $('#DeleteModal').find('.btn-primary').attr('onclick', "Wo_DeleteField('"+id+"')");
+      $('#DeleteModal').modal('show');
+      return false;
+    }
+  $('#' + id).fadeOut(300, function () {
+    $(this).remove();
+  });
+  $.get(Wo_Ajax_Requests_File(), {f: 'admin_setting', s:'delete_custom_field', id:id, type:'page'});
+}
+$('.check-all').on('click', function(event) {
+    $('input:checkbox').not(this).prop('checked', this.checked);
+});
+$('.delete-checkbox, .check-all').change(function(event) {
+    $('.delete-selected').attr('disabled', false);
+    $('.delete-selected').find('span').text(' (' + $('.delete-checkbox:checked').length + ')');
+});
+
+$('.delete-selected').on('click', function(event) {
+    event.preventDefault();
+    $('#SelectedDeleteModal').modal('show');
+});
+function DeleteSelected() {
+    data = new Array();
+    $('td input:checked').parents('tr').each(function () {
+        data.push($(this).attr('data_selected'));
+    });
+    $('.delete-selected').attr('disabled', true);
+    $('.delete-selected').text('Vui lòng chờ...');
+    $.post(Wo_Ajax_Requests_File()+"?f=admin_setting&s=remove_multi_custom_field&type=page", {ids: data}, function () {
+        $.each( data, function( index, value ){
+            $('#' + value).remove();
+        });
+        $('.delete-selected').text('Delete Selected');
+    });
+}
+</script>

@@ -1,0 +1,342 @@
+<div class="modal fade wow_mat_pops" id="send_money_modal" role="dialog">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="wow_pops_head">
+        <svg height="100px" preserveAspectRatio="none" version="1.1" viewBox="0 0 300 100" width="300px" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30.913,43.944c0,0,42.911-34.464,87.51-14.191c77.31,35.14,113.304-1.952,146.638-4.729 c48.654-4.056,69.94,16.218,69.94,16.218v54.396H30.913V43.944z" fill="currentColor" opacity="0.6"></path>
+          <path d="M-35.667,44.628c0,0,42.91-34.463,87.51-14.191c77.31,35.141,113.304-1.952,146.639-4.729 c48.653-4.055,69.939,16.218,69.939,16.218v54.396H-35.667V44.628z" fill="currentColor" opacity="0.6"></path>
+          <path d="M-34.667,62.998c0,0,56-45.667,120.316-27.839C167.484,57.842,197,41.332,232.286,30.428 c53.07-16.399,104.047,36.903,104.047,36.903l1.333,36.667l-372-2.954L-34.667,62.998z" fill="currentColor"></path>
+        </svg>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"></path>
+          </svg></button>
+        <h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z"></path>
+          </svg> <?php echo $wo['lang']['send_money_friends'] ?></h4>
+      </div>
+      <div class="modal-body">
+        <form class="form" id="send-money-form" autocomplete="off">
+          <div id="send-money-form-alert">
+            <?php if ($wo['user']['wallet'] == '0.00' || $wo['user']['wallet'] == '0'): ?>
+              <div class="alert alert-warning">
+                <?php echo $wo['lang']['balance_is_0'] ?> <a href="<?php echo Wo_SeoLink('index.php?link1=wallet'); ?>"><?php echo $wo['lang']['top_up'] ?></a>
+              </div>
+            <?php else: ?>
+              <div class="alert alert-info"><?php echo $wo['lang']['u_send_money']; ?></div>
+            <?php endif; ?>
+          </div>
+          <div class="wow_snd_money_form text-center">
+            <p class="bold"><?php echo $wo['lang']['amount']; ?></p>
+            <div class="add-amount">
+              <h5><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><input type="number" placeholder="0.00" name="amount" id="amount" /></h5>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+              <div class="wow_form_fields">
+                <label for="search">
+                  <?php echo $wo['lang']['send_to']; ?>
+                  <button type="button" class="btn btn-sm btn-light" id="btn-open-scan" style="margin-left:8px">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M3 3h6v2H5v4H3V3m12 0h6v6h-2V5h-4V3M3 15h2v4h4v2H3v-6m18 6h-6v-2h4v-4h2v6Z" />
+                    </svg>
+                    Quét QR
+                  </button>
+                </label>
+                <input id="search" type="text" placeholder="<?php echo $wo['lang']['search_name_or_email']; ?>">
+                <div class="dropdown">
+                  <ul class="dropdown-menu money-recipients-list"></ul>
+                </div>
+              </div>
+
+            </div>
+            <div class="col-md-2"></div>
+          </div>
+          <p></p>
+          <div class="text-center">
+            <button type="submit" class="btn btn-main btn-mat btn-mat-raised add_wow_loader" <?php echo ($wo['user']['wallet'] == '0.00' || $wo['user']['wallet'] == '0') ? 'disabled' : ''; ?>>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M0.41,13.41L6,19L7.41,17.58L1.83,12M22.24,5.58L11.66,16.17L7.5,12L6.07,13.41L11.66,19L23.66,7M18,7L16.59,5.58L10.24,11.93L11.66,13.34L18,7Z"></path>
+              </svg> <?php echo $wo['lang']['continue']; ?>
+            </button>
+          </div>
+          <input type="hidden" id="recipient_user_id" name="user_id">
+        </form>
+        <div class="clear"></div>
+      </div>
+    </div>
+  </div>
+</div><!-- Modal quét QR -->
+<div class="modal fade" id="scan_qr_modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="wow_pops_head">
+        <h4>Quét mã QR</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="qr-reader" style="max-width: 320px; margin:auto"></div>
+        <div class="text-center small text-muted" style="margin-top:8px">
+          Hoặc chọn ảnh mã QR:
+          <input id="qr-image" type="file" accept="image/*" capture="environment" style="margin-top:6px">
+        </div>
+        <div id="qr-msg" class="alert" style="display:none;margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+  /* Ẩn thanh điều khiển của Html5QrcodeScanner */
+  #scan_qr_modal #qr-reader__dashboard,
+  #scan_qr_modal #qr-reader__status_span {
+    display: none !important;
+  }
+
+  /* Video full khung gọn gàng */
+  #scan_qr_modal #qr-reader__scan_region video {
+    width: 100% !important;
+    height: auto !important;
+  }
+</style>
+
+<!-- Thư viện quét QR (khuyên tải về assets khi lên production) -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+
+<script>
+jQuery(function ($) {
+  // ====== Config & cache DOM
+  const ajaxUrl     = (typeof Wo_Ajax_Requests_File === 'function') ? Wo_Ajax_Requests_File() : '/requests.php';
+  const $sendForm   = $('#send-money-form');
+  const $searchInp  = $sendForm.find('#search');
+  const $amountInp  = $sendForm.find('#amount');
+  const $recipIdInp = $('#recipient_user_id');
+  const $alertBox   = $('#send-money-form-alert');
+  const $scanModal  = $('#scan_qr_modal');
+  let scanner = null; // Html5QrcodeScanner
+
+  // ====== Utils
+  function debounce(fn, t){ let id; return function(){ clearTimeout(id); id=setTimeout(fn, t); }; }
+  function showFormAlert(msg, ok){
+    $alertBox.html($('<div>', {class:'alert '+(ok?'alert-info':'alert-danger'), text: msg}));
+  }
+  async function closeQRUI(){
+    try { if (scanner && typeof scanner.clear === 'function') await scanner.clear(); } catch(_) {}
+    scanner = null;
+    $('#qr-reader').empty();
+    $('#qr-msg').hide().removeClass('alert-success alert-danger').text('');
+    $('#qr-image').val('');
+    $scanModal.modal('hide');
+    // nếu có popup “QR nhận tiền” riêng:
+    $('#modalReceiveQR').modal('hide');
+    $('#receive-qr-img').attr('src','');
+  }
+  // Hỗ trợ các payload:
+  //  WALLET|to=123|amount=99.5(|lock=1)  /  URL ?to=&amount=  /  {"type":"wallet","to":123,"amount":99.5}
+  function parseWalletQR(text){
+    const out = {to:null, amount:null, lock:false};
+    if (!text) return out;
+
+    // JSON
+    if (text.trim().startsWith('{')) {
+      try {
+        const j = JSON.parse(text);
+        if (j && (j.type==='wallet' || j.type==='send')) {
+          out.to = j.to ? parseInt(j.to,10) : null;
+          out.amount = (j.amount!=null) ? parseFloat(j.amount) : null;
+          out.lock = !!j.lock;
+          return out;
+        }
+      } catch(_) {}
+    }
+    // WALLET|...
+    if (text.indexOf('|')>-1){
+      const parts = text.split('|'); parts.shift();
+      const map = {};
+      parts.forEach(kv=>{ const i=kv.indexOf('='); if(i>-1) map[kv.slice(0,i)] = kv.slice(i+1); });
+      if (map.to) out.to = parseInt(map.to,10);
+      if (map.amount!=null && map.amount!=='') out.amount = parseFloat(map.amount);
+      if (map.lock) out.lock = (parseInt(map.lock,10)===1);
+      return out;
+    }
+    // URL
+    try {
+      const u = new URL(text);
+      const to = u.searchParams.get('to'), am = u.searchParams.get('amount');
+      if (to) out.to = parseInt(to,10);
+      if (am) out.amount = parseFloat(am);
+      return out;
+    } catch(_) {}
+
+    return out;
+  }
+  function fetchUserBrief(uid){
+    // Cần có endpoint: ?f=qrcode&s=brief_by_id&id=UID (trả {status:200, name, username, email})
+    $.getJSON(ajaxUrl, {f:'qrcode', s:'brief_by_id', id: uid})
+      .done(function(res){
+        const label = (res && res.status===200)
+          ? (res.name || (res.username ? '@'+res.username : 'User #'+uid))
+          : ('User #'+uid);
+        $searchInp.val(label);
+      })
+      .fail(function(){ $searchInp.val('User #'+uid); });
+  }
+  function fillFromQR(text){
+    const p = parseWalletQR(text);
+    if (!p.to){ $('#qr-msg').show().addClass('alert-danger').text('QR không hợp lệ hoặc thiếu người nhận.'); return; }
+
+    $recipIdInp.val(p.to);
+    fetchUserBrief(p.to);
+    if (p.amount!=null && !isNaN(p.amount)){
+      $amountInp.val(String(p.amount));
+      if (p.lock) $amountInp.prop('readonly', true);
+    }
+    $scanModal.modal('hide');
+    $('#send_money_modal').modal('show');
+    showFormAlert('Đã điền người nhận #'+p.to+(p.amount!=null?(', số tiền '+p.amount):''), true);
+  }
+
+  // ====== Autocomplete tìm người nhận
+  $searchInp.on('keyup', debounce(function(){
+    const name = $(this).val();
+    $.ajax({
+      url: ajaxUrl,
+      type: 'GET',
+      dataType: 'json',
+      data: { f:'family', s:'search', name:name }
+    }).done(function(data){
+      const $dd = $sendForm.find('.dropdown').addClass('open').find('ul.money-recipients-list').empty();
+      if (data && data.status==200 && Array.isArray(data.users)){
+        data.users.forEach(u=>{
+          $('<li>', {class:'pointer', id:u.user_id, text:u.name}).appendTo($dd);
+        });
+      } else {
+        $sendForm.find('.dropdown').removeClass('open').find('ul').empty();
+      }
+    });
+  }, 250));
+
+  $(document).on('click', 'ul.money-recipients-list li', function(e){
+    e.preventDefault();
+    $recipIdInp.val($(this).attr('id'));
+    $searchInp.val($(this).text());
+    $sendForm.find('.dropdown').removeClass('open').find('ul').empty();
+  });
+
+  // ====== Submit gửi tiền (AJAX)
+  $sendForm.ajaxForm({
+    url: ajaxUrl + '?f=wallet&s=send',
+    type: 'POST',
+    dataType: 'json',
+    beforeSend: function(){
+      $sendForm.find('.add_wow_loader').attr('disabled', true).addClass('btn-loading');
+    },
+    success: function(data){
+      if (data && data.status==200){
+        // đóng mọi UI quét/QR nếu đang mở
+        closeQRUI();
+
+        // socket (giữ nguyên logic có sẵn)
+        if (typeof node_socket_flow !== 'undefined' && node_socket_flow == "1") {
+          if (typeof socket !== 'undefined') {
+            socket.emit("user_notification", {
+              to_id: $recipIdInp.val(),
+              user_id: (typeof _getCookie==='function') ? _getCookie("user_id") : null,
+              type: "added"
+            });
+          }
+        }
+
+        showFormAlert(data.message || 'Đã gửi tiền thành công.', true);
+        $sendForm.resetForm();
+
+        // đóng modal gửi sau 2s
+        setTimeout(function(){
+          $('#send_money_modal').modal('hide');
+          $sendForm.find('.add_wow_loader').prop('disabled', false).removeClass('btn-loading');
+        }, 2000);
+      } else {
+        showFormAlert((data && data.message) ? data.message : 'Có lỗi xảy ra.', false);
+        $sendForm.find('.add_wow_loader').prop('disabled', false).removeClass('btn-loading');
+      }
+    },
+    error: function(){
+      showFormAlert('Không gửi được yêu cầu. Vui lòng thử lại.', false);
+      $sendForm.find('.add_wow_loader').prop('disabled', false).removeClass('btn-loading');
+    }
+  });
+
+  // ====== QR scan (mở modal, auto start)
+  $(document).on('click', '#btn-open-scan', function(){ $scanModal.modal('show'); });
+
+  $scanModal.on('shown.bs.modal', function(){
+    try{
+      if (typeof Html5QrcodeScanner === 'undefined'){
+        $('#qr-msg').show().addClass('alert-danger').text('Không tải được thư viện quét QR.');
+        return;
+      }
+      if (scanner) return;
+
+      const config = {
+        fps: 12,
+        qrbox: {width: 250, height: 250},
+        rememberLastUsedCamera: true,
+        aspectRatio: 1.777,
+        supportedScanTypes: (window.Html5QrcodeScanType) ? [Html5QrcodeScanType.SCAN_TYPE_CAMERA] : undefined
+      };
+      scanner = new Html5QrcodeScanner('qr-reader', config);
+      scanner.render(onScanSuccess, onScanError);
+
+      // auto-chọn camera sau khi dashboard render
+      (function autoStart(){
+        const root = document.getElementById('qr-reader__dashboard');
+        if (!root){ setTimeout(autoStart, 100); return; }
+
+        // ưu tiên camera sau
+        const sel = root.querySelector('select');
+        if (sel && sel.options && sel.options.length){
+          let idx = 0;
+          for (let i=0;i<sel.options.length;i++){
+            if (/back|rear|environment/i.test(sel.options[i].textContent)){ idx=i; break; }
+          }
+          sel.selectedIndex = idx;
+          sel.dispatchEvent(new Event('change'));
+        }
+        // click "Start / Permission"
+        const btn = Array.from(root.querySelectorAll('button,a')).find(el => /start|scan|permission|quét/i.test(el.textContent||''));
+        if (btn) btn.click();
+      })();
+    }catch(err){
+      $('#qr-msg').show().addClass('alert-danger').text('Không thể khởi tạo camera: '+err);
+    }
+  });
+
+  $scanModal.on('hidden.bs.modal', function(){
+    Promise.resolve(scanner && scanner.clear()).catch(()=>{}).finally(()=>{
+      scanner = null;
+      $('#qr-reader').empty();
+      $('#qr-msg').hide().removeClass('alert-success alert-danger').text('');
+      $('#qr-image').val('');
+    });
+  });
+
+  function onScanSuccess(decodedText){
+    try { scanner && scanner.clear(); } catch(_){}
+    fillFromQR(decodedText);
+  }
+  function onScanError(_err){ /* frame errors – ignore */ }
+
+  // Fallback: quét từ ảnh
+  $('#qr-image').on('change', async function(e){
+    const file = e.target.files && e.target.files[0]; if (!file) return;
+    try { const text = await Html5Qrcode.scanFile(file, true); fillFromQR(text); }
+    catch { $('#qr-msg').show().addClass('alert-danger').text('Không đọc được mã từ ảnh.'); }
+  });
+});
+</script>

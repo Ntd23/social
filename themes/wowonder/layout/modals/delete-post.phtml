@@ -1,0 +1,14 @@
+<div class="modal fade" id="delete-post" role="dialog">
+	<div class="modal-dialog modal-md wow_mat_mdl">
+		<div class="modal-content">
+			
+			<div class="modal-body">
+				<p><?php echo $wo['lang']['confirm_delete_post']; ?></p>
+			</div>
+			<div class="modal-footer">
+				<div class="ball-pulse"><div></div><div></div><div></div></div>
+				<button id="delete-all-post" type="button" onclick="Wo_DeletePost(<?php echo $wo['story']['id'];?>);" class="btn main btn-mat"><?php echo $wo['lang']['delete']; ?></button>
+			</div>
+		</div>
+	</div>
+</div>

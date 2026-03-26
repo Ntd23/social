@@ -1,0 +1,214 @@
+Array
+(
+    [time] => 2025-10-17T08:30:14+00:00
+    [query] => Array
+        (
+            [f] => sepay
+            [s] => webhook
+            [token] => ***
+        )
+
+    [headers] => Array
+        (
+            [Cookie] => mode=day; src=1; cookieconsent_status=dismiss; ad-con=%7B%26quot%3Bdate%26quot%3B%3A%26quot%3B2025-10-17%26quot%3B%2C%26quot%3Bads%26quot%3B%3A%5B%5D%7D; user_id=a4bbb6f9585e1beafbaab4696a804b5d26a6e2835b70c03f6b4f34018de2c4fb1fbdfd4b38929365db64f68dee27eb08d29117c7da678f81; last_sidebar_update=1760672839; PHPSESSID=937tjlgb6vdc62ae504bfsto3m; memory=1; _us=1760776207
+            [Accept-Language] => en-US,en;q=0.9,vi;q=0.8
+            [Accept-Encoding] => gzip, deflate, br, zstd
+            [Sec-Fetch-Dest] => document
+            [Sec-Fetch-User] => ?1
+            [Sec-Fetch-Mode] => navigate
+            [Sec-Fetch-Site] => none
+            [Accept] => text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+            [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+            [Upgrade-Insecure-Requests] => 1
+            [Sec-Ch-Ua-Platform] => "Windows"
+            [Sec-Ch-Ua-Mobile] => ?0
+            [Sec-Ch-Ua] => "Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"
+            [Connection] => keep-alive
+            [Host] => vnseea.vn
+        )
+
+    [raw] => 
+    [post] => Array
+        (
+        )
+
+    [json] => Array
+        (
+        )
+
+    [remote] => 14.177.3.73
+)
+
+----
+Array
+(
+    [time] => 2025-10-17T08:45:42+00:00
+    [query] => Array
+        (
+            [f] => sepay
+            [s] => webhook
+            [token] => ***
+        )
+
+    [headers] => Array
+        (
+            [Cookie] => mode=day; src=1; cookieconsent_status=dismiss; ad-con=%7B%26quot%3Bdate%26quot%3B%3A%26quot%3B2025-10-17%26quot%3B%2C%26quot%3Bads%26quot%3B%3A%5B%5D%7D; user_id=a4bbb6f9585e1beafbaab4696a804b5d26a6e2835b70c03f6b4f34018de2c4fb1fbdfd4b38929365db64f68dee27eb08d29117c7da678f81; last_sidebar_update=1760672839; PHPSESSID=937tjlgb6vdc62ae504bfsto3m; memory=1; _us=1760777140
+            [Accept-Language] => en-US,en;q=0.9,vi;q=0.8
+            [Accept-Encoding] => gzip, deflate, br, zstd
+            [Sec-Fetch-Dest] => document
+            [Sec-Fetch-User] => ?1
+            [Sec-Fetch-Mode] => navigate
+            [Sec-Fetch-Site] => none
+            [Accept] => text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+            [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+            [Upgrade-Insecure-Requests] => 1
+            [Sec-Ch-Ua-Platform] => "Windows"
+            [Sec-Ch-Ua-Mobile] => ?0
+            [Sec-Ch-Ua] => "Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"
+            [Connection] => keep-alive
+            [Host] => vnseea.vn
+        )
+
+    [raw] => 
+    [post] => Array
+        (
+        )
+
+    [json] => Array
+        (
+        )
+
+    [remote] => 104.28.254.74
+)
+
+----
+Array
+(
+    [time] => 2025-10-17T08:48:49+00:00
+    [query] => Array
+        (
+            [f] => sepay
+            [s] => webhook
+            [token] => ***
+        )
+
+    [headers] => Array
+        (
+            [Cookie] => mode=day; src=1; cookieconsent_status=dismiss; ad-con=%7B%26quot%3Bdate%26quot%3B%3A%26quot%3B2025-10-17%26quot%3B%2C%26quot%3Bads%26quot%3B%3A%5B%5D%7D; user_id=a4bbb6f9585e1beafbaab4696a804b5d26a6e2835b70c03f6b4f34018de2c4fb1fbdfd4b38929365db64f68dee27eb08d29117c7da678f81; last_sidebar_update=1760672839; PHPSESSID=937tjlgb6vdc62ae504bfsto3m; memory=1; _us=1760777327
+            [Accept-Language] => en-US,en;q=0.9,vi;q=0.8
+            [Accept-Encoding] => gzip, deflate, br, zstd
+            [Sec-Fetch-Dest] => document
+            [Sec-Fetch-User] => ?1
+            [Sec-Fetch-Mode] => navigate
+            [Sec-Fetch-Site] => none
+            [Accept] => text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+            [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+            [Upgrade-Insecure-Requests] => 1
+            [Sec-Ch-Ua-Platform] => "Windows"
+            [Sec-Ch-Ua-Mobile] => ?0
+            [Sec-Ch-Ua] => "Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"
+            [Connection] => keep-alive
+            [Host] => vnseea.vn
+        )
+
+    [raw] => 
+    [post] => Array
+        (
+        )
+
+    [json] => Array
+        (
+        )
+
+    [remote] => 104.28.254.75
+)
+
+----
+Array
+(
+    [time] => 2025-10-17T08:49:38+00:00
+    [query] => Array
+        (
+            [f] => sepay
+            [s] => webhook
+            [token] => ***
+        )
+
+    [headers] => Array
+        (
+            [Content-Length] => 385
+            [Content-Type] => application/json
+            [Accept] => */*
+            [User-Agent] => Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36
+            [Host] => vnseea.vn
+        )
+
+    [raw] => {"gateway":"MBBank","transactionDate":"2025-10-17 15:49:00","accountNumber":"0374350103","subAccount":null,"code":"SEf45043","content":"QR   SEf45043   Ma giao dich  Trace879257 Trace 879257","transferType":"in","description":"BankAPINotify QR   SEf45043   Ma giao dich  Trace879257 Trace 879257","transferAmount":10000,"referenceCode":"FT25290099030359","accumulated":0,"id":26643116}
+    [post] => Array
+        (
+        )
+
+    [json] => Array
+        (
+            [gateway] => MBBank
+            [transactionDate] => 2025-10-17 15:49:00
+            [accountNumber] => 0374350103
+            [subAccount] => 
+            [code] => SEf45043
+            [content] => QR   SEf45043   Ma giao dich  Trace879257 Trace 879257
+            [transferType] => in
+            [description] => BankAPINotify QR   SEf45043   Ma giao dich  Trace879257 Trace 879257
+            [transferAmount] => 10000
+            [referenceCode] => FT25290099030359
+            [accumulated] => 0
+            [id] => 26643116
+        )
+
+    [remote] => 171.244.35.2
+)
+
+----
+Array
+(
+    [time] => 2025-10-17T08:54:08+00:00
+    [query] => Array
+        (
+            [f] => sepay
+            [s] => webhook
+            [token] => ***
+        )
+
+    [headers] => Array
+        (
+            [Content-Length] => 385
+            [Content-Type] => application/json
+            [Accept] => */*
+            [User-Agent] => Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36
+            [Host] => vnseea.vn
+        )
+
+    [raw] => {"gateway":"MBBank","transactionDate":"2025-10-17 15:54:00","accountNumber":"0374350103","subAccount":null,"code":"SEab30b6","content":"QR   SEab30b6   Ma giao dich  Trace892094 Trace 892094","transferType":"in","description":"BankAPINotify QR   SEab30b6   Ma giao dich  Trace892094 Trace 892094","transferAmount":10000,"referenceCode":"FT25290604341494","accumulated":0,"id":26643641}
+    [post] => Array
+        (
+        )
+
+    [json] => Array
+        (
+            [gateway] => MBBank
+            [transactionDate] => 2025-10-17 15:54:00
+            [accountNumber] => 0374350103
+            [subAccount] => 
+            [code] => SEab30b6
+            [content] => QR   SEab30b6   Ma giao dich  Trace892094 Trace 892094
+            [transferType] => in
+            [description] => BankAPINotify QR   SEab30b6   Ma giao dich  Trace892094 Trace 892094
+            [transferAmount] => 10000
+            [referenceCode] => FT25290604341494
+            [accumulated] => 0
+            [id] => 26643641
+        )
+
+    [remote] => 171.244.35.2
+)
+
+----

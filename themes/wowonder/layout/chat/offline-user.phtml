@@ -1,0 +1,68 @@
+<?php
+$message_count = Wo_CountMessages(array('new' => true, 'user_id' => $wo['chatList']['user_id']));
+$test = Wo_GetAllAssignedTagsByOwner();
+$chat_display_name = !empty($wo['chatList']['first_name']) ? $wo['chatList']['first_name'] : $wo['chatList']['name'];
+// echo "<pre>";
+// print_r($message_count);
+// echo "</pre>";
+?>
+<div class="recipient-chat-user" id="online_<?php echo $wo['chatList']['user_id']; ?>">
+	<?php
+	$lastseen = str_replace('<span class="small-last-seen">', '', Wo_UserStatus($wo['chatList']['user_id'], $wo['chatList']['lastseen']));
+	$lastseen = str_replace('</span>', '', $lastseen);
+	// echo "<pre>";
+	// print_r($wo['chatList']['user_id']);
+	// echo "</pre>";
+	?>
+	<div class="user-info" onclick="Wo_OpenChatTab(<?php echo $wo['chatList']['user_id']; ?>);" <?php if ($wo['config']['user_lastseen'] == 1 && $wo['chatList']['showlastseen'] != 0) { ?>title="<?php echo $lastseen ?>" <?php } ?>>
+		<img src="<?php echo $wo['chatList']['avatar']; ?>" alt="<?php echo $wo['chatList']['avatar']; ?> Profile Picture" />
+		<span class="chat-user-text" id="chat-tab-id"><?php echo $chat_display_name; ?>
+
+			<?php if (!empty($wo['chatList']['is_open_to_work']) && $wo['config']['website_mode'] == 'linkedin') { ?>
+				<span class="wo_open_job_badge" title="<?php echo ($wo['lang']['open_to_work']); ?>" data-toggle="tooltip"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24">
+						<path fill="currentColor" d="M10,2H14A2,2 0 0,1 16,4V6H20A2,2 0 0,1 22,8V19A2,2 0 0,1 20,21H4C2.89,21 2,20.1 2,19V8C2,6.89 2.89,6 4,6H8V4C8,2.89 8.89,2 10,2M14,6V4H10V6H14Z"></path>
+					</svg></span>
+			<?php } ?>
+
+		</span>
+
+
+		<div class="wow_chat_list-right onoff">
+			<div class="user_tag">
+				<?php
+				if (!empty($test)) {
+					foreach ($test as $te) {
+						if ($te['target_user_id'] == $wo['chatList']['user_id']) {
+							echo '<span class="badge user_tag" style="background:' . $te['color'] . ';width:30 px;display:inline-block;" title="' . $te['name'] . '">&nbsp;</span></br>';
+
+							// echo '<span class="user_tag_name">' . $te['name'] . '</span>';
+						}
+					}
+				}
+				?>
+			</div>
+
+			<span class="new-message-alert <?php echo ($message_count == 0) ? 'hidden' : ''; ?>"><?php echo $message_count; ?></span>
+			<svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24">
+				<path fill="#CDCDCD" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+			</svg>
+
+			<span class="chat-loading-icon"></span>
+			<!-- Button mở modal tag cho hội thoại hiện tại -->
+			<button
+				class="btn-open-tag-modal btn btn-sm"
+				style="padding:2px 5px; font-size:11px;"
+				data-target-type="user"
+				data-target-id="<?php echo (int)$wo['chatList']['user_id']; ?>"
+				title="Gán nhãn cho người dùng">
+				<i class="fa fa-tags" style="font-size:11px;"></i>
+				<span class="tag-dot"></span>
+			</button>
+
+		</div>
+	</div>
+</div>
+<div class="clear"></div>
+<style>
+	
+</style>

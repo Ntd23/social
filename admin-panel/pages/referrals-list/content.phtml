@@ -1,0 +1,66 @@
+<?php 
+if (empty($_GET['id'])) {
+	header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
+    exit();
+}
+if (!is_numeric($_GET['id'])) {
+	header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
+    exit();
+}
+$user_data = Wo_UserData($_GET['id']);
+if (empty($user_data)) {
+	header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
+    exit();
+}
+?>
+<div class="container-fluid">
+    <div>
+        <h3>Giới thiệu</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="#">Trang chủ</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Người dùng</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Hệ thống liên kết</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Giới thiệu</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="row">
+        <div class="col-lg-12 col-md-12">
+            <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">Referrals From The User: <?php echo $user_data['name']?></h6>
+                   <div class="table-responsive1">
+                        <table class="table table-bordered table-striped table-hover">
+                            <thead>
+                                <tr>
+                                      <th>ID</th>
+					                  <th>Tên người dùng</th>
+					                  <th>Nguồn</th>
+					                  <th>E-mail</th>
+					                  <th>Địa chỉ IP</th>
+					                  <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                              <?php 
+                              foreach (Wo_GetReferrers($_GET['id']) as $wo['userlist']) {
+                                  echo Wo_LoadAdminPage('referrals-list/list');
+                              }
+                              ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    </div>
+    <!-- #END# Vertical Layout -->

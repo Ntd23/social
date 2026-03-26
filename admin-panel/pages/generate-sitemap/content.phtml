@@ -1,0 +1,67 @@
+<div class="container-fluid">
+    <div>
+        <h3>Tạo SiteMap</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="#">Trang chủ</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Công cụ</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Tạo SiteMap</li>
+            </ol>
+        </nav>
+    </div>
+    <!-- Vertical Layout -->
+    <div class="row">
+        <div class="col-lg-12 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Cập nhật SiteMap</h6>
+                    <div class="alert alert-info"><a href="<?php echo $wo['config']['site_url'] ?>/sitemap.xml" target="_blank"><?php echo $wo['config']['site_url'] ?>/sitemap.xml</a></div>
+                    <div class="sitemap-settings-alert"></div>
+                    <form class="sitemap-settings" method="POST">
+                        <label for="order_posts_by">Updating*</label>
+                        <select class="form-control show-tick" id="order_posts_by" name="order_posts_by">
+                              <option value="" disabled selected>Tốc độ cập nhật SiteMap. Mặc định (hàng ngày)</option>
+			                  <option value="daily">Hàng ngày</option>
+			                  <option value="always">Luôn luôn</option>
+			                  <option value="hourly">Hàng giờ</option>
+			                  <option value="weekly">Hàng tuần</option>
+			                  <option value="monthly">Hàng tháng</option>
+			                  <option value="yearly">Hàng năm</option>
+			                  <option value="never">Không bao giờ</option>
+                        </select>
+                        <div class="clearfix"></div>
+                        <br>
+                        <div class="alert alert-info">Lưu ý: Quá trình này có thể mất tới 10 phút.</div>
+                        <div class="clearfix"></div>
+                        <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+                        <button type="submit" class="btn btn-primary m-t-15 waves-effect">Tạo</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <!-- #END# Vertical Layout -->
+<script>
+
+$(function() {
+    var form_sitemap_settings = $('form.sitemap-settings');
+    form_sitemap_settings.ajaxForm({
+        url: Wo_Ajax_Requests_File() + "?f=admin_setting&s=update-sitemap",
+        beforeSend: function() {
+            form_sitemap_settings.find('.waves-effect').text('Vui lòng đợi...');
+        },
+        success: function(data) {
+            if (data.status == 200) {
+                $("html, body").animate({ scrollTop: 0 }, "slow");
+                $('.sitemap-settings-alert').html('<div class="alert alert-success"><i class="fa fa-check"></i> SiteMap successfully updated</div>');
+            }
+            form_sitemap_settings.find('.waves-effect').text('Tạo');
+        }
+    });
+});
+</script>

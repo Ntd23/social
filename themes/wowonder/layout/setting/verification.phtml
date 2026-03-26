@@ -1,0 +1,365 @@
+<?php
+if (Wo_IsAdmin()) {
+  header('Location: ' . $wo['config']['site_url'] . '/admincp/s_requests');
+  exit();
+}
+?>
+<?php
+// Nếu tài khoản là shop -> giao diện SHOP, ngược lại -> USER
+if (!Wo_IsAdmin() && !empty($wo['user']['is_shop']) && (int)$wo['user']['is_shop'] === 1):
+?>
+  <div class="wo_settings_page wow_content">
+    <div class="avatar-holder verification">
+      <img src="<?php echo $wo['setting']['avatar'] ?>" alt="<?php echo $wo['setting']['name'] ?> Profile Picture" class="avatar">
+      <div class="infoz">
+        <h5 title="<?php echo $wo['setting']['name'] ?>">
+          <a href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['setting']['username']); ?>"
+             data-ajax="?link1=timeline&u=<?php echo $wo['setting']['username'] ?>">
+            <?php echo $wo['setting']['name'] ?>
+          </a>
+        </h5>
+        <p><?php echo $wo['lang']['profile_verification']; ?> — <?php echo $wo['lang']['name_shop']; ?></p>
+      </div>
+    </div>
+    <hr>
+
+    <?php if (!empty($wo['available_verified_features'])) { ?>
+      <div>
+        <h5><?php echo $wo['lang']['after_verified'] ?></h5>
+        <ol>
+          <?php foreach ($wo['available_verified_features'] as $key => $value) { ?>
+            <li><?php echo $wo['lang'][$value]; ?></li>
+          <?php } ?>
+        </ol>
+      </div>
+    <?php } ?>
+
+    <?php if (Wo_IsVerificationRequestExists()): ?>
+      <div class="verification-status">
+        <h4>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+               class="feather feather-user-check">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <polyline points="17 11 19 13 23 9"></polyline>
+          </svg>&nbsp;<?php echo $wo['lang']['verification_sent']; ?>
+        </h4>
+      </div>
+
+    <?php elseif ($wo['user']['verified'] == 1): ?>
+      <div class="verification-status">
+        <h4>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+               viewBox="0 0 24 24" class="verified-color feather feather-check-circle">
+            <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"></path>
+          </svg>
+          <?php echo $wo['lang']['verification_complete']; ?>
+        </h4>
+      </div>
+
+    <?php else : ?>
+      <!-- SHOP FORM -->
+      <form action="#" method="post" class="form-horizontal setting-verification-form" enctype="multipart/form-data">
+        <div id="verificate-user-alert"></div>
+
+        <div class="wow_form_fields">
+          <label for="name"><?php echo $wo['lang']['name_shop']; ?></label>
+          <input id="name" name="name" type="text" class="form-control input-md">
+        </div>
+
+        <div class="wow_form_fields">
+          <label for="text_shop"><?php echo $wo['lang']['message']; ?></label>
+          <textarea name="text_shop" class="form-control" id="text_shop" rows="4"></textarea>
+        </div>
+
+        <div class="wow_form_fields mb-0">
+          <label><?php echo $wo['lang']['upload_docs']; ?></label>
+          <span class="help-block"><?php echo $wo['lang']['select_verif_images']; ?></span>
+        </div>
+
+        <!-- CẶP 1: Passport/ID & Ảnh cá nhân -->
+        <div class="select-user-verification-data">
+          <div class="select-user-verification-photos">
+            <div class="pull-left text-center clickable" id="verif-passport">
+              <div class="empty_state">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" fill="currentColor"></path></svg>
+                <?php echo $wo['lang']['passport_id']; ?>
+              </div>
+            </div>
+
+            <div class="pull-right text-center clickable" id="verif-selfie">
+              <div class="empty_state">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M4,5H7L9,3H15L17,5H20A2,2 0 0,1 22,7V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V7A2,2 0 0,1 4,5M16,17V16C16,14.67 13.33,14 12,14C10.67,14 8,14.67 8,16V17H16M12,9A2,2 0 0,0 10,11A2,2 0 0,0 12,13A2,2 0 0,0 14,11A2,2 0 0,0 12,9Z" fill="currentColor"></path></svg>
+                <?php echo $wo['lang']['personal_pic']; ?>
+              </div>
+            </div>
+          </div>
+          <div class="clear"></div>
+        </div>
+
+        <!-- CẶP 2: Ảnh cửa hàng & Giấy phép -->
+        <div class="select-user-verification-data">
+          <div class="select-user-verification-photos">
+            <div class="pull-left text-center clickable" id="verif-shop">
+              <div class="empty_state">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" fill="currentColor"></path></svg>
+                <?php echo $wo['lang']['shop_image']; ?>
+              </div>
+            </div>
+
+            <div class="pull-right text-center clickable" id="verif-license">
+              <div class="empty_state">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M4,5H7L9,3H15L17,5H20A2,2 0 0,1 22,7V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V7A2,2 0 0,1 4,5M16,17V16C16,14.67 13.33,14 12,14C10.67,14 8,14.67 8,16V17H16M12,9A2,2 0 0,0 10,11A2,2 0 0,0 12,13A2,2 0 0,0 14,11A2,2 0 0,0 12,9Z" fill="currentColor"></path></svg>
+                <?php echo $wo['lang']['license']; ?>
+              </div>
+            </div>
+          </div>
+          <div class="clear"></div>
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="btn btn-main btn-mat btn-mat-raised add_wow_loader">
+            <?php echo $wo['lang']['send']; ?>
+          </button>
+        </div>
+
+        <!-- Inputs file ẩn (SHOP) -->
+        <input type="file" name="passport"   class="hidden" id="file-passport" accept="image/*">
+        <input type="file" name="photo"      class="hidden" id="file-selfie"   accept="image/*">
+        <input type="file" name="shop_image" class="hidden" id="file-shop"     accept="image/*">
+        <input type="file" name="license"    class="hidden" id="file-license"  accept="image/*,application/pdf">
+
+        <input type="reset" class="hidden" id="reset-verification-request">
+      </form>
+    <?php endif; ?>
+  </div>
+
+<?php else: // USER UI ?>
+  <div class="wo_settings_page wow_content">
+    <div class="avatar-holder verification">
+      <img src="<?php echo $wo['setting']['avatar'] ?>" alt="<?php echo $wo['setting']['name'] ?> Profile Picture" class="avatar">
+      <div class="infoz">
+        <h5 title="<?php echo $wo['setting']['name'] ?>">
+          <a href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['setting']['username']); ?>"
+             data-ajax="?link1=timeline&u=<?php echo $wo['setting']['username']; ?>">
+            <?php echo $wo['setting']['name'] ?>
+          </a>
+        </h5>
+        <p><?php echo $wo['lang']['profile_verification']; ?> — <?php echo $wo['lang']['user']; ?></p>
+      </div>
+    </div>
+    <hr>
+
+    <?php if (!empty($wo['available_verified_features'])) { ?>
+      <div>
+        <h5><?php echo $wo['lang']['after_verified'] ?></h5>
+        <ol>
+          <?php foreach ($wo['available_verified_features'] as $k => $v) { ?>
+            <li><?php echo $wo['lang'][$v]; ?></li>
+          <?php } ?>
+        </ol>
+      </div>
+    <?php } ?>
+
+    <?php if (Wo_IsVerificationRequestExists()): ?>
+      <div class="verification-status">
+        <h4>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+               class="feather feather-user-check">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <polyline points="17 11 19 13 23 9"></polyline>
+          </svg>&nbsp;<?php echo $wo['lang']['verification_sent']; ?>
+        </h4>
+      </div>
+
+    <?php elseif ($wo['user']['verified'] == 1): ?>
+      <div class="verification-status">
+        <h4>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+               viewBox="0 0 24 24" class="verified-color feather feather-check-circle">
+            <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"></path>
+          </svg>
+          <?php echo $wo['lang']['verification_complete']; ?>
+        </h4>
+      </div>
+
+    <?php else: ?>
+      <!-- USER FORM -->
+      <form action="#" method="post" class="form-horizontal user-verification-form" enctype="multipart/form-data">
+        <div id="user-verificate-alert"></div>
+
+        <div class="wow_form_fields">
+          <label for="full_name">Họ và tên</label>
+          <input id="full_name" name="full_name" type="text"
+                 class="form-control input-md"
+                 value="<?php echo htmlspecialchars($wo['setting']['name']); ?>"
+                 required>
+        </div>
+
+        <div class="wow_form_fields">
+          <label for="dob">Ngày sinh</label>
+          <input id="dob" name="dob" type="date"
+                 class="form-control"
+                 required>
+        </div>
+
+        <div class="wow_form_fields">
+          <label for="cccd">Số CMND/CCCD</label>
+          <input id="cccd" name="cccd" type="text"
+                 class="form-control"
+                 inputmode="numeric" pattern="[0-9]{9,12}" maxlength="12"
+                 placeholder="9–12 chữ số" title="Nhập 9–12 chữ số"
+                 required>
+        </div>
+        <div class="wow_form_fields mb-0">
+          <label><?php echo $wo['lang']['upload_docs']; ?></label>
+          <span class="help-block"><?php echo $wo['lang']['select_verif_images']; ?></span>
+        </div>
+        <div class="select-user-verification-data">
+          <div class="select-user-verification-photos">
+            <div class="pull-left text-center clickable" id="userverif-passport">
+              <div class="empty_state">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" fill="currentColor"></path></svg>
+                CMND/CCCD/Hộ chiếu
+              </div>
+            </div>
+
+            <div class="pull-right text-center clickable" id="userverif-selfie">
+              <div class="empty_state">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M4,5H7L9,3H15L17,5H20A2,2 0 0,1 22,7V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V7A2,2 0 0,1 4,5M16,17V16C16,14.67 13.33,14 12,14C10.67,14 8,14.67 8,16V17H16M12,9A2,2 0 0,0 10,11A2,2 0 0,0 12,13A2,2 0 0,0 14,11A2,2 0 0,0 12,9Z" fill="currentColor"></path></svg>
+                Ảnh chân dung
+              </div>
+            </div>
+          </div>
+          <div class="clear"></div>
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="btn btn-main btn-mat btn-mat-raised add_wow_loader">
+            <?php echo $wo['lang']['send']; ?>
+          </button>
+        </div>
+
+        <!-- Inputs file ẩn (USER) -->
+        <input type="file" name="passport" class="hidden" id="userfile-passport" accept="image/*" required>
+        <input type="file" name="photo"    class="hidden" id="userfile-selfie"   accept="image/*" required>
+        <input type="reset" class="hidden" id="reset-user-verification-request">
+      </form>
+    <?php endif; ?>
+  </div>
+<?php endif; ?>
+
+<!-- JS: không cần jquery.form/autosize; có fallback an toàn -->
+<script>
+(function () {
+  // Lấy dữ liệu an toàn từ data-attributes (tránh inject PHP thẳng vào JS)
+  var dataEl = document.getElementById('verif-data');
+  var ERR_MSG = (dataEl && dataEl.dataset.err) || 'Có lỗi xảy ra';
+  var OK_MSG  = (dataEl && dataEl.dataset.ok)  || 'Thành công';
+  var SITE    = (dataEl && dataEl.dataset.site) || '';
+
+  // Lấy URL AJAX của WoWonder (nếu function JS có sẵn), nếu không thì fallback về /requests.php
+  function getAjaxUrl() {
+    try { if (typeof Wo_Ajax_Requests_File === 'function') return Wo_Ajax_Requests_File(); } catch(e){}
+    return SITE ? (SITE.replace(/\/+$/,'') + '/requests.php') : '/requests.php';
+  }
+
+  // Fallback autosize nếu bạn không nạp autosize.js (tránh 404 gây lỗi)
+  (function autosizeFallback(){
+    if (window.autosize) { window.autosize(document.querySelectorAll('textarea')); return; }
+    var tas = document.querySelectorAll('textarea');
+    for (var i=0;i<tas.length;i++){
+      (function(ta){
+        function resize(){ ta.style.height='auto'; ta.style.height = ta.scrollHeight + 'px'; }
+        ta.addEventListener('input', resize);
+        resize();
+      })(tas[i]);
+    }
+  })();
+
+  // Helper: bind click -> mở file input + preview (ảnh/PDF)
+  function bindPickAndPreview(boxId, inputId, allowPdf) {
+    var box = document.getElementById(boxId);
+    var input = document.getElementById(inputId);
+    if (!box || !input) return;
+
+    box.addEventListener('click', function(){ input.click(); });
+    input.addEventListener('change', function() {
+      var f = input.files && input.files[0]; if (!f) return;
+      if (allowPdf && f.type === 'application/pdf') {
+        box.innerHTML = "<div class='pdf-chip'>" + f.name + "</div>";
+      } else {
+        var url = URL.createObjectURL(f);
+        box.innerHTML = "<img src='" + url + "' alt='' class='responsive-img'>";
+      }
+    });
+  }
+
+  // SHOP previews
+  bindPickAndPreview('verif-passport','file-passport',false);
+  bindPickAndPreview('verif-selfie','file-selfie',false);
+  bindPickAndPreview('verif-shop','file-shop',false);
+  bindPickAndPreview('verif-license','file-license',true);
+
+  // USER previews
+  bindPickAndPreview('userverif-passport','userfile-passport',false);
+  bindPickAndPreview('userverif-selfie','userfile-selfie',false);
+
+  // Submit form bằng fetch + FormData (không cần jquery-form)
+  function bindAjaxForm(formSelector, endpoint, alertBoxId) {
+    var form = document.querySelector(formSelector);
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = form.querySelector('.add_wow_loader');
+      if (btn) btn.classList.add('btn-loading');
+
+      var fd = new FormData(form);
+      fetch(getAjaxUrl() + '?f=' + endpoint, {
+        method: 'POST',
+        body: fd,
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var box = document.getElementById(alertBoxId);
+        if (!box) return;
+        if (data && data.status == 200) {
+          box.innerHTML = '<div class="alert alert-success">' + (data.message || OK_MSG) + '</div>';
+          if (data.url) { window.location = data.url; }
+        } else {
+          box.innerHTML = '<div class="alert alert-danger">' + (data && data.message ? data.message : ERR_MSG) + '</div>';
+        }
+      })
+      .catch(function(){
+        var box = document.getElementById(alertBoxId);
+        if (box) box.innerHTML = '<div class="alert alert-danger">' + ERR_MSG + '</div>';
+      })
+      .finally(function(){
+        var b2 = form.querySelector('.add_wow_loader');
+        if (b2) b2.classList.remove('btn-loading');
+      });
+    });
+  }
+  // Gắn submit cho 2 form
+  bindAjaxForm('.setting-verification-form', 'verificate-shop', 'verificate-user-alert');
+  bindAjaxForm('.user-verification-form',     'verificate-user', 'user-verificate-alert');
+})();
+</script>
+
+
+<style>
+  .clickable { cursor: pointer; }
+  .pdf-chip {
+    display:inline-block; padding:6px 10px; border-radius:6px;
+    background:#f3f4f6; border:1px solid #e5e7eb; font-size:12px;
+  }
+  .responsive-img { max-width:100%; height:auto; border-radius:6px; }
+</style>
