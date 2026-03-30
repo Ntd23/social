@@ -3,6 +3,9 @@ use Twilio\Jwt\AccessToken;
 use Twilio\Jwt\Grants\VideoGrant;
 if ($f == 'create_new_video_call') {
     $data = array('status' => 400);
+    $message_page_html = '';
+    $chat_message_html = '';
+    $preview_text = Wo_GetCallMessageLabel('video');
     
     if (empty($_GET['user_id2']) || empty($_GET['user_id1']) || Wo_CheckMainSession($hash_id) === false || $_GET['user_id1'] != $wo['user']['user_id']) {
         exit();
@@ -40,6 +43,21 @@ if ($f == 'create_new_video_call') {
             'access_token' => $wo['AgoraToken']
         ));
         if ($insertData > 0) {
+            $call_message_id = Wo_RegisterCallMessage($_GET['user_id1'], $_GET['user_id2'], 'video');
+            if ($call_message_id > 0) {
+                $call_messages = Wo_GetMessages(array(
+                    'message_id' => $call_message_id,
+                    'user_id' => Wo_Secure($_GET['user_id2'])
+                ));
+                foreach ($call_messages as $wo['message']) {
+                    $wo['message']['color'] = Wo_GetChatColor($_GET['user_id1'], $_GET['user_id2']);
+                    $message_page_html .= Wo_LoadPage('messages/messages-text-list');
+                }
+                $wo['chat']['color'] = Wo_GetChatColor($_GET['user_id1'], $_GET['user_id2']);
+                foreach ($call_messages as $wo['chatMessage']) {
+                    $chat_message_html .= Wo_LoadPage('chat/chat-list');
+                }
+            }
             $wo['calling_user'] = $user_2;
             if (!empty($wo['calling_user']['ios_m_device_id']) && $wo['config']['ios_push_messages'] == 1) {
                 $send_array = array(
@@ -85,6 +103,9 @@ if ($f == 'create_new_video_call') {
                 'id' => $insertData,
                 'url' => $wo['config']['site_url'] . '/video-call/' . $room_script,
                 'html' => Wo_LoadPage('modals/calling'),
+                'message_page_html' => $message_page_html,
+                'chat_message_html' => $chat_message_html,
+                'preview_text' => $preview_text,
                 'text_no_answer' => $wo['lang']['no_answer'],
                 'text_please_try_again_later' => $wo['lang']['please_try_again_later']
             );
@@ -115,6 +136,21 @@ if ($f == 'create_new_video_call') {
             'room_name' => $room_script
         ));
         if ($insertData > 0) {
+            $call_message_id = Wo_RegisterCallMessage($_GET['user_id1'], $_GET['user_id2'], 'video');
+            if ($call_message_id > 0) {
+                $call_messages = Wo_GetMessages(array(
+                    'message_id' => $call_message_id,
+                    'user_id' => Wo_Secure($_GET['user_id2'])
+                ));
+                foreach ($call_messages as $wo['message']) {
+                    $wo['message']['color'] = Wo_GetChatColor($_GET['user_id1'], $_GET['user_id2']);
+                    $message_page_html .= Wo_LoadPage('messages/messages-text-list');
+                }
+                $wo['chat']['color'] = Wo_GetChatColor($_GET['user_id1'], $_GET['user_id2']);
+                foreach ($call_messages as $wo['chatMessage']) {
+                    $chat_message_html .= Wo_LoadPage('chat/chat-list');
+                }
+            }
             $wo['calling_user'] = $user_2;
             if (!empty($wo['calling_user']['ios_m_device_id']) && $wo['config']['ios_push_messages'] == 1) {
                 $send_array = array(
@@ -160,6 +196,9 @@ if ($f == 'create_new_video_call') {
                 'id' => $insertData,
                 'url' => $wo['config']['site_url'] . '/video-call/' . $insertData,
                 'html' => Wo_LoadPage('modals/calling'),
+                'message_page_html' => $message_page_html,
+                'chat_message_html' => $chat_message_html,
+                'preview_text' => $preview_text,
                 'text_no_answer' => $wo['lang']['no_answer'],
                 'text_please_try_again_later' => $wo['lang']['please_try_again_later']
             );
