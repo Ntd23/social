@@ -1,5 +1,6 @@
 <script>
-    window.location.href = "<?php echo $wo['config']['site_url']; ?>/call.php?room=<?php echo $wo['incall']['room_name']; ?>&type=audio";
+    var woAudioCallReturnUrl = encodeURIComponent(typeof Wo_GetCallReturnUrl === 'function' ? Wo_GetCallReturnUrl() : window.location.href);
+    window.location.href = "<?php echo $wo['config']['site_url']; ?>/call.php?room=<?php echo $wo['incall']['room_name']; ?>&type=audio&return_url=" + woAudioCallReturnUrl;
 </script>
 <div class="modal fade" id="re-talking-modal" role="dialog" data-backdrop="static" data-keyboard="false">
    <div class="modal-dialog">
@@ -30,6 +31,7 @@
 </div>
 <?php if ($wo['config']['agora_chat_video'] == 1) { ?>
   <script type="text/javascript">
+    var woTalkingReturnUrl = document.referrer || "<?php echo $wo['config']['site_url']; ?>";
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
     if (!navigator.getUserMedia) {
       $('#remote-media h3').text('Sorry, WebRTC is not available in your browser.');
@@ -113,15 +115,14 @@
         // client.unpublish(localStreams.camera.stream); // unpublish the camera stream
         // localStreams.camera.stream.close(); // clean up and close the camera stream
         $("#remote-media").empty() // clean up the remote feeds
-        location.href = "<?php echo($wo['config']['site_url']) ?>";
+        location.href = woTalkingReturnUrl;
       }, function(err) {
         console.log("client leave failed ", err); //error handling
       });
     }
     // remove the remote-container when a user leaves the channel
     client.on("peer-leave", function(evt) {
-
-      location.href = "<?php echo($wo['config']['site_url']) ?>";
+      location.href = woTalkingReturnUrl;
     });
 
     // use tokens for added security
@@ -130,13 +131,40 @@
     }
     $(document).on('click', '.decline-call', function(e) {
         leaveChannel(); 
-        location.href = "<?php echo($wo['config']['site_url']) ?>";
+        location.href = woTalkingReturnUrl;
     });
     
     initClientAndJoinChannel(agoraAppId, token, channelName, uid);
   </script>
 <?php }else{ ?>
 <script>
+var woTalkingReturnUrl = document.referrer || "<?php echo $wo['config']['site_url']; ?>";
+var woTalkingCallId = <?php echo (int) $wo['incall']['id']; ?>;
+var woTalkingJoinedAt = 0;
+var woTalkingClosed = false;
+
+function Wo_ReportTalkingClose(status, redirectNow) {
+  if (woTalkingClosed || woTalkingCallId < 1) {
+    if (redirectNow === true) {
+      location.href = woTalkingReturnUrl;
+    }
+    return;
+  }
+  woTalkingClosed = true;
+  var duration = woTalkingJoinedAt > 0 ? Math.max(0, Math.round((Date.now() - woTalkingJoinedAt) / 1000)) : 0;
+  $.get(Wo_Ajax_Requests_File(), {
+    f: 'close_call',
+    id: woTalkingCallId,
+    call_type: 'audio',
+    provider: '<?php echo ($wo['config']['agora_chat_video'] == 1 ? 'agora' : 'twilio'); ?>',
+    status: status,
+    duration: duration
+  }).always(function () {
+    if (redirectNow === true) {
+      location.href = woTalkingReturnUrl;
+    }
+  });
+}
 
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 if (!navigator.getUserMedia) {
@@ -154,28 +182,29 @@ Twilio.Video.connect('<?php echo $wo['incall']['access_token'];?>', { name: '<?p
     room.localParticipant.tracks.forEach(publication => {
       const attachedElements = publication.track.detach();
       attachedElements.forEach(element => element.remove());
-      $.get(Wo_Ajax_Requests_File(), {f:'cancel_call'}, function (data) {});
-      location.href = "<?php echo($wo['config']['site_url']) ?>";
+      Wo_ReportTalkingClose((woTalkingJoinedAt > 0 ? 'ended' : 'cancelled'), true);
     });
   });
   room.on('participantDisconnected', function(participant) {
     console.log(participant.identity + ' left the Room');
-    $.get(Wo_Ajax_Requests_File(), {f:'cancel_call'}, function (data) {});
-    location.href = "<?php echo($wo['config']['site_url']) ?>";
+    Wo_ReportTalkingClose((woTalkingJoinedAt > 0 ? 'ended' : 'cancelled'), true);
   });
   
   $(document).on('click', 'a[data-ajax]', function(e) {
-    $.get(Wo_Ajax_Requests_File(), {f:'cancel_call'}, function (data) {});
+      Wo_ReportTalkingClose((woTalkingJoinedAt > 0 ? 'ended' : 'cancelled'), false);
       room.disconnect();
   });
   $(document).on('click', '.decline-call', function(e) {
-    $.get(Wo_Ajax_Requests_File(), {f:'cancel_call'}, function (data) {});
+      Wo_ReportTalkingClose((woTalkingJoinedAt > 0 ? 'ended' : 'cancelled'), false);
       room.disconnect();
   });
 });
  
 function participantConnected(participant) {
   console.log('Participant "%s" connected', participant.identity);
+  if (woTalkingJoinedAt === 0) {
+    woTalkingJoinedAt = Date.now();
+  }
  
   const div = document.createElement('div');
   div.id = participant.sid;

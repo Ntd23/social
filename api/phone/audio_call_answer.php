@@ -72,11 +72,22 @@ if ($type == 'audio_call_answer') {
             			$id = Wo_Secure($_POST['call_id']);
 				        $query = mysqli_query($sqlConnect, "UPDATE " . T_AUDIO_CALLES . " SET `active` = 1 WHERE `id` = '$id'");
 				        if ($query) {
+                            Wo_UpdateCallLog($id, 'audio', 'answered', array(
+                                'provider' => 'twilio',
+                                'started_at' => time(),
+                                'status_by' => $user_id
+                            ));
 				            $data = array(
 				                'status' => 200,
 				            );
 				        }
             		} else if ($_POST['answer_type'] == 'close') {
+                        if (!empty($_POST['call_id'])) {
+                            Wo_UpdateCallLog(Wo_Secure($_POST['call_id']), 'audio', 'cancelled', array(
+                                'provider' => 'twilio',
+                                'status_by' => $user_id
+                            ));
+                        }
                         $query   = mysqli_query($sqlConnect, "DELETE FROM " . T_AUDIO_CALLES . " WHERE `from_id` = '$user_id'");
                         if ($query) {
                             $data = array(
@@ -87,6 +98,10 @@ if ($type == 'audio_call_answer') {
             			$id = Wo_Secure($_POST['call_id']);
 				        $query = mysqli_query($sqlConnect, "UPDATE " . T_AUDIO_CALLES . " SET `declined` = 1 WHERE `id` = '$id'");
 				        if ($query) {
+                            Wo_UpdateCallLog($id, 'audio', 'declined', array(
+                                'provider' => 'twilio',
+                                'status_by' => $user_id
+                            ));
 				            $data = array(
 				                'status' => 200
 				            );

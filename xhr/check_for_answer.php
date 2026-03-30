@@ -18,6 +18,27 @@ if ($f == 'check_for_answer') {
                     'text_call_declined_desc' => $wo['lang']['call_declined_desc']
                 );
             }
+            else {
+                $call_id = intval($_GET['id']);
+                $source_data = Wo_GetCallLogSourceData($call_id, 'video', 'twilio');
+                if (empty($source_data)) {
+                    $source_data = Wo_GetCallLogSourceData($call_id, 'video', 'agora');
+                }
+                if (!empty($source_data) && intval($source_data['active']) === 0 && intval($source_data['declined']) === 0 && !empty($source_data['time']) && (time() - intval($source_data['time'])) >= 43) {
+                    $provider = !empty($source_data['provider']) ? $source_data['provider'] : 'twilio';
+                    $table = ($provider == 'agora') ? T_AGORA : T_VIDEOS_CALLES;
+                    if ($provider == 'agora') {
+                        mysqli_query($sqlConnect, "UPDATE " . $table . " SET `active` = '0', `status` = 'no_answer' WHERE `id` = '{$call_id}'");
+                    }
+                    else {
+                        mysqli_query($sqlConnect, "UPDATE " . $table . " SET `active` = '0', `status` = 'no_answer' WHERE `id` = '{$call_id}'");
+                    }
+                    Wo_UpdateCallLog($call_id, 'video', 'no_answer', array(
+                        'provider' => $provider,
+                        'status_by' => $wo['user']['user_id']
+                    ));
+                }
+            }
         }
     }
     header("Content-type: application/json");

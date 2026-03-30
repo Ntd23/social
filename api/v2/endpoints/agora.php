@@ -52,6 +52,14 @@ if (!empty($_POST['type']) && in_array($_POST['type'], $required_fields))
             ));
             if ($insertData > 0)
             {
+                Wo_RegisterCallLog(array(
+                    'call_id' => $insertData,
+                    'call_type' => $call_type,
+                    'from_id' => $wo['user']['id'],
+                    'to_id' => $user_2['user_id'],
+                    'provider' => 'agora',
+                    'status' => 'calling'
+                ));
                 $wo['calling_user'] = $user_2;
                 if (!empty($wo['calling_user']['ios_m_device_id']) && $wo['config']['ios_push_messages'] == 1)
                 {
@@ -141,6 +149,14 @@ if (!empty($_POST['type']) && in_array($_POST['type'], $required_fields))
                 ));
                 if ($insertData > 0)
                 {
+                    Wo_RegisterCallLog(array(
+                        'call_id' => $insertData,
+                        'call_type' => $call_type,
+                        'from_id' => $wo['user']['id'],
+                        'to_id' => $user_2['user_id'],
+                        'provider' => 'agora',
+                        'status' => 'calling'
+                    ));
                     $wo['calling_user'] = $user_2;
                     if (!empty($wo['calling_user']['ios_m_device_id']) && $wo['config']['ios_push_messages'] == 1)
                     {
@@ -240,17 +256,35 @@ if (!empty($_POST['type']) && in_array($_POST['type'], $required_fields))
         if (!empty($_POST['call_id']) && is_numeric($_POST['call_id']) && $_POST['call_id'] > 0 && !empty($_POST['action']))
         {
             $id = Wo_Secure($_POST['call_id']);
+            $call_row = mysqli_fetch_assoc(mysqli_query($sqlConnect, "SELECT `id`, `type`, `active` FROM " . T_AGORA . " WHERE `id` = '$id'"));
             if ($_POST['action'] == 'answer')
             {
                 $query = mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `status` = 'answered' , `active` = '1' , `declined` = '0'  WHERE `id` = '$id'");
+                if (!empty($call_row)) {
+                    Wo_UpdateCallLog($id, $call_row['type'], 'answered', array(
+                        'provider' => 'agora',
+                        'started_at' => time(),
+                        'status_by' => $wo['user']['user_id']
+                    ));
+                }
             }
             else if ($_POST['action'] == 'close')
             {
+                if (!empty($call_row)) {
+                    Wo_UpdateCallLog($id, $call_row['type'], ($call_row['active'] == '1' ? 'ended' : 'cancelled'), array(
+                        'provider' => 'agora',
+                        'status_by' => $wo['user']['user_id']
+                    ));
+                }
                 $query = mysqli_query($sqlConnect, "DELETE FROM " . T_AGORA . " WHERE `from_id` = '$user_id'");
             }
             else if ($_POST['action'] == 'decline')
             {
                 $query = mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `status` = 'declined' , `declined` = '1' , `active` = '0' WHERE `id` = '$id'");
+                Wo_UpdateCallLog($id, (!empty($call_row['type']) ? $call_row['type'] : 'audio'), 'declined', array(
+                    'provider' => 'agora',
+                    'status_by' => $wo['user']['user_id']
+                ));
             }
             else
             {

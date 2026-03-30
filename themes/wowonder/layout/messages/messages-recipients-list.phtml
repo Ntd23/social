@@ -34,6 +34,10 @@ if (!empty($message['from_id'])) {
      // $message['text'] = mb_substr($message['text'], 0, 97, 'utf-8') . '...';
    }
    $message['text'] = Wo_Emo($text);
+   $call_log = Wo_GetCallLogMessage($message);
+   if (!empty($call_log)) {
+     $message['text'] = $call_log['title'] . (!empty($call_log['detail']) ? ' - ' . $call_log['detail'] : '');
+   }
 }
 ?>
 

@@ -52,9 +52,17 @@ if (!empty($_POST['type']) && in_array($_POST['type'], $required_fields)) {
 			        'access_token_2' => Wo_Secure($token_2),
 	                'room_name' => $room_script
 			    ));
-            }
+		    }
 			    
 		    if ($insertData > 0) {
+                Wo_RegisterCallLog(array(
+                    'call_id' => $insertData,
+                    'call_type' => $_POST['call_type'],
+                    'from_id' => $user_id,
+                    'to_id' => $recipient_id,
+                    'provider' => 'twilio',
+                    'status' => 'calling'
+                ));
 		        $wo['calling_user'] = Wo_UserData($recipient_id);
                 if (!empty($wo['calling_user']['ios_m_device_id']) && $wo['config']['ios_push_messages'] == 1) {
                     $send_array = array(
@@ -157,10 +165,24 @@ if (!empty($_POST['type']) && in_array($_POST['type'], $required_fields)) {
     		}
     		if ($_POST['action'] == 'answer') {
 		        $query = mysqli_query($sqlConnect, "UPDATE " . $table . " SET  `active` = '1' , `declined` = '0'  WHERE `id` = '$id'");
+                Wo_UpdateCallLog($id, $_POST['call_type'], 'answered', array(
+                    'provider' => 'twilio',
+                    'started_at' => time(),
+                    'status_by' => $user_id
+                ));
     		} else if ($_POST['action'] == 'close') {
+                $call = $db->where('id',$id)->getOne($table);
+                Wo_UpdateCallLog($id, $_POST['call_type'], (!empty($call) && intval($call->active) === 1 ? 'ended' : 'cancelled'), array(
+                    'provider' => 'twilio',
+                    'status_by' => $user_id
+                ));
                 $query   = mysqli_query($sqlConnect, "DELETE FROM " . $table . " WHERE `from_id` = '$user_id'");
             } else if ($_POST['action'] == 'decline') {
 		        $query = mysqli_query($sqlConnect, "UPDATE " . $table . " SET  `declined` = '1' , `active` = '0' WHERE `id` = '$id'");
+                Wo_UpdateCallLog($id, $_POST['call_type'], 'declined', array(
+                    'provider' => 'twilio',
+                    'status_by' => $user_id
+                ));
     		}
             else{
                 $query = mysqli_query($sqlConnect, "UPDATE " . $table . " SET  `status` = '".Wo_Secure($_POST['action'])."' WHERE `id` = '$id'");

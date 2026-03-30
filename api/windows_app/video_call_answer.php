@@ -61,12 +61,23 @@ if ($type == 'video_call_answer') {
             			$id = Wo_Secure($_POST['call_id']);
 				        $query = mysqli_query($sqlConnect, "UPDATE " . T_VIDEOS_CALLES . " SET `active` = 1 WHERE `id` = '$id'");
 				        if ($query) {
+                            Wo_UpdateCallLog($id, 'video', 'answered', array(
+                                'provider' => 'twilio',
+                                'started_at' => time(),
+                                'status_by' => $user_id
+                            ));
 				            $data = array(
 				                'status' => 200,
                                 'url' => $wo['config']['site_url'] . '/video-call-api/' . $id . '?c_id=' . $_POST['s'] . '&user_id=' . $user_id,
 				            );
 				        }
             		} else if ($_POST['answer_type'] == 'close') {
+                        if (!empty($_POST['call_id'])) {
+                            Wo_UpdateCallLog(Wo_Secure($_POST['call_id']), 'video', 'cancelled', array(
+                                'provider' => 'twilio',
+                                'status_by' => $user_id
+                            ));
+                        }
                         $query   = mysqli_query($sqlConnect, "DELETE FROM " . T_VIDEOS_CALLES . " WHERE `from_id` = '$user_id'");
                         if ($query) {
                             $data = array(
@@ -77,6 +88,10 @@ if ($type == 'video_call_answer') {
             			$id = Wo_Secure($_POST['call_id']);
 				        $query = mysqli_query($sqlConnect, "UPDATE " . T_VIDEOS_CALLES . " SET `declined` = 1 WHERE `id` = '$id'");
 				        if ($query) {
+                            Wo_UpdateCallLog($id, 'video', 'declined', array(
+                                'provider' => 'twilio',
+                                'status_by' => $user_id
+                            ));
 				            $data = array(
 				                'status' => 200
 				            );

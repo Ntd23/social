@@ -586,11 +586,9 @@
           $('#re-calling-modal').addClass('calling');
           document.title = document_title;
           setTimeout(function () {
-            $( '#re-calling-modal' ).remove();
-            $( '.modal-backdrop' ).remove();
-            $( 'body' ).removeClass( "modal-open" );
+            Wo_CloseIncomingCallModal();
           }, 3000);
-          $( '#re-calling-modal' ).remove();
+          $('#re-calling-modal').remove();
           $('.modal-backdrop.in').hide();
           Wo_CloseModels();
           Wo_PlayAudioCall('stop');
@@ -1005,6 +1003,7 @@
             return;
           }
           $('body').append(data.html);
+          Wo_StartIncomingCallWatcher(data.call_id, data.call_type || 'audio');
           if (!$('#re-calling-modal').hasClass('calling')) {
             $('#re-calling-modal').modal({
               show: true

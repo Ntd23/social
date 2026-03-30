@@ -2,17 +2,34 @@
 $chat_id = $wo['chatMessage']['to_id'];
 if ($wo['chatMessage']['from_id'] != $wo['user']['user_id']) {
 	$chat_id = $wo['chatMessage']['from_id'];
-} ?>
+}
+$call_log = Wo_GetCallLogMessage($wo['chatMessage']);
+$call_log_color = (!empty($call_log) && $call_log['tone'] == 'danger') ? '#dc2626' : ((!empty($call_log) && $call_log['tone'] == 'success') ? '#059669' : '#64748b');
+?>
 <div class="messages-wrapper <?php echo ($wo['chatMessage']['onwer'] == 1) ? 'pull-right' : 'pull-left';?> messages-text" id="messageId_<?php echo $wo['chatMessage']['id'] ?>" data-message-id="<?php echo $wo['chatMessage']['id'] ?>"  display="<?php echo ($wo['config']['node_socket_flow'] == "1") ? "hidden" : "visible" ?>">
 	<?php if ($wo['chatMessage']['onwer'] == 0) { ?>
 		<a href="<?php echo Wo_SeoLink('index.php?link1=timeline&u='.$wo['chatMessage']['messageUser']['username']);?>" data-ajax="?link1=timeline&u=<?php echo $wo['chatMessage']['messageUser']['username']?>">
 			<img class="user-avatar<?php echo ($wo['chatMessage']['onwer'] == 1) ? '-right' : '-left';?>" src="<?php echo $wo['chatMessage']['messageUser']['avatar'] ?>" alt="Profile Picture">
 		</a>
 	<?php } ?>
-	<div class="message <?php if (!empty($wo['chatMessage']['product_id'])) {$wo['product'] = Wo_GetProduct($wo['chatMessage']['product_id']);if (!empty($wo['product'])) {?>wo_msg_prod_prnt<?php } } ?> <?php echo ($wo['chatMessage']['onwer'] == 1) ? 'outgoing pull-right' : 'incoming pull-left';?>" onclick="Wo_ShowMessageOptions(<?php echo $wo['chatMessage']['id'] ?>);">
+	<div class="message <?php if (!empty($call_log)) { ?>call-log-message <?php } ?><?php if (!empty($wo['chatMessage']['product_id'])) {$wo['product'] = Wo_GetProduct($wo['chatMessage']['product_id']);if (!empty($wo['product'])) {?>wo_msg_prod_prnt<?php } } ?> <?php echo ($wo['chatMessage']['onwer'] == 1) ? 'outgoing pull-right' : 'incoming pull-left';?>" <?php if (!empty($call_log)) { ?>style="background:transparent;box-shadow:none;"<?php } ?> onclick="Wo_ShowMessageOptions(<?php echo $wo['chatMessage']['id'] ?>);">
 		<?php if (!empty($wo['chatMessage']['text'])): ?>
-			<div class="message-text" id="message_text_reply_<?php echo $wo['chatMessage']['id'] ?>" dir="auto" style="background: <?php echo ($wo['chatMessage']['onwer'] == 1 && isset($wo['chat']['color'])) ? $wo['chat']['color'] . ' !important;' : '';?>;<?php echo ($wo['chatMessage']['onwer'] == 1) ? ' color:#fff !important;' : '';?>">
-				<?php if($wo['chatMessage']['type_two'] == 'contact'): 
+			<div class="message-text <?php if (!empty($call_log)) { ?>call-log-message<?php } ?>" id="message_text_reply_<?php echo $wo['chatMessage']['id'] ?>" dir="auto" style="<?php if (!empty($call_log)) { ?>background:#f8fafc !important;color:#111827 !important;border:1px solid #e5e7eb;padding:12px 14px;min-width:220px;<?php } else { ?>background: <?php echo ($wo['chatMessage']['onwer'] == 1 && isset($wo['chat']['color'])) ? $wo['chat']['color'] . ' !important;' : '';?>;<?php echo ($wo['chatMessage']['onwer'] == 1) ? ' color:#fff !important;' : '';?><?php } ?>">
+				<?php if (!empty($call_log)): ?>
+					<div style="display:flex;align-items:center;gap:10px;">
+						<div style="width:34px;height:34px;border-radius:999px;background:<?php echo $call_log_color; ?>1a;color:<?php echo $call_log_color; ?>;display:flex;align-items:center;justify-content:center;flex:0 0 34px;">
+							<?php if ($call_log['call_type'] == 'video'): ?>
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V6c0-1.1-.9-2-2-2H5C3.9 4 3 4.9 3 6v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-4.5l4 4v-11l-4 4Z"/></svg>
+							<?php else: ?>
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.61 21 3 13.39 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2Z"/></svg>
+							<?php endif; ?>
+						</div>
+						<div style="line-height:1.35;">
+							<div style="font-size:14px;font-weight:600;color:#111827;"><?php echo $call_log['title']; ?></div>
+							<?php if (!empty($call_log['detail'])): ?><div style="font-size:12px;color:#6b7280;margin-top:2px;"><?php echo $call_log['detail']; ?></div><?php endif; ?>
+						</div>
+					</div>
+				<?php elseif($wo['chatMessage']['type_two'] == 'contact'): 
 					$json = json_decode(trim(htmlspecialchars_decode($wo['chatMessage']['text'])), true);
 					echo $json['Value'] . ' (' . $json['Key'] . ')';
 				?>

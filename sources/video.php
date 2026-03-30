@@ -12,12 +12,31 @@ if ($wo['config']['video_chat'] == 0) {
     exit();
 }
 $id = Wo_Secure($_GET['call_id']);
+$return_url = $wo['config']['site_url'];
+if (!empty($_GET['return_url'])) {
+    $return_request = urldecode($_GET['return_url']);
+    if (strpos($return_request, $wo['config']['site_url']) === 0) {
+        $return_url = $return_request;
+    }
+}
+if ($return_url == $wo['config']['site_url'] && !empty($_SERVER['HTTP_REFERER'])) {
+    $referer_request = $_SERVER['HTTP_REFERER'];
+    if (strpos($referer_request, $wo['config']['site_url']) === 0) {
+        $return_url = $referer_request;
+    }
+}
 if ($wo['config']['agora_chat_video'] == 1) {
     $wo['video_call'] = array();
     $call             = $db->where('room_name', $id)->where('(to_id = ' . $wo['user']['id'] . ' OR from_id = ' . $wo['user']['id'] . ')')->getOne(T_AGORA);
     if (!empty($call)) {
+        $wo['video_call']['id']           = $call->id;
+        $wo['video_call']['call_id']      = $call->id;
         $wo['video_call']['room']         = $call->room_name;
         $wo['video_call']['access_token'] = $call->access_token;
+        $wo['video_call']['from_id']      = $call->from_id;
+        $wo['video_call']['to_id']        = $call->to_id;
+        $wo['video_call']['type']         = $call->type;
+        $wo['video_call']['provider']     = 'agora';
     } else {
         header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
         exit();
@@ -33,10 +52,12 @@ if ($wo['config']['agora_chat_video'] == 1) {
         $wo['video_call']['user']         = 1;
         $wo['video_call']['access_token'] = $wo['video_call']['access_token'];
         $wo['video_call']['call_id']      = $wo['video_call']['id'];
+        $wo['video_call']['provider']     = 'twilio';
     } else if ($wo['video_call']['from_id'] == $wo['user']['user_id']) {
         $wo['video_call']['user']         = 2;
         $wo['video_call']['access_token'] = $wo['video_call']['access_token_2'];
         $wo['video_call']['call_id']      = $wo['video_call']['id'];
+        $wo['video_call']['provider']     = 'twilio';
     } else {
         header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
         exit();
@@ -48,6 +69,7 @@ if ($wo['config']['agora_chat_video'] == 1) {
         $user_id = Wo_Secure($wo['user']['user_id']);
     }
 }
+$wo['video_call']['return_url'] = $return_url;
 $wo['description'] = $wo['config']['siteDesc'];
 $wo['keywords']    = $wo['config']['siteKeywords'];
 $wo['page']        = 'video';

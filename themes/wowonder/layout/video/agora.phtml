@@ -3,6 +3,36 @@ var agoraAppId = "<?php echo $wo['config']['agora_chat_app_id'];?>";
 var token = "<?php echo $wo['video_call']['access_token'];?>";
 var channelName = "<?php echo $wo['video_call']['room'];?>";
 var uid = <?php echo $wo['user']['id'];?>;
+var agoraVideoCallId = <?php echo (int) $wo['video_call']['call_id']; ?>;
+var agoraVideoJoinedAt = 0;
+var agoraVideoReported = false;
+var agoraVideoReturnUrl = <?php echo json_encode($wo['video_call']['return_url']); ?>;
+
+function reportAgoraVideoCall(status, shouldRedirect) {
+  if (agoraVideoReported || agoraVideoCallId < 1) {
+    if (shouldRedirect === true) {
+      location.href = agoraVideoReturnUrl;
+    }
+    return;
+  }
+  agoraVideoReported = true;
+  var duration = 0;
+  if (agoraVideoJoinedAt > 0) {
+    duration = Math.max(0, Math.round((Date.now() - agoraVideoJoinedAt) / 1000));
+  }
+  $.get(Wo_Ajax_Requests_File(), {
+    f: 'close_call',
+    id: agoraVideoCallId,
+    call_type: 'video',
+    provider: 'agora',
+    status: status,
+    duration: duration
+  }).always(function () {
+    if (shouldRedirect === true) {
+      location.href = agoraVideoReturnUrl;
+    }
+  });
+}
 
 /*
  * JS Interface for Agora.io SDK
@@ -68,6 +98,9 @@ client.on('stream-added', function (evt) {
 client.on('stream-subscribed', function (evt) {
   var remoteStream = evt.stream;
   var remoteId = remoteStream.getId();
+  if (agoraVideoJoinedAt === 0) {
+    agoraVideoJoinedAt = Date.now();
+  }
   remoteStreams[remoteId] = remoteStream;
   console.log("Subscribe remote stream successfully: " + remoteId);
   if( $('#full-screen-video').is(':empty') ) { 
@@ -119,7 +152,7 @@ client.on("peer-leave", function(evt) {
   console.log($('#full-screen-video').is(':empty'));
   console.log($('#remote-streams').is(':empty'));
   if( $('#full-screen-video').is(':empty') &&  $('#remote-streams').is(':empty')) { 
-    location.href = "<?php echo($wo['config']['site_url']) ?>";
+    reportAgoraVideoCall((agoraVideoJoinedAt > 0 ? 'ended' : 'no_answer'), true);
   }
 });
 
@@ -330,8 +363,8 @@ function generateToken() {
   return null; // TODO: add a token generation
 }
 $(document).on('click', '.end_vdo_call', function(e) {
+      reportAgoraVideoCall((agoraVideoJoinedAt > 0 ? 'ended' : 'cancelled'), true);
       leaveChannel(); 
-      location.href = "<?php echo($wo['config']['site_url']) ?>";
   });
 initClientAndJoinChannel(agoraAppId, token, channelName, uid);
 </script>

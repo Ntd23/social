@@ -1820,8 +1820,8 @@ $('.delete-icon').empty();
                 $('.send-button').css('background-color', data.color);
                 $('.send-button').css('border-color', data.color);
                 $('#wo_msg_right_prt .message-option-btns .btn svg').css('color', data.color);
-                $(".messages-container").find(".pull-right").find(".message").css('background-color', data.color);
-                $(".messages-container").find(".pull-right").find(".message-text").css('background-color', data.color)
+                $(".messages-container").find(".pull-right").find(".message").not(".call-log-message").css('background-color', data.color);
+                $(".messages-container").find(".pull-right").find(".message-text").not(".call-log-message").css('background-color', data.color)
               }
             }
             if (data.sender != <?php echo $wo['user']['user_id']; ?>) {
@@ -1862,8 +1862,8 @@ $('.delete-icon').empty();
                 $('.send-button').css('background-color', data.color);
                 $('.send-button').css('border-color', data.color);
                 $('#wo_msg_right_prt .message-option-btns .btn svg').css('color', data.color);
-                $(".messages-container").find(".pull-right").find(".message").css('background-color', data.color);
-                $(".messages-container").find(".pull-right").find(".message-text").css('background-color', data.color)
+                $(".messages-container").find(".pull-right").find(".message").not(".call-log-message").css('background-color', data.color);
+                $(".messages-container").find(".pull-right").find(".message-text").not(".call-log-message").css('background-color', data.color)
               }
             }
             if (!data.self) {

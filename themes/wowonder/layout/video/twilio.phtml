@@ -1,5 +1,35 @@
 <script type="text/javascript">
   var video = document.getElementById('basic-stream');
+  var twilioVideoCallId = <?php echo (int) $wo['video_call']['call_id']; ?>;
+  var twilioVideoJoinedAt = 0;
+  var twilioVideoReported = false;
+  var twilioVideoReturnUrl = <?php echo json_encode($wo['video_call']['return_url']); ?>;
+
+function reportTwilioVideoCall(status, shouldRedirect) {
+  if (twilioVideoReported || twilioVideoCallId < 1) {
+    if (shouldRedirect === true) {
+      location.href = twilioVideoReturnUrl;
+    }
+    return;
+  }
+  twilioVideoReported = true;
+  var duration = 0;
+  if (twilioVideoJoinedAt > 0) {
+    duration = Math.max(0, Math.round((Date.now() - twilioVideoJoinedAt) / 1000));
+  }
+  $.get(Wo_Ajax_Requests_File(), {
+    f: 'close_call',
+    id: twilioVideoCallId,
+    call_type: 'video',
+    provider: 'twilio',
+    status: status,
+    duration: duration
+  }).always(function () {
+    if (shouldRedirect === true) {
+      location.href = twilioVideoReturnUrl;
+    }
+  });
+}
 
 Twilio.Video.connect('<?php echo $wo['video_call']['access_token'];?>', { name: '<?php echo $wo['video_call']['room'];?>' }).then(room => {
   console.log('Connected to Room "%s"', room.name);
@@ -14,29 +44,28 @@ Twilio.Video.connect('<?php echo $wo['video_call']['access_token'];?>', { name: 
     room.localParticipant.tracks.forEach(publication => {
       const attachedElements = publication.track.detach();
       attachedElements.forEach(element => element.remove());
-      $.get(Wo_Ajax_Requests_File(), {f:'cancel_call'}, function (data) {});
-      location.href = "<?php echo($wo['config']['site_url']) ?>";
     });
+    reportTwilioVideoCall((twilioVideoJoinedAt > 0 ? 'ended' : 'no_answer'), true);
   });
   room.on('participantDisconnected', function(participant) {
     console.log(participant.identity + ' left the Room');
-    $.get(Wo_Ajax_Requests_File(), {f:'cancel_call'}, function (data) {});
-    location.href = "<?php echo($wo['config']['site_url']) ?>";
+    reportTwilioVideoCall((twilioVideoJoinedAt > 0 ? 'ended' : 'no_answer'), true);
   });
   $(document).on('click', 'a[data-ajax]', function(e) {
+      reportTwilioVideoCall((twilioVideoJoinedAt > 0 ? 'ended' : 'cancelled'), false);
       room.disconnect();
-      $.get(Wo_Ajax_Requests_File(), {f:'cancel_call'}, function (data) {});
-      location.href = "<?php echo($wo['config']['site_url']) ?>";
   });
   $(document).on('click', '.end_vdo_call', function(e) {
+      reportTwilioVideoCall((twilioVideoJoinedAt > 0 ? 'ended' : 'cancelled'), false);
       room.disconnect();
-      $.get(Wo_Ajax_Requests_File(), {f:'cancel_call'}, function (data) {});
-      location.href = "<?php echo($wo['config']['site_url']) ?>";
   });
 });
  
 function participantConnected(participant) {
   console.log('Participant "%s" connected', participant.identity);
+  if (twilioVideoJoinedAt === 0) {
+    twilioVideoJoinedAt = Date.now();
+  }
  
   const div = document.createElement('div');
   div.id = participant.sid;
