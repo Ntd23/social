@@ -128,7 +128,33 @@ $(document).on('click', '.filterby li.filter-by-li', function(event) {
 $(document).on('click', '.postText', function(event) {
   textAreaAdjust(this, 70);
 });
+
+function Wo_RestoreCallScrollPosition() {
+  try {
+    var currentUrl = new URL(window.location.href);
+    var scrollValue = currentUrl.searchParams.get('wo_call_scroll');
+    if (scrollValue === null) {
+      return;
+    }
+    var scrollTop = parseInt(scrollValue, 10);
+    currentUrl.searchParams.delete('wo_call_scroll');
+    var cleanUrl = currentUrl.pathname + currentUrl.search + currentUrl.hash;
+    if (window.history && typeof window.history.replaceState === 'function') {
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+    if (!isNaN(scrollTop) && scrollTop > 0) {
+      setTimeout(function () {
+        window.scrollTo(0, scrollTop);
+      }, 60);
+      setTimeout(function () {
+        window.scrollTo(0, scrollTop);
+      }, 250);
+    }
+  } catch (err) {}
+}
+
 $(function () {
+  Wo_RestoreCallScrollPosition();
 
   $(window).on("dragover",function(e){
     e.preventDefault();
@@ -448,9 +474,10 @@ function Wo_CheckForCallAnswerTabs(id) {
   $.get(Wo_Ajax_Requests_File(), {f:'check_for_answer', id:id}, function (data1) {
     if (data1.status == 400 || data1.status == 200) {
       clearTimeout(checkcalls);
+      clearTimeout(window.woActiveCallTimeout);
       if (data1.status == 200) {
         setTimeout(function () {
-          window.location.href = data1.url;
+          window.location.href = Wo_PrepareCallUrl(data1.url);
         }, 1000);
       } else {
         setTimeout(function () {
@@ -470,9 +497,10 @@ function Wo_CheckForAudioCallAnswerTabs(id) {
   $.get(Wo_Ajax_Requests_File(), {f:'check_for_audio_answer', id:id}, function (data1) {
     if (data1.status == 400 || data1.status == 200) {
       clearTimeout(checkcalls);
+      clearTimeout(window.woActiveCallTimeout);
       if (data1.status == 200) {
         setTimeout(function () {
-          window.location.href = data1.url;
+          window.location.href = Wo_PrepareCallUrl(data1.url);
         }, 1000);
       } else {
         setTimeout(function () {
@@ -606,6 +634,7 @@ function Wo_intervalUpdates(force_update = 0, loop = 0) {
         }
           if ($('#calling-modal').length == 0) {
             $('body').append(data.calls_html);
+            Wo_StartIncomingCallWatcher(data.call_id, 'video');
             if (!$('#re-calling-modal').hasClass('calling')) {
               $('#re-calling-modal').modal({
               show: true
@@ -613,19 +642,6 @@ function Wo_intervalUpdates(force_update = 0, loop = 0) {
               Wo_PlayVideoCall('play');
             }
             document.title = 'New video call..';
-            setTimeout(function () {
-              Wo_CloseModels();
-              $('#re-calling-modal').addClass('calling');
-              Wo_PlayVideoCall('stop');
-              document.title = document_title;
-              setTimeout(function () {
-                $( '#re-calling-modal' ).remove();
-                $( '.modal-backdrop' ).remove();
-                $( 'body' ).removeClass( "modal-open" );
-              }, 3000);
-              $( '#re-calling-modal' ).remove();
-              $('.modal-backdrop.in').hide();
-            }, 40000);
           }
       } else if (data.audio_calls == 200 && $('#re-calling-modal').length == 0 && $('#re-talking-modal').length == 0) {
         if (node_socket_flow != "1") {
@@ -633,6 +649,7 @@ function Wo_intervalUpdates(force_update = 0, loop = 0) {
         }
         if ($('#calling-modal').length == 0) {
             $('body').append(data.audio_calls_html);
+            Wo_StartIncomingCallWatcher(data.call_id, 'audio');
             if (!$('#re-calling-modal').hasClass('calling')) {
               $('#re-calling-modal').modal({
               show: true
@@ -640,25 +657,9 @@ function Wo_intervalUpdates(force_update = 0, loop = 0) {
               Wo_PlayVideoCall('play');
             }
             document.title = 'New audio call..';
-            setTimeout(function () {
-              if ($('#re-talking-modal').length == 0) {
-                Wo_CloseModels();
-                $('#re-calling-modal').addClass('calling');
-                Wo_PlayVideoCall('stop');
-                document.title = document_title;
-                setTimeout(function () {
-                  $( '#re-calling-modal' ).remove();
-                  $( '.modal-backdrop' ).remove();
-                  $( 'body' ).removeClass( "modal-open" );
-                }, 3000)
-              }
-            }, 40000);
           }
       } else if (data.is_audio_call == 0 && data.is_call == 0 && ($('#re-calling-modal').length > 0 || $('#re-talking-modal').length > 0)) {
-          Wo_PlayVideoCall('stop');
-          $( '#re-calling-modal' ).remove();
-          $( '.modal-backdrop' ).remove();
-          $( 'body' ).removeClass( "modal-open" );
+          Wo_CloseIncomingCallModal();
       }
     }).fail(function() {
       clearTimeout(intervalUpdates);
@@ -2787,17 +2788,28 @@ function Wo_CheckForCallAnswer(id) {
   $.get(Wo_Ajax_Requests_File(), {f:'check_for_answer', id:id}, function (data1) {
     if (data1.status == 200) {
       clearTimeout(checkcalls);
+      clearTimeout(window.woActiveCallTimeout);
       $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-video-camera"></i> ' + data1.text_answered);
       $('#calling-modal').find('.modal-body p').text(data1.text_please_wait);
       setTimeout(function () {
-          window.location.href = data1.url;
+          window.location.href = Wo_PrepareCallUrl(data1.url);
       }, 1000);
       return false;
     } else if (data1.status == 400) {
       clearTimeout(checkcalls);
+      clearTimeout(window.woActiveCallTimeout);
+      if (window.woActiveCallMeta && String(window.woActiveCallMeta.id) === String(id)) {
+        window.woActiveCallMeta.finished = true;
+        window.woActiveCallMeta.finalStatus = 'declined';
+      }
       Wo_PlayAudioCall('stop');
       $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-times"></i> ' + data1.text_call_declined);
       $('#calling-modal').find('.modal-body p').text(data1.text_call_declined_desc);
+      setTimeout(function () {
+        Wo_CloseCallingModal();
+        window.woActiveCallMeta = null;
+      }, 1200);
+      return false;
     }
     checkcalls = setTimeout(function () {
         Wo_CheckForCallAnswer(id);
@@ -2809,23 +2821,74 @@ function Wo_CheckForAudioCallAnswer(id) {
   $.get(Wo_Ajax_Requests_File(), {f:'check_for_audio_answer', id:id}, function (data1) {
     if (data1.status == 200) {
       clearTimeout(checkcalls);
+      clearTimeout(window.woActiveCallTimeout);
       $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-phone"></i> ' + data1.text_answered);
       $('#calling-modal').find('.modal-body p').text(data1.text_please_wait);
       Wo_PlayAudioCall('stop');
       setTimeout(function () {
-          window.location.href = data1.url;
+          window.location.href = Wo_PrepareCallUrl(data1.url);
       }, 1000);
     } else if (data1.status == 400) {
       clearTimeout(checkcalls);
+      clearTimeout(window.woActiveCallTimeout);
+      if (window.woActiveCallMeta && String(window.woActiveCallMeta.id) === String(id)) {
+        window.woActiveCallMeta.finished = true;
+        window.woActiveCallMeta.finalStatus = 'declined';
+      }
       Wo_PlayAudioCall('stop');
       $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-times"></i> ' + data1.text_call_declined);
       $('#calling-modal').find('.modal-body p').text(data1.text_call_declined_desc);
+      setTimeout(function () {
+        Wo_CloseCallingModal();
+        window.woActiveCallMeta = null;
+      }, 1200);
+      return false;
     } else {
       checkcalls = setTimeout(function () {
         Wo_CheckForAudioCallAnswer(id);
       }, 2000);
     }
   });
+}
+
+function Wo_GetCallReturnUrl() {
+  var returnUrl = window.location.href;
+  try {
+    var currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('wo_call_scroll', String(window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0));
+    returnUrl = currentUrl.toString();
+  } catch (err) {}
+  return returnUrl;
+}
+
+function Wo_PrepareCallUrl(url) {
+  if (!url) {
+    return url;
+  }
+  var separator = (url.indexOf('?') === -1) ? '?' : '&';
+  return url + separator + 'return_url=' + encodeURIComponent(Wo_GetCallReturnUrl());
+}
+
+function Wo_AppendCallMetaToUrl(url, id, type) {
+  if (!url) {
+    return url;
+  }
+  try {
+    var parsedUrl = new URL(url, window.location.origin);
+    if (id && !parsedUrl.searchParams.get('id')) {
+      parsedUrl.searchParams.set('id', String(id));
+    }
+    if (type && !parsedUrl.searchParams.get('type')) {
+      parsedUrl.searchParams.set('type', type);
+    }
+    if (!parsedUrl.searchParams.get('provider')) {
+      parsedUrl.searchParams.set('provider', 'twilio');
+    }
+    return parsedUrl.toString();
+  } catch (err) {
+    var separator = (url.indexOf('?') === -1) ? '?' : '&';
+    return url + separator + 'id=' + encodeURIComponent(id) + '&type=' + encodeURIComponent(type || 'video') + '&provider=twilio';
+  }
 }
 
 function Wo_AnswerCall(id, url, type) {
@@ -2837,9 +2900,14 @@ function Wo_AnswerCall(id, url, type) {
   }
   Wo_progressIconLoader($('#re-calling-modal').find('.answer-call'));
   $.get(Wo_Ajax_Requests_File(), {f:'answer_call', id:id, type:type1}, function (data) {
-    Wo_PlayVideoCall('stop');
-    if (data.status == 200) {
-       window.location.href = url;
+      Wo_PlayVideoCall('stop');
+      if (data.status == 200) {
+         clearTimeout(window.woActiveCallTimeout);
+         clearTimeout(window.woIncomingCallWatcher);
+         window.woIncomingCallWatcher = null;
+         window.location.href = Wo_PrepareCallUrl(Wo_AppendCallMetaToUrl(url, id, type1));
+      } else {
+         Wo_CloseIncomingCallModal();
     }
     Wo_progressIconLoader($('#re-calling-modal').find('.answer-call'));
   });
@@ -2857,11 +2925,9 @@ function Wo_DeclineCall(id, url, type) {
       if (node_socket_flow == "1") {
         socket.emit("decline_call", {user_id: _getCookie("user_id") });
       }
-      Wo_PlayVideoCall('stop');
-      Wo_PlayAudioCall('stop');
-      $( '#re-calling-modal' ).remove();
-      $( '.modal-backdrop' ).remove();
-      $( 'body' ).removeClass( "modal-open" );
+      Wo_CloseIncomingCallModal();
+    } else {
+      Wo_CloseIncomingCallModal();
     }
   });
 }
@@ -2877,20 +2943,125 @@ function Wo_CloseCall(id) {
   });
 }
 
+function Wo_CloseIncomingCallModal() {
+  Wo_PlayVideoCall('stop');
+  Wo_PlayAudioCall('stop');
+  $('#re-calling-modal').remove();
+  $('.modal-backdrop').remove();
+  $('body').removeClass('modal-open');
+  document.title = document_title;
+  clearTimeout(window.woIncomingCallWatcher);
+  window.woIncomingCallWatcher = null;
+}
+
+function Wo_StartIncomingCallWatcher(callId, callType) {
+  clearTimeout(window.woIncomingCallWatcher);
+  if (!callId) {
+    return;
+  }
+  var watchType = (callType === 'video') ? 'video' : 'audio';
+  var loop = function () {
+    if ($('#re-calling-modal').length === 0 || $('#re-talking-modal').length > 0) {
+      clearTimeout(window.woIncomingCallWatcher);
+      window.woIncomingCallWatcher = null;
+      return;
+    }
+    $.get(Wo_Ajax_Requests_File(), {
+      f: 'check_incoming_audio_call',
+      call_id: callId,
+      call_type: watchType,
+      _t: (new Date()).getTime()
+    }, function (data) {
+      if (!data || data.status != 200 || String(data.call_id) !== String(callId)) {
+        Wo_CloseIncomingCallModal();
+        return;
+      }
+      window.woIncomingCallWatcher = setTimeout(loop, 800);
+    }).fail(function () {
+      window.woIncomingCallWatcher = setTimeout(loop, 1200);
+    });
+  };
+  loop();
+}
+
+function Wo_RefreshCallViews(user_id) {
+  if (!user_id) {
+    return;
+  }
+  if ($('.messages-container').length > 0 && $('#user-id').length > 0 && String($('#user-id').val()) === String(user_id) && typeof Wo_GetUserMessages === 'function') {
+    var user_name = $.trim($('#messages-recipient-' + user_id).find('.messages-user-name:first').text()) || $.trim($('#user-name').text());
+    Wo_GetUserMessages(user_id, user_name, '');
+  }
+  if ($('.messages-users-list').length > 0) {
+    var query = $.trim($('.messages-search-users-form #query').val() || '');
+    $.get(Wo_Ajax_Requests_File(), {
+      f: 'messages',
+      s: 'update_recipients',
+      query: query,
+      source: 'recent'
+    }, function (data) {
+      if (data.status == 200) {
+        $('.messages-users-list').find('.messages-chat-list').html(data.html);
+      }
+    });
+  }
+  if ($('.chat_main_' + user_id).length > 0 && typeof Wo_OpenChatTab === 'function') {
+    Wo_OpenChatTab(user_id);
+  }
+}
+
+function Wo_CloseCallingModal() {
+  $('#calling-modal').remove();
+  $('.modal-backdrop').remove();
+  $('body').removeClass("modal-open");
+}
+
 function Wo_CancelCall() {
+  if (window.woCallCancelPending === true) {
+    return;
+  }
   Wo_progressIconLoader($('#calling-modal').find('.cancel-call'));
-  $.get(Wo_Ajax_Requests_File(), {f:'cancel_call'}, function (data) {
+  var callMeta = window.woActiveCallMeta || {};
+  if (callMeta.finished === true) {
+      Wo_PlayAudioCall('stop');
+      clearTimeout(checkcalls);
+      clearTimeout(window.woActiveCallTimeout);
+      Wo_CloseCallingModal();
+      window.woActiveCallMeta = null;
+      return;
+  }
+  window.woCallCancelPending = true;
+  clearTimeout(checkcalls);
+  clearTimeout(window.woActiveCallTimeout);
+  if (callMeta.id) {
+    callMeta.finished = true;
+    callMeta.finalStatus = 'cancelled';
+    window.woActiveCallMeta = callMeta;
+  }
+  var cancelData = {f:'cancel_call'};
+  if (callMeta.id) {
+    cancelData = {f:'close_call', id:callMeta.id, call_type:callMeta.callType || 'audio', status:'cancelled'};
+  }
+  $.get(Wo_Ajax_Requests_File(), cancelData, function (data) {
     if (data.status == 200) {
       Wo_PlayAudioCall('stop');
-      $( '#calling-modal' ).remove();
-      $( '.modal-backdrop' ).remove();
-      $( 'body' ).removeClass( "modal-open" );
+      Wo_CloseCallingModal();
+      Wo_RefreshCallViews(callMeta.userId || 0);
+      window.woActiveCallMeta = null;
     }
+  }).always(function () {
+    window.woCallCancelPending = false;
   });
 }
 function Wo_GenerateVideoCall(user_id1, user_id2) {
+  if (window.woCallCreatePending === true || $('#calling-modal').length > 0 || (window.woActiveCallMeta && window.woActiveCallMeta.finished !== true)) {
+    return;
+  }
+  window.woCallCreatePending = true;
   $.get(Wo_Ajax_Requests_File(), {f:'create_new_video_call', 'new': 'true', user_id1: user_id1, user_id2:user_id2}, function(data) {
       if (data.status == 200) {
+          window.woActiveCallMeta = {id: data.id, userId: user_id2, callType: 'video'};
+          window.woCallCancelPending = false;
           if (node_socket_flow == "1") {
             socket.emit("user_notification", { to_id: user_id2, user_id: _getCookie("user_id"), type: "create_video" });
           }
@@ -2901,20 +3072,36 @@ function Wo_GenerateVideoCall(user_id1, user_id2) {
            checkcalls = setTimeout(function () {
               Wo_CheckForCallAnswer(data.id);
            }, 2000);
-           setTimeout(function() {
+           window.woActiveCallTimeout = setTimeout(function() {
             $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-video-camera"></i> ' + data.text_no_answer);
             $('#calling-modal').find('.modal-body p').text(data.text_please_try_again_later);
             clearTimeout(checkcalls);
             Wo_PlayAudioCall('stop');
+            $.get(Wo_Ajax_Requests_File(), {f:'close_call', id:data.id, call_type:'video', status:'no_answer'}, function () {
+              window.woActiveCallMeta = {id: data.id, userId: user_id2, callType: 'video', finished: true, finalStatus: 'no_answer'};
+              Wo_RefreshCallViews(user_id2);
+              setTimeout(function () {
+                Wo_CloseCallingModal();
+                window.woActiveCallMeta = null;
+              }, 1200);
+            });
            }, 43000);
           Wo_PlayAudioCall('play');
     }
+   }).always(function () {
+      window.woCallCreatePending = false;
    });
 }
 
 function Wo_GenerateVoiceCall(user_id1, user_id2) {
+  if (window.woCallCreatePending === true || $('#calling-modal').length > 0 || (window.woActiveCallMeta && window.woActiveCallMeta.finished !== true)) {
+    return;
+  }
+  window.woCallCreatePending = true;
   $.get(Wo_Ajax_Requests_File(), {f:'create_new_audio_call', 'new': 'true', user_id1: user_id1, user_id2:user_id2}, function(data) {
       if (data.status == 200) {
+           window.woActiveCallMeta = {id: data.id, userId: user_id2, callType: 'audio'};
+           window.woCallCancelPending = false;
            if (node_socket_flow == "1") {
             socket.emit("user_notification", { to_id: user_id2, user_id: _getCookie("user_id"), type: "create_video" });
           }
@@ -2925,14 +3112,24 @@ function Wo_GenerateVoiceCall(user_id1, user_id2) {
            checkcalls = setTimeout(function () {
               Wo_CheckForAudioCallAnswer(data.id);
            }, 2000);
-           setTimeout(function() {
+           window.woActiveCallTimeout = setTimeout(function() {
             $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-phone"></i> ' + data.text_no_answer);
             $('#calling-modal').find('.modal-body p').text(data.text_please_try_again_later);
             clearTimeout(checkcalls);
             Wo_PlayAudioCall('stop');
+            $.get(Wo_Ajax_Requests_File(), {f:'close_call', id:data.id, call_type:'audio', status:'no_answer'}, function () {
+              window.woActiveCallMeta = {id: data.id, userId: user_id2, callType: 'audio', finished: true, finalStatus: 'no_answer'};
+              Wo_RefreshCallViews(user_id2);
+              setTimeout(function () {
+                Wo_CloseCallingModal();
+                window.woActiveCallMeta = null;
+              }, 1200);
+            });
            }, 43000);
           Wo_PlayAudioCall('play');
     }
+   }).always(function () {
+      window.woCallCreatePending = false;
    });
 }
 function Wo_PlayAudioCall(type) {

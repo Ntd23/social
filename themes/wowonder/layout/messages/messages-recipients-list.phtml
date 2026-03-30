@@ -29,15 +29,19 @@ if (!empty($message['from_id'])) {
    if ($message['seen'] == 0 && $uid == $message['from_id']) {
      $unread_class = ' unread';
    }
-   $text = $message['text'] ?? '';
-   if (strlen($message['text']) > 100) {
+   $text = (string)($message['text'] ?? '');
+   if (strlen($text) > 100) {
      // $message['text'] = mb_substr($message['text'], 0, 97, 'utf-8') . '...';
    }
-   $message['text'] = Wo_Emo($message['text']);
+   $message['text'] = Wo_Emo($text);
+   $call_log = Wo_GetCallLogMessage($message);
+   if (!empty($call_log)) {
+     $message['text'] = $call_log['title'] . (!empty($call_log['detail']) ? ' - ' . $call_log['detail'] : '');
+   }
 }
 ?>
 
-<div class="messages-recipients-list mobileopenlist<?php echo isset($unread_class)?$unread_class:''; ?> <?php echo (!empty($wo['session_active_background']) && $wo['session_active_background'] == $uid) ? 'active' : ''; ?>" id="messages-recipient-<?php echo $uid; ?>" onclick="Wo_GetUserMessages(<?php echo $uid; ?>,'<?php echo $recipient_display_name; ?>');">
+<div class="messages-recipients-list mobileopenlist<?php echo isset($unread_class)?$unread_class:''; ?> <?php echo (!empty($wo['session_active_background']) && $wo['session_active_background'] == $uid) ? 'active' : ''; ?>" id="messages-recipient-<?php echo $uid; ?>" onclick=" if (event.target.closest('.btn-open-tag-modal')) return false; Wo_GetUserMessages(<?php echo $uid; ?>,'<?php echo $recipient_display_name; ?>');">
   <div class="avatar <?php echo Wo_RightToLeft('pull-left');?>">
     <img alt="<?php echo $recipient_display_name; ?> Profile Picture" src="<?php echo $wo['recipient']['avatar'];?>">
     <?php if ($wo['recipient']['lastseen'] > (time() - 60)) { ?>

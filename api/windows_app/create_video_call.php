@@ -109,6 +109,14 @@ if ($type == 'create_video_call') {
                 'room_name' => $room_script
 		    ));
 		    if ($insertData > 0) {
+                Wo_RegisterCallLog(array(
+                    'call_id' => $insertData,
+                    'call_type' => 'video',
+                    'from_id' => $user_id,
+                    'to_id' => $recipient_id,
+                    'provider' => 'twilio',
+                    'status' => 'calling'
+                ));
 		        $wo['calling_user'] = Wo_UserData($recipient_id);
                 if (!empty($wo['calling_user']['ios_m_device_id']) && $wo['config']['ios_push_messages'] == 1) {
                     $send_array = array(
