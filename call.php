@@ -47,11 +47,95 @@ if (is_string($roomRequest) && strpos($roomRequest, '.') !== false) {
 $roomName = "wowonder" . md5($roomRequest);
 
 $is_audio = (isset($_GET['type']) && $_GET['type'] == 'audio') ? 'true' : 'false';
+$redirectTarget = $wo['config']['site_url'];
+if (!empty($_GET['return_url'])) {
+    $returnRequest = urldecode($_GET['return_url']);
+    if (strpos($returnRequest, $wo['config']['site_url']) === 0) {
+        $redirectTarget = $returnRequest;
+    }
+}
+if ($redirectTarget == $wo['config']['site_url'] && !empty($_SERVER['HTTP_REFERER'])) {
+    $refererRequest = $_SERVER['HTTP_REFERER'];
+    if (strpos($refererRequest, $wo['config']['site_url']) === 0) {
+        $redirectTarget = $refererRequest;
+    }
+}
 
 // Thông tin user
 $user_name = $wo['user']['name'];
 
 $user_id = $wo['user']['user_id'];
+$callMeta = array(
+    'id' => (!empty($_GET['id']) ? intval($_GET['id']) : 0),
+    'type' => ((isset($_GET['type']) && $_GET['type'] == 'audio') ? 'audio' : 'video'),
+    'provider' => (!empty($_GET['provider']) ? Wo_Secure($_GET['provider']) : 'twilio')
+);
+if (empty($callMeta['id']) && !empty($roomRequest)) {
+    $room_name = Wo_Secure($roomRequest);
+    $query = mysqli_query($sqlConnect, "SELECT `id`, 'audio' AS `type`, 'twilio' AS `provider` FROM " . T_AUDIO_CALLES . " WHERE `room_name` = '{$room_name}' AND (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') LIMIT 1");
+    if (mysqli_num_rows($query) == 0) {
+        $query = mysqli_query($sqlConnect, "SELECT `id`, 'video' AS `type`, 'twilio' AS `provider` FROM " . T_VIDEOS_CALLES . " WHERE `room_name` = '{$room_name}' AND (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') LIMIT 1");
+    }
+    if (mysqli_num_rows($query) == 0) {
+        $query = mysqli_query($sqlConnect, "SELECT `id`, `type`, 'agora' AS `provider` FROM " . T_AGORA . " WHERE `room_name` = '{$room_name}' AND (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') LIMIT 1");
+    }
+    if (mysqli_num_rows($query) > 0) {
+        $callMeta = mysqli_fetch_assoc($query);
+    }
+}
+if (!empty($callMeta['id'])) {
+    $call_id = intval($callMeta['id']);
+    $call_type = ($callMeta['type'] == 'audio') ? 'audio' : 'video';
+    $call_provider = (!empty($callMeta['provider']) ? $callMeta['provider'] : 'twilio');
+    if ($call_provider == 'agora') {
+        $call_status_query = mysqli_query($sqlConnect, "SELECT `id`, `from_id`, `to_id`, `active`, `declined`, `status` FROM " . T_AGORA . " WHERE `id` = '{$call_id}' LIMIT 1");
+    }
+    else if ($call_type == 'audio') {
+        $call_status_query = mysqli_query($sqlConnect, "SELECT `id`, `from_id`, `to_id`, `active`, `declined`, `status` FROM " . T_AUDIO_CALLES . " WHERE `id` = '{$call_id}' LIMIT 1");
+    }
+    else {
+        $call_status_query = mysqli_query($sqlConnect, "SELECT `id`, `from_id`, `to_id`, `active`, `declined`, `status` FROM " . T_VIDEOS_CALLES . " WHERE `id` = '{$call_id}' LIMIT 1");
+    }
+    if (!empty($call_status_query) && mysqli_num_rows($call_status_query) > 0) {
+        $call_status_row = mysqli_fetch_assoc($call_status_query);
+        $call_status = isset($call_status_row['status']) ? $call_status_row['status'] : '';
+        $call_declined = intval(!empty($call_status_row['declined']) ? $call_status_row['declined'] : 0);
+        $call_active = intval(!empty($call_status_row['active']) ? $call_status_row['active'] : 0);
+        $is_receiver_join = (intval($call_status_row['to_id']) === intval($user_id));
+        if ($is_receiver_join && $call_declined === 0 && ($call_status === '' || $call_status === 'calling')) {
+            if ($call_provider == 'agora') {
+                mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `active` = '1', `status` = 'answered' WHERE `id` = '{$call_id}'");
+            }
+            else if ($call_type == 'audio') {
+                mysqli_query($sqlConnect, "UPDATE " . T_AUDIO_CALLES . " SET `active` = '1', `status` = 'answered' WHERE `id` = '{$call_id}'");
+            }
+            else {
+                mysqli_query($sqlConnect, "UPDATE " . T_VIDEOS_CALLES . " SET `active` = '1', `status` = 'answered' WHERE `id` = '{$call_id}'");
+            }
+            Wo_UpdateCallLog($call_id, $call_type, 'answered', array(
+                'provider' => $call_provider,
+                'started_at' => time(),
+                'status_by' => $user_id
+            ));
+        }
+        else if ($call_active === 1 && ($call_status === '' || $call_status === 'calling')) {
+            if ($call_provider == 'agora') {
+                mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `status` = 'answered' WHERE `id` = '{$call_id}'");
+            }
+            else if ($call_type == 'audio') {
+                mysqli_query($sqlConnect, "UPDATE " . T_AUDIO_CALLES . " SET `status` = 'answered' WHERE `id` = '{$call_id}'");
+            }
+            else {
+                mysqli_query($sqlConnect, "UPDATE " . T_VIDEOS_CALLES . " SET `status` = 'answered' WHERE `id` = '{$call_id}'");
+            }
+            Wo_UpdateCallLog($call_id, $call_type, 'answered', array(
+                'provider' => $call_provider,
+                'started_at' => time(),
+                'status_by' => $user_id
+            ));
+        }
+    }
+}
 $avatar = !empty($wo['user']['avatar']) ? Wo_GetMedia($wo['user']['avatar']) : '';
 
 $avatarHost = !empty($avatar) ? parse_url($avatar, PHP_URL_HOST) : '';
@@ -168,8 +252,10 @@ $jwt = JWT::encode($payload, $app_secret, 'HS256');
     
     <script>
         const domain = 'jitsi.vnseea.vn';
-        const redirectUrl = <?php echo json_encode($wo['config']['site_url']); ?>;
+        const redirectUrl = <?php echo json_encode($redirectTarget); ?>;
         const isAudioCall = <?php echo $is_audio; ?>;
+        const callMeta = <?php echo json_encode($callMeta); ?>;
+        const closeCallUrl = <?php echo json_encode($wo['config']['site_url'] . '/requests.php'); ?>;
         const options = {
             roomName: <?php echo json_encode($roomName); ?>,
             width: '100%',
@@ -221,6 +307,55 @@ $jwt = JWT::encode($payload, $app_secret, 'HS256');
         };
 
         const api = new JitsiMeetExternalAPI(domain, options);
+        let conferenceJoinedAt = 0;
+        let callEndReported = false;
+        let callLogPromotedToVideo = false;
+
+        function reportCallEnd(forcedStatus) {
+            if (callEndReported || !callMeta || !callMeta.id) {
+                return Promise.resolve();
+            }
+            callEndReported = true;
+            const duration = conferenceJoinedAt > 0 ? Math.max(0, Math.floor((Date.now() - conferenceJoinedAt) / 1000)) : 0;
+            const status = forcedStatus || (conferenceJoinedAt > 0 ? 'ended' : 'no_answer');
+            const url = closeCallUrl + '?f=close_call&id=' + encodeURIComponent(callMeta.id) + '&call_type=' + encodeURIComponent(callMeta.type || (isAudioCall ? 'audio' : 'video')) + '&provider=' + encodeURIComponent(callMeta.provider || 'twilio') + '&status=' + encodeURIComponent(status) + '&duration=' + encodeURIComponent(duration);
+            try {
+                return fetch(url, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    keepalive: true,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).catch(function () {});
+            } catch (err) {}
+            return Promise.resolve();
+        }
+
+        function redirectAfterCallEnd(forcedStatus, delay) {
+            reportCallEnd(forcedStatus).finally(function () {
+                setTimeout(function() {
+                    window.location.href = redirectUrl;
+                }, delay || 0);
+            });
+        }
+
+        function promoteCallLogToVideo() {
+            if (!isAudioCall || callLogPromotedToVideo || !callMeta || !callMeta.id) {
+                return;
+            }
+            callLogPromotedToVideo = true;
+            const url = closeCallUrl + '?f=set_call_type&id=' + encodeURIComponent(callMeta.id) + '&source_call_type=audio&display_call_type=video&provider=' + encodeURIComponent(callMeta.provider || 'twilio');
+            try {
+                fetch(url, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).catch(function () {});
+            } catch (err) {}
+        }
 
         // Trạng thái Mic và Cam
         let micMuted = false;
@@ -282,6 +417,7 @@ $jwt = JWT::encode($payload, $app_secret, 'HS256');
                 if (camMuted) {
                     userWantsVideo = true;
                     stopEnforceVideoMute();
+                    promoteCallLogToVideo();
                 } else {
                     userWantsVideo = false;
                 }
@@ -301,12 +437,10 @@ $jwt = JWT::encode($payload, $app_secret, 'HS256');
 
         // NÚT CÚP MÁY — GỌI HANGUP TRƯỚC RỒI REDIRECT
         document.getElementById('btn-hangup').addEventListener('click', function() {
+            redirectAfterCallEnd('ended', 350);
             // Gọi hangup để Jitsi báo cho bên kia biết cuộc gọi đã kết thúc
             api.executeCommand('hangup');
             // Đợi 500ms cho Jitsi kịp gửi tín hiệu rồi redirect
-            setTimeout(function() {
-                window.location.href = redirectUrl;
-            }, 500);
         });
 
         // Đồng bộ trạng thái mic/cam từ Jitsi
@@ -324,13 +458,14 @@ $jwt = JWT::encode($payload, $app_secret, 'HS256');
 
         // Khi bị kick hoặc phòng bị đóng bởi người khác
         api.addListener('readyToClose', function () {
-            window.location.href = redirectUrl;
+            redirectAfterCallEnd((conferenceJoinedAt > 0 ? 'ended' : 'no_answer'), 0);
         });
         api.addListener('videoConferenceLeft', function () {
-            window.location.href = redirectUrl;
+            redirectAfterCallEnd((conferenceJoinedAt > 0 ? 'ended' : 'no_answer'), 0);
         });
         // Với audio call, chỉ giữ local camera tắt mặc định; không ép conference vào audio-only
         api.addListener('videoConferenceJoined', function () {
+            conferenceJoinedAt = Date.now();
             if (isAudioCall) {
                 startEnforceVideoMute();
             }
@@ -338,10 +473,11 @@ $jwt = JWT::encode($payload, $app_secret, 'HS256');
 
         // ZALO-STYLE: Gọi 1-1, bên kia thoát → mình cũng thoát ngay
         api.addListener('participantLeft', function () {
+            redirectAfterCallEnd((conferenceJoinedAt > 0 ? 'ended' : 'no_answer'), 250);
             api.executeCommand('hangup');
-            setTimeout(function() {
-                window.location.href = redirectUrl;
-            }, 300);
+        });
+        window.addEventListener('beforeunload', function () {
+            reportCallEnd();
         });
     </script>
 </body>

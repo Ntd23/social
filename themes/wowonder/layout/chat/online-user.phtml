@@ -4,7 +4,7 @@ $test = Wo_GetAllAssignedTagsByOwner();
 $chat_display_name = !empty($wo['chatList']['first_name']) ? $wo['chatList']['first_name'] : $wo['chatList']['name'];
 ?>
 <div class="recipient-chat-user" id="online_<?php echo $wo['chatList']['user_id']; ?>">
-	<div class="user-info" onclick="Wo_OpenChatTab(<?php echo $wo['chatList']['user_id']; ?>);" title="<?php echo $wo['lang']['online']; ?>">
+	<div class="user-info" onclick="if (event.target.closest('.btn-open-tag-modal')) return false; Wo_OpenChatTab(<?php echo $wo['chatList']['user_id']; ?>);" title="<?php echo $wo['lang']['online']; ?>">
 		<img src="<?php echo $wo['chatList']['avatar']; ?>" alt="<?php echo $wo['chatList']['avatar']; ?> Profile Picture" />
 		<span class="chat-user-text" id="chat-tab-id"><?php echo $chat_display_name; ?>
 			<?php if (!empty($wo['chatList']['is_open_to_work']) && $wo['config']['website_mode'] == 'linkedin') { ?>

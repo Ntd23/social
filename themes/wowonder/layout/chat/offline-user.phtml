@@ -14,7 +14,7 @@ $chat_display_name = !empty($wo['chatList']['first_name']) ? $wo['chatList']['fi
 	// print_r($wo['chatList']['user_id']);
 	// echo "</pre>";
 	?>
-	<div class="user-info" onclick="Wo_OpenChatTab(<?php echo $wo['chatList']['user_id']; ?>);" <?php if ($wo['config']['user_lastseen'] == 1 && $wo['chatList']['showlastseen'] != 0) { ?>title="<?php echo $lastseen ?>" <?php } ?>>
+	<div class="user-info" onclick="if (event.target.closest('.btn-open-tag-modal')) return false; Wo_OpenChatTab(<?php echo $wo['chatList']['user_id']; ?>);" <?php if ($wo['config']['user_lastseen'] == 1 && $wo['chatList']['showlastseen'] != 0) { ?>title="<?php echo $lastseen ?>" <?php } ?>>
 		<img src="<?php echo $wo['chatList']['avatar']; ?>" alt="<?php echo $wo['chatList']['avatar']; ?> Profile Picture" />
 		<span class="chat-user-text" id="chat-tab-id"><?php echo $chat_display_name; ?>
 

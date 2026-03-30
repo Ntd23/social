@@ -6107,6 +6107,9 @@ function Wo_CreateNewVideoCall($re_data) {
     $re_data["active"] = 0;
     $re_data["called"] = $re_data["from_id"];
     $re_data["time"]   = Wo_Secure(time());
+    if (!isset($re_data["status"])) {
+        $re_data["status"] = 'calling';
+    }
     $fields            = "`" . implode("`, `", array_keys($re_data)) . "`";
     $data              = '\'' . implode('\', \'', $re_data) . '\'';
     $query             = mysqli_query($sqlConnect, "INSERT INTO " . T_VIDEOS_CALLES . " ({$fields}) VALUES ({$data})");
@@ -6159,6 +6162,9 @@ function Wo_CreateNewAudioCall($re_data) {
     $re_data["active"] = 0;
     $re_data["called"] = $re_data["from_id"];
     $re_data["time"]   = Wo_Secure(time());
+    if (!isset($re_data["status"])) {
+        $re_data["status"] = 'calling';
+    }
     $fields            = "`" . implode("`, `", array_keys($re_data)) . "`";
     $data              = '\'' . implode('\', \'', $re_data) . '\'';
     $query             = mysqli_query($sqlConnect, "INSERT INTO " . T_AUDIO_CALLES . " ({$fields}) VALUES ({$data})");
@@ -6167,6 +6173,344 @@ function Wo_CreateNewAudioCall($re_data) {
     } else {
         return false;
     }
+}
+function Wo_IsCallLogType($type_two = '') {
+    return in_array($type_two, array(
+        'audio_call',
+        'video_call'
+    ));
+}
+function Wo_GetCallLogType($call_type = 'audio') {
+    return ($call_type == 'video') ? 'video_call' : 'audio_call';
+}
+function Wo_GetCallLogNotificationId($call_id = 0, $call_type = 'audio', $provider = 'twilio', $from_id = 0, $to_id = 0) {
+    $call_id   = intval($call_id);
+    $call_type = ($call_type == 'video') ? 'video' : 'audio';
+    $provider  = preg_replace('/[^a-z0-9_]/i', '', strtolower($provider));
+    $from_id   = intval($from_id);
+    $to_id     = intval($to_id);
+    if (empty($provider)) {
+        $provider = 'twilio';
+    }
+    $notification_id = 'call_' . $provider . '_' . $call_type . '_' . $call_id;
+    if ($from_id > 0 && $to_id > 0) {
+        $notification_id .= '_' . $from_id . '_' . $to_id;
+    }
+    return $notification_id;
+}
+function Wo_FormatCallDuration($seconds = 0) {
+    $seconds = intval($seconds);
+    if ($seconds <= 0) {
+        return '0s';
+    }
+    $hours   = floor($seconds / 3600);
+    $minutes = floor(($seconds % 3600) / 60);
+    $secs    = $seconds % 60;
+    $parts   = array();
+    if ($hours > 0) {
+        $parts[] = $hours . 'h';
+    }
+    if ($minutes > 0) {
+        $parts[] = $minutes . 'm';
+    }
+    if ($secs > 0 || empty($parts)) {
+        $parts[] = $secs . 's';
+    }
+    return implode(' ', $parts);
+}
+function Wo_GetCallLogLabel($key = '', $fallback = '') {
+    global $wo;
+    return (!empty($key) && !empty($wo['lang'][$key])) ? $wo['lang'][$key] : $fallback;
+}
+function Wo_GetCallLogMessage($message = array()) {
+    global $wo;
+    if (empty($message) || !Wo_IsCallLogType($message['type_two'])) {
+        return false;
+    }
+    $raw_text = '';
+    if (isset($message['or_text'])) {
+        $raw_text = $message['or_text'];
+    }
+    else if (isset($message['text'])) {
+        $raw_text = $message['text'];
+    }
+    $data = json_decode(htmlspecialchars_decode($raw_text), true);
+    if (empty($data) || !is_array($data)) {
+        $data = array();
+    }
+    $call_type = (!empty($data['call_type']) && $data['call_type'] == 'video') ? 'video' : 'audio';
+    $status    = !empty($data['status']) ? $data['status'] : 'calling';
+    $duration  = intval(!empty($data['duration']) ? $data['duration'] : 0);
+    $current_user_id = !empty($wo['user']['user_id']) ? intval($wo['user']['user_id']) : (!empty($wo['user']['id']) ? intval($wo['user']['id']) : 0);
+    $initiator_id    = intval(!empty($data['initiator_id']) ? $data['initiator_id'] : (!empty($message['from_id']) ? $message['from_id'] : 0));
+    $receiver_id     = intval(!empty($data['receiver_id']) ? $data['receiver_id'] : (!empty($message['to_id']) ? $message['to_id'] : 0));
+    $status_by       = intval(!empty($data['status_by']) ? $data['status_by'] : 0);
+    $is_initiator    = ($current_user_id > 0 && $current_user_id === $initiator_id);
+    $is_receiver     = ($current_user_id > 0 && $current_user_id === $receiver_id);
+    $title     = ($call_type == 'video') ? $wo['lang']['video_call'] : $wo['lang']['audio_call'];
+    $detail    = '';
+    $tone      = 'neutral';
+    if ($status == 'calling') {
+        $detail = $is_initiator ? ((!empty($wo['lang']['calling']) ? $wo['lang']['calling'] : 'Dang goi') . '...') : Wo_GetCallLogLabel('incoming_call', 'Cuoc goi den');
+    }
+    else if ($status == 'cancelled') {
+        $tone = 'danger';
+        if ($status_by > 0 && $status_by == $initiator_id) {
+            $detail = $is_initiator ? Wo_GetCallLogLabel('you_canceled_call', 'Bạn đã hủy cuộc gọi') : Wo_GetCallLogLabel('caller_canceled_call', 'Nguoi goi da huy cuoc goi');
+        }
+        else {
+            $detail = Wo_GetCallLogLabel('call_canceled', 'Cuoc goi da bi huy');
+        }
+    }
+    else if ($status == 'declined') {
+        $tone = 'danger';
+        if ($status_by > 0 && $status_by == $receiver_id) {
+            $detail = $is_receiver ? Wo_GetCallLogLabel('you_declined_call', 'Ban da tu choi') : Wo_GetCallLogLabel('receiver_declined_call', 'Nguoi nhan da tu choi');
+        }
+        else if ($status_by > 0 && $status_by == $initiator_id) {
+            $detail = $is_initiator ? Wo_GetCallLogLabel('you_canceled_call', 'Bạn đã hủy cuộc gọi') : Wo_GetCallLogLabel('caller_canceled_call', 'Nguoi goi da huy cuoc goi');
+        }
+        else {
+            $detail = $wo['lang']['call_declined'];
+        }
+    }
+    else if ($status == 'missed' || $status == 'no_answer') {
+        $tone = 'danger';
+        $detail = $is_initiator ? $wo['lang']['no_answer'] : Wo_GetCallLogLabel('missed_call', 'Cuộc gọi nhỡ');
+    }
+    else if ($status == 'answered') {
+        $tone = 'success';
+        $detail = Wo_GetCallLogLabel('call_answered', 'Đã trả lời cuộc gọi');
+        if ($duration > 0) {
+            $detail .= ' - ' . $wo['lang']['duration'] . ': ' . Wo_FormatCallDuration($duration);
+        }
+    }
+    else if ($status == 'ended') {
+        $tone = 'success';
+        $detail = Wo_GetCallLogLabel('call_answered', 'Đã trả lời cuộc gọi');
+        if ($duration > 0) {
+            $detail .= ' - ' . $wo['lang']['duration'] . ': ' . Wo_FormatCallDuration($duration);
+        }
+    }
+    else if ($duration > 0) {
+        $tone = 'success';
+        $detail = $wo['lang']['duration'] . ': ' . Wo_FormatCallDuration($duration);
+    }
+    return array(
+        'title' => $title,
+        'detail' => $detail,
+        'status' => $status,
+        'duration' => $duration,
+        'call_type' => $call_type,
+        'tone' => $tone,
+        'is_initiator' => $is_initiator,
+        'is_receiver' => $is_receiver,
+        'data' => $data
+    );
+}
+function Wo_RegisterCallLog($call_data = array()) {
+    global $sqlConnect;
+    if (empty($call_data['from_id']) || empty($call_data['to_id']) || empty($call_data['call_id'])) {
+        return false;
+    }
+    $call_type = (!empty($call_data['call_type']) && $call_data['call_type'] == 'video') ? 'video' : 'audio';
+    $provider  = !empty($call_data['provider']) ? $call_data['provider'] : 'twilio';
+    $status    = !empty($call_data['status']) ? $call_data['status'] : 'calling';
+    $payload   = array(
+        'call_id' => intval($call_data['call_id']),
+        'call_type' => $call_type,
+        'provider' => $provider,
+        'status' => $status,
+        'initiator_id' => intval($call_data['from_id']),
+        'receiver_id' => intval($call_data['to_id']),
+        'status_by' => !empty($call_data['status_by']) ? intval($call_data['status_by']) : intval($call_data['from_id']),
+        'started_at' => !empty($call_data['started_at']) ? intval($call_data['started_at']) : 0,
+        'ended_at' => !empty($call_data['ended_at']) ? intval($call_data['ended_at']) : 0,
+        'duration' => !empty($call_data['duration']) ? intval($call_data['duration']) : 0
+    );
+    $notification_id = Wo_GetCallLogNotificationId($payload['call_id'], $call_type, $provider, $call_data['from_id'], $call_data['to_id']);
+    $message_id      = Wo_RegisterMessage(array(
+        'from_id' => Wo_Secure($call_data['from_id']),
+        'to_id' => Wo_Secure($call_data['to_id']),
+        'text' => Wo_Secure(json_encode($payload, JSON_UNESCAPED_UNICODE), 1),
+        'time' => time(),
+        'type_two' => Wo_GetCallLogType($call_type),
+        'notification_id' => Wo_Secure($notification_id)
+    ));
+    return $message_id;
+}
+function Wo_GetCallLogSourceData($call_id = 0, $call_type = 'audio', $provider = 'twilio') {
+    global $sqlConnect;
+    $call_id = intval($call_id);
+    $call_type = ($call_type == 'video') ? 'video' : 'audio';
+    $provider = ($provider == 'agora') ? 'agora' : 'twilio';
+    if ($call_id <= 0) {
+        return false;
+    }
+    $table = '';
+    if ($provider == 'agora') {
+        $table = T_AGORA;
+    }
+    else {
+        $table = ($call_type == 'video') ? T_VIDEOS_CALLES : T_AUDIO_CALLES;
+    }
+    $query = mysqli_query($sqlConnect, "SELECT `id`, `from_id`, `to_id`, `active`, `declined`, `status`, `time` FROM " . $table . " WHERE `id` = '{$call_id}' LIMIT 1");
+    if (mysqli_num_rows($query) == 0) {
+        return false;
+    }
+    $row = mysqli_fetch_assoc($query);
+    if (empty($row)) {
+        return false;
+    }
+    return array(
+        'call_id' => intval($row['id']),
+        'from_id' => intval($row['from_id']),
+        'to_id' => intval($row['to_id']),
+        'provider' => $provider,
+        'call_type' => $call_type,
+        'active' => intval($row['active']),
+        'declined' => intval($row['declined']),
+        'status' => $row['status'],
+        'time' => intval(!empty($row['time']) ? $row['time'] : 0)
+    );
+}
+function Wo_UpdateCallLog($call_id = 0, $call_type = 'audio', $status = 'ended', $options = array()) {
+    global $sqlConnect;
+    $call_id   = intval($call_id);
+    $call_type = ($call_type == 'video') ? 'video' : 'audio';
+    if ($call_id <= 0) {
+        return false;
+    }
+    $provider         = !empty($options['provider']) ? $options['provider'] : 'twilio';
+    $source_data      = Wo_GetCallLogSourceData($call_id, $call_type, $provider);
+    if (!empty($source_data)) {
+        if (empty($options['from_id'])) {
+            $options['from_id'] = $source_data['from_id'];
+        }
+        if (empty($options['to_id'])) {
+            $options['to_id'] = $source_data['to_id'];
+        }
+    }
+    $notification_id        = Wo_GetCallLogNotificationId($call_id, $call_type, $provider, (!empty($options['from_id']) ? $options['from_id'] : 0), (!empty($options['to_id']) ? $options['to_id'] : 0));
+    $legacy_notification_id = Wo_GetCallLogNotificationId($call_id, $call_type, $provider);
+    $query_sql              = "SELECT `id`, `text`, `from_id`, `to_id` FROM " . T_MESSAGES . " WHERE (`notification_id` = '" . Wo_Secure($notification_id) . "' OR `notification_id` = '" . Wo_Secure($legacy_notification_id) . "')";
+    if (!empty($options['from_id']) && !empty($options['to_id'])) {
+        $query_sql .= " AND `from_id` = '" . intval($options['from_id']) . "' AND `to_id` = '" . intval($options['to_id']) . "'";
+    }
+    $query_sql .= " ORDER BY `id` DESC LIMIT 1";
+    $query = mysqli_query($sqlConnect, $query_sql);
+    if (mysqli_num_rows($query) == 0) {
+        if (!empty($options['from_id']) && !empty($options['to_id'])) {
+            $options['call_id'] = $call_id;
+            $options['call_type'] = $call_type;
+            $options['status'] = $status;
+            $options['provider'] = $provider;
+            return Wo_RegisterCallLog($options);
+        }
+        return false;
+    }
+    $message = mysqli_fetch_assoc($query);
+    $payload = json_decode(htmlspecialchars_decode($message['text']), true);
+    if (empty($payload) || !is_array($payload)) {
+        $payload = array(
+            'call_id' => $call_id,
+            'call_type' => $call_type,
+            'provider' => $provider,
+            'initiator_id' => intval($message['from_id']),
+            'receiver_id' => intval($message['to_id']),
+            'started_at' => 0,
+            'ended_at' => 0,
+            'duration' => 0
+        );
+    }
+    $payload['status'] = $status;
+    if (isset($options['status_by'])) {
+        $payload['status_by'] = intval($options['status_by']);
+    }
+    if (!empty($options['started_at'])) {
+        $payload['started_at'] = intval($options['started_at']);
+    }
+    if (!empty($options['ended_at'])) {
+        $payload['ended_at'] = intval($options['ended_at']);
+    }
+    if (isset($options['duration'])) {
+        $payload['duration'] = max(intval($payload['duration']), intval($options['duration']));
+    }
+    if ($status == 'ended' && intval($payload['duration']) <= 0 && !empty($payload['started_at']) && !empty($payload['ended_at'])) {
+        $payload['duration'] = max(0, intval($payload['ended_at']) - intval($payload['started_at']));
+    }
+    $text  = Wo_Secure(json_encode($payload, JSON_UNESCAPED_UNICODE), 1);
+    $time  = !empty($options['time']) ? intval($options['time']) : time();
+    $query = mysqli_query($sqlConnect, "UPDATE " . T_MESSAGES . " SET `text` = '{$text}', `time` = '{$time}', `notification_id` = '" . Wo_Secure($notification_id) . "' WHERE `id` = '" . intval($message['id']) . "'");
+    if ($query && !empty($message['from_id']) && !empty($message['to_id'])) {
+        Wo_CreateUserChat(intval($message['to_id']), intval($message['from_id']));
+    }
+    return $query;
+}
+function Wo_SetCallLogDisplayType($call_id = 0, $source_call_type = 'audio', $display_call_type = 'video', $options = array()) {
+    global $sqlConnect;
+    $call_id = intval($call_id);
+    $source_call_type = ($source_call_type == 'video') ? 'video' : 'audio';
+    $display_call_type = ($display_call_type == 'video') ? 'video' : 'audio';
+    if ($call_id <= 0) {
+        return false;
+    }
+    $provider = !empty($options['provider']) ? $options['provider'] : 'twilio';
+    $source_data = Wo_GetCallLogSourceData($call_id, $source_call_type, $provider);
+    if (!empty($source_data)) {
+        if (empty($options['from_id'])) {
+            $options['from_id'] = $source_data['from_id'];
+        }
+        if (empty($options['to_id'])) {
+            $options['to_id'] = $source_data['to_id'];
+        }
+    }
+    $notification_id = Wo_GetCallLogNotificationId($call_id, $source_call_type, $provider, (!empty($options['from_id']) ? $options['from_id'] : 0), (!empty($options['to_id']) ? $options['to_id'] : 0));
+    $legacy_notification_id = Wo_GetCallLogNotificationId($call_id, $source_call_type, $provider);
+    $query_sql = "SELECT `id`, `text`, `from_id`, `to_id` FROM " . T_MESSAGES . " WHERE (`notification_id` = '" . Wo_Secure($notification_id) . "' OR `notification_id` = '" . Wo_Secure($legacy_notification_id) . "')";
+    if (!empty($options['from_id']) && !empty($options['to_id'])) {
+        $query_sql .= " AND `from_id` = '" . intval($options['from_id']) . "' AND `to_id` = '" . intval($options['to_id']) . "'";
+    }
+    $query_sql .= " ORDER BY `id` DESC LIMIT 1";
+    $query = mysqli_query($sqlConnect, $query_sql);
+    if (mysqli_num_rows($query) == 0) {
+        if (!empty($options['from_id']) && !empty($options['to_id'])) {
+            return Wo_RegisterCallLog(array(
+                'from_id' => intval($options['from_id']),
+                'to_id' => intval($options['to_id']),
+                'call_id' => $call_id,
+                'call_type' => $display_call_type,
+                'provider' => $provider,
+                'status' => (!empty($options['status']) ? $options['status'] : 'answered'),
+                'status_by' => (!empty($options['status_by']) ? intval($options['status_by']) : intval($options['from_id'])),
+                'started_at' => (!empty($options['started_at']) ? intval($options['started_at']) : time()),
+                'duration' => (!empty($options['duration']) ? intval($options['duration']) : 0)
+            ));
+        }
+        return false;
+    }
+    $message = mysqli_fetch_assoc($query);
+    $payload = json_decode(htmlspecialchars_decode($message['text']), true);
+    if (empty($payload) || !is_array($payload)) {
+        $payload = array(
+            'call_id' => $call_id,
+            'provider' => $provider,
+            'status' => (!empty($options['status']) ? $options['status'] : 'answered'),
+            'initiator_id' => intval($message['from_id']),
+            'receiver_id' => intval($message['to_id']),
+            'started_at' => (!empty($options['started_at']) ? intval($options['started_at']) : time()),
+            'ended_at' => 0,
+            'duration' => (!empty($options['duration']) ? intval($options['duration']) : 0)
+        );
+    }
+    $payload['call_type'] = $display_call_type;
+    $text = Wo_Secure(json_encode($payload, JSON_UNESCAPED_UNICODE), 1);
+    $time = !empty($options['time']) ? intval($options['time']) : time();
+    $query = mysqli_query($sqlConnect, "UPDATE " . T_MESSAGES . " SET `text` = '{$text}', `time` = '{$time}', `type_two` = '" . Wo_Secure(Wo_GetCallLogType($display_call_type)) . "', `notification_id` = '" . Wo_Secure($notification_id) . "' WHERE `id` = '" . intval($message['id']) . "'");
+    if ($query && !empty($message['from_id']) && !empty($message['to_id'])) {
+        Wo_CreateUserChat(intval($message['to_id']), intval($message['from_id']));
+    }
+    return $query;
 }
 function Wo_CheckCallAnswer($id = 0) {
     global $sqlConnect, $wo;
@@ -6212,7 +6556,7 @@ function Wo_CheckAudioCallAnswer($id = 0) {
     $query = mysqli_query($sqlConnect, "SELECT * FROM " . T_AUDIO_CALLES . "  WHERE `id` = '{$id}' AND `active` = '1' AND (`declined` = '0' OR `declined` IS NULL)");
     if (mysqli_num_rows($query) > 0) {
         $sql = mysqli_fetch_assoc($query);
-        $data1["url"] = $wo["config"]["site_url"] . "/call.php?room=" . $sql['room_name'] . "&type=audio";
+        $data1["url"] = $wo["config"]["site_url"] . "/call.php?room=" . $sql['room_name'] . "&type=audio&id=" . intval($sql['id']) . "&provider=twilio";
         $data1["room_name"] = $sql['room_name'];
         return $data1;
     } else {
@@ -6220,7 +6564,7 @@ function Wo_CheckAudioCallAnswer($id = 0) {
         if (mysqli_num_rows($query)) {
             if (mysqli_num_rows($query) > 0) {
                 $sql        = mysqli_fetch_assoc($query);
-                $sql["url"] = $wo["config"]["site_url"] . "/call.php?room=" . $sql["room_name"] . "&type=audio";
+                $sql["url"] = $wo["config"]["site_url"] . "/call.php?room=" . $sql["room_name"] . "&type=audio&id=" . intval($sql['id']) . "&provider=agora";
                 return $sql;
             }
         }
@@ -6294,7 +6638,7 @@ function Wo_CheckFroInCalls($type = "video") {
     if ($type == "audio") {
         $table = T_AUDIO_CALLES;
     }
-    $query = mysqli_query($sqlConnect, "SELECT * FROM {$table}  WHERE `to_id` = '{$user_id}' AND `time` > '$time' AND `active` = '0' AND `declined` = 0");
+    $query = mysqli_query($sqlConnect, "SELECT * FROM {$table}  WHERE `to_id` = '{$user_id}' AND `time` > '$time' AND `active` = '0' AND `declined` = 0 AND (`status` = '' OR `status` = 'calling')");
     if (mysqli_num_rows($query)) {
         if (mysqli_num_rows($query) > 0) {
             $sql = mysqli_fetch_assoc($query);
@@ -6306,7 +6650,7 @@ function Wo_CheckFroInCalls($type = "video") {
         }
     } else {
         $table = T_AGORA;
-        $query = mysqli_query($sqlConnect, "SELECT * FROM {$table}  WHERE `to_id` = '{$user_id}' AND `time` > '$time' AND `active` = '0' AND `declined` = 0 AND `type` = '" . $type . "'");
+        $query = mysqli_query($sqlConnect, "SELECT * FROM {$table}  WHERE `to_id` = '{$user_id}' AND `time` > '$time' AND `active` = '0' AND `declined` = 0 AND `type` = '" . $type . "' AND (`status` = '' OR `status` = 'calling')");
         if (mysqli_num_rows($query)) {
             if (mysqli_num_rows($query) > 0) {
                 $sql = mysqli_fetch_assoc($query);

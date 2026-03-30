@@ -9,6 +9,10 @@ if (!empty($message['from_id'])) {
    //$message['text'] = mb_substr( $message['text'], 0, 70, "utf-8") . '...';
 }
 $message['text'] = Wo_Emo($message['text']);
+$call_log = Wo_GetCallLogMessage($message);
+if (!empty($call_log)) {
+   $message['text'] = $call_log['title'] . (!empty($call_log['detail']) ? ' - ' . $call_log['detail'] : '');
+}
 
 $message_event = "Wo_OpenChatTab({$wo['message']['user_id']});";
 
