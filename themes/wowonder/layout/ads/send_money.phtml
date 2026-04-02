@@ -340,3 +340,158 @@ jQuery(function ($) {
   });
 });
 </script>
+<style>
+  #scan_qr_modal #qr-reader video {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 8px;
+  }
+</style>
+<script>
+jQuery(function ($) {
+  const $scanModal = $('#scan_qr_modal');
+  const $qrMsg = $('#qr-msg');
+  const $qrReader = $('#qr-reader');
+  const $qrImage = $('#qr-image');
+  const $sendForm = $('#send-money-form');
+  const $searchInp = $sendForm.find('#search');
+  const $amountInp = $sendForm.find('#amount');
+  const $recipIdInp = $('#recipient_user_id');
+  const $alertBox = $('#send-money-form-alert');
+  const ajaxUrl = (typeof Wo_Ajax_Requests_File === 'function') ? Wo_Ajax_Requests_File() : '/requests.php';
+  let directScanner = null;
+
+  function showFormAlert(msg, ok) {
+    $alertBox.html($('<div>', { class: 'alert ' + (ok ? 'alert-info' : 'alert-danger'), text: msg }));
+  }
+
+  function parseWalletQRDirect(text) {
+    const out = { to: null, amount: null, lock: false };
+    if (!text) return out;
+
+    if (text.trim().startsWith('{')) {
+      try {
+        const j = JSON.parse(text);
+        if (j && (j.type === 'wallet' || j.type === 'send')) {
+          out.to = j.to ? parseInt(j.to, 10) : null;
+          out.amount = (j.amount != null) ? parseFloat(j.amount) : null;
+          out.lock = !!j.lock;
+          return out;
+        }
+      } catch (_) {}
+    }
+
+    if (text.indexOf('|') > -1) {
+      const parts = text.split('|');
+      parts.shift();
+      const map = {};
+      parts.forEach(function (kv) {
+        const i = kv.indexOf('=');
+        if (i > -1) map[kv.slice(0, i)] = kv.slice(i + 1);
+      });
+      if (map.to) out.to = parseInt(map.to, 10);
+      if (map.amount != null && map.amount !== '') out.amount = parseFloat(map.amount);
+      if (map.lock) out.lock = (parseInt(map.lock, 10) === 1);
+    }
+
+    return out;
+  }
+
+  function fetchUserBriefDirect(uid) {
+    $.getJSON(ajaxUrl, { f: 'qrcode', s: 'brief_by_id', id: uid })
+      .done(function (res) {
+        const label = (res && res.status === 200)
+          ? (res.name || (res.username ? '@' + res.username : 'User #' + uid))
+          : ('User #' + uid);
+        $searchInp.val(label);
+      })
+      .fail(function () {
+        $searchInp.val('User #' + uid);
+      });
+  }
+
+  async function closeDirectScanner() {
+    try {
+      if (directScanner) {
+        try {
+          await directScanner.stop();
+        } catch (_) {}
+        try {
+          await directScanner.clear();
+        } catch (_) {}
+      }
+    } catch (_) {}
+    directScanner = null;
+    $qrReader.empty();
+    $qrMsg.hide().removeClass('alert-success alert-danger').text('');
+    $qrImage.val('');
+  }
+
+  async function fillFromQRDirect(text) {
+    const p = parseWalletQRDirect(text);
+    if (!p.to) {
+      $qrMsg.show().removeClass('alert-success').addClass('alert-danger').text('QR không hợp lệ hoặc thiếu người nhận.');
+      return;
+    }
+
+    await closeDirectScanner();
+    $recipIdInp.val(p.to);
+    fetchUserBriefDirect(p.to);
+    if (p.amount != null && !isNaN(p.amount)) {
+      $amountInp.val(String(p.amount));
+      $amountInp.prop('readonly', !!p.lock);
+    } else {
+      $amountInp.prop('readonly', false);
+    }
+    $scanModal.modal('hide');
+    $('#send_money_modal').modal('show');
+    showFormAlert('Đã điền người nhận #' + p.to + (p.amount != null ? (', số tiền ' + p.amount) : ''), true);
+  }
+
+  $scanModal.off('shown.bs.modal hidden.bs.modal');
+
+  $scanModal.on('shown.bs.modal', function () {
+    if (typeof Html5Qrcode === 'undefined') {
+      $qrMsg.show().addClass('alert-danger').text('Không tải được thư viện quét QR.');
+      return;
+    }
+    if (directScanner) return;
+
+    directScanner = new Html5Qrcode('qr-reader');
+    const config = {
+      fps: 12,
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1.777
+    };
+
+    Html5Qrcode.getCameras()
+      .then(function (cameras) {
+        const preferred = (cameras || []).find(function (cam) {
+          return /back|rear|environment/i.test((cam.label || '').toLowerCase());
+        });
+        const cameraConfig = preferred ? { deviceId: { exact: preferred.id } } : { facingMode: 'environment' };
+        return directScanner.start(cameraConfig, config, function (decodedText) {
+          fillFromQRDirect(decodedText);
+        }, function () {});
+      })
+      .catch(function (err) {
+        $qrMsg.show().addClass('alert-danger').text('Không thể mở camera: ' + err);
+      });
+  });
+
+  $scanModal.on('hidden.bs.modal', function () {
+    closeDirectScanner();
+  });
+
+  $qrImage.off('change.qrDirect').on('change.qrDirect', async function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file || typeof Html5Qrcode === 'undefined') return;
+    try {
+      const text = await Html5Qrcode.scanFile(file, true);
+      await fillFromQRDirect(text);
+    } catch (_) {
+      $qrMsg.show().addClass('alert-danger').text('Không đọc được mã từ ảnh.');
+    }
+  });
+});
+</script>
