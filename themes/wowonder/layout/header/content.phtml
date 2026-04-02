@@ -152,6 +152,56 @@ var Searchcontainer = $('.search-container');
 var SearchBox = $('.search-container .search-input');
 var SearchResult = $('.search-dropdown-result');
 
+function Wo_IsMobileHeaderSearchMode() {
+  return $('.wow_new_search_bbtn:visible').length > 0;
+}
+
+function Wo_CloseHeaderSearch() {
+  Searchcontainer.removeClass('open');
+}
+
+function Wo_CloseMobileHeaderSearch() {
+  if (Wo_IsMobileHeaderSearchMode()) {
+    $('#wo_home_search').hide();
+  }
+  Wo_CloseHeaderSearch();
+}
+
+function Wo_ToggleMobileHeaderSearch(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  if (!Wo_IsMobileHeaderSearchMode()) {
+    return;
+  }
+
+  $('#wo_home_search').toggle();
+
+  if ($('#wo_home_search').is(':visible')) {
+    Searchcontainer.addClass('open');
+  } else {
+    Wo_CloseHeaderSearch();
+  }
+}
+
+function Wo_BindHeaderSearchClose() {
+  $(document).off('.woHeaderSearch');
+
+  $(document).on('click.woHeaderSearch touchstart.woHeaderSearch', function(event) {
+    if ($(event.target).closest('#wo_home_search, .wow_new_search_bbtn').length === 0) {
+      Wo_CloseMobileHeaderSearch();
+    }
+  });
+
+  $(document).on('click.woHeaderSearch touchstart.woHeaderSearch', '#wo_home_search, #wo_home_search .search-container, #wo_home_search .dropdown-menu, #wo_home_search .search-input, #wo_home_search #navbar-searchbox, .wow_new_search_bbtn', function(event) {
+    event.stopPropagation();
+  });
+}
+
+Wo_BindHeaderSearchClose();
+
 function Wo_ChangeHomeButtonIcon() {
 
   $('.navbar-home #home-button').html('<i class="fa fa-circle-o-notch fa-spin"></i>');
@@ -202,11 +252,8 @@ function Wo_SearchResult(query) {
         }
         Wo_progressIconLoader(Searchcontainer.find('.navbar-form'));
       });
-      $(document).click(function() {
-        Searchcontainer.removeClass('open');
-      });
     } else {
-      Searchcontainer.removeClass('open');
+      Wo_CloseMobileHeaderSearch();
     }
 }
 
@@ -230,12 +277,8 @@ function Wo_SearchhashResult(query) {
         }
         Wo_progressIconLoader(Searchcontainer.find('.navbar-form'));
       });
-
-      $(document).click(function() {
-        Searchcontainer.removeClass('open');
-      });
     } else {
-      Searchcontainer.removeClass('open');
+      Wo_CloseMobileHeaderSearch();
     }
 }
 

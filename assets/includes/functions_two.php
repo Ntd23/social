@@ -6183,6 +6183,23 @@ function Wo_IsCallLogType($type_two = '') {
 function Wo_GetCallLogType($call_type = 'audio') {
     return ($call_type == 'video') ? 'video_call' : 'audio_call';
 }
+function Wo_GetCallSessionClaim($user_id = 0) {
+    $user_id = intval($user_id);
+    $session_id = session_id();
+    $main_hash  = !empty($_SESSION['main_hash_id']) ? $_SESSION['main_hash_id'] : '';
+    $claim      = crc32($session_id . '|' . $main_hash . '|' . $user_id);
+    $claim      = intval(sprintf('%u', $claim));
+    $claim      = ($claim % 2147483646) + 1;
+    return ($claim > 0) ? $claim : max(1, $user_id);
+}
+function Wo_IsCallClaimedByCurrentSession($claim_id = 0, $user_id = 0) {
+    $claim_id = intval($claim_id);
+    $user_id  = intval($user_id);
+    if ($claim_id <= 0 || $user_id <= 0) {
+        return false;
+    }
+    return ($claim_id === Wo_GetCallSessionClaim($user_id));
+}
 function Wo_GetCallLogNotificationId($call_id = 0, $call_type = 'audio', $provider = 'twilio', $from_id = 0, $to_id = 0) {
     $call_id   = intval($call_id);
     $call_type = ($call_type == 'video') ? 'video' : 'audio';
@@ -6526,6 +6543,10 @@ function Wo_CheckCallAnswer($id = 0) {
     if (mysqli_num_rows($query)) {
         if (mysqli_num_rows($query) > 0) {
             $sql          = mysqli_fetch_assoc($query);
+            $current_user_id = intval(!empty($wo['user']['user_id']) ? $wo['user']['user_id'] : 0);
+            if ($current_user_id > 0 && intval($sql['to_id']) === $current_user_id && !Wo_IsCallClaimedByCurrentSession(intval(!empty($sql['called']) ? $sql['called'] : 0), $current_user_id)) {
+                return false;
+            }
             $data1["url"] = $wo["config"]["site_url"] . "/call.php?room=" . $sql['room_name'];
             return $data1;
         } else {
@@ -6536,6 +6557,10 @@ function Wo_CheckCallAnswer($id = 0) {
         if (mysqli_num_rows($query)) {
             if (mysqli_num_rows($query) > 0) {
                 $sql        = mysqli_fetch_assoc($query);
+                $current_user_id = intval(!empty($wo['user']['user_id']) ? $wo['user']['user_id'] : 0);
+                if ($current_user_id > 0 && intval($sql['to_id']) === $current_user_id && !Wo_IsCallClaimedByCurrentSession(intval(!empty($sql['called']) ? $sql['called'] : 0), $current_user_id)) {
+                    return false;
+                }
                 $sql["url"] = $wo["config"]["site_url"] . "/call.php?room=" . $sql["room_name"];
                 return $sql;
             }
@@ -6556,6 +6581,10 @@ function Wo_CheckAudioCallAnswer($id = 0) {
     $query = mysqli_query($sqlConnect, "SELECT * FROM " . T_AUDIO_CALLES . "  WHERE `id` = '{$id}' AND `active` = '1' AND (`declined` = '0' OR `declined` IS NULL)");
     if (mysqli_num_rows($query) > 0) {
         $sql = mysqli_fetch_assoc($query);
+        $current_user_id = intval(!empty($wo['user']['user_id']) ? $wo['user']['user_id'] : 0);
+        if ($current_user_id > 0 && intval($sql['to_id']) === $current_user_id && !Wo_IsCallClaimedByCurrentSession(intval(!empty($sql['called']) ? $sql['called'] : 0), $current_user_id)) {
+            return false;
+        }
         $data1["url"] = $wo["config"]["site_url"] . "/call.php?room=" . $sql['room_name'] . "&type=audio&id=" . intval($sql['id']) . "&provider=twilio";
         $data1["room_name"] = $sql['room_name'];
         return $data1;
@@ -6564,6 +6593,10 @@ function Wo_CheckAudioCallAnswer($id = 0) {
         if (mysqli_num_rows($query)) {
             if (mysqli_num_rows($query) > 0) {
                 $sql        = mysqli_fetch_assoc($query);
+                $current_user_id = intval(!empty($wo['user']['user_id']) ? $wo['user']['user_id'] : 0);
+                if ($current_user_id > 0 && intval($sql['to_id']) === $current_user_id && !Wo_IsCallClaimedByCurrentSession(intval(!empty($sql['called']) ? $sql['called'] : 0), $current_user_id)) {
+                    return false;
+                }
                 $sql["url"] = $wo["config"]["site_url"] . "/call.php?room=" . $sql["room_name"] . "&type=audio&id=" . intval($sql['id']) . "&provider=agora";
                 return $sql;
             }
