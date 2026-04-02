@@ -6,11 +6,12 @@ if ($f == 'answer_call') {
     if (!empty($_GET['id']) && !empty($_GET['type'])) {
         $id = Wo_Secure($_GET['id']);
         $user_id = Wo_Secure($wo['user']['user_id']);
+        $claim_id = Wo_GetCallSessionClaim($user_id);
         if ($_GET['type'] == 'audio') {
             if ($wo['config']['agora_chat_video'] == 1) {
-                $query = mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `active` = 1, `status` = 'answered' WHERE `id` = '$id' AND `to_id` = '$user_id' AND `active` = '0' AND (`declined` = '0' OR `declined` IS NULL) AND `status` = 'calling'");
+                $query = mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `active` = 1, `status` = 'answered', `called` = '{$claim_id}' WHERE `id` = '$id' AND `to_id` = '$user_id' AND `active` = '0' AND (`declined` = '0' OR `declined` IS NULL) AND `status` = 'calling'");
             } else {
-                $query = mysqli_query($sqlConnect, "UPDATE " . T_AUDIO_CALLES . " SET `active` = 1, `status` = 'answered' WHERE `id` = '$id' AND `to_id` = '$user_id' AND `active` = '0' AND (`declined` = '0' OR `declined` IS NULL) AND (`status` = '' OR `status` = 'calling')");
+                $query = mysqli_query($sqlConnect, "UPDATE " . T_AUDIO_CALLES . " SET `active` = 1, `status` = 'answered', `called` = '{$claim_id}' WHERE `id` = '$id' AND `to_id` = '$user_id' AND `active` = '0' AND (`declined` = '0' OR `declined` IS NULL) AND (`status` = '' OR `status` = 'calling')");
             }
             if (mysqli_affected_rows($sqlConnect) > 0) {
                 Wo_UpdateCallLog($id, 'audio', 'answered', array(
@@ -21,9 +22,9 @@ if ($f == 'answer_call') {
             }
         } else {
             if ($wo['config']['agora_chat_video'] == 1) {
-                $query = mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `active` = 1, `status` = 'answered' WHERE `id` = '$id' AND `to_id` = '$user_id' AND `active` = '0' AND (`declined` = '0' OR `declined` IS NULL) AND `status` = 'calling'");
+                $query = mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `active` = 1, `status` = 'answered', `called` = '{$claim_id}' WHERE `id` = '$id' AND `to_id` = '$user_id' AND `active` = '0' AND (`declined` = '0' OR `declined` IS NULL) AND `status` = 'calling'");
             } else {
-                $query = mysqli_query($sqlConnect, "UPDATE " . T_VIDEOS_CALLES . " SET `active` = 1, `status` = 'answered' WHERE `id` = '$id' AND `to_id` = '$user_id' AND `active` = '0' AND (`declined` = '0' OR `declined` IS NULL) AND (`status` = '' OR `status` = 'calling')");
+                $query = mysqli_query($sqlConnect, "UPDATE " . T_VIDEOS_CALLES . " SET `active` = 1, `status` = 'answered', `called` = '{$claim_id}' WHERE `id` = '$id' AND `to_id` = '$user_id' AND `active` = '0' AND (`declined` = '0' OR `declined` IS NULL) AND (`status` = '' OR `status` = 'calling')");
             }
             if (mysqli_affected_rows($sqlConnect) > 0) {
                 Wo_UpdateCallLog($id, 'video', 'answered', array(

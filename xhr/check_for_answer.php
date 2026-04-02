@@ -24,7 +24,9 @@ if ($f == 'check_for_answer') {
                 if (empty($source_data)) {
                     $source_data = Wo_GetCallLogSourceData($call_id, 'video', 'agora');
                 }
-                if (!empty($source_data) && intval($source_data['active']) === 0 && intval($source_data['declined']) === 0 && !empty($source_data['time']) && (time() - intval($source_data['time'])) >= 43) {
+                $source_status = !empty($source_data['status']) ? $source_data['status'] : '';
+                $is_still_ringing = ($source_status === '' || $source_status === 'calling');
+                if (!empty($source_data) && $is_still_ringing && intval($source_data['active']) === 0 && intval($source_data['declined']) === 0 && !empty($source_data['time']) && (time() - intval($source_data['time'])) >= 43) {
                     $provider = !empty($source_data['provider']) ? $source_data['provider'] : 'twilio';
                     $table = ($provider == 'agora') ? T_AGORA : T_VIDEOS_CALLES;
                     if ($provider == 'agora') {

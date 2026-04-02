@@ -65,7 +65,7 @@
 		</div>
 	</div>
 
-	<div class="story-img <?php echo ($wo['story']['is_owner']  || isset($wo['story']['ad'])) ? 'story_image_owner' : 'story_image_not_owner' ?> user_story_" id="<?php echo $wo['story']['id'];?>">
+	<div class="story-img <?php echo ($wo['story']['is_owner']  || isset($wo['story']['ad'])) ? 'story_image_owner' : 'story_image_not_owner' ?> user_story_" id="<?php echo $wo['story']['id'];?>" data-story-type="<?php echo $wo['story_type']; ?>">
 
         <span class="changer previous-btn pointer" onclick="Get_PreviousStory('<?php echo $wo['story']['id'];?>','<?php echo($wo['story_type']) ?>')">
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z" /></svg>
@@ -161,6 +161,66 @@ $( ".story-img" ).mouseleave(function() {
   $( ".changer" ).fadeOut(200);
 });
 
+$(document).off('touchstart.storySwipe touchmove.storySwipe touchend.storySwipe', '.story_lightbox .story-img');
+$(document).on('touchstart.storySwipe', '.story_lightbox .story-img', function(e) {
+  if (window.innerWidth > 768) {
+    return;
+  }
+  var touch = (e.originalEvent.touches || [])[0];
+  if (!touch) {
+    return;
+  }
+  $(this).data('storySwipe', {
+    startX: touch.clientX,
+    startY: touch.clientY,
+    deltaX: 0,
+    deltaY: 0
+  });
+});
+$(document).on('touchmove.storySwipe', '.story_lightbox .story-img', function(e) {
+  if (window.innerWidth > 768) {
+    return;
+  }
+  var swipe = $(this).data('storySwipe');
+  var touch = (e.originalEvent.touches || [])[0];
+  if (!swipe || !touch) {
+    return;
+  }
+  swipe.deltaX = touch.clientX - swipe.startX;
+  swipe.deltaY = touch.clientY - swipe.startY;
+  $(this).data('storySwipe', swipe);
+});
+$(document).on('touchend.storySwipe', '.story_lightbox .story-img', function() {
+  if (window.innerWidth > 768) {
+    return;
+  }
+  var swipe = $(this).data('storySwipe');
+  $(this).removeData('storySwipe');
+  if (!swipe) {
+    return;
+  }
+  var absX = Math.abs(swipe.deltaX);
+  var absY = Math.abs(swipe.deltaY);
+  if (absX < 50 || absX <= absY) {
+    return;
+  }
+  var storyId = $(this).attr('id');
+  var storyType = $(this).attr('data-story-type');
+  if (swipe.deltaX < 0) {
+    Get_NextStory(storyId, storyType);
+  }
+  else {
+    Get_PreviousStory(storyId, storyType);
+  }
+});
+
 
 
 </script>
+<style>
+@media (max-width: 768px) {
+  .wo_imagecombo_lbox.story_lightbox .story-img .changer {
+    display: none !important;
+  }
+}
+</style>
