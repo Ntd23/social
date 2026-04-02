@@ -6103,7 +6103,8 @@ function Wo_CreateNewVideoCall($re_data) {
         return false;
     }
     $logged_user_id    = Wo_Secure($wo["user"]["user_id"]);
-    $query1            = mysqli_query($sqlConnect, "DELETE FROM " . T_VIDEOS_CALLES . " WHERE `from_id` = {$logged_user_id} OR `to_id` = {$logged_user_id}");
+    $target_user_id    = Wo_Secure($re_data["to_id"]);
+    $query1            = mysqli_query($sqlConnect, "DELETE FROM " . T_VIDEOS_CALLES . " WHERE (`from_id` = {$logged_user_id} AND `to_id` = {$target_user_id}) OR (`from_id` = {$target_user_id} AND `to_id` = {$logged_user_id})");
     $re_data["active"] = 0;
     $re_data["called"] = $re_data["from_id"];
     $re_data["time"]   = Wo_Secure(time());
@@ -6133,7 +6134,8 @@ function Wo_CreateNewAgoraCall($re_data = array()) {
         return false;
     }
     $logged_user_id  = Wo_Secure($wo["user"]["user_id"]);
-    $query1          = mysqli_query($sqlConnect, "DELETE FROM " . T_AGORA . " WHERE `from_id` = {$logged_user_id} OR `to_id` = {$logged_user_id}");
+    $target_user_id  = Wo_Secure($re_data["to_id"]);
+    $query1          = mysqli_query($sqlConnect, "DELETE FROM " . T_AGORA . " WHERE (`from_id` = {$logged_user_id} AND `to_id` = {$target_user_id}) OR (`from_id` = {$target_user_id} AND `to_id` = {$logged_user_id})");
     $re_data["time"] = Wo_Secure(time());
     $fields          = "`" . implode("`, `", array_keys($re_data)) . "`";
     $data            = '\'' . implode('\', \'', $re_data) . '\'';
@@ -6158,7 +6160,8 @@ function Wo_CreateNewAudioCall($re_data) {
         return false;
     }
     $logged_user_id    = Wo_Secure($wo["user"]["user_id"]);
-    $query1            = mysqli_query($sqlConnect, "DELETE FROM " . T_AUDIO_CALLES . " WHERE `from_id` = {$logged_user_id} OR `to_id` = {$logged_user_id}");
+    $target_user_id    = Wo_Secure($re_data["to_id"]);
+    $query1            = mysqli_query($sqlConnect, "DELETE FROM " . T_AUDIO_CALLES . " WHERE (`from_id` = {$logged_user_id} AND `to_id` = {$target_user_id}) OR (`from_id` = {$target_user_id} AND `to_id` = {$logged_user_id})");
     $re_data["active"] = 0;
     $re_data["called"] = $re_data["from_id"];
     $re_data["time"]   = Wo_Secure(time());

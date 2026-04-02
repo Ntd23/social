@@ -19077,7 +19077,7 @@ svg {
 #wo_nw_msg_page .messages-user-name,
 .messages-recipients-list .msg_rght_prt>p,
 .messages-recipients-list .messages-last-sent.new_msg_lst_lsent {
-    font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif !important;
+    /* font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif !important; */
 }
 
 #wo_nw_msg_page .msg_under_hood .mobilerightpane {
@@ -29759,9 +29759,6 @@ div#modal_light_box {
     margin-bottom: 0;
 }
 
-.user-request-list #wo_useract_btn {
-    padding: 15px 45px !important;
-}
 /* === Video Fullscreen Action Buttons === */
 .wo-video-fullscreen-shell {
     position: fixed;
@@ -29820,7 +29817,7 @@ div#modal_light_box {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.38);
-    pointer-events: none;
+	pointer-events: none;
 }
 .wo-video-comment-sheet__panel {
     position: absolute;
@@ -29838,6 +29835,7 @@ div#modal_light_box {
     transition: transform .22s ease;
     pointer-events: none;
 }
+
 .wo-video-comment-sheet.is-active .wo-video-comment-sheet__backdrop,
 .wo-video-comment-sheet.is-active .wo-video-comment-sheet__panel {
     pointer-events: auto;
@@ -29853,7 +29851,7 @@ div#modal_light_box {
     margin: 10px auto 8px;
     flex: 0 0 auto;
 }
-j.wo-video-comment-sheet__content {
+.wo-video-comment-sheet__content {
     min-height: 0;
     flex: 1 1 auto;
     overflow: hidden;

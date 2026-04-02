@@ -61,6 +61,26 @@ if ($redirectTarget == $wo['config']['site_url'] && !empty($_SERVER['HTTP_REFERE
     }
 }
 
+function Wo_JitsiNormalizeMediaUrl($media)
+{
+    global $wo;
+
+    if (empty($media) || !is_string($media)) {
+        return '';
+    }
+
+    $media = trim($media);
+    if ($media === '') {
+        return '';
+    }
+
+    if (filter_var($media, FILTER_VALIDATE_URL)) {
+        return $media;
+    }
+
+    return Wo_GetMedia(ltrim($media, '/'));
+}
+
 // Thông tin user
 $user_name = $wo['user']['name'];
 
@@ -116,7 +136,7 @@ if (!empty($callMeta['id'])) {
         }
     }
 }
-$avatar = !empty($wo['user']['avatar']) ? Wo_GetMedia($wo['user']['avatar']) : '';
+$avatar = !empty($wo['user']['avatar']) ? Wo_JitsiNormalizeMediaUrl($wo['user']['avatar']) : '';
 
 $avatarHost = !empty($avatar) ? parse_url($avatar, PHP_URL_HOST) : '';
 if (!empty($avatarHost)) {
