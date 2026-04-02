@@ -732,7 +732,7 @@ function Wo_SeoLink($query = '') {
             $config['site_url'] . '/movies/country/$1/',
             $config['site_url'] . '/movies/watch/$1',
             $config['site_url'] . '/advertise',
-            $config['site_url'] . '/wallet/',
+            $config['site_url'] . '/wallet',
             $config['site_url'] . '/ads/create/',
             $config['site_url'] . '/ads/edit/$1/',
             $config['site_url'] . '/ads/chart/$1/',

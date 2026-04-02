@@ -500,15 +500,29 @@ function Wo_RegisterComment(text, post_id, user_id, event, page_id, type,gif_url
   }
 }
 
+function Wo_GetCommentScope(post_id) {
+  var sheetState = window.wo_video_overlay_comment_sheet_state;
+  if (
+    sheetState &&
+    String(sheetState.activePostId || "") === String(post_id || "") &&
+    sheetState.activeNode
+  ) {
+    return $(sheetState.activeNode);
+  }
+
+  return $('[id=post-' + post_id + ']');
+}
+
 function Wo_RegisterComment2(post_id, user_id, page_id, type,gif_url = '') {
   $('.chat-box-stickers-cont').html('');
   $('#gif-form-'+post_id).slideUp(200);
-  text = $('[id=post-' + post_id + ']').find('.comment-textarea').val();
+  var commentScope = Wo_GetCommentScope(post_id);
+  text = commentScope.find('.comment-textarea').val();
   //if (recording_node == "comm") {
     Wo_stopRecording();
     if (recorder) {
       recorder.exportWAV(function (blob) {
-        var comment_src_image = $('#post-' + post_id).find('#comment_src_image');
+        var comment_src_image = commentScope.find('#comment_src_image');
         var comment_image = '';
         if (comment_src_image.length > 0) {
           comment_image = comment_src_image.val();
@@ -531,7 +545,7 @@ function Wo_RegisterComment2(post_id, user_id, page_id, type,gif_url = '') {
     }
 
     else {
-      var comment_src_image = $('#post-' + post_id).find('#comment_src_image');
+      var comment_src_image = commentScope.find('#comment_src_image');
       var comment_image = '';
       if (comment_src_image.length > 0) {
         comment_image = comment_src_image.val();
@@ -543,7 +557,7 @@ function Wo_RegisterComment2(post_id, user_id, page_id, type,gif_url = '') {
       dataForm.append('page_id', page_id);
       dataForm.append('comment_image', comment_image);
       dataForm.append('gif_url', gif_url);
-      $('#charsLeft_' + post_id).text($('#charsLeft_' + post_id).attr('data_num'));
+      commentScope.find('#charsLeft_' + post_id).text($('#charsLeft_' + post_id).attr('data_num'));
       Wo_InsertComment(dataForm, post_id);
     }
   //}
@@ -551,15 +565,16 @@ function Wo_RegisterComment2(post_id, user_id, page_id, type,gif_url = '') {
 
 function Wo_InsertComment(dataForm, post_id) {
   if (!dataForm) { return false; }
+  var commentScope = Wo_GetCommentScope(post_id);
   post_wrapper = $('[id=post-' + post_id + ']');
   comment_textarea = post_wrapper.find('.post-comments');
   comment_btn = comment_textarea.find('.emo-comment');
-  textarea_wrapper = comment_textarea.find('.textarea');
-  comment_list = post_wrapper.find('.comments-list');
+  textarea_wrapper = commentScope.find('.textarea');
+  comment_list = commentScope.find('.comments-list');
   //event.preventDefault();
   textarea_wrapper.val('');
   
-  post_wrapper.find('#wo_comment_combo .ball-pulse').fadeIn(100);
+  commentScope.find('#wo_comment_combo .ball-pulse').fadeIn(100);
   $.ajax({
     url: Wo_Ajax_Requests_File() + '?f=posts&s=register_comment&hash=' + $('.main_session').val(),
     type: 'POST',
@@ -575,7 +590,7 @@ function Wo_InsertComment(dataForm, post_id) {
         socket.emit("post_notification", { post_id: post_id, user_id: _getCookie("user_id"), type: "added" });
       }
       Wo_CleanRecordNodes();
-      post_wrapper.find('.post-footer .comment-container:last-child').after(data.html);
+      commentScope.find('.comment-container:first-child').before(data.html);
       post_wrapper.find('.comments-list-lightbox .comment-container:first').before(data.html);
       post_wrapper.find('[id=comments]').html(data.comments_num);
       post_wrapper.find('.lightbox-no-comments').remove();
@@ -586,9 +601,9 @@ function Wo_InsertComment(dataForm, post_id) {
         });
       }
     }
-    $('#post-' + post_id).find('.comment-image-con').empty().addClass('hidden');
-    $('#post-' + post_id).find('#comment_src_image').val('');
-    post_wrapper.find('#wo_comment_combo .ball-pulse').fadeOut(100);
+    commentScope.find('.comment-image-con').empty().addClass('hidden');
+    commentScope.find('#comment_src_image').val('');
+    commentScope.find('#wo_comment_combo .ball-pulse').fadeOut(100);
     if (data.can_send == 1) {
       Wo_SendMessages();
     }

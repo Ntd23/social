@@ -2806,8 +2806,19 @@ function Wo_SkipStep(type) {
     }
   });
 }
+function Wo_GetCommentScope(post_id) {
+    var sheetState = window.wo_video_overlay_comment_sheet_state;
+    if (
+      sheetState &&
+      String(sheetState.activePostId || "") === String(post_id || "") &&
+      sheetState.activeNode
+    ) {
+      return $(sheetState.activeNode);
+    }
+    return $('[id=post-' + post_id + ']');
+}
 function Wo_AddEmoToCommentInput(post_id, code, type) {
-    inputTag = $('[id=post-' + post_id + ']').find('.comment-textarea');
+    inputTag = Wo_GetCommentScope(post_id).find('.comment-textarea');
     if (type == 'lightbox-post-footer') {
        inputTag = $('.lightbox-post-footer').find('.comment-textarea');
     }
@@ -3324,7 +3335,7 @@ function Wo_EmptyReplyCommentImage(id) {
 
 
 function Wo_UploadCommentImage(id) {
-  var image_container = $('#post-' + id);
+  var image_container = Wo_GetCommentScope(id);
   var fetched_image = image_container.find('#comment-image');
   var data = new FormData();
   data.append('image', $('#comment_image_' + id).prop('files')[0]);
@@ -3348,7 +3359,7 @@ function Wo_UploadCommentImage(id) {
 }
 
 function Wo_EmptyCommentImage(id) {
-  var image_container = $('#post-' + id);
+  var image_container = Wo_GetCommentScope(id);
   var fetched_image = image_container.find('#comment-image');
   image_container.find('.comment-image-con').empty().addClass('hidden');
   image_container.find('#comment_src_image').val('');
@@ -4428,18 +4439,57 @@ function FileListItems (files) {
     activePostId: null,
     feedOrder: [],
     escBound: false,
+    historyPushed: false,
     wheelLocked: false,
     touchStartY: null,
     touchStartX: null,
+    touchStartFromDismissZone: false,
     touchTracking: false,
   };
   window.wo_video_overlay_state = overlayState;
 
+  var overlayCommentSheetState = window.wo_video_overlay_comment_sheet_state || {
+    shell: null,
+    panel: null,
+    content: null,
+    activePostId: null,
+    activeNode: null,
+    placeholder: null,
+    wasHidden: false,
+  };
+  window.wo_video_overlay_comment_sheet_state = overlayCommentSheetState;
+
   function overlayDebug() {
     var badge = document.getElementById("wo-video-overlay-debug");
-    if (badge && badge.parentNode) {
-      badge.parentNode.removeChild(badge);
+    if (!arguments.length) {
+      if (badge && badge.parentNode) {
+        badge.parentNode.removeChild(badge);
+      }
+      return;
     }
+
+    if (!badge) {
+      badge = document.createElement("div");
+      badge.id = "wo-video-overlay-debug";
+      badge.style.cssText =
+        "position:fixed;left:12px;bottom:12px;z-index:999999;padding:8px 10px;max-width:calc(100vw - 24px);background:rgba(0,0,0,.78);color:#fff;font:12px/1.4 monospace;border-radius:8px;white-space:pre-wrap;pointer-events:none;";
+      document.body.appendChild(badge);
+    }
+
+    var parts = [];
+    for (var i = 0; i < arguments.length; i++) {
+      var part = arguments[i];
+      if (part && typeof part === "object") {
+        try {
+          parts.push(JSON.stringify(part));
+        } catch (err) {
+          parts.push("[object]");
+        }
+      } else {
+        parts.push(String(part));
+      }
+    }
+    badge.textContent = parts.join("\n");
   }
 
   function getPlayerContainer(player) {
@@ -4455,6 +4505,114 @@ function FileListItems (files) {
     for (var i = 0; i < nodes.length; i++) {
       nodes[i].remove();
     }
+  }
+
+  function ensureOverlayCommentSheet() {
+    if (
+      overlayCommentSheetState.shell &&
+      overlayCommentSheetState.panel &&
+      overlayCommentSheetState.content
+    ) {
+      return overlayCommentSheetState.shell;
+    }
+
+    var shell = document.createElement("div");
+    shell.className = "wo-video-comment-sheet";
+    shell.innerHTML =
+      '<div class="wo-video-comment-sheet__backdrop"></div>' +
+      '<div class="wo-video-comment-sheet__panel" role="dialog" aria-modal="true">' +
+      '<div class="wo-video-comment-sheet__grab"></div>' +
+      '<div class="wo-video-comment-sheet__content"></div>' +
+      "</div>";
+
+    document.body.appendChild(shell);
+
+    overlayCommentSheetState.shell = shell;
+    overlayCommentSheetState.panel = shell.querySelector(
+      ".wo-video-comment-sheet__panel",
+    );
+    overlayCommentSheetState.content = shell.querySelector(
+      ".wo-video-comment-sheet__content",
+    );
+
+    ["touchstart", "touchmove", "touchend", "wheel"].forEach(
+      function (eventName) {
+        overlayCommentSheetState.panel.addEventListener(eventName, function (e) {
+          e.stopPropagation();
+        });
+      },
+    );
+
+    shell
+      .querySelector(".wo-video-comment-sheet__backdrop")
+      .addEventListener("click", function () {
+        closeOverlayCommentSheet();
+      });
+
+    return shell;
+  }
+
+  function closeOverlayCommentSheet() {
+    var state = overlayCommentSheetState;
+
+    if (state.activeNode && state.placeholder && state.placeholder.parentNode) {
+      state.placeholder.parentNode.insertBefore(state.activeNode, state.placeholder);
+      state.placeholder.parentNode.removeChild(state.placeholder);
+      if (state.wasHidden) {
+        state.activeNode.classList.add("hidden");
+      }
+    }
+
+    state.activePostId = null;
+    state.activeNode = null;
+    state.placeholder = null;
+    state.wasHidden = false;
+
+    if (state.content) {
+      state.content.innerHTML = "";
+    }
+    if (state.shell) {
+      state.shell.classList.remove("is-active");
+    }
+  }
+
+  function openOverlayCommentSheet(postId) {
+    var post = document.getElementById("post-" + postId);
+    if (!post) {
+      return;
+    }
+
+    var commentNode = post.querySelector(".post-comments");
+    if (!commentNode) {
+      return;
+    }
+
+    ensureOverlayCommentSheet();
+    closeOverlayCommentSheet();
+
+    var placeholder = document.createElement("div");
+    placeholder.className = "wo-video-comment-sheet-placeholder";
+    commentNode.parentNode.insertBefore(placeholder, commentNode);
+
+    overlayCommentSheetState.activePostId = postId;
+    overlayCommentSheetState.activeNode = commentNode;
+    overlayCommentSheetState.placeholder = placeholder;
+    overlayCommentSheetState.wasHidden = commentNode.classList.contains("hidden");
+
+    commentNode.classList.remove("hidden");
+    overlayCommentSheetState.content.innerHTML = "";
+    overlayCommentSheetState.content.appendChild(commentNode);
+    overlayCommentSheetState.shell.classList.add("is-active");
+
+    setTimeout(function () {
+      if (typeof Wo_ShowCommentCombo === "function") {
+        Wo_ShowCommentCombo(postId);
+      }
+      var textarea = commentNode.querySelector("textarea");
+      if (textarea) {
+        textarea.focus();
+      }
+    }, 120);
   }
 
   function ensureOverlayShell() {
@@ -4508,8 +4666,51 @@ function FileListItems (files) {
         overlayState.touchTracking = true;
         overlayState.touchStartY = e.touches[0].clientY;
         overlayState.touchStartX = e.touches[0].clientX;
+        overlayState.touchStartFromDismissZone =
+          e.touches[0].clientX <= window.innerWidth / 3;
+        overlayDebug(
+          "touchstart",
+          "active=" + String(overlayState.activePostId || ""),
+          "y=" + String(overlayState.touchStartY),
+          "x=" + String(overlayState.touchStartX),
+          "dismissZone=" + String(overlayState.touchStartFromDismissZone),
+        );
       },
       { passive: true },
+    );
+
+    shell.addEventListener(
+      "touchmove",
+      function (e) {
+        if (
+          !overlayState.activePlayer ||
+          !overlayState.touchTracking ||
+          !e.touches ||
+          !e.touches.length
+        ) {
+          return;
+        }
+        if ($(e.target).closest(".plyr__controls, .video-fullscreen-actions").length) {
+          return;
+        }
+
+        var moveY = e.touches[0].clientY - overlayState.touchStartY;
+        var moveX = e.touches[0].clientX - overlayState.touchStartX;
+
+        if (
+          overlayState.touchStartFromDismissZone &&
+          moveX > 10 &&
+          Math.abs(moveX) > Math.abs(moveY)
+        ) {
+          e.preventDefault();
+          return;
+        }
+
+        if (Math.abs(moveY) > Math.abs(moveX) && Math.abs(moveY) > 10) {
+          e.preventDefault();
+        }
+      },
+      { passive: false },
     );
 
     shell.addEventListener(
@@ -4531,11 +4732,32 @@ function FileListItems (files) {
         overlayState.touchTracking = false;
         overlayState.touchStartY = null;
         overlayState.touchStartX = null;
+        var startedFromDismissZone = overlayState.touchStartFromDismissZone;
+        overlayState.touchStartFromDismissZone = false;
+
+        overlayDebug(
+          "touchend",
+          "active=" + String(overlayState.activePostId || ""),
+          "deltaY=" + String(deltaY),
+          "deltaX=" + String(deltaX),
+          "dismissZone=" + String(startedFromDismissZone),
+        );
+
+        if (
+          startedFromDismissZone &&
+          deltaX > 70 &&
+          Math.abs(deltaX) > Math.abs(deltaY)
+        ) {
+          closeActiveVideoOverlay(false);
+          return;
+        }
 
         if (Math.abs(deltaY) < 60 || Math.abs(deltaY) < Math.abs(deltaX)) {
           return;
         }
 
+        // Match existing reels/lightbox behavior:
+        // swipe up => next video below, swipe down => previous video above.
         changeOverlayVideoByOffset(deltaY < 0 ? 1 : -1);
       },
       { passive: true },
@@ -4548,6 +4770,22 @@ function FileListItems (files) {
           closeActiveVideoOverlay();
         }
       });
+
+      window.addEventListener("popstate", function () {
+        if (!overlayState.activePlayer) {
+          return;
+        }
+
+        overlayState.historyPushed = false;
+        closeActiveVideoOverlay(false);
+
+        setTimeout(function () {
+          if (typeof Wo_FilterPostBy === "function") {
+            Wo_FilterPostBy("all");
+          }
+        }, 60);
+      });
+
       overlayState.escBound = true;
     }
 
@@ -4557,15 +4795,42 @@ function FileListItems (files) {
   function getFeedVideoOrder() {
     var order = [];
     var seen = {};
+    var items = [];
     var videos = document.querySelectorAll("video[data-post-video]");
+
     for (var i = 0; i < videos.length; i++) {
       var postId = videos[i].getAttribute("data-post-video");
       if (!postId || seen[postId]) {
         continue;
       }
+
+      var postNode = document.getElementById("post-" + postId);
+      var anchorNode = postNode || videos[i].closest(".post") || videos[i];
+      var rect = anchorNode.getBoundingClientRect();
+
       seen[postId] = true;
-      order.push(postId);
+      items.push({
+        postId: postId,
+        top: rect.top,
+        left: rect.left,
+        index: i,
+      });
     }
+
+    items.sort(function (a, b) {
+      if (Math.abs(a.top - b.top) > 4) {
+        return a.top - b.top;
+      }
+      if (Math.abs(a.left - b.left) > 4) {
+        return a.left - b.left;
+      }
+      return a.index - b.index;
+    });
+
+    for (var j = 0; j < items.length; j++) {
+      order.push(items[j].postId);
+    }
+
     return order;
   }
 
@@ -4665,6 +4930,19 @@ function FileListItems (files) {
     overlayState.activePostId = postId;
     window.wo_active_fullscreen_post_id = postId;
 
+    if (
+      !overlayState.historyPushed &&
+      window.history &&
+      typeof window.history.pushState === "function"
+    ) {
+      window.history.pushState(
+        { woVideoOverlay: true, postId: postId },
+        "",
+        window.location.href,
+      );
+      overlayState.historyPushed = true;
+    }
+
     var mediaEl = container.querySelector("video");
     if (mediaEl) {
       if (player.__wo_overlay_media && player.__wo_overlay_ended_handler) {
@@ -4701,12 +4979,15 @@ function FileListItems (files) {
       return;
     }
 
+    closeOverlayCommentSheet();
+
     var player = overlayState.activePlayer;
     restorePlayerToFeed(player);
 
     overlayState.activePlayer = null;
     overlayState.activePostId = null;
     window.wo_active_fullscreen_post_id = null;
+    overlayState.historyPushed = false;
 
     if (overlayState.stage) {
       overlayState.stage.innerHTML = "";
@@ -4848,8 +5129,29 @@ function FileListItems (files) {
 
     var targetIndex = currentIndex + offset;
     if (targetIndex < 0 || targetIndex >= feedOrder.length) {
+      overlayDebug(
+        "active=" + String(overlayState.activePostId || ""),
+        "offset=" + String(offset),
+        "currentIndex=" + String(currentIndex),
+        "targetIndex=out",
+        "order=" + feedOrder.join(" > "),
+      );
+
+      // Let users dismiss fullscreen with a downward swipe on the first item
+      // instead of relying on the browser edge-back gesture.
+      if (targetIndex < 0 && offset < 0) {
+        closeActiveVideoOverlay(false);
+      }
       return;
     }
+
+    overlayDebug(
+      "active=" + String(overlayState.activePostId || ""),
+      "offset=" + String(offset),
+      "currentIndex=" + String(currentIndex),
+      "target=" + String(feedOrder[targetIndex] || ""),
+      "order=" + feedOrder.join(" > "),
+    );
 
     switchOverlayToPost(feedOrder[targetIndex], overlayState.activePlayer);
   }
@@ -5303,14 +5605,7 @@ function FileListItems (files) {
       .querySelector('[data-action="comment"]')
       .addEventListener("click", function (e) {
         e.stopPropagation();
-        closeActiveVideoOverlay(false);
-        setTimeout(function () {
-          var commentBox = $("#post-" + postId).find(".post-comments");
-          if (commentBox.length) {
-            commentBox.slideDown();
-            commentBox.find("textarea").focus();
-          }
-        }, 400);
+        openOverlayCommentSheet(postId);
       });
 
     // Share

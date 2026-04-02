@@ -59,7 +59,7 @@ error_reporting(E_ALL);
         }
 
         $amount  = isset($_GET['amount']) ? wo_parse_amount($_GET['amount']) : null;
-        $payload = 'WALLET|to=' . $to  . (($amount !== null && $amount > 0) ? '|amount='.number_format($amount, 2, '.', '') : '');
+        $payload = 'WALLET|to=' . $to . (($amount !== null && $amount > 0) ? '|amount=' . number_format($amount, 2, '.', '') : '');
         // nạp thư viện phpqrcode
         $paths = [
             __DIR__ . '/assets/includes/phpqrcode/qrlib.php',
