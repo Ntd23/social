@@ -7,16 +7,21 @@ if ($wo['config']['live_video'] != 1 || !$wo['config']['can_use_live']) {
     header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
     exit();
 }
-if ($wo['config']['agora_live_video'] != 1 && $wo['config']['millicast_live_video'] != 1) {
+if (!Wo_IsLiveKitAvailable()) {
     header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
     exit();
 }
-$if_live = $db->where('user_id', $wo['user']['id'])->where('stream_name', '', '!=')->where('live_time', time() - 5, '>=')->getValue(T_POSTS, 'COUNT(*)');
+$if_live = $db->where('user_id', $wo['user']['id'])->where('stream_name', '', '!=')->where('live_ended', 0)->where('live_time', time() - 5, '>=')->getValue(T_POSTS, 'COUNT(*)');
 if ($if_live > 0) {
     header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
     exit();
 }
-include_once 'assets/libraries/AgoraDynamicKey/sample/RtcTokenBuilderSample.php';
+$wo['live_stream_name'] = Wo_GenerateLiveStreamName($wo['user']['id']);
+$wo['livekit_livestream'] = Wo_GetLiveKitLivestreamJoinPayload($wo['live_stream_name'], 'host', $wo['user']['id'], $wo['user']);
+if (empty($wo['livekit_livestream'])) {
+    header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
+    exit();
+}
 $db->where('time', time() - 60, '<')->delete(T_LIVE_SUB);
 $wo['description'] = $wo['config']['siteDesc'];
 $wo['keywords']    = $wo['config']['siteKeywords'];

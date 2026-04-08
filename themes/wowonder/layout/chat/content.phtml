@@ -1997,6 +1997,73 @@ if (isset($_SESSION['open_chat'])) {
 
     var chat_part_array = [];
 
+    if (typeof window.__woInstallAjaxFormPolyfill !== 'function') {
+      window.__woInstallAjaxFormPolyfill = function(jq) {
+        jq = jq || window.jQuery || window.$;
+        if (!jq || !jq.fn) {
+          return;
+        }
+
+        if (typeof jq.fn.ajaxSubmit !== 'function') {
+          jq.fn.ajaxSubmit = function(options) {
+            options = options || {};
+            var $form = this.first();
+            if ($form.length === 0 || !$form[0]) {
+              return jq.Deferred().reject().promise();
+            }
+
+            var formData = new FormData($form[0]);
+            if (options.data && typeof options.data === 'object') {
+              jq.each(options.data, function(key, value) {
+                formData.append(key, value);
+              });
+            }
+
+            var ajaxOptions = jq.extend(true, {
+              url: options.url || $form.attr('action') || window.location.href,
+              type: options.type || $form.attr('method') || 'POST',
+              data: formData,
+              processData: false,
+              contentType: false
+            }, options);
+
+            if (typeof options.uploadProgress === 'function') {
+              ajaxOptions.xhr = function() {
+                var xhr = jq.ajaxSettings.xhr();
+                if (xhr.upload) {
+                  xhr.upload.addEventListener('progress', function(evt) {
+                    var position = evt.loaded || 0;
+                    var total = evt.total || 0;
+                    var percent = evt.lengthComputable && total > 0 ? Math.ceil(position / total * 100) : 0;
+                    options.uploadProgress(evt, position, total, percent);
+                  }, false);
+                }
+                return xhr;
+              };
+            }
+
+            return jq.ajax(ajaxOptions);
+          };
+        }
+
+        if (typeof jq.fn.ajaxForm !== 'function') {
+          jq.fn.ajaxForm = function(options) {
+            options = options || {};
+            return this.each(function() {
+              var $form = jq(this);
+              $form.off('submit.woAjaxFormFallback').on('submit.woAjaxFormFallback', function(e) {
+                e.preventDefault();
+                $form.ajaxSubmit(options);
+                return false;
+              });
+            });
+          };
+        }
+      };
+    }
+
+    window.__woInstallAjaxFormPolyfill(window.jQuery || window.$);
+
     $(function() {
       <?php
       if (isset($_SESSION['chat_id'])) {

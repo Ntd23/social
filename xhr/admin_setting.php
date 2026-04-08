@@ -3341,10 +3341,44 @@ if ($f == 'admin_setting' AND (Wo_IsAdmin() || Wo_IsModerator())) {
                     if ($config['twilio_video_chat'] == 1) {
                         $saveSetting = Wo_SaveConfig('twilio_video_chat', 0);
                     }
+                    if (!empty($config['jitsi_video_chat'])) {
+                        $saveSetting = Wo_SaveConfig('jitsi_video_chat', 0);
+                    }
+                    if (!empty($config['livekit_video_chat'])) {
+                        $saveSetting = Wo_SaveConfig('livekit_video_chat', 0);
+                    }
                 }
                 if ($key == 'twilio_video_chat') {
                     if ($config['agora_chat_video'] == 1) {
                         $saveSetting = Wo_SaveConfig('agora_chat_video', 0);
+                    }
+                    if (!empty($config['jitsi_video_chat'])) {
+                        $saveSetting = Wo_SaveConfig('jitsi_video_chat', 0);
+                    }
+                    if (!empty($config['livekit_video_chat'])) {
+                        $saveSetting = Wo_SaveConfig('livekit_video_chat', 0);
+                    }
+                }
+                if ($key == 'jitsi_video_chat') {
+                    if ($config['agora_chat_video'] == 1) {
+                        $saveSetting = Wo_SaveConfig('agora_chat_video', 0);
+                    }
+                    if ($config['twilio_video_chat'] == 1) {
+                        $saveSetting = Wo_SaveConfig('twilio_video_chat', 0);
+                    }
+                    if (!empty($config['livekit_video_chat'])) {
+                        $saveSetting = Wo_SaveConfig('livekit_video_chat', 0);
+                    }
+                }
+                if ($key == 'livekit_video_chat') {
+                    if ($config['agora_chat_video'] == 1) {
+                        $saveSetting = Wo_SaveConfig('agora_chat_video', 0);
+                    }
+                    if ($config['twilio_video_chat'] == 1) {
+                        $saveSetting = Wo_SaveConfig('twilio_video_chat', 0);
+                    }
+                    if (!empty($config['jitsi_video_chat'])) {
+                        $saveSetting = Wo_SaveConfig('jitsi_video_chat', 0);
                     }
                 }
                 if ($key == 'googleAnalytics_en') {

@@ -1093,7 +1093,7 @@ function Wo_GetUserMessages(user_id, user_name, userlink) {
          Wo_getMessageSeen();
       <?php } ?>
       $('.emo-message').fadeIn(200);
-      <?php if ($wo['config']['video_chat'] == 1 && ($wo['config']['twilio_video_chat'] == 1 || $wo['config']['agora_chat_video'] == 1)) {
+      <?php if ($wo['config']['video_chat'] == 1) {
       	if ($wo['config']['can_use_video_call']) {
        ?>
       if (data.video_call == 200) {
@@ -1103,7 +1103,7 @@ function Wo_GetUserMessages(user_id, user_name, userlink) {
       }
       $('#video-button,#video-button-right').html(video_call);
       <?php } } ?>
-      <?php if ($wo['config']['audio_chat'] == 1 && ($wo['config']['twilio_video_chat'] == 1 || $wo['config']['agora_chat_video'] == 1)) {
+      <?php if ($wo['config']['audio_chat'] == 1) {
       	if ($wo['config']['can_use_audio_call']) {
        ?>
       if (data.audio_call == 200) {

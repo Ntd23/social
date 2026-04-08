@@ -1,65 +1,82 @@
 <?php
 if ($f == 'live') {
     if ($s == 'create' && $wo['config']['can_use_live']) {
-        if (empty($_POST['stream_name'])) {
+        if (!Wo_IsLiveKitAvailable()) {
             $data['message'] = $error_icon . $wo['lang']['please_check_details'];
         } else {
-            $postPrivacy   = '0';
-            $privacy_array = array(
-                '0',
-                '1',
-                '2',
-                '3',
-                '4'
-            );
-            if (!empty($_COOKIE['post_privacy']) && in_array($_COOKIE['post_privacy'], $privacy_array)) {
-                $postPrivacy = Wo_Secure($_COOKIE['post_privacy']);
-            }
-            $token = null;
-            if (!empty($_POST['token']) && !is_null($_POST['token'])) {
-                $token = Wo_Secure($_POST['token']);
-            }
-            $post_id = $db->insert(T_POSTS, array(
-                'user_id' => $wo['user']['id'],
-                'postText' => '',
-                'postType' => 'live',
-                'postPrivacy' => $postPrivacy,
-                'agora_token' => $token,
-                'stream_name' => Wo_Secure($_POST['stream_name']),
-                'time' => time()
-            ));
-            $db->where('id', $post_id)->update(T_POSTS, array(
-                'post_id' => $post_id
-            ));
-            if ($wo['config']['agora_live_video'] == 1 && !empty($wo['config']['agora_app_id']) && !empty($wo['config']['agora_customer_id']) && !empty($wo['config']['agora_customer_certificate']) && $wo['config']['live_video_save'] == 1) {
-                if ($wo['config']['amazone_s3_2'] == 1 && !empty($wo['config']['bucket_name_2']) && !empty($wo['config']['amazone_s3_key_2']) && !empty($wo['config']['amazone_s3_s_key_2']) && !empty($wo['config']['region_2'])) {
-                    $region_array = array(
-                        'us-east-1' => 0,
-                        'us-east-2' => 1,
-                        'us-west-1' => 2,
-                        'us-west-2' => 3,
-                        'eu-west-1' => 4,
-                        'eu-west-2' => 5,
-                        'eu-west-3' => 6,
-                        'eu-central-1' => 7,
-                        'ap-southeast-1' => 8,
-                        'ap-southeast-2' => 9,
-                        'ap-northeast-1' => 10,
-                        'ap-northeast-2' => 11,
-                        'sa-east-1' => 12,
-                        'ca-central-1' => 13,
-                        'ap-south-1' => 14,
-                        'cn-north-1' => 15,
-                        'us-gov-west-1' => 17
-                    );
-                    if (in_array(strtolower($wo['config']['region_2']), array_keys($region_array))) {
-                        StartCloudRecording(1, $region_array[strtolower($wo['config']['region_2'])], $wo['config']['bucket_name_2'], $wo['config']['amazone_s3_key_2'], $wo['config']['amazone_s3_s_key_2'], $_POST['stream_name'], 12, $post_id, $token);
-                    }
+            $stream_name = !empty($_POST['stream_name']) ? Wo_Secure($_POST['stream_name']) : Wo_GenerateLiveStreamName($wo['user']['id']);
+            $join_payload = Wo_GetLiveKitLivestreamJoinPayload($stream_name, 'host', $wo['user']['id'], $wo['user']);
+            if (empty($stream_name) || empty($join_payload)) {
+                $data['message'] = $error_icon . $wo['lang']['please_check_details'];
+            } else {
+                $postPrivacy   = '0';
+                $privacy_array = array(
+                    '0',
+                    '1',
+                    '2',
+                    '3',
+                    '4'
+                );
+                if (!empty($_COOKIE['post_privacy']) && in_array($_COOKIE['post_privacy'], $privacy_array)) {
+                    $postPrivacy = Wo_Secure($_COOKIE['post_privacy']);
+                }
+                $post_id = $db->insert(T_POSTS, array(
+                    'user_id' => $wo['user']['id'],
+                    'postText' => '',
+                    'postType' => 'live',
+                    'postPrivacy' => $postPrivacy,
+                    'stream_name' => $stream_name,
+                    'time' => time(),
+                    'live_time' => time(),
+                    'live_ended' => 0
+                ));
+                if (!empty($post_id)) {
+                    $db->where('id', $post_id)->update(T_POSTS, array(
+                        'post_id' => $post_id
+                    ));
+                    Wo_notifyUsersLive($post_id);
+                    $data['status']    = 200;
+                    $data['post_id']   = $post_id;
+                    $data['provider']  = 'livekit';
+                    $data['stream_name'] = $stream_name;
+                    $data['room_name'] = $join_payload['room_name'];
+                    $data['ws_url']    = $join_payload['ws_url'];
+                    $data['token']     = $join_payload['token'];
+                } else {
+                    $data['message'] = $error_icon . $wo['lang']['please_check_details'];
                 }
             }
-            Wo_notifyUsersLive($post_id);
-            $data['status']  = 200;
-            $data['post_id'] = $post_id;
+        }
+        header("Content-type: application/json");
+        echo json_encode($data);
+        exit();
+    }
+    if ($s == 'join') {
+        if (!Wo_IsLiveKitAvailable()) {
+            $data['message'] = $error_icon . $wo['lang']['please_check_details'];
+        } else {
+            $post_id = (!empty($_POST['post_id']) && is_numeric($_POST['post_id']) && $_POST['post_id'] > 0) ? Wo_Secure($_POST['post_id']) : 0;
+            $post = !empty($post_id) ? Wo_PostData($post_id) : false;
+            if (empty($post) || empty($post['stream_name']) || $post['postType'] !== 'live') {
+                $data['removed'] = 'yes';
+                $data['message'] = $error_icon . $wo['lang']['please_check_details'];
+            } else if (intval($post['live_ended']) === 1 || empty($post['live_time']) || intval($post['live_time']) < (time() - 10)) {
+                $data['removed'] = 'yes';
+                $data['message'] = $error_icon . $wo['lang']['stream_has_ended'];
+            } else {
+                $join_payload = Wo_GetLiveKitLivestreamJoinPayload($post['stream_name'], 'viewer', $wo['user']['id'], $wo['user']);
+                if (empty($join_payload)) {
+                    $data['message'] = $error_icon . $wo['lang']['please_check_details'];
+                } else {
+                    $data['status']    = 200;
+                    $data['post_id']   = intval($post['id']);
+                    $data['provider']  = 'livekit';
+                    $data['stream_name'] = $post['stream_name'];
+                    $data['room_name'] = $join_payload['room_name'];
+                    $data['ws_url']    = $join_payload['ws_url'];
+                    $data['token']     = $join_payload['token'];
+                }
+            }
         }
         header("Content-type: application/json");
         echo json_encode($data);
@@ -198,7 +215,8 @@ if ($f == 'live') {
     if ($s == 'delete') {
         if (!empty($_POST['post_id']) && is_numeric($_POST['post_id']) && $_POST['post_id'] > 0) {
             $db->where('post_id', Wo_Secure($_POST['post_id']))->where('user_id', $wo['user']['id'])->update(T_POSTS, array(
-                'live_ended' => 1
+                'live_ended' => 1,
+                'live_time' => 0
             ));
             if ($wo['config']['live_video_save'] == 0) {
                 Wo_DeletePost(Wo_Secure($_POST['post_id']));

@@ -20,10 +20,7 @@ if ($f == 'check_for_answer') {
             }
             else {
                 $call_id = intval($_GET['id']);
-                $source_data = Wo_GetCallLogSourceData($call_id, 'video', 'twilio');
-                if (empty($source_data)) {
-                    $source_data = Wo_GetCallLogSourceData($call_id, 'video', 'agora');
-                }
+                $source_data = Wo_GetCallSourceById($call_id, 'video');
                 $source_status = !empty($source_data['status']) ? $source_data['status'] : '';
                 $is_still_ringing = ($source_status === '' || $source_status === 'calling');
                 if (!empty($source_data) && $is_still_ringing && intval($source_data['active']) === 0 && intval($source_data['declined']) === 0 && !empty($source_data['time']) && (time() - intval($source_data['time'])) >= 43) {

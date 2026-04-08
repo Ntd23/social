@@ -271,6 +271,86 @@
                     </form>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Jitsi Call Settings</h6>
+                    <form class="jitsi-settings" method="POST">
+                        <div class="float-left">
+                            <label for="jitsi_video_chat" class="main-label">Jitsi Video / Audio Calls</label>
+                            <br><small class="admin-info">`call.php` will read the Jitsi server and JWT credentials from admin settings instead of hardcoded values.</small>
+                        </div>
+                        <div class="form-group float-right switcher">
+                            <input type="hidden" name="jitsi_video_chat" value="0" />
+                            <input type="checkbox" name="jitsi_video_chat" id="chck-jitsi_video_chat" value="1" <?php echo ($wo['config']['jitsi_video_chat'] == 1) ? 'checked': '';?>>
+                            <label for="chck-jitsi_video_chat" class="check-trail"><span class="check-handler"></span></label>
+                        </div>
+                        <div class="clearfix"></div>
+                        <hr>
+                        <div class="alert alert-info">
+                            Enter a hostname like <code>jitsi.example.com</code> or a full URL. The page will derive <code>external_api.min.js</code> from this value.
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">Jitsi Domain</label>
+                                <input type="text" id="jitsi_domain" name="jitsi_domain" class="form-control" value="<?php echo $wo['config']['jitsi_domain'];?>">
+                            </div>
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">Jitsi App ID / Issuer</label>
+                                <input type="text" id="jitsi_app_id" name="jitsi_app_id" class="form-control" value="<?php echo $wo['config']['jitsi_app_id'];?>">
+                            </div>
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">Jitsi App Secret</label>
+                                <input type="password" id="jitsi_app_secret" name="jitsi_app_secret" class="form-control" value="<?php echo $wo['config']['jitsi_app_secret'];?>">
+                            </div>
+                        </div>
+                        <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+                    </form>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">LiveKit Call Settings</h6>
+                    <form class="livekit-settings" method="POST">
+                        <div class="float-left">
+                            <label for="livekit_video_chat" class="main-label">LiveKit Video / Audio Calls</label>
+                            <br><small class="admin-info">Enable LiveKit as the active self-hosted provider. Turning it on should disable Twilio, Agora, and Jitsi.</small>
+                        </div>
+                        <div class="form-group float-right switcher">
+                            <input type="hidden" name="livekit_video_chat" value="0" />
+                            <input type="checkbox" name="livekit_video_chat" id="chck-livekit_video_chat" value="1" <?php echo ($wo['config']['livekit_video_chat'] == 1) ? 'checked': '';?>>
+                            <label for="chck-livekit_video_chat" class="check-trail"><span class="check-handler"></span></label>
+                        </div>
+                        <div class="clearfix"></div>
+                        <hr>
+                        <div class="alert alert-info">
+                            Enter the LiveKit server endpoint and API credentials. Runtime token generation can be wired in next.
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">LiveKit Host</label>
+                                <input type="text" id="livekit_host" name="livekit_host" class="form-control" value="<?php echo $wo['config']['livekit_host'];?>">
+                            </div>
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">LiveKit API Key</label>
+                                <input type="text" id="livekit_api_key" name="livekit_api_key" class="form-control" value="<?php echo $wo['config']['livekit_api_key'];?>">
+                            </div>
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">LiveKit API Secret</label>
+                                <input type="password" id="livekit_api_secret" name="livekit_api_secret" class="form-control" value="<?php echo $wo['config']['livekit_api_secret'];?>">
+                            </div>
+                        </div>
+                        <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+                    </form>
+                </div>
+            </div>
         </div>
         <div class="clearfix"></div>
     </div>
@@ -294,10 +374,26 @@ $(function() {
         if (configName == 'twilio_video_chat') {
             if (setToTrue == 1) {
                 $('input[name=agora_chat_video]').prop('checked', false);
+                $('input[name=jitsi_video_chat]').prop('checked', false);
+                $('input[name=livekit_video_chat]').prop('checked', false);
             }
         } else if (configName == 'agora_chat_video') {
             if (setToTrue == 1) {
                 $('input[name=twilio_video_chat]').prop('checked', false);
+                $('input[name=jitsi_video_chat]').prop('checked', false);
+                $('input[name=livekit_video_chat]').prop('checked', false);
+            }
+        } else if (configName == 'jitsi_video_chat') {
+            if (setToTrue == 1) {
+                $('input[name=twilio_video_chat]').prop('checked', false);
+                $('input[name=agora_chat_video]').prop('checked', false);
+                $('input[name=livekit_video_chat]').prop('checked', false);
+            }
+        } else if (configName == 'livekit_video_chat') {
+            if (setToTrue == 1) {
+                $('input[name=twilio_video_chat]').prop('checked', false);
+                $('input[name=agora_chat_video]').prop('checked', false);
+                $('input[name=jitsi_video_chat]').prop('checked', false);
             }
         }
         $.post( Wo_Ajax_Requests_File() + '?f=admin_setting&s=update_general_setting', objData);
@@ -439,6 +535,22 @@ $(function() {
                 $('.chat-settings-alert').html('<div class="alert alert-success"><i class="fa fa-check"></i> Settings updated successfully</div>');
                 setTimeout(function () {
                     $('.chat-settings-alert').empty();
+                }, 2000);
+            }
+        }
+    });
+    var form_livekit_settings = $('form.livekit-settings');
+    form_livekit_settings.ajaxForm({
+        url: Wo_Ajax_Requests_File() + '?f=admin_setting&s=update_general_setting',
+        beforeSend: function() {
+            form_livekit_settings.find('button').text('Vui lÃ²ng chá»...');
+        },
+        success: function(data) {
+            if (data.status == 200) {
+                form_livekit_settings.find('button').text('Save');
+                $('.livekit-settings-alert').html('<div class="alert alert-success"><i class="fa fa-check"></i> Settings updated successfully</div>');
+                setTimeout(function () {
+                    $('.livekit-settings-alert').empty();
                 }, 2000);
             }
         }

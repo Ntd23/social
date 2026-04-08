@@ -25,49 +25,39 @@ if ($return_url == $wo['config']['site_url'] && !empty($_SERVER['HTTP_REFERER'])
         $return_url = $referer_request;
     }
 }
-if ($wo['config']['agora_chat_video'] == 1) {
-    $wo['video_call'] = array();
-    $call             = $db->where('room_name', $id)->where('(to_id = ' . $wo['user']['id'] . ' OR from_id = ' . $wo['user']['id'] . ')')->getOne(T_AGORA);
-    if (!empty($call)) {
-        $wo['video_call']['id']           = $call->id;
-        $wo['video_call']['call_id']      = $call->id;
-        $wo['video_call']['room']         = $call->room_name;
-        $wo['video_call']['access_token'] = $call->access_token;
-        $wo['video_call']['from_id']      = $call->from_id;
-        $wo['video_call']['to_id']        = $call->to_id;
-        $wo['video_call']['type']         = $call->type;
-        $wo['video_call']['provider']     = 'agora';
-    } else {
-        header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
-        exit();
-    }
-} else {
-    $data2 = Wo_GetAllDataFromCallID($id);
-    if (!$data2) {
-        header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
-        exit();
-    }
-    $wo['video_call'] = $data2;
+$data2 = Wo_GetAllDataFromCallID($id);
+if (!$data2) {
+    header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
+    exit();
+}
+$wo['video_call'] = $data2;
+if (in_array($wo['video_call']['provider'], array('jitsi', 'livekit'))) {
+    $redirect = Wo_BuildCallJoinUrl($wo['video_call']['room_name'], (!empty($wo['video_call']['call_type']) ? $wo['video_call']['call_type'] : 'video'), array(
+        'id' => $wo['video_call']['id'],
+        'provider' => $wo['video_call']['provider'],
+        'return_url' => $return_url
+    ));
+    header("Location: " . $redirect);
+    exit();
+}
+if ($wo['video_call']['provider'] == 'agora') {
+    $wo['video_call']['call_id'] = $wo['video_call']['id'];
+    $wo['video_call']['room'] = $wo['video_call']['room_name'];
+}
+else {
     if ($wo['video_call']['to_id'] == $wo['user']['user_id']) {
         $wo['video_call']['user']         = 1;
         $wo['video_call']['access_token'] = $wo['video_call']['access_token'];
         $wo['video_call']['call_id']      = $wo['video_call']['id'];
-        $wo['video_call']['provider']     = 'twilio';
     } else if ($wo['video_call']['from_id'] == $wo['user']['user_id']) {
         $wo['video_call']['user']         = 2;
         $wo['video_call']['access_token'] = $wo['video_call']['access_token_2'];
         $wo['video_call']['call_id']      = $wo['video_call']['id'];
-        $wo['video_call']['provider']     = 'twilio';
     } else {
         header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
         exit();
     }
-    $user_1                   = Wo_UserData($wo['video_call']['from_id']);
-    $user_2                   = Wo_UserData($wo['video_call']['to_id']);
     $wo['video_call']['room'] = $wo['video_call']['room_name'];
-    if ($wo['video_call']['from_id'] == $wo['user']['user_id']) {
-        $user_id = Wo_Secure($wo['user']['user_id']);
-    }
 }
 $wo['video_call']['return_url'] = $return_url;
 $wo['description'] = $wo['config']['siteDesc'];

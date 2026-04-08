@@ -763,19 +763,8 @@
         </div>
 
         <?php } ?>
-        <?php if ($wo['config']['live_video'] == 1 && !empty($wo['story']['stream_name'])) { ?>
-			<div class="post-file" <?php echo $wo['story']['is_still_live'] ? 'style="/*height: 440px;*/"' : ''; ?> id="fullsizeimg">
-				<?php if ($wo['story']['is_still_live']) { ?>
-					<div class="embed-responsive embed-responsive-4by3">
-						<iframe src="https://viewer.millicast.com/v2?streamId=<?php echo($wo['config']['live_account_id']) ?>/<?php echo($wo['story']['stream_name']) ?>" class="embed-responsive-item"></iframe>
-						<div class="wow_liv_counter"><span id="live_word_<?php echo($wo['story']['id']) ?>"><?php echo $wo['lang']['live']; ?></span> <span id="live_count_<?php echo($wo['story']['id']) ?>"> <?php echo $wo['story']['live_sub_users']; ?></span></div>
-					</div>
-				<?php } else{
-					$wo['media'] = array('filename' => 'https://viewer.millicast.com/v2?streamId='.$wo['config']['live_account_id'].'/'.$wo['story']['stream_name']);
-					echo Wo_LoadPage('players/chat-video');
-					}
-				?>
-			</div>
+        <?php if ($wo['config']['live_video'] == 1 && !empty($wo['story']['stream_name']) && Wo_IsLiveKitAvailable()) { ?>
+          <?php echo Wo_LoadPage('live/includes/livekit_player'); ?>
         <?php } ?>
         <?php if (Wo_IsUrl($wo['story']['postSticker'])): ?>
           <div class="post-file wo_video_post">

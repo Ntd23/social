@@ -596,39 +596,9 @@
             ?>
       </div>
       <?php } ?>
-      <?php 
-        if ($wo['config']['live_video'] == 1 && !empty($wo['story']['stream_name'])) { ?>
-      <div class="post-file" <?php echo $wo['story']['is_still_live'] ? 'style="/*height: 440px;*/"' : ''; ?> id="fullsizeimg">
-        <?php if ($wo['story']['is_still_live']) { ?>
-          <div class="embed-responsive embed-responsive-4by3" id="post_live_video_<?php echo($current_post['id']) ?>">
-            <iframe src="https://viewer.millicast.com/v2?streamId=<?php echo($wo['config']['live_account_id']) ?>/<?php echo($wo['story']['stream_name']) ?>" class="embed-responsive-item"></iframe>
-            <div class="wow_liv_counter"><span id="live_word_<?php echo($wo['story']['id']) ?>"><?php echo $wo['lang']['live']; ?></span> <span id="live_count_<?php echo($wo['story']['id']) ?>"> <?php echo $wo['story']['live_sub_users']; ?></span></div>
-          </div>
-          <?php if (!empty($wo['page']) && $wo['page']  == 'story' && $wo['story']['comments_status'] == 1) { ?>
-            <div id="live_post_comments_<?php echo($wo['story']['id']) ?>" class="wow_liv_comments_feed">
-              <?php if (!empty($wo['story']['get_post_comments'])) { 
-                $count = 0;
-                for ($i=count($wo['story']['get_post_comments'])-1; $i >= 0 ; $i--){ 
-                  $wo['comment'] = $wo['story']['get_post_comments'][$i];
-                  if (!empty($wo['comment']['text'])) { 
-                    echo Wo_LoadPage('story/includes/live_comment');
-                    $count = $count + 1;
-                    if ($count == 4) {
-                      break;
-                    }
-                  }
-                }
-              }
-              ?>
-            </div>
-          <?php } ?>
-        <?php } else{
-          $wo['media'] = array('filename' => 'https://viewer.millicast.com/v2?streamId='.$wo['config']['live_account_id'].'/'.$wo['story']['stream_name']);
-          echo Wo_LoadPage('players/chat-video');
-          }
-        ?>
-      </div>
-        <?php } ?>
+      <?php if ($wo['config']['live_video'] == 1 && !empty($wo['story']['stream_name']) && Wo_IsLiveKitAvailable()) { ?>
+        <?php echo Wo_LoadPage('live/includes/livekit_player'); ?>
+      <?php } ?>
       <?php if (Wo_IsUrl($wo['story']['postSticker'])): ?>
       <div class="post-file wo_video_post">
          <?php if (strpos('.mp4', $wo['story']['postSticker'])) { ?>

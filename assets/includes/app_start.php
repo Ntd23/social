@@ -39,6 +39,26 @@ if (in_array($_SERVER["REMOTE_ADDR"], $baned_ips)) {
     exit();
 }
 $config    = Wo_GetConfig();
+$required_config_defaults = array(
+    'jitsi_video_chat' => '1',
+    'jitsi_domain' => 'jitsi.vnseea.vn',
+    'jitsi_app_id' => 'vnseea_app',
+    'jitsi_app_secret' => '',
+    'livekit_video_chat' => '0',
+    'livekit_host' => '',
+    'livekit_api_key' => '',
+    'livekit_api_secret' => ''
+);
+foreach ($required_config_defaults as $config_name => $config_value) {
+    if (!array_key_exists($config_name, $config)) {
+        mysqli_query($sqlConnect, "INSERT INTO " . T_CONFIG . " (`name`, `value`) VALUES ('" . Wo_Secure($config_name) . "', '" . mysqli_real_escape_string($sqlConnect, $config_value) . "')");
+        $config[$config_name] = $config_value;
+    }
+}
+if (isset($config['jitsi_app_secret']) && $config['jitsi_app_secret'] === '') {
+    $config['jitsi_app_secret'] = '';
+    mysqli_query($sqlConnect, "UPDATE " . T_CONFIG . " SET `value` = '" . mysqli_real_escape_string($sqlConnect, $config['jitsi_app_secret']) . "' WHERE `name` = 'jitsi_app_secret'");
+}
 if ($config['developer_mode'] == 1) {
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);

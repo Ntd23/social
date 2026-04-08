@@ -17,7 +17,7 @@
 			</div>
 		</div>
 		<div class="close-chat">
-			<?php if ($wo['config']['audio_chat'] == 1 && ($wo['config']['twilio_video_chat'] == 1 || $wo['config']['agora_chat_video'] == 1)) {
+			<?php if ($wo['config']['audio_chat'] == 1) {
 				if ($wo['config']['can_use_audio_call']) {
 			 ?>
 			<?php if ($wo['chat']['recipient']['lastseen'] > (time() - 60)) { ?>
@@ -25,7 +25,7 @@
 			<?php } else { ?>
 				<svg width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg" class="disabled"><path d="M7.84643 11.6264C8.36067 11.717 8.88933 11.717 9.40357 11.6264C10.2301 11.4807 10.8958 10.9258 11.1252 10.1914L11.1738 10.0357C11.2244 9.87374 11.25 9.70626 11.25 9.53798C11.25 8.7959 10.5864 8.19433 9.76771 8.19434H7.48229C6.66364 8.19433 6 8.7959 6 9.53798C6 9.70626 6.02564 9.87374 6.0762 10.0357L6.12484 10.1914C6.35416 10.9258 7.01991 11.4807 7.84643 11.6264ZM7.84643 11.6264C4.27447 10.9645 1.4798 8.16986 0.81796 4.5979M0.81796 4.5979C0.727346 4.08367 0.727347 3.555 0.81796 3.04077C0.963604 2.21425 1.51851 1.54849 2.25291 1.31918L2.40868 1.27054C2.5706 1.21998 2.73807 1.19434 2.90635 1.19434C3.64843 1.19434 4.25 1.85798 4.25 2.67662L4.25 4.96205C4.25 5.78069 3.64843 6.44434 2.90635 6.44434C2.73807 6.44434 2.5706 6.41869 2.40868 6.36813L2.2529 6.31949C1.51851 6.09018 0.963604 5.42443 0.81796 4.5979Z" stroke="currentColor" stroke-opacity="0.5"/></svg>
 			<?php } } } ?>
-			<?php if ($wo['config']['video_chat'] == 1 && ($wo['config']['twilio_video_chat'] == 1 || $wo['config']['agora_chat_video'] == 1)) {
+			<?php if ($wo['config']['video_chat'] == 1) {
 				if ($wo['config']['can_use_video_call']) {
 			 ?>
 			<?php if ($wo['chat']['recipient']['lastseen'] > (time() - 60)) { ?>
