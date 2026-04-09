@@ -5,7 +5,7 @@
 			<form action="#">
 				<div class="search-blog">
 					<div class="wow_form_fields">
-						<input type="text" placeholder="<?php echo $wo['lang']['keyword']; ?>" id="nearby-username" onkeydown="Wo_LoadNearByShops(this);">
+						<input type="text" placeholder="<?php echo $wo['lang']['keyword']; ?> / địa chỉ" id="nearby-username">
 					</div>
 				</div>
 			</form>
@@ -30,8 +30,8 @@
 				<h4><?php echo $wo['lang']['location_dist'];?></h4>
 				<div class="select-nearby-users-distance">
 					<form>
-						<input type="range" class="cusrange" id="nearby-users-distance" name="amountRange" onchange="Wo_LoadNearByShops(this);" value="0" min="1" max="1000" oninput="this.form.amountInput.value=this.value">
-						<input type="number" name="amountInput" min="1" max="1000" value="1" oninput="this.form.amountRange.value=this.value" readonly id="cusrange-reader"/>
+						<input type="range" class="cusrange" id="nearby-users-distance" name="amountRange" onchange="Wo_LoadNearByShops(this);" value="25" min="1" max="1000" oninput="this.form.amountInput.value=this.value">
+						<input type="number" name="amountInput" min="1" max="1000" value="25" oninput="this.form.amountRange.value=this.value" readonly id="cusrange-reader"/>
 					</form>
 				</div>
 			</div>
@@ -41,7 +41,7 @@
 	<div class="page-margin">
 		<div class="row wow_frnd_usr wo_my_pages" id="nearby_users_list">
 			<?php
-				$nearby_users = Wo_GetNearbyShops(array('country' => $wo['user']['country_id']));
+				$nearby_users = Wo_GetNearbyShops(array('limit' => 20));
 				if (count($nearby_users) > 0) {
 					foreach ($nearby_users as $wo['UsersList']) {
 						$wo['result'] = $wo['UsersList']['page_data'];
@@ -87,14 +87,25 @@
 <script>
 $('.wow_main_blogs_bg').css('height', ($('.wow_main_float_head').height()) + 'px');
 var planes = [];
-		var markersArray = [];
+var markersArray = [];
+var map = null;
+var nearbyShopsSearchTimer = null;
+var nearbyShopsRequest = null;
+var nearbyMarkerCoordinateCounts = {};
+var nearbyMarkerRenderToken = 0;
+var nearbyShopLocationGeocodeCache = {};
 $.getScript('<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?version=<?php echo $wo['config']['version']; ?>', function(data, textStatus) {
 		/*Map*/
-		
+
 		<?php foreach ($nearby_users as $user) : ?>
-		planes.push(['<?php echo $user['page_data']['name']?>',<?php echo $user['product']['lat']?>, <?php echo $user['product']['lng']?>]);
+		planes.push({
+			name: <?php echo json_encode($user['page_data']['name']); ?>,
+			lat: <?php echo json_encode($user['product']['lat']); ?>,
+			lng: <?php echo json_encode($user['product']['lng']); ?>,
+			location: <?php echo json_encode((!empty($user['product']['location']) ? $user['product']['location'] : $user['page_data']['address'])); ?>
+		});
 		<?php endforeach; ?>
-		var map = L.map('map').setView([<?php echo $wo['user']['lat']?>, <?php echo $wo['user']['lng']?>], 7);
+		map = L.map('map').setView([<?php echo $wo['user']['lat']?>, <?php echo $wo['user']['lng']?>], 7);
 
 		L.tileLayer(
 			'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -102,13 +113,190 @@ $.getScript('<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?vers
 				maxZoom: 18,
 			}).addTo(map);
 
-		for (var i = 0; i < planes.length; i++) {
-			marker = new L.marker([planes[i][1],planes[i][2]])
-			.bindPopup(planes[i][0])
-			.addTo(map);
-			markersArray.push(marker);
-		};
+		Wo_ResetNearbyShopMarkers(planes, true);
 	});
+
+	$('#nearby-username').on('input', function () {
+		clearTimeout(nearbyShopsSearchTimer);
+		nearbyShopsSearchTimer = setTimeout(function () {
+			Wo_LoadNearByShops();
+		}, 300);
+	});
+
+	function Wo_ShouldGeocodeNearbyShopResults(usersInfo) {
+		var searchValue = ($('#nearby-username').val() || '').trim();
+		if (!searchValue || !Array.isArray(usersInfo) || usersInfo.length === 0) {
+			return false;
+		}
+
+		var distinctLocations = {};
+		var duplicateCoordinates = false;
+		var coordinateCounts = {};
+
+		for (var i = 0; i < usersInfo.length; i++) {
+			var item = usersInfo[i] || {};
+			if (item.location) {
+				distinctLocations[item.location.trim().toLowerCase()] = true;
+			}
+
+			var lat = parseFloat(item.lat);
+			var lng = parseFloat(item.lng);
+			if (!isNaN(lat) && !isNaN(lng)) {
+				var coordinateKey = lat.toFixed(6) + ',' + lng.toFixed(6);
+				coordinateCounts[coordinateKey] = (coordinateCounts[coordinateKey] || 0) + 1;
+				if (coordinateCounts[coordinateKey] > 1) {
+					duplicateCoordinates = true;
+				}
+			}
+		}
+
+		return duplicateCoordinates && Object.keys(distinctLocations).length > 1;
+	}
+
+	function Wo_GeocodeNearbyShopLocation(location) {
+		var normalizedLocation = (location || '').trim();
+		if (!normalizedLocation) {
+			return Promise.resolve(null);
+		}
+
+		if (nearbyShopLocationGeocodeCache.hasOwnProperty(normalizedLocation)) {
+			return Promise.resolve(nearbyShopLocationGeocodeCache[normalizedLocation]);
+		}
+
+		return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(normalizedLocation), {
+			headers: {
+				'Accept': 'application/json'
+			}
+		})
+			.then(function(response) {
+				if (!response.ok) {
+					throw new Error('Geocoding request failed');
+				}
+				return response.json();
+			})
+			.then(function(results) {
+				var geocodedLocation = null;
+				if (Array.isArray(results) && results.length > 0) {
+					var match = results[0];
+					var lat = parseFloat(match.lat);
+					var lng = parseFloat(match.lon);
+					if (!isNaN(lat) && !isNaN(lng)) {
+						geocodedLocation = {
+							lat: lat,
+							lng: lng
+						};
+					}
+				}
+
+				nearbyShopLocationGeocodeCache[normalizedLocation] = geocodedLocation;
+				return geocodedLocation;
+			})
+			.catch(function() {
+				nearbyShopLocationGeocodeCache[normalizedLocation] = null;
+				return null;
+			});
+	}
+
+	function Wo_ResolveNearbyShopMarkers(usersInfo) {
+		if (!Wo_ShouldGeocodeNearbyShopResults(usersInfo)) {
+			return Promise.resolve(usersInfo);
+		}
+
+		return Promise.all(usersInfo.map(function(item) {
+			if (!item || !item.location) {
+				return Promise.resolve(item);
+			}
+
+			return Wo_GeocodeNearbyShopLocation(item.location).then(function(geocodedLocation) {
+				if (!geocodedLocation) {
+					return item;
+				}
+
+				return $.extend({}, item, {
+					lat: geocodedLocation.lat,
+					lng: geocodedLocation.lng
+				});
+			});
+		}));
+	}
+
+	function Wo_DrawNearbyShopMarkers(usersInfo, shouldFit, renderToken) {
+		if (!map) {
+			return;
+		}
+
+		if (typeof renderToken !== 'undefined' && renderToken !== nearbyMarkerRenderToken) {
+			return;
+		}
+
+		for (var i = 0; i < markersArray.length; i++) {
+			map.removeLayer(markersArray[i]);
+		}
+
+		markersArray = [];
+		nearbyMarkerCoordinateCounts = {};
+
+		if (!Array.isArray(usersInfo) || usersInfo.length === 0) {
+			map.setView([<?php echo $wo['user']['lat']?>, <?php echo $wo['user']['lng']?>], 7);
+			return;
+		}
+
+		var bounds = [];
+		usersInfo.forEach(function(element) {
+			var markerInfo = Wo_CreateNearbyShopMarkerPosition(element);
+			if (!markerInfo) {
+				return;
+			}
+
+			var popupHtml = '<strong>' + (element.name || '') + '</strong>';
+			if (element.location) {
+				popupHtml += '<br>' + element.location;
+			}
+
+			var marker = new L.marker([markerInfo.lat, markerInfo.lng])
+				.bindPopup(popupHtml)
+				.addTo(map);
+			markersArray.push(marker);
+			bounds.push([markerInfo.lat, markerInfo.lng]);
+		});
+
+		if (shouldFit !== false && bounds.length > 0) {
+			map.fitBounds(bounds, {padding: [30, 30]});
+		}
+	}
+
+	function Wo_ResetNearbyShopMarkers(usersInfo, shouldFit) {
+		nearbyMarkerRenderToken++;
+		var renderToken = nearbyMarkerRenderToken;
+
+		Wo_ResolveNearbyShopMarkers(usersInfo || []).then(function(resolvedUsersInfo) {
+			Wo_DrawNearbyShopMarkers(resolvedUsersInfo || [], shouldFit, renderToken);
+		});
+	}
+
+	function Wo_CreateNearbyShopMarkerPosition(element) {
+		var lat = parseFloat(element.lat);
+		var lng = parseFloat(element.lng);
+		if (isNaN(lat) || isNaN(lng)) {
+			return null;
+		}
+
+		var key = lat.toFixed(6) + ',' + lng.toFixed(6);
+		var duplicateIndex = nearbyMarkerCoordinateCounts[key] || 0;
+		nearbyMarkerCoordinateCounts[key] = duplicateIndex + 1;
+
+		if (duplicateIndex === 0) {
+			return {lat: lat, lng: lng};
+		}
+
+		var angle = (duplicateIndex - 1) * (Math.PI / 3);
+		var radius = 0.00012 * (Math.floor((duplicateIndex - 1) / 6) + 1);
+
+		return {
+			lat: lat + (Math.sin(angle) * radius),
+			lng: lng + (Math.cos(angle) * radius)
+		};
+	}
 
 	function Wo_ShowUserLocationMap(user_geoData = false) {
 		if (!user_geoData) {return false;}
@@ -133,18 +321,22 @@ $.getScript('<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?vers
 	function Wo_LoadNearByShops(self = false){
 		var name     = $("#nearby-username").val();
 		var distance = $("#nearby-users-distance").val();
-		if (!name && !distance) { return false;}
 		if (self) {
 			Wo_progressIconLoader($(self));
 		}
 		else{
 			Wo_StartBar();
 		}
+
+		if (nearbyShopsRequest && nearbyShopsRequest.readyState !== 4) {
+			nearbyShopsRequest.abort();
+		}
 		
-		$.ajax({
+		nearbyShopsRequest = $.ajax({
 			url: Wo_Ajax_Requests_File(),
 			type: 'GET',
 			dataType: 'json',
+			timeout: 10000,
 			data: {
 				f:'nearby_shops',
 				s:'load',
@@ -158,50 +350,39 @@ $.getScript('<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?vers
 	        	$("#nearby_users_list").html(data.html);
 	        	$("[data-toggle]").tooltip();
 	        	$("#load_more_nearby_users").html('<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"></path></svg></span> <?php echo $wo['lang']['load_more']; ?>');
-	        	if (data.users_info != '') {
-	        		for (var i = 0; i < markersArray.length; i++ ) {
-	        			map.removeLayer(markersArray[i]);
-					}
-					markersArray = [];
-					markersArray.length = 0;
- 
-	        		data.users_info.forEach(function(element) {
-	        			marker = new L.marker([element.lat,element.lng])
-						.bindPopup(element.name)
-						.addTo(map);
-						markersArray.push(marker);
-					});
-	        	}
+	        	Wo_ResetNearbyShopMarkers(data.users_info || [], true);
 	        	$('.sun_users_count').find('b').text(data.count);
 
 	        } 
 
 	        else{
 	        	$('.sun_users_count').find('b').text(0);
-	        	for (var i = 0; i < markersArray.length; i++ ) {
-        			map.removeLayer(markersArray[i]);
-				}
-				markersArray = [];
-				markersArray.length = 0;
+	        	Wo_ResetNearbyShopMarkers([], false);
 	        	scrollToTop();
 	        	$("#nearby_users_list").html('<h5 class="search-filter-center-text empty_state"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> <?php echo $wo['lang']['no_result']; ?></h5>');
 	        } 
-	        if (self) {
+		})
+		.fail(function(xhr, status) {
+			if (status !== 'abort') {
+				$('.sun_users_count').find('b').text(0);
+				Wo_ResetNearbyShopMarkers([], false);
+				$("#nearby_users_list").html('<h5 class="search-filter-center-text empty_state"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> <?php echo $wo['lang']['no_result']; ?></h5>');
+			}
+		})
+		.always(function() {
+			if (self) {
 				Wo_progressIconLoader($(self));
 			}
 			else{
 				Wo_FinishBar();
 			}
 		})
-		.fail(function() {
-			console.log("error");
-		})
 	}
 	function Wo_LoadMoreNearByShops(){
 		var after_id = ($(".page_last_id").length > 0) ? $(".page_last_id").last().attr('data-id') : 0;
 		var name     = $("#nearby-username").val();
 		var distance = $("#nearby-users-distance").val();
-		if (!after_id && !name && !distance) { return false;}
+		if (!after_id) { return false;}
 		Wo_progressIconLoader($('#load_more_nearby_users'));
 		$.ajax({
 			url: Wo_Ajax_Requests_File(),
@@ -223,12 +404,22 @@ $.getScript('<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?vers
 	        	$("[data-toggle]").tooltip();
 	        	$("#load_more_nearby_users").html('<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"></path></svg></span> <?php echo $wo['lang']['load_more']; ?>');
 	        	if (data.users_info != '') {
-	        		data.users_info.forEach(function(element) {
-	        			marker = new L.marker([element.lat,element.lng])
-						.bindPopup(element.name)
-						.addTo(map);
-						markersArray.push(marker);
-					});
+	        		Wo_ResolveNearbyShopMarkers(data.users_info).then(function(resolvedUsersInfo) {
+	        			(resolvedUsersInfo || []).forEach(function(element) {
+	        				var markerInfo = Wo_CreateNearbyShopMarkerPosition(element);
+	        				if (!markerInfo) {
+	        					return;
+	        				}
+	        				var popupHtml = '<strong>' + (element.name || '') + '</strong>';
+	        				if (element.location) {
+	        					popupHtml += '<br>' + element.location;
+	        				}
+	        				var marker = new L.marker([markerInfo.lat, markerInfo.lng])
+							.bindPopup(popupHtml)
+							.addTo(map);
+							markersArray.push(marker);
+						});
+	        		});
 	        	}
 	        } 
 

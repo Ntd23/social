@@ -35,7 +35,7 @@
 			
 			<div class="my_wallet wow_mini_wallets">
 				<div>
-					<h5><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><?php echo number_format($wo['user']['wallet'],2);?></h5>
+					<h5><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><?php echo Wo_FormatPriceByCurrency($wo['user']['wallet'], $wo['config']['ads_currency']);?></h5>
 				</div>
 				<div class="wow_mini_wallets_btns">
 					<button data-toggle="modal" data-target="#send_money_modal" class="btn btn-default btn-mat">
@@ -48,9 +48,13 @@
 			</div>
 			<div class="wow_add_money_hid_form text-center">
 				<form class="form" id="replenish-user-account">
-					<p class="bold"><?php echo $wo['lang']['replenish_my_balance'];?></p>
-					<div class="add-amount">
-						<h5><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><input type="number" placeholder="0.00" min="1.00" name="amount" id="amount" /></h5>
+					<div class="wow_form_fields wallet-amount-field">
+						<label for="amount"><?php echo $wo['lang']['replenish_my_balance'];?></label>
+						<div class="wallet-amount-input">
+							<span class="wallet-amount-currency"><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?></span>
+							<input type="text" placeholder="0" id="amount_display" inputmode="decimal" autocomplete="off" />
+							<input type="hidden" name="amount" id="amount" value="" />
+						</div>
 					</div>
 					<button type="submit" class="btn btn-main btn-mat btn-mat-raised">
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M0.41,13.41L6,19L7.41,17.58L1.83,12M22.24,5.58L11.66,16.17L7.5,12L6.07,13.41L11.66,19L23.66,7M18,7L16.59,5.58L10.24,11.93L11.66,13.34L18,7Z"></path></svg> <?php echo $wo['lang']['continue'];?>
@@ -78,6 +82,139 @@
 		</div>
 	</div>
 </div>
+<style>
+	.wo_new_wallet .wow_add_money_hid_form {
+		max-width: 100%;
+	}
+
+	.wo_new_wallet .wow_add_money_hid_form form {
+		max-width: 100%;
+	}
+
+	.wo_new_wallet .wallet-amount-field {
+		margin: 12px auto 18px;
+		max-width: 100%;
+		text-align: left;
+	}
+
+	.wo_new_wallet .wallet-amount-field > label {
+		margin-bottom: 8px;
+	}
+
+	.wo_new_wallet .wallet-amount-input {
+		position: relative;
+		background: #fff;
+		border-radius: 12px;
+	}
+
+	.wo_new_wallet .wallet-amount-currency {
+		position: absolute;
+		top: 50%;
+		left: 14px;
+		transform: translateY(-50%);
+		font-size: 14px;
+		font-weight: 700;
+		color: #5f6368;
+		letter-spacing: 0.04em;
+		pointer-events: none;
+		z-index: 1;
+	}
+
+	.wo_new_wallet .wallet-amount-input input {
+		width: 100%;
+		height: 52px;
+		padding-left: 62px;
+		padding-right: 14px;
+		background: #fff;
+		font-size: 24px;
+		line-height: 1.2;
+		font-weight: 700;
+	}
+
+	.wo_new_wallet .wallet-amount-input input::placeholder {
+		color: #9aa0a6;
+		font-weight: 500;
+	}
+
+	@media (max-width: 767px) {
+		.wo_new_wallet .wallet-amount-field {
+			margin-bottom: 16px;
+		}
+
+		.wo_new_wallet .wallet-amount-currency {
+			left: 12px;
+			font-size: 13px;
+		}
+
+		.wo_new_wallet .wallet-amount-input input {
+			height: 48px;
+			padding-left: 56px;
+			padding-right: 12px;
+			font-size: 20px;
+		}
+	}
+</style>
+<script>
+	var walletCurrencyRule = <?php echo json_encode(Wo_GetCurrencyRule($wo['config']['ads_currency'])); ?>;
+
+	function normalizeCurrencyAmount(value, rule) {
+		var input = String(value || '').trim();
+		if (!input) {
+			return '';
+		}
+		input = input.replace(/\s+/g, '');
+		if ((rule.decimals || 0) === 0) {
+			return input.replace(/[^\d]/g, '');
+		}
+		input = input.replace(new RegExp('\\' + rule.thousand_sep, 'g'), '');
+		if (rule.decimal_sep && rule.decimal_sep !== '.') {
+			input = input.replace(new RegExp('\\' + rule.decimal_sep, 'g'), '.');
+		}
+		input = input.replace(/[^0-9.]/g, '');
+		var firstDot = input.indexOf('.');
+		if (firstDot !== -1) {
+			input = input.slice(0, firstDot + 1) + input.slice(firstDot + 1).replace(/\./g, '');
+		}
+		return input;
+	}
+
+	function formatCurrencyAmount(value, rule) {
+		var normalized = normalizeCurrencyAmount(value, rule);
+		if (!normalized) {
+			return '';
+		}
+		var decimals = parseInt(rule.decimals || 0, 10);
+		if (decimals === 0) {
+			return normalized.replace(/\B(?=(\d{3})+(?!\d))/g, rule.thousand_sep);
+		}
+		var parts = normalized.split('.');
+		var integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, rule.thousand_sep);
+		var decimalPart = parts[1] || '';
+		decimalPart = decimalPart.slice(0, decimals);
+		return decimalPart ? integerPart + rule.decimal_sep + decimalPart : integerPart;
+	}
+
+	function syncWalletAmountInput(value) {
+		var raw = normalizeCurrencyAmount(value, walletCurrencyRule);
+		$('#amount').val(raw);
+		$('#amount_display').val(formatCurrencyAmount(raw, walletCurrencyRule));
+		return raw;
+	}
+
+	function getWalletAmount() {
+		return normalizeCurrencyAmount($('#amount').val() || $('#amount_display').val(), walletCurrencyRule);
+	}
+
+	jQuery(function ($) {
+		var $amountDisplay = $('#amount_display');
+		if ($amountDisplay.length) {
+			$amountDisplay.on('input', function () {
+				syncWalletAmountInput(this.value);
+			});
+			syncWalletAmountInput($amountDisplay.val());
+		}
+	});
+</script>
 <?php echo Wo_LoadPage('ads/send_money'); ?>
 
 <div id="pay-modal"></div>
@@ -153,7 +290,7 @@
       <div class="modal-body">
         <div class="wow_form_fields">
           <label>Số tiền (tùy chọn)</label>
-          <input id="qr-amt" type="number" step="0.01" min="0">
+          <input id="qr-amt" type="text" inputmode="decimal" autocomplete="off">
           <small>Để trống nếu muốn người gửi tự nhập.</small>
         </div>
         <div class="text-center" style="margin-top:10px">
@@ -292,7 +429,7 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {-webkit-appe
 		function pay_using_payfast() {
 			$('#pay-go-pro').modal('hide');
 			$('.btn-payfast').attr('disabled', true);
-			amount = $("#amount").val();
+			amount = getWalletAmount();
 			$.post(Wo_Ajax_Requests_File() + '?f=payfast&s=load',{amount:amount}, function (data) {
 				if (data.status == 200) {
 		        	$('body').append(data.html);
@@ -312,7 +449,7 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {-webkit-appe
 	<?php if ($wo['config']['braintree_payment'] == 1) { ?>
 	function braintreeCheckout(payload) {
 		$('#braintree_button').attr('disabled', true).text("<?php echo $wo["lang"]["please_wait"]?>");
-		amount = $("#amount").val();
+		amount = getWalletAmount();
 		$.post(Wo_Ajax_Requests_File() + '?f=braintree&s=checkout',{amount:amount,nonce:payload.nonce}, function (data) {
 			if (data.status == 200) {
 	        	location.href = data.url;
@@ -347,7 +484,7 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {-webkit-appe
 	<?php } ?>
 <?php if ($wo['config']['ngenius_payment'] == '1') { ?>
 	function pay_using_ngenius() {
-		amount = $("#amount").val();
+		amount = getWalletAmount();
 		$.post(Wo_Ajax_Requests_File() + '?f=ngenius&s=pay',{amount:amount}, function (data) {
 	        if (data.status == 200) {
 	        	location.href = data.url;
@@ -375,7 +512,7 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {-webkit-appe
 	}
 	function AamarpayRequest() {
 		$('#aamarpay_button').attr('disabled', true).text("<?php echo $wo["lang"]["please_wait"]?>");
-		amount = $("#amount").val();
+		amount = getWalletAmount();
 		$.post(Wo_Ajax_Requests_File() + '?f=aamarpay&s=pay',{amount:amount,name:$('#aamarpay_name').val(),email:$('#aamarpay_email').val(),phone:$('#aamarpay_number').val()}, function (data) {
 			$('#aamarpay_button').removeAttr('disabled');
 	        $('#aamarpay_button').text("<?php echo($wo['lang']['pay']) ?>");
@@ -410,7 +547,7 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {-webkit-appe
 	}
 	function SignatureFluttewave() {
 		$('#fluttewave_btn').attr('disabled', true).text("<?php echo $wo["lang"]["please_wait"]?>");
-		amount = $('#amount').val();
+		amount = getWalletAmount();
 		email = $('#fluttewave_email').val();
 	    $.post(Wo_Ajax_Requests_File() + '?f=fluttewave&s=pay', {amount:amount,email:email}, function(data) {
 	    	$('#fluttewave_btn').html("<?php echo($wo['lang']['pay']) ?>");
@@ -458,7 +595,7 @@ function SignatureRazorpay() {
     }
 
 
-    var merchant_total = Number($('#amount').val()) * 100;
+    var merchant_total = Number(getWalletAmount()) * 100;
 
     var razorpay_options = {
         key: "<?php echo $wo['config']['razorpay_key_id']; ?>",
@@ -526,7 +663,7 @@ function SignatureRazorpay() {
 <?php if ($wo['config']['paysera_payment'] == 'yes' && !empty($wo['config']['paysera_project_id']) && !empty($wo['config']['paysera_sign_password'])) { ?>
 	function pay_using_paysera(type) {
 		$('.btn-paysera').attr('disabled', true).text("<?php echo $wo["lang"]["please_wait"]?>");
-		amount = $('#amount').val();
+		amount = getWalletAmount();
 	    $.post(Wo_Ajax_Requests_File() + '?f=paysera&s=get_url', {type:'wallet',amount:amount}, function(data) {
 	        if (data.status == 200) {
 	            window.location.href = data.url;
@@ -557,7 +694,7 @@ function SignatureRazorpay() {
 		email = $('#cashfree_email').val();
 		name = $('#cashfree_name').val();
 		phone = $('#cashfree_phone').val();
-		amount = $('#amount').val();
+		amount = getWalletAmount();
 		$.post(Wo_Ajax_Requests_File() + '?f=cashfree&s=payment_session', {type:'wallet',email:email,name:name,phone:phone,amount:amount}, function(data) {
 			if (data.status == 200) {
 				$('#cashfree_wallet_modal').modal('hide');
@@ -595,7 +732,7 @@ function SignatureRazorpay() {
 		$('#paystack_btn').html("<?php echo($wo['lang']['please_wait']) ?>");
 	    $('#paystack_btn').attr('disabled','true');
 		email = $('#paystack_wallet_email').val();
-		amount = $('#amount').val();
+		amount = getWalletAmount();
 		$.post(Wo_Ajax_Requests_File() + '?f=paystack&s=initialize', {type:'wallet',email:email,amount:amount}, function(data) {
 			if (data.status == 200) {
 				window.location.href = data.url;
@@ -612,7 +749,7 @@ function SignatureRazorpay() {
 
 	function Wo_GetPayPalLink(type) {
 		$('.btn-paypal').attr('disabled', true).text("<?php echo $wo["lang"]["please_wait"]?>");
-		$.get(Wo_Ajax_Requests_File() + '?f=wallet&s=replenish-user-account', {amount:$('#amount').val(), desc: '<?php echo $wo['lang']['replenish_my_balance'];?>'}, function(data) {
+		$.get(Wo_Ajax_Requests_File() + '?f=wallet&s=replenish-user-account', {amount:getWalletAmount(), desc: '<?php echo $wo['lang']['replenish_my_balance'];?>'}, function(data) {
 			if (data.status == 200) {
 				window.location.href = data.url;
 			} else {
@@ -623,7 +760,7 @@ function SignatureRazorpay() {
 
     function Wo_QiwiPay(type) {
         $('.btn-qiwi').attr('disabled', true).text("<?php echo $wo["lang"]["please_wait"]?>");
-        $.post(Wo_Ajax_Requests_File() + '?f=wallet&s=pay_with_qiwi', {amount:$('#amount').val(), desc: '<?php echo $wo['lang']['replenish_my_balance'];?>'}, function(data) {
+        $.post(Wo_Ajax_Requests_File() + '?f=wallet&s=pay_with_qiwi', {amount:getWalletAmount(), desc: '<?php echo $wo['lang']['replenish_my_balance'];?>'}, function(data) {
             if (data.status == 200) {
                 window.location.href = data.url;
             } else {
@@ -633,7 +770,7 @@ function SignatureRazorpay() {
     }
 	function Wo_CheckOutCard(type, description, amount, payment_type) {
 		description = "Wallet replenishment";
-		amount = $('#amount').val() * 100;
+		amount = getWalletAmount() * 100;
 
 		if (payment_type == 'bitcoin') {
 			$('.btn-bitcoin').attr('disabled', true).text("<?php echo $wo["lang"]["please_wait"]?>");
@@ -657,7 +794,7 @@ function SignatureRazorpay() {
 		}
 		if (payment_type != 'bank_payment' && payment_type != 'checkout' && payment_type != 'bitcoin') {
 			var stripe = Stripe('<?php echo $wo['config']['stripe_id'];?>');
-			$.post(Wo_Ajax_Requests_File() + '?f=stripe&s=session', {amount: $('#amount').val(),type:'wallet',payment_type:payment_type}, function(data, textStatus, xhr) {
+			$.post(Wo_Ajax_Requests_File() + '?f=stripe&s=session', {amount: getWalletAmount(),type:'wallet',payment_type:payment_type}, function(data, textStatus, xhr) {
 				if (data.status == 200) {
 					return stripe.redirectToCheckout({ sessionId: data.sessionId });
 				}
@@ -676,12 +813,12 @@ function SignatureRazorpay() {
 			});
 		}
 		if (payment_type == 'bitcoin') {
-			if( $('#amount').val() <= 0 ){
+			if( getWalletAmount() <= 0 ){
 				$('#pay-go-pro').modal('hide');
 				alert('You must enter value greater than ZERO');
 				return false;
 			}else{
-				$.get(Wo_Ajax_Requests_File() + '?f=pay_with_bitcoin&s=pay&amount=' + $('#amount').val(), function (data) {
+				$.get(Wo_Ajax_Requests_File() + '?f=pay_with_bitcoin&s=pay&amount=' + getWalletAmount(), function (data) {
 					if (data.status == 200) {
 						$(data.html).appendTo('body').submit();
 					}
@@ -699,7 +836,7 @@ function SignatureRazorpay() {
 	    	$(".prv-img").html('<div class="thumbnail-rendderer"><div><h4 class="bold"><?php echo $wo['lang']['drop_img_here']; ?></h4><div class="error-text-renderer"></div><div><span><?php echo $wo['lang']['or']; ?></span><p><?php echo $wo['lang']['browse_to_upload']; ?></p></div></div> </div>');
 			$("#blog-alert").html('');
 	    	$('#bank_transfer_des').val('Add to balance');
-	    	$('#bank_transfer_price').val($('#amount').val());
+	    	$('#bank_transfer_price').val(getWalletAmount());
 	    	$('#pay-go-pro').modal('hide');
 	    	$('#bank_transfer_modal').modal({
 	             show: true
@@ -722,8 +859,8 @@ function SignatureRazorpay() {
 
 		$("#replenish-user-account").submit(function(e) {
 			e.preventDefault();
-			var string = $('#amount').val();
-			if (string.indexOf(',') > -1 || string < 0 || string == 0) {
+			var string = getWalletAmount();
+			if (!string || Number(string) < 0 || Number(string) === 0) {
 				$('.please-check').removeClass("hidden");
 				return false;
 			}
@@ -779,7 +916,7 @@ function SignatureRazorpay() {
 var successCallback = function(data) {
 	console.log(data);
     var myForm = document.getElementById('2checkout_form_wallet');
-    $.post(Wo_Ajax_Requests_File() + '?f=2checkout_wallet', {card_number: $("#card_number").val(),card_cvc: $("#card_cvc").val(),card_month: $("#card_month").val(),card_year: $("#card_year").val(),card_name: $("#card_name").val(),card_address: $("#card_address").val(),card_city: $("#card_city").val(),card_state: $("#card_state").val(),card_zip: $("#card_zip").val(),card_country: $("#card_country").val(),card_email: $("#card_email").val(),card_phone: $("#card_phone").val(),amount: $('#amount').val(),token: data.response.token.token}, function(data, textStatus, xhr) {
+    $.post(Wo_Ajax_Requests_File() + '?f=2checkout_wallet', {card_number: $("#card_number").val(),card_cvc: $("#card_cvc").val(),card_month: $("#card_month").val(),card_year: $("#card_year").val(),card_name: $("#card_name").val(),card_address: $("#card_address").val(),card_city: $("#card_city").val(),card_state: $("#card_state").val(),card_zip: $("#card_zip").val(),card_country: $("#card_country").val(),card_email: $("#card_email").val(),card_phone: $("#card_phone").val(),amount: getWalletAmount(),token: data.response.token.token}, function(data, textStatus, xhr) {
     	$('#2checkout_btn_wallet').html("<?php echo($wo['lang']['pay']) ?>");
     	$('#2checkout_btn_wallet').attr('disabled');
     	$('#2checkout_btn_wallet').removeAttr('disabled');
@@ -858,7 +995,7 @@ $(function() {
 <?php } ?>
 <?php if ($wo['config']['coinbase_payment'] == '1' && !empty($wo['config']['coinbase_key'])) { ?>
 function pay_using_coinbase() {
-    amount = $('#amount').val();
+    amount = getWalletAmount();
     $.get(Wo_Ajax_Requests_File() + '?f=coinbase&s=create',{amount:amount}, function (data) {
 	    if (data.status == 200) {
 	    	$('#pay-go-pro').modal('hide');
@@ -875,7 +1012,7 @@ function pay_using_coinbase() {
 <?php } ?>
 <?php if ($wo['config']['yoomoney_payment'] == '1' && !empty($wo['config']['yoomoney_wallet_id']) && !empty($wo['config']['yoomoney_notifications_secret'])) { ?>
 function pay_using_yoomoney() {
-    amount = $('#amount').val();
+    amount = getWalletAmount();
     $.get(Wo_Ajax_Requests_File() + '?f=yoomoney&s=create',{amount:amount}, function (data) {
 	    if (data.status == 200) {
 	    	$('#pay-go-pro').modal('hide');
@@ -894,7 +1031,7 @@ function pay_using_yoomoney() {
 <?php } ?>
 <?php if ($wo['config']['iyzipay_payment'] == '1' && !empty($wo['config']['iyzipay_key']) && !empty($wo['config']['iyzipay_secret_key'])) { ?>
 function pay_using_iyzipay() {
-    amount = $('#amount').val();
+    amount = getWalletAmount();
     $.get(Wo_Ajax_Requests_File() + '?f=iyzipay&s=create',{amount:amount}, function (data) {
 	    if (data.status == 200) {
 	    	$('#pay-go-pro').modal('hide');
@@ -927,7 +1064,7 @@ $(function () {
     };
 });
 function securionpay_pay(){
-	amount = $('#amount').val();
+	amount = getWalletAmount();
 	$.post(Wo_Ajax_Requests_File() + '?f=securionpay&s=create',{amount:amount}, function (data) {
 	    if (data.status == 200) {
 	    	$('#pay-go-pro').modal('hide');
@@ -956,7 +1093,7 @@ function securionpay_pay(){
 	function AuthorizeRequest(self) {
 	  $('#authorize_btn').html("<?php echo($wo['lang']['please_wait']) ?>");
 	  $('#authorize_btn').attr('disabled','true');
-	  amount = $('#amount').val();
+	  amount = getWalletAmount();
 	  authorize_number = $('#authorize_number').val();
 	  authorize_month = $('#authorize_month').val();
 	  authorize_year = $('#authorize_year').val();
@@ -1257,11 +1394,14 @@ jQuery(function($){
     }
     return raw;
   }
+  function normalizeQrVndAmount(raw){
+    return normalizeCurrencyAmount(raw, walletCurrencyRule);
+  }
   function buildSrc(){
     const amtVal = $('#qr-amt').val();
-	const amtNorm = normalizeAmount(amtVal);
+	const amtNorm = normalizeQrVndAmount(amtVal);
     let src = ajaxUrl + '?f=qrcode&s=wallet-qr-code&to=' + toId;
-    if (amtNorm && !isNaN(parseFloat(amtNorm)) && parseFloat(amtNorm) > 0) {
+    if (amtNorm && parseInt(amtNorm, 10) > 0) {
       src += '&amount=' + encodeURIComponent(amtNorm);
     }
 	console.log('AJAX requests file = ', ajaxUrl);
@@ -1278,6 +1418,7 @@ function debounce(fn, t){ let id; return function(){ clearTimeout(id); id=setTim
 
   // debounce để không bắn request liên tục khi đang gõ
   $('#qr-amt').on('input', debounce(function(){
+    this.value = formatCurrencyAmount(this.value, walletCurrencyRule);
     $('#receive-qr-img').attr('src', buildSrc());
   }, 250));
 });

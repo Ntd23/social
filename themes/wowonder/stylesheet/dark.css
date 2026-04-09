@@ -843,11 +843,11 @@ body #wo_nw_msg_page .messages-recipients-list.active .msg_ava_name {
     background: #323232;
 }
 
-.yandex_search_user, .yandex_search_product, .yandex_search_job, .yandex_search_publisher {
+.yandex_search_user, .yandex_search_product, .yandex_search_page, .yandex_search_job, .yandex_search_publisher {
     background-color: #363636;
     border-color: #3e3e3e;
 }
-.yandex_search_user p, .yandex_search_product p, .yandex_search_job p, .yandex_search_publisher p {
+.yandex_search_user p, .yandex_search_product p, .yandex_search_page p, .yandex_search_job p, .yandex_search_publisher p {
 	border-color: #3e3e3e;
 }
 .wo_calling_modals .avatar svg {

@@ -21,6 +21,16 @@
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="feather"><path fill="currentColor" d="M5.5,7A1.5,1.5 0 0,1 4,5.5A1.5,1.5 0 0,1 5.5,4A1.5,1.5 0 0,1 7,5.5A1.5,1.5 0 0,1 5.5,7M21.41,11.58L12.41,2.58C12.05,2.22 11.55,2 11,2H4C2.89,2 2,2.89 2,4V11C2,11.55 2.22,12.05 2.59,12.41L11.58,21.41C11.95,21.77 12.45,22 13,22C13.55,22 14.05,21.77 14.41,21.41L21.41,14.41C21.78,14.05 22,13.55 22,13C22,12.44 21.77,11.94 21.41,11.58Z" /></svg> <?php echo $wo['result']['page_sub_category']; ?>
 				</li>
 				<?php } ?>
+				<?php if (!empty($wo['result']['nearby_location'])) { ?>
+				<li title="<?php echo $wo['result']['nearby_location']; ?>">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="feather"><path fill="currentColor" d="M12,2A7,7 0 0,1 19,9C19,14.25 12,22 12,22C12,22 5,14.25 5,9A7,7 0 0,1 12,2M12,11.5A2.5,2.5 0 0,0 14.5,9A2.5,2.5 0 0,0 12,6.5A2.5,2.5 0 0,0 9.5,9A2.5,2.5 0 0,0 12,11.5Z" /></svg> <?php echo $wo['result']['nearby_location']; ?>
+				</li>
+				<?php } ?>
+				<?php if ($wo['config']['developer_mode'] == 1 && !empty($wo['result']['nearby_lat']) && !empty($wo['result']['nearby_lng'])) { ?>
+				<li>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="feather"><path fill="currentColor" d="M21,17H7V3H21M21,1H7A2,2 0 0,0 5,3V17A2,2 0 0,0 7,19H21A2,2 0 0,0 23,17V3A2,2 0 0,0 21,1M3,5H1V21A2,2 0 0,0 3,23H19V21H3M16.5,11A1.5,1.5 0 0,0 15,12.5A1.5,1.5 0 0,0 16.5,14A1.5,1.5 0 0,0 18,12.5A1.5,1.5 0 0,0 16.5,11M8.5,5A1.5,1.5 0 0,0 7,6.5A1.5,1.5 0 0,0 8.5,8A1.5,1.5 0 0,0 10,6.5A1.5,1.5 0 0,0 8.5,5M8.5,17L13,11.64L16.5,15.86L19,13L22,17H8.5Z" /></svg> <?php echo $wo['result']['nearby_lat']; ?>, <?php echo $wo['result']['nearby_lng']; ?>
+				</li>
+				<?php } ?>
 			</ul>
 		</div>
 	</div>

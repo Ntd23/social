@@ -25,6 +25,12 @@ if (empty($post_id)) {
     header("Location: " . Wo_SeoLink('index.php?link1=home'));
     exit();
 }
+if (!empty($post_id)) {
+    $post_data = Wo_PostData($post_id);
+    if (!empty($post_data['page_id'])) {
+        $wo['page_profile'] = Wo_PageData($post_data['page_id']);
+    }
+}
 if (Wo_IsPostOnwer($post_id, $wo['user']['user_id']) === false) {
     header("Location: " . Wo_SeoLink('index.php?link1=home'));
     exit();

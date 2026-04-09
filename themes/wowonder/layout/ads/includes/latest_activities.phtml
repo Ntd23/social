@@ -29,7 +29,7 @@
 						</td>
 						<td width="300"><span><?php echo $transaction['notes']; ?></span></td>
 						<td><span><?php echo $transaction['transaction_dt']; ?></span></td>
-						<td><span><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><?php echo number_format($transaction['amount'], 2); ?></span></td>
+						<td><span><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><?php echo Wo_FormatPriceByCurrency($transaction['amount'], $wo['config']['ads_currency']); ?></span></td>
 					</tr>
 				<?php endforeach; ?>
 			</tbody>

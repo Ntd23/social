@@ -97,6 +97,18 @@
                             <label for="chck-social_share_telegram" class="check-trail"><span class="check-handler"></span></label>
                         </div>
                         <div class="clearfix"></div>
+                        <hr>
+
+                        <div class="float-left">
+                            <label for="social_share_copy" class="main-label">Copy Link</label>
+                            <br><small class="admin-info">Hiển thị nút sao chép liên kết bài viết.</small>
+                        </div>
+                        <div class="form-group float-right switcher">
+                            <input type="hidden" name="social_share_copy" value="0" />
+                            <input type="checkbox" name="social_share_copy" id="chck-social_share_copy" value="1" <?php echo ($wo['config']['social_share_copy'] == 1) ? 'checked': '';?>>
+                            <label for="chck-social_share_copy" class="check-trail"><span class="check-handler"></span></label>
+                        </div>
+                        <div class="clearfix"></div>
                         <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
                     </form>
                 </div>

@@ -1,22 +1,23 @@
-<div class="story-video">
-  <!-- // NEW STORY -->
-	<video class="story-image-wrapper" controls preload="auto"  style="width: 100%; height: 100%;" data-story-video="<?php echo $wo['media']['id'];?>">
-    <!-- // NEW STORY -->
+<div class="story-video story-image-wrapper" data-story-video="<?php echo $wo['media']['id'];?>">
+	<video class="story-video-preview" preload="metadata" muted loop playsinline webkit-playsinline x-webkit-airplay="deny" disablepictureinpicture disableremoteplayback style="width: 100%; height: 100%;">
 	    <source src="<?php echo $wo['media']['filename'];?>" type='video/mp4'>
-	    <source src="<?php echo $wo['media']['filename'];?>" type='video/webm'> 
+	    <source src="<?php echo $wo['media']['filename'];?>" type='video/webm'>
 	</video>
 </div>
 <script>
 jQuery(document).ready(function($) {
-  $('video[data-story-video="<?php echo $wo['media']['id'];?>"]').mediaelementplayer({
-    pluginPath: 'https://cdnjs.com/libraries/mediaelement-plugins/',
-    shimScriptAccess: 'always',
-    autoplay: true,
-    features: ['playpause', 'fullscreen', 'current', 'progress', 'duration', 'speed', 'skipback', 'jumpforward', 'tracks', 'markers', 'volume', 'chromecast', 'contextmenu', 'flash'],
-    success: function (media) {
-        media.addEventListener('ended', function (e) { /* pass */}, false); 
-    },
-  });
+  var preview = $('.story-video[data-story-video="<?php echo $wo['media']['id'];?>"] .story-video-preview').get(0);
+  if (!preview) {
+    return;
+  }
 
+  preview.muted = true;
+  preview.playsInline = true;
+  preview.controls = false;
+
+  var playPreview = preview.play();
+  if (playPreview && typeof playPreview.catch === 'function') {
+    playPreview.catch(function () {});
+  }
 });
 </script>
