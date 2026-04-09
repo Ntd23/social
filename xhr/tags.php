@@ -85,7 +85,21 @@ if ($f == 'tags') {
             exit();
         }
         $data = Wo_GetUserIdsByTag($tag_id);
-        echo json_encode(['status' => 200, 'data' => $data]);
+        
+        $users = [];
+        $id_map = [];
+        if (!empty($data) && is_array($data)) {
+            foreach ($data as $r) {
+                $uid = (int)($r['target_user_id'] ?? 0);
+                if ($uid > 0 && !isset($id_map[$uid])) {
+                    $id_map[$uid] = true;
+                    $users[] = $r;
+                }
+            }
+        }
+        
+        $uids = array_values(array_unique(array_filter(array_map(function($u){ return (int)($u['user_id']??$u['target_user_id']??0); }, $users))));
+        echo json_encode(['status' => 200, 'data' => $users, 'user_ids' => $uids]);
         exit();
     }
     if ($s == 'all_tags') {
@@ -93,16 +107,22 @@ if ($f == 'tags') {
         $data = Wo_GetAllAssignedTagsByOwner();
 
         if (empty($data)) {
-            echo json_encode(['status' => 200, 'message' => 'No users have been tagged yet']);
+            echo json_encode(['status' => 200, 'message' => 'No users have been tagged yet', 'data' => []]);
             exit();
         }
-        $user_ids = [];
+        
+        $users = [];
+        $id_map = [];
         foreach ((array)$data as $r) {
-            if (isset($r['target_user_id'])) {
-                $user_ids[] = (int)$r['target_user_id'];
+            $uid = (int)($r['target_user_id'] ?? 0);
+            if ($uid > 0 && !isset($id_map[$uid])) {
+                $id_map[$uid] = true;
+                $users[] = $r;
             }
         }
-        echo json_encode(['status' => 200, 'user_ids' => $user_ids]);
+        
+        $uids = array_values(array_unique(array_filter(array_map(function($u){ return (int)($u['user_id']??$u['target_user_id']??0); }, $users))));
+        echo json_encode(['status' => 200, 'data' => $users, 'user_ids' => $uids]);
         exit();
     }
     if ($s == 'list_target_tags') {

@@ -12161,7 +12161,12 @@ function Wo_GetAllAssignedTagsByOwner($owner_id = null)
 
     $owner_id = $owner_id === null ? (int)$wo['user']['user_id'] : (int)$owner_id;
 
-    $sql = "SELECT UTA.owner_id,UTA.target_user_id,UTA.tag_id,UTL.name,UTL.color FROM " . T_USER_TAG_ASSIGNMENTS . " AS UTA INNER JOIN " . T_USER_TAG_LABELS . " AS UTL ON UTA.tag_id = UTL.id WHERE UTA.owner_id = {$owner_id}";
+    $sql = "SELECT UTA.owner_id,UTA.target_user_id,UTA.tag_id,UTL.name,UTL.color,
+                   U.username, U.first_name, U.last_name, U.avatar, U.lastseen
+            FROM " . T_USER_TAG_ASSIGNMENTS . " AS UTA 
+            INNER JOIN " . T_USER_TAG_LABELS . " AS UTL ON UTA.tag_id = UTL.id 
+            INNER JOIN " . T_USERS . " AS U ON UTA.target_user_id = U.user_id
+            WHERE UTA.owner_id = {$owner_id}";
 
     $ok = mysqli_query($sqlConnect, $sql);
     if (!$ok) {
@@ -12169,11 +12174,13 @@ function Wo_GetAllAssignedTagsByOwner($owner_id = null)
             'status'    => 500,
             'message'   => 'SQL error',
             'sql_error' => mysqli_error($sqlConnect)
-            // 'sql' => $sql, // bật nếu cần debug thêm
         ];
     }
     $labels = [];
     while ($row = mysqli_fetch_assoc($ok)) {
+        $row['avatar'] = Wo_GetMedia($row['avatar']);
+        $row['user_name'] = (!empty($row['first_name'])) ? $row['first_name'] : $row['username'];
+        $row['user_id'] = $row['target_user_id'];
         $labels[] = $row;
     }
     return $labels;
@@ -12236,18 +12243,25 @@ function Wo_GetUserIdsByTag($tag_id = null)
     if ($tag_id === null) return [];
     $owner_id = (int)$wo['user']['user_id'];
     $tag_id = (int)$tag_id;
-    $sql = "SELECT UTA.owner_id,UTA.target_user_id,UTA.tag_id,UTL.name,UTL.color FROM " . T_USER_TAG_ASSIGNMENTS . " AS UTA INNER JOIN " . T_USER_TAG_LABELS . " AS UTL ON UTA.tag_id=UTL.id WHERE UTA.owner_id={$owner_id} AND UTA.tag_id={$tag_id}";
+    $sql = "SELECT UTA.owner_id,UTA.target_user_id,UTA.tag_id,UTL.name,UTL.color,
+                   U.username, U.first_name, U.last_name, U.avatar, U.lastseen
+            FROM " . T_USER_TAG_ASSIGNMENTS . " AS UTA 
+            INNER JOIN " . T_USER_TAG_LABELS . " AS UTL ON UTA.tag_id=UTL.id 
+            INNER JOIN " . T_USERS . " AS U ON UTA.target_user_id = U.user_id
+            WHERE UTA.owner_id={$owner_id} AND UTA.tag_id={$tag_id}";
     $ok = mysqli_query($sqlConnect, $sql);
     if (!$ok) {
         return [
             'status'    => 500,
             'message'   => 'SQL error',
             'sql_error' => mysqli_error($sqlConnect)
-            // 'sql' => $sql, // bật nếu cần debug thêm
         ];
     }
     $labels = [];
     while ($row = mysqli_fetch_assoc($ok)) {
+        $row['avatar'] = Wo_GetMedia($row['avatar']);
+        $row['user_name'] = (!empty($row['first_name'])) ? $row['first_name'] : $row['username'];
+        $row['user_id'] = $row['target_user_id'];
         $labels[] = $row;
     }
     return $labels;
