@@ -71,14 +71,15 @@
 							</div>
 						</div>
 					</div>
+					<?php $has_page_fixed_location = (!empty($wo['page_profile']) && !empty($wo['page_profile']['page_id']) && !empty($wo['page_profile']['address'])); ?>
 					<div class="row">
 						<div class="col-md-8">
 							<div class="wow_form_fields">
 								<label for="location"><?php echo $wo['lang']['location'] ?></label>
-								<input id="location" name="location" type="text" value="">
+								<input id="location" name="location" type="text" value="<?php echo ($has_page_fixed_location ? htmlspecialchars($wo['page_profile']['address']) : ''); ?>" <?php echo ($has_page_fixed_location ? 'readonly' : ''); ?>>
 							</div>
-							<?php if ($wo['config']['yandex_map'] == 1) { ?>
-								<div class="yandex_search_product"></div>
+							<?php if (!$has_page_fixed_location) { ?>
+							<div class="product_location_suggestions yandex_search_product"></div>
 							<?php } ?>
 						</div>
 						<div class="col-md-4">
@@ -232,18 +233,294 @@ function FileListItemsP (files) {
   for (var i = 0, len = files.length; i<len; i++) b.items.add(files[i])
   return b.files
 }
+function Wo_SetProductCoordinates(lat, lng) {
+	$('#lat-product').val(lat || '');
+	$('#lng-product').val(lng || '');
+}
+function Wo_ClearProductCoordinates() {
+	Wo_SetProductCoordinates('', '');
+}
+var woProductLocationSuggestionTimer = null;
+var woProductLocationSuggestionRequest = 0;
+var woProductLocationLocale = <?php echo json_encode(strtolower($wo['language'])); ?>;
+function Wo_GetProductLocationLanguage() {
+	return (woProductLocationLocale || document.documentElement.lang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
+}
+function Wo_IsVietnameseProductLocation() {
+	var language = Wo_GetProductLocationLanguage();
+	return language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1;
+}
+function Wo_NormalizeLocationPartForCompare(value) {
+	return (value || '')
+		.toLowerCase()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/[^a-z0-9]+/g, ' ')
+		.trim();
+}
+function Wo_GetProductLocationCanonicalPart(value) {
+	return Wo_NormalizeLocationPartForCompare(value)
+		.replace(/^(phuong|xa|quan|huyen|tinh|thanh pho|tp)\s+/i, '')
+		.replace(/\s+(ward|district|province|city)$/i, '')
+		.trim();
+}
+function Wo_LocalizeVietnameseLocationPart(value) {
+	if (!value) {
+		return '';
+	}
+
+	var localizedValue = value.trim();
+	localizedValue = localizedValue.replace(/^(.+?)\s+Road$/i, 'Đường $1');
+	localizedValue = localizedValue.replace(/^(.+?)\s+Street$/i, '$1');
+	localizedValue = localizedValue.replace(/^(.+?)\s+Ward$/i, 'Phường $1');
+	localizedValue = localizedValue.replace(/^Ward\s+(.+)$/i, 'Phường $1');
+	localizedValue = localizedValue.replace(/^District\s+(.+)$/i, 'Quận $1');
+	localizedValue = localizedValue.replace(/^Province\s+(.+)$/i, 'Tỉnh $1');
+	localizedValue = localizedValue.replace(/^City\s+(.+)$/i, 'Thành phố $1');
+	localizedValue = localizedValue.replace(/^Vietnam$/i, 'Việt Nam');
+	localizedValue = localizedValue.replace(/^Ha Noi$/i, 'Hà Nội');
+	localizedValue = localizedValue.replace(/^Ho Chi Minh City$/i, 'TP Hồ Chí Minh');
+
+	return localizedValue;
+}
+function Wo_GetProductLocationText(item, queryValue) {
+	if (!item || !item.address) {
+		return item && (item.display_name || item.name) ? (item.display_name || item.name) : '';
+	}
+
+	var address = item.address;
+	var isVietnamese = Wo_IsVietnameseProductLocation();
+	var parts = [];
+	var firstLine = [];
+	var houseNumber = address.house_number || address.house_name || '';
+	var road = address.road || address.pedestrian || address.footway || address.cycleway || '';
+	var normalizedQuery = Wo_NormalizeLocationPartForCompare(queryValue || '');
+	var normalizedRoad = Wo_NormalizeLocationPartForCompare(road);
+
+	if (isVietnamese && normalizedQuery && normalizedRoad) {
+		if (normalizedQuery.indexOf(normalizedRoad) !== -1 || normalizedRoad.indexOf(normalizedQuery) !== -1) {
+			road = queryValue;
+		}
+	}
+
+	if (houseNumber) {
+		firstLine.push(houseNumber);
+	}
+	if (road) {
+		firstLine.push(isVietnamese ? Wo_LocalizeVietnameseLocationPart(road) : road);
+	}
+	if (firstLine.length > 0) {
+		parts.push(firstLine.join(' '));
+	}
+
+	[
+		address.suburb,
+		address.neighbourhood,
+		address.quarter,
+		address.city_district,
+		address.county,
+		address.district,
+		address.city,
+		address.town,
+		address.municipality,
+		address.state_district,
+		address.state,
+		address.country
+	].forEach(function(value) {
+		if (!value) {
+			return;
+		}
+		var localizedValue = isVietnamese ? Wo_LocalizeVietnameseLocationPart(value) : value;
+		var compareValue = Wo_GetProductLocationCanonicalPart(localizedValue);
+		var alreadyExists = parts.some(function(existingValue) {
+			return Wo_GetProductLocationCanonicalPart(existingValue) === compareValue;
+		});
+		if (!alreadyExists) {
+			parts.push(localizedValue);
+		}
+	});
+
+	return parts.join(', ');
+}
+function Wo_GetProductLocationSearchUrl(locationValue, limit) {
+	var params = new URLSearchParams({
+		format: 'jsonv2',
+		addressdetails: '1',
+		limit: String(limit || 5),
+		'accept-language': Wo_GetProductLocationLanguage(),
+		q: locationValue
+	});
+	return 'https://nominatim.openstreetmap.org/search?' + params.toString();
+}
+function Wo_RenderProductLocationSuggestions(items, queryValue) {
+	var suggestionBox = $('.product_location_suggestions');
+	if (!Array.isArray(items) || items.length === 0) {
+		suggestionBox.empty().hide();
+		return;
+	}
+
+	var seen = {};
+	var html = '';
+	items.forEach(function(item) {
+		var displayName = Wo_GetProductLocationText(item, queryValue);
+		var normalizedDisplayName = Wo_NormalizeLocationPartForCompare(displayName);
+		if (!displayName || seen[normalizedDisplayName]) {
+			return;
+		}
+		seen[normalizedDisplayName] = true;
+		var lat = item.lat || '';
+		var lng = item.lon || item.lng || '';
+		html += '<p class="pointer product_location_suggestion_item" data-location="' + escapeHtml(displayName) + '" data-lat="' + escapeHtml(String(lat)) + '" data-lng="' + escapeHtml(String(lng)) + '">' + escapeHtml(displayName) + '</p>';
+	});
+
+	if (!html) {
+		suggestionBox.empty().hide();
+		return;
+	}
+	suggestionBox.html(html).show();
+}
+function Wo_SearchProductLocationSuggestions(locationValue) {
+	if (!locationValue || locationValue.length < 3) {
+		Wo_RenderProductLocationSuggestions([], locationValue);
+		return;
+	}
+
+	woProductLocationSuggestionRequest++;
+	var currentRequest = woProductLocationSuggestionRequest;
+
+	fetch(Wo_GetProductLocationSearchUrl(locationValue, 5), {
+		headers: {
+			'Accept': 'application/json'
+		}
+	}).then(function(response) {
+		if (!response.ok) {
+			throw new Error('Nominatim suggestion request failed');
+		}
+		return response.json();
+	}).then(function(results) {
+		if (currentRequest !== woProductLocationSuggestionRequest) {
+			return;
+		}
+		Wo_RenderProductLocationSuggestions(results, locationValue);
+	}).catch(function() {
+		if (currentRequest !== woProductLocationSuggestionRequest) {
+			return;
+		}
+		Wo_RenderProductLocationSuggestions([], locationValue);
+	});
+}
+function Wo_GeocodeLocationWithNominatim(locationValue) {
+	return fetch(Wo_GetProductLocationSearchUrl(locationValue, 1), {
+		headers: {
+			'Accept': 'application/json'
+		}
+	}).then(function(response) {
+		if (!response.ok) {
+			throw new Error('Nominatim request failed');
+		}
+		return response.json();
+	}).then(function(results) {
+		if (Array.isArray(results) && results.length > 0) {
+			var lat = parseFloat(results[0].lat);
+			var lng = parseFloat(results[0].lon);
+			if (!isNaN(lat) && !isNaN(lng)) {
+				Wo_SetProductCoordinates(lat, lng);
+				return true;
+			}
+		}
+		Wo_ClearProductCoordinates();
+		return false;
+	}).catch(function() {
+		Wo_ClearProductCoordinates();
+		return false;
+	});
+}
+function Wo_GeocodeTypedProductLocation(locationValue) {
+	if (!locationValue) {
+		Wo_ClearProductCoordinates();
+		return Promise.resolve(false);
+	}
+	<?php if ($wo['config']['yandex_map'] == 1) { ?>
+	if (window.ymaps && typeof ymaps.geocode === 'function') {
+		return new Promise(function(resolve) {
+			ymaps.geocode(locationValue).then(function (res) {
+				if (res.geoObjects.getLength() > 0) {
+					var coords = res.geoObjects.get(0).geometry.getCoordinates();
+					Wo_SetProductCoordinates(coords[0], coords[1]);
+					resolve(true);
+				}
+				else {
+					Wo_GeocodeLocationWithNominatim(locationValue).then(resolve);
+				}
+			}, function () {
+				Wo_GeocodeLocationWithNominatim(locationValue).then(resolve);
+			});
+		});
+	}
+	<?php } ?>
+	return Wo_GeocodeLocationWithNominatim(locationValue);
+}
+function Wo_ProductCreateHasCoordinates() {
+	return $.trim($('#lat-product').val()) !== '' && $.trim($('#lng-product').val()) !== '';
+}
+function Wo_ResolveProductCreateCoordinates(callback) {
+	var locationValue = $('#location').val().trim();
+	if (!locationValue) {
+		Wo_ClearProductCoordinates();
+		callback();
+		return;
+	}
+	if (Wo_ProductCreateHasCoordinates()) {
+		callback();
+		return;
+	}
+	Wo_GeocodeTypedProductLocation(locationValue).then(function() {
+		callback();
+	});
+}
 $(function() {
-   	if (navigator.geolocation) {
-        var location = navigator.geolocation.getCurrentPosition(function (position) {
-            $("#lng-product").val(position.coords.longitude);
-            $("#lat-product").val(position.coords.latitude);
-        });
-    }
+    $('#location').on('input', function() {
+    	Wo_ClearProductCoordinates();
+    	clearTimeout(woProductLocationSuggestionTimer);
+    	var locationValue = $(this).val().trim();
+    	woProductLocationSuggestionTimer = setTimeout(function() {
+    		Wo_SearchProductLocationSuggestions(locationValue);
+    	}, 250);
+    });
+    $('#location').on('change blur', function() {
+    	var locationValue = $(this).val().trim();
+    	if (locationValue) {
+    		Wo_GeocodeTypedProductLocation(locationValue);
+    	}
+    	setTimeout(function() {
+    		Wo_RenderProductLocationSuggestions([]);
+    	}, 150);
+    });
+    $(document).on('mousedown', '.product_location_suggestion_item', function(e) {
+    	e.preventDefault();
+    	var selectedLocation = $(this).attr('data-location') || '';
+    	var lat = $(this).attr('data-lat') || '';
+    	var lng = $(this).attr('data-lng') || '';
+    	$('#location').val(selectedLocation);
+    	Wo_SetProductCoordinates(lat, lng);
+    	Wo_RenderProductLocationSuggestions([]);
+    });
     var create_bar = $('.create-product-bar');
     var create_percent = $('.create-product-percent');
     var status = $('#status');
      $('form.create-album-form').ajaxForm({
        url: Wo_Ajax_Requests_File() + '?f=products&s=create',
+       beforeSubmit: function(arr, $form, options) {
+       	if ($form.data('product-create-geocode-ready') === true) {
+       		$form.removeData('product-create-geocode-ready');
+       		return true;
+       	}
+       	Wo_ResolveProductCreateCoordinates(function() {
+       		$form.data('product-create-geocode-ready', true);
+       		$form.ajaxSubmit(options);
+       	});
+       	return false;
+       },
        beforeSend: function() {
          var percentVal = '0%';
          create_bar.width(percentVal);
@@ -279,43 +556,8 @@ $(function() {
          }
          $('.create-album-form').find('.add_wow_loader').removeClass('btn-loading');
        }
-     });
+	});
    });
-<?php if ($wo['config']['google_map'] == 1) { ?>
-var create_pac_input = document.getElementById('location');
-  (function pacSelectFirst(input) {
-    // store the original event binding function
-    var _addEventListenerProduct = (input.addEventListener) ? input.addEventListener : input.attachEvent;
-    function addEventListenerWrapper(type, listener) {
-      // Simulate a 'down arrow' keypress on hitting 'return' when no pac suggestion is selected,
-      // and then trigger the original listener.
-      if(type == "keydown") {
-        var orig_listener_product = listener;
-        listener = function (event) {
-          var suggestion_selected_product = $(".pac-item-selected").length > 0;
-          if(event.which == 13 && !suggestion_selected_product) {
-            var simulated_downarrow_product = $.Event("keydown", {
-              keyCode: 40,
-              which: 40
-            });
-            orig_listener_product.apply(input, [simulated_downarrow_product]);
-          }
-          orig_listener_product.apply(input, [event]);
-        };
-      }
-      // add the modified listener
-      _addEventListenerProduct.apply(input, [type, listener]);
-    }
-    if(input.addEventListener)
-      input.addEventListener = addEventListenerWrapper;
-    else if(input.attachEvent)
-      input.attachEvent = addEventListenerWrapper;
-  })(create_pac_input);
-
-  $(function () {
-     var autocompleteproduct = new google.maps.places.Autocomplete(create_pac_input);
-  });
-<?php } ?>
 <?php if ($wo['config']['yandex_map'] == 1) { ?>
 	$(function() {
 		$('#location').on( "keydown", function() {
@@ -339,6 +581,37 @@ var create_pac_input = document.getElementById('location');
           }
       );
 		});
+	});
+<?php } ?>
+<?php if ($has_page_fixed_location) { ?>
+	$(function() {
+		var fixedLocation = $('#location').val().trim();
+		if (!fixedLocation) {
+			return;
+		}
+		<?php if ($wo['config']['google_map'] == 1) { ?>
+		if (window.google && google.maps && typeof google.maps.Geocoder === 'function') {
+			var geocoder = new google.maps.Geocoder();
+			geocoder.geocode({ address: fixedLocation }, function(results, status) {
+				if (status === 'OK' && results[0] && results[0].geometry && results[0].geometry.location) {
+					$('#lat-product').val(results[0].geometry.location.lat());
+					$('#lng-product').val(results[0].geometry.location.lng());
+				}
+			});
+			return;
+		}
+		<?php } ?>
+		<?php if ($wo['config']['yandex_map'] == 1) { ?>
+		if (window.ymaps && typeof ymaps.geocode === 'function') {
+			ymaps.geocode(fixedLocation).then(function (res) {
+				if (res.geoObjects.getLength() > 0) {
+					var coords = res.geoObjects.get(0).geometry.getCoordinates();
+					$('#lat-product').val(coords[0]);
+					$('#lng-product').val(coords[1]);
+				}
+			});
+		}
+		<?php } ?>
 	});
 <?php } ?>
 </script>

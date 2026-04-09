@@ -9,38 +9,17 @@ if ($f == 'view_all_stories') {
         $viewer_id = (int)$wo['user']['user_id'];
         $owner_id  = (int)Wo_Secure($_POST['user_id']);
 
-        // Lấy danh sách ad story id theo type
-        $ads_ids = (array) Wo_GetAlddAdIdsByType('story');
-        $ads_ids = array_filter(array_map('intval', $ads_ids));
-        $ads_in  = $ads_ids ? implode(',', $ads_ids) : '';
-
-        // loại các story đã xem bởi viewer
-        $exclude_seen = "id NOT IN (SELECT story_id FROM " . T_STORY_SEEN . " WHERE user_id = {$viewer_id})";
-
-        // Ưu tiên story thường của user chưa xem
-        $stories = $db->where("ad_id IS NULL AND user_id = {$owner_id} AND {$exclude_seen}")
-                      ->get(T_USER_STORY, null, ['id']);
-
         $story = null;
-        if (!empty($stories)) {
-            $show_ids = array_map(fn($r) => (int)$r->id, $stories);
-            $story = $db->where('user_id', $owner_id)
-                        ->where('id', $show_ids, 'IN')
-                        ->orderBy('id', 'ASC')
+        if (!empty($_POST['story_id']) && is_numeric($_POST['story_id']) && $_POST['story_id'] > 0) {
+            $requested_story_id = (int) Wo_Secure($_POST['story_id']);
+            $story = $db->where('id', $requested_story_id)
+                        ->where('user_id', $owner_id)
+                        ->where('expire', time(), '>')
                         ->getOne(T_USER_STORY);
         }
 
-        // Fallback: nếu không có, có thể lấy ad story (nếu tồn tại) hoặc story bất kỳ của user
         if (empty($story)) {
-            if ($ads_in !== '') {
-                $story = $db->where("(ad_id IN ({$ads_in})) OR (ad_id IS NULL AND user_id = {$owner_id})")
-                            ->orderBy('id', 'ASC')
-                            ->getOne(T_USER_STORY);
-            } else {
-                $story = $db->where("ad_id IS NULL AND user_id = {$owner_id}")
-                            ->orderBy('id', 'ASC')
-                            ->getOne(T_USER_STORY);
-            }
+            $story = Wo_GetStoryEntryPoint($owner_id, $viewer_id);
         }
 
         // >>> Đặt mọi xử lý dựa trên $story SAU khi đã kiểm tra rỗng <<<

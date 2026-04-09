@@ -72,8 +72,14 @@ if ($f == 'products') {
                 }
             }
             $page_id = 0;
+            $page_data = array();
             if (!empty($_POST['page_id']) && is_numeric($_POST['page_id']) && $_POST['page_id'] > 0 && Wo_IsPageOnwer(Wo_Secure($_POST['page_id']))) {
                 $page_id = Wo_Secure($_POST['page_id']);
+                $page_data = Wo_PageData($page_id);
+            }
+            $location = Wo_Secure($_POST['location']);
+            if (!empty($page_data['address'])) {
+                $location = Wo_Secure($page_data['address'], 1);
             }
             $price              = Wo_Secure($parsed_price);
             $product_data_array = array(
@@ -85,7 +91,7 @@ if ($f == 'products') {
                 'time' => Wo_Secure(time()),
                 'price' => $price,
                 'type' => $type,
-                'location' => Wo_Secure($_POST['location']),
+                'location' => $location,
                 'currency' => $currency,
                 'active' => ($wo['config']['store_review_system'] == 'off' ? 1 : 0),
                 'lat' => Wo_Secure($lat),
@@ -215,6 +221,28 @@ if ($f == 'products') {
                     }
                 }
             }
+            $lat = '';
+            $lng = '';
+            if (isset($_POST['lat-product']) && $_POST['lat-product'] !== '' && is_numeric($_POST['lat-product'])) {
+                $lat = Wo_Secure($_POST['lat-product']);
+            }
+            if (isset($_POST['lng-product']) && $_POST['lng-product'] !== '' && is_numeric($_POST['lng-product'])) {
+                $lng = Wo_Secure($_POST['lng-product']);
+            }
+            $page_data = array();
+            $page_id = 0;
+            $post_id = Wo_GetPostIDFromProdcutID($_POST['product_id']);
+            if (!empty($post_id)) {
+                $post_data = Wo_PostData($post_id);
+                if (!empty($post_data['page_id']) && Wo_IsPageOnwer($post_data['page_id'])) {
+                    $page_id = (int) $post_data['page_id'];
+                    $page_data = Wo_PageData($page_id);
+                }
+            }
+            $location = $_POST['location'];
+            if (!empty($page_data['address'])) {
+                $location = Wo_Secure($page_data['address'], 1);
+            }
             $price              = Wo_Secure($parsed_price);
             $product_data_array = array(
                 'name' => $_POST['name'],
@@ -222,10 +250,12 @@ if ($f == 'products') {
                 'sub_category' => $sub_category,
                 'description' => $_POST['description'],
                 'price' => $price,
-                'location' => $_POST['location'],
+                'location' => $location,
                 'type' => $type,
                 'currency' => $currency,
                 'units' => $units,
+                'lat' => $lat,
+                'lng' => $lng,
             );
 
             $fields = Wo_GetCustomFields('product'); 

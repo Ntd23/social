@@ -1139,6 +1139,39 @@ function Wo_Time_Elapsed_String($ptime) {
     //     }
     // }
 }
+function Wo_Time_Elapsed_String_Story($ptime) {
+    global $wo;
+    $etime = time() - $ptime;
+    if ($etime < 1) {
+        return 'Now';
+    }
+
+    $seconds = abs($etime);
+    $minutes = (int) floor($seconds / 60);
+    $hours   = (int) floor($seconds / 3600);
+    $days    = (int) floor($seconds / 86400);
+    $weeks   = (int) floor($days / 7);
+    $years   = (int) floor($days / 365);
+
+    if ($seconds < 60) {
+        return substitute($wo['lang']['now'], '');
+    } elseif ($minutes < 60) {
+        return substitute($wo['lang']['_time_m'], max(1, $minutes));
+    } elseif ($hours < 24) {
+        if ($hours === 1) {
+            return substitute($wo['lang']['_time_h'], 1);
+        }
+        return substitute($wo['lang']['_time_hrs'], $hours);
+    } elseif ($days < 7) {
+        return substitute($wo['lang']['_time_d'], max(1, $days));
+    } elseif ($days < 365) {
+        return substitute($wo['lang']['_time_w'], max(1, $weeks));
+    } elseif ($years === 1) {
+        return substitute($wo['lang']['_time_y'], 1);
+    } else {
+        return substitute($wo['lang']['_time_yrs'], max(1, $years));
+    }
+}
 function Wo_FolderSize($dir) {
     $count_size = 0;
     $count      = 0;

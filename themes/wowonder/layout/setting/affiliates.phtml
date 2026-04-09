@@ -21,9 +21,10 @@
 								$earn_users_pro = str_replace('{amount}', $wo['config']['amount_percent_ref'], $wo['lang']['earn_users_pro']);
 								$earn_users_pro = str_replace('$', '%', $earn_users_pro);
 							}else if( $wo['config']['amount_ref'] > 0 ){
-								$earn_users = str_replace('{amount}', $wo['config']['amount_ref'], $wo['lang']['earn_users']);
+								$formatted_ref_amount = Wo_FormatPriceByCurrency($wo['config']['amount_ref'], $wo['config']['ads_currency']);
+								$earn_users = str_replace('{amount}', $formatted_ref_amount, $wo['lang']['earn_users']);
 								$earn_users = str_replace('$', Wo_GetCurrency($wo['config']['ads_currency']), $earn_users);
-								$earn_users_pro = str_replace('{amount}', $wo['config']['amount_ref'], $wo['lang']['earn_users_pro']);
+								$earn_users_pro = str_replace('{amount}', $formatted_ref_amount, $wo['lang']['earn_users_pro']);
 								$earn_users_pro = str_replace('$', Wo_GetCurrency($wo['config']['ads_currency']), $earn_users_pro);
 							}
 						?>

@@ -1,5 +1,5 @@
 <li class="<?php echo($wo['user_status']['have_not_seen'] ? "not_seen_story" : ""); ?>">
-	<a class="see_all_stories" data_story_user_id="<?php echo $wo['user_status']['user_data']['user_id']?>" data_story_type="friends">
+	<a class="see_all_stories" data_story_user_id="<?php echo $wo['user_status']['user_data']['user_id']?>" data_story_type="friends" data_story_id="<?php echo !empty($wo['user_status']['entry_story_id']) ? (int) $wo['user_status']['entry_story_id'] : 0; ?>">
 		<?php if (!empty($wo['user_status']['thumb']['type']) && $wo['user_status']['thumb']['type'] == 'video') { ?>
 			<video autoplay muted loop playsinline webkit-playsinline preload="metadata" src="<?php echo $wo['user_status']['thumb']['filename'];?>" style="position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;pointer-events:none;"></video>
 		<?php } else { ?>

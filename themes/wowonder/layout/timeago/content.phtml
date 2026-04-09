@@ -97,7 +97,43 @@
         // years < 1.5 && substitute('y', 1) ||
         // substitute('yrs', Math.round(years));
         var words = '';
-        if (type != 'notification') {
+        if (type == 'story') {
+            if (seconds < 45) {
+                words = substitute($l.seconds, '');
+            }
+            else if (seconds < 90) {
+                words = substitute('<?php echo $wo['lang']['_time_m'];?>', 1);
+            }
+            else if (minutes < 60) {
+                words = substitute('<?php echo $wo['lang']['_time_m'];?>', Math.floor(minutes));
+            }
+            else if (hours < 24) {
+                if (Math.floor(hours) <= 1) {
+                    words = substitute('<?php echo $wo['lang']['_time_h'];?>', 1);
+                }
+                else {
+                    words = substitute('<?php echo $wo['lang']['_time_hrs'];?>', Math.floor(hours));
+                }
+            }
+            else if (days < 7) {
+                words = substitute('<?php echo $wo['lang']['_time_d'];?>', Math.floor(days));
+            }
+            else if (weeks < 52) {
+                if (Math.floor(weeks) <= 1) {
+                    words = substitute('<?php echo $wo['lang']['_time_w'];?>', 1);
+                }
+                else {
+                    words = substitute('<?php echo $wo['lang']['_time_w'];?>', Math.floor(weeks));
+                }
+            }
+            else if (years < 1.5) {
+                words = substitute('<?php echo $wo['lang']['_time_y'];?>', 1);
+            }
+            else {
+                words = substitute('<?php echo $wo['lang']['_time_yrs'];?>', Math.floor(years));
+            }
+        }
+        else if (type != 'notification') {
             if (seconds < 45) {
                 words = substitute($l.seconds, '');
             }
@@ -255,6 +291,9 @@
         let tType = '';
         if ($(this).hasClass('notification-time')) {
           tType = 'notification';
+        }
+        else if ($(this).hasClass('story-time')) {
+          tType = 'story';
         }
         $(this).text(inWords(data.datetime,tType));
       }

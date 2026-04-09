@@ -3411,6 +3411,47 @@ $('#edit_chat_group_form').ajaxForm({
     border-bottom: 2px solid #e5e7eb;
   }
 
+  #chatTagModal #chat-tag-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+
+  #chatTagModal #chat-tag-tabs > li {
+    float: none;
+    flex: 1 1 0;
+    margin-bottom: -2px;
+  }
+
+  #chatTagModal #chat-tag-tabs > li > a {
+    display: block;
+    margin-right: 0;
+    padding: .75rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #6b7280;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  #chatTagModal #chat-tag-tabs > li > a:hover,
+  #chatTagModal #chat-tag-tabs > li > a:focus {
+    color: #1f2937;
+    border-bottom-color: #3b82f6;
+    background: transparent;
+  }
+
+  #chatTagModal #chat-tag-tabs > li.active > a,
+  #chatTagModal #chat-tag-tabs > li.active > a:hover,
+  #chatTagModal #chat-tag-tabs > li.active > a:focus {
+    color: #3b82f6;
+    border: none;
+    border-bottom: 2px solid #3b82f6;
+    background: transparent;
+  }
+
   #chatTagModal .nav-tabs .nav-item {
     margin-bottom: -2px;
   }
@@ -3647,6 +3688,11 @@ $('#edit_chat_group_form').ajaxForm({
   @media (max-width: 576px) {
     #chatTagModal .modal-dialog {
       margin: .5rem;
+    }
+
+    #chatTagModal #chat-tag-tabs > li > a {
+      padding: .75rem .25rem;
+      font-size: .95rem;
     }
 
     #chatTagModal .input-group {
