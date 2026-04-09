@@ -254,83 +254,8 @@ $current_post = $wo['current_post'] = $wo['story'];
           <?php } ?>
 
           <!-- Live Video -->
-          <?php if (!empty($wo['story']['stream_name']) && empty($wo['story']['agora_resource_id']) && empty($wo['story']['agora_token']) && empty($wo['story']['agora_sid']) && !$wo['story']['is_still_live']) { ?>
-            <div class="post-file" <?php echo $wo['story']['is_still_live'] ? 'style="/*height: 440px;*/"' : ''; ?> id="fullsizeimg">
-              <?php
-              $wo['media'] = array('filename' => 'https://viewer.millicast.com/v2?streamId=' . $wo['config']['live_account_id'] . '/' . $wo['story']['stream_name']);
-              $media = array(
-                'type' => 'post',
-                'storyId' => $wo['story']['id'],
-                'filename' => 'https://viewer.millicast.com/v2?streamId=' . $wo['config']['live_account_id'] . '/' . $wo['story']['stream_name'],
-                'name' => $wo['story']['postFileName'],
-                'postFileThumb' => $wo['story']['postFileThumb'],
-              );
-              echo Wo_DisplaySharedFile($media, '', $wo['story']['cache'], true); ?>
-            </div>
-
-          <?php } ?>
-          <?php if ($wo['config']['live_video'] == 1 && !empty($wo['story']['stream_name'])) { ?>
-            <div class="post-file" <?php echo $wo['story']['is_still_live'] ? 'style="/*height: 440px;*/"' : ''; ?> id="fullsizeimg">
-              <?php
-              if ($wo['config']['millicast_live_video'] == 1) {
-                if ($wo['story']['is_still_live']) { ?>
-                  <div class="embed-responsive embed-responsive-4by3">
-                    <iframe src="https://viewer.millicast.com/v2?streamId=<?php echo ($wo['config']['live_account_id']) ?>/<?php echo ($wo['story']['stream_name']) ?>" class="embed-responsive-item"></iframe>
-                    <div class="wow_liv_counter"><span id="live_word_<?php echo ($wo['story']['id']) ?>"><?php echo $wo['lang']['live']; ?></span> <span id="live_count_<?php echo ($wo['story']['id']) ?>"> <?php echo $wo['story']['live_sub_users']; ?></span></div>
-                  </div>
-                  <?php if ($wo['page'] != 'story') { ?>
-                    <a href="<?php echo $wo['story']['url']; ?>" target="_blank" class="live_link_style live_link_<?php echo ($wo['story']['id']) ?>"></a>
-                  <?php } ?>
-                  <?php if ($wo['story']['comments_status'] == 1) { ?>
-                    <div id="live_post_comments_<?php echo ($wo['story']['id']) ?>" class="wow_liv_comments_feed">
-                      <?php if (!empty($wo['story']['get_post_comments'])) {
-                        $count = 0;
-                        for ($i = count($wo['story']['get_post_comments']) - 1; $i >= 0; $i--) {
-                          $wo['comment'] = $wo['story']['get_post_comments'][$i];
-                          if (!empty($wo['comment']['text'])) {
-                            echo Wo_LoadPage('story/includes/live_comment');
-                            $count = $count + 1;
-                            if ($count == 4) {
-                              break;
-                            }
-                          }
-                        }
-                      }
-                      ?>
-                    </div>
-                  <?php } ?>
-                <?php } ?>
-                <?php
-              } elseif ($wo['config']['agora_live_video'] == 1) {
-                if ($wo['story']['is_still_live']) { ?>
-                  <div class="embed-responsive embed-responsive-4by3" id="post_live_video_<?php echo ($wo['story']['id']) ?>">
-                    <div class="wow_liv_counter"><span id="live_word_<?php echo ($wo['story']['id']) ?>"><?php echo $wo['lang']['live']; ?></span> <span id="live_count_<?php echo ($wo['story']['id']) ?>"> <?php echo $wo['story']['live_sub_users']; ?></span></div>
-                  </div>
-                  <?php if ($wo['page'] != 'story') { ?>
-                    <a href="<?php echo $wo['story']['url']; ?>" target="_blank" class="live_link_style live_link_<?php echo ($wo['story']['id']) ?>"></a>
-                  <?php } ?>
-                  <?php if ($wo['story']['comments_status'] == 1) { ?>
-                    <div id="live_post_comments_<?php echo ($wo['story']['id']) ?>" class="wow_liv_comments_feed">
-                      <?php if (!empty($wo['story']['get_post_comments'])) {
-                        $count = 0;
-                        for ($i = count($wo['story']['get_post_comments']) - 1; $i >= 0; $i--) {
-                          $wo['comment'] = $wo['story']['get_post_comments'][$i];
-                          if (!empty($wo['comment']['text'])) {
-                            echo Wo_LoadPage('story/includes/live_comment');
-                            $count = $count + 1;
-                            if ($count == 4) {
-                              break;
-                            }
-                          }
-                        }
-                      }
-                      ?>
-                    </div>
-              <?php }
-                }
-              }
-              ?>
-            </div>
+          <?php if ($wo['config']['live_video'] == 1 && !empty($wo['story']['stream_name']) && Wo_IsLiveKitAvailable()) { ?>
+            <?php echo Wo_LoadPage('live/includes/livekit_player'); ?>
           <?php } ?>
 
           <div id="fullsizeimg-<?php echo $wo['story']['id']; ?>" class="fullsizeimg-wrap" style="position: relative;">
@@ -403,6 +328,9 @@ $current_post = $wo['current_post'] = $wo['story'];
         }, function(data, textStatus, xhr) {
           if (data.status == 200) {
             if (data.still_live == 'offline') {
+              if (window.WoLiveKitLive) {
+                window.WoLiveKitLive.stopPlayer(<?php echo (int) $wo['story']['id']; ?>, "<?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?>");
+              }
               $('#live_post_comments_<?php echo $wo['story']['id']; ?>').remove();
               $('.was_live_text_<?php echo $wo['story']['id']; ?>').html("<?php echo ($wo['lang']['was_live']) ?>");
               $('[id=post-<?php echo $wo['story']['id']; ?>]').find('.comment-textarea').attr('disabled');
@@ -422,6 +350,9 @@ $current_post = $wo['current_post'] = $wo['story'];
             }
           } else if (data.removed == 'yes') {
             clearInterval(post_live_<?php echo $wo['story']['id']; ?>);
+            if (window.WoLiveKitLive) {
+              window.WoLiveKitLive.stopPlayer(<?php echo (int) $wo['story']['id']; ?>, "<?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?>");
+            }
             $('#live_count_<?php echo $wo['story']['id']; ?>').html(0);
             $('#live_post_comments_<?php echo $wo['story']['id']; ?>').html("<h3 class='end_video_text'><?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?></h3>");
             /*$('#live_post_comments_<?php echo $wo['story']['id']; ?>').remove();*/
@@ -431,6 +362,9 @@ $current_post = $wo['current_post'] = $wo['story'];
             return false;
           } else {
             clearInterval(post_live_<?php echo $wo['story']['id']; ?>);
+            if (window.WoLiveKitLive) {
+              window.WoLiveKitLive.stopPlayer(<?php echo (int) $wo['story']['id']; ?>, "<?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?>");
+            }
             $('#live_count_<?php echo $wo['story']['id']; ?>').html(0);
             $('#live_post_comments_<?php echo $wo['story']['id']; ?>').html("<h3 class='end_video_text'><?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?></h3>");
             /*$('#live_post_comments_<?php echo $wo['story']['id']; ?>').remove();*/
@@ -441,10 +375,6 @@ $current_post = $wo['current_post'] = $wo['story'];
           }
         });
       }, 3000);
-
-    <?php } ?>
-    <?php if ($wo['config']['agora_live_video'] == 1 && !empty($wo['config']['agora_app_id']) && !empty($wo['story']['stream_name']) && $wo['story']['is_still_live']) { ?>
-      RunLiveAgora("<?php echo $wo['story']['stream_name']; ?>", "post_live_video_<?php echo ($wo['story']['id']) ?>", "<?php echo ($wo['story']['agora_token']) ?>");
 
     <?php } ?>
   </script>

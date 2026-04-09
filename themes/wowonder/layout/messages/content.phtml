@@ -677,6 +677,73 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
     e.stopPropagation();
   });
 
+  if (typeof window.__woInstallAjaxFormPolyfill !== 'function') {
+    window.__woInstallAjaxFormPolyfill = function(jq) {
+      jq = jq || window.jQuery || window.$;
+      if (!jq || !jq.fn) {
+        return;
+      }
+
+      if (typeof jq.fn.ajaxSubmit !== 'function') {
+        jq.fn.ajaxSubmit = function(options) {
+          options = options || {};
+          var $form = this.first();
+          if ($form.length === 0 || !$form[0]) {
+            return jq.Deferred().reject().promise();
+          }
+
+          var formData = new FormData($form[0]);
+          if (options.data && typeof options.data === 'object') {
+            jq.each(options.data, function(key, value) {
+              formData.append(key, value);
+            });
+          }
+
+          var ajaxOptions = jq.extend(true, {
+            url: options.url || $form.attr('action') || window.location.href,
+            type: options.type || $form.attr('method') || 'POST',
+            data: formData,
+            processData: false,
+            contentType: false
+          }, options);
+
+          if (typeof options.uploadProgress === 'function') {
+            ajaxOptions.xhr = function() {
+              var xhr = jq.ajaxSettings.xhr();
+              if (xhr.upload) {
+                xhr.upload.addEventListener('progress', function(evt) {
+                  var position = evt.loaded || 0;
+                  var total = evt.total || 0;
+                  var percent = evt.lengthComputable && total > 0 ? Math.ceil(position / total * 100) : 0;
+                  options.uploadProgress(evt, position, total, percent);
+                }, false);
+              }
+              return xhr;
+            };
+          }
+
+          return jq.ajax(ajaxOptions);
+        };
+      }
+
+      if (typeof jq.fn.ajaxForm !== 'function') {
+        jq.fn.ajaxForm = function(options) {
+          options = options || {};
+          return this.each(function() {
+            var $form = jq(this);
+            $form.off('submit.woAjaxFormFallback').on('submit.woAjaxFormFallback', function(e) {
+              e.preventDefault();
+              $form.ajaxSubmit(options);
+              return false;
+            });
+          });
+        };
+      }
+    };
+  }
+
+  window.__woInstallAjaxFormPolyfill(window.jQuery || window.$);
+
   $(function() {
        <?php if (!empty($user['user_id'])) { ?>
       Wo_ShowMobileMessagePane();
@@ -703,6 +770,8 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
     <?php } ?>
 
     var main_hash_id = $('.main_session').val();
+
+    window.__woInstallAjaxFormPolyfill(window.jQuery || window.$);
     var file_uploading = false;
 
     <?php if ($wo['config']['node_socket_flow'] == "1") { ?>
@@ -2434,9 +2503,9 @@ $('.delete-icon').empty();
 
   jQuery(document).ready(function($) {
     $('#insert-caht-parts').ajaxForm({
-      url: Wo_Ajax_Requests_File() + '?f=chat&s=create_group',
-      type: 'POST',
-      dataType: 'json',
+  url: Wo_Ajax_Requests_File() + '?f=chat&s=create_group',
+  type: 'POST',
+  dataType: 'json',
 
       beforeSend: function() {
         Wo_progressIconLoader($('#insert-caht-parts').find('button'));
@@ -2710,23 +2779,25 @@ $('.delete-icon').empty();
 
 
 
-$('#edit_chat_group_form').ajaxForm({
-  url: Wo_Ajax_Requests_File() + '?f=chat&s=edit_group',
-  type: 'POST',
-  dataType: 'json',
-  beforeSend: function() {
-    Wo_progressIconLoader($('#edit_chat_group_form').find('button'));
-    $('#edit_chat_group_form').find('.add_wow_loader').addClass('btn-loading');
-  },
-  success: function(data) {
-    if (data['status'] == 200) {
-      $('#edit_group_chat').modal('hide');
-      location.reload();
-    } else {
-      $('#edit_chat_group_alert').html('<div class="alert alert-danger">' + data['message'] + '</div>');
+$(function() {
+  $('#edit_chat_group_form').ajaxForm({
+    url: Wo_Ajax_Requests_File() + '?f=chat&s=edit_group',
+    type: 'POST',
+    dataType: 'json',
+    beforeSend: function() {
+      Wo_progressIconLoader($('#edit_chat_group_form').find('button'));
+      $('#edit_chat_group_form').find('.add_wow_loader').addClass('btn-loading');
+    },
+    success: function(data) {
+      if (data['status'] == 200) {
+        $('#edit_group_chat').modal('hide');
+        location.reload();
+      } else {
+        $('#edit_chat_group_alert').html('<div class="alert alert-danger">' + data['message'] + '</div>');
+      }
+      $('#edit_chat_group_form').find('.add_wow_loader').removeClass('btn-loading');
     }
-    $('#edit_chat_group_form').find('.add_wow_loader').removeClass('btn-loading');
-  }
+  });
 });
 
     $('#chat-btn-create-tag').on('click', function() {

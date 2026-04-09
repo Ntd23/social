@@ -1,179 +1,321 @@
+<?php $livekit_host = !empty($wo['livekit_livestream']) ? $wo['livekit_livestream'] : array(); ?>
 <style>
 .content-container {width: 100%;padding: 0;}
 footer, footer .footer-wrapper, .second-footer {display: none}
+.wo-livekit-host-page {padding: 24px 0 40px}
+.wo-livekit-host-layout {display: grid;grid-template-columns: minmax(0,1.45fr) minmax(320px,.85fr);gap: 24px;align-items: start}
+.wo-livekit-host-stage-shell {background: #0b1020;border-radius: 24px;padding: 18px;box-shadow: 0 18px 50px rgba(15,23,42,.14)}
+.wo-livekit-host-stage {position: relative;overflow: hidden;border-radius: 20px;background: linear-gradient(180deg,#0f172a 0%,#111827 100%);aspect-ratio: 16/9}
+.wo-livekit-host-stage video {width: 100%;height: 100%;object-fit: cover;display: block;background: #020617}
+.wo-livekit-host-empty {position: absolute;inset: 0;display: flex;align-items: center;justify-content: center;text-align: center;padding: 24px;color: #dbeafe;font-size: 17px;background: radial-gradient(circle at top,rgba(96,165,250,.22),rgba(15,23,42,.92))}
+.wo-livekit-host-meta {display: flex;align-items: center;justify-content: space-between;gap: 16px;margin-top: 16px}
+.wo-livekit-host-status {color: #64748b;font-size: 14px}
+.wo-livekit-host-actions,.wo-livekit-bottom-actions {display: flex;align-items: center;gap: 12px;flex-wrap: wrap}
+.wo-livekit-host-actions {margin-top: 16px}
+.wo-livekit-host-actions .btn,.wo-livekit-bottom-actions .btn {border-radius: 999px;padding: 10px 18px}
+.wo-livekit-track-off {background: #7f1d1d !important;color: #fff !important}
+.wo-livekit-side {background: #fff;border-radius: 24px;padding: 18px 18px 8px;box-shadow: 0 18px 50px rgba(15,23,42,.08);min-height: 100%}
+.wo-livekit-side h4 {margin: 0 0 14px;font-size: 18px;font-weight: 600}
+.wo-livekit-side .wow_liv_comments_feed {position: static;max-height: 70vh;min-height: 120px;box-shadow: none;border: 1px solid #e2e8f0;border-radius: 18px}
+.wo-livekit-bottom-actions {margin-top: 18px}
+@media (max-width: 991px) {
+  .wo-livekit-host-layout {grid-template-columns: 1fr}
+  .wo-livekit-side .wow_liv_comments_feed {max-height: 40vh}
+}
 </style>
 
-<div class="video-con wow_go_live_cont">
-	<div class="container">
-		<div id="remote-media">
-			<div class="liv_vid_cont" id="main_live_video"></div>
-			<h3><i class="fa fa-spin fa-spinner"></i> <?php echo $wo['lang']['please_wait']?></h3>
-			<div class="wow_liv_counter"><span id="live_word"><?php echo $wo['lang']['live']; ?></span> <span id="live_count"> 0</span></div>
-			<div id="live_post_comments" class="wow_liv_comments_feed"></div>
-		</div>
-		<a class="btn btn-mat end_vdo_call wow_end_live_btn hidden" href="<?php echo($wo['config']['site_url']) ?>" onclick="DeleteLive()">
-			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" /></svg> <?php echo $wo['lang']['end_live']; ?>
-		</a>
-		<button class="btn btn-mat btn-success start_vdo_call wow_go_live_btn" id="publishBtn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17,14.5V11A1,1 0 0,0 16,10H4A1,1 0 0,0 3,11V21A1,1 0 0,0 4,22H16A1,1 0 0,0 17,21V17.5L21,21.5V10.5M3,3.86L4.4,5.24C7.5,2.19 12.5,2.19 15.6,5.24L17,3.86C13.14,0.05 6.87,0.05 3,3.86M5.8,6.62L7.2,8C8.75,6.5 11.25,6.5 12.8,8L14.2,6.62C11.88,4.34 8.12,4.34 5.8,6.62Z" /></svg> <?php echo $wo['lang']['go_live']; ?></button>
-		<?php if ($wo['config']['agora_live_video'] == 1 && !empty($wo['config']['agora_app_id'])) { ?>
-			<div class="live_mic_cam_switch" style="display: none;">
-				<div class="dropdown mic_drop">
-					<button class="btn btn-mat dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo $wo['lang']['mic_source']; ?>"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" /></svg></button>
-					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton" id="mic-list"></div>
-				</div>
-				<div class="dropdown cam_drop">
-					<button class="btn btn-mat dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo $wo['lang']['cam_source']; ?>"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z" /></svg></button>
-					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton" id="camera-list"></div>
-				</div>
-			</div>
-		<?php } ?>
-	</div>
-	<input type="hidden" id="live_post_id">
+<div class="video-con wow_go_live_cont wo-livekit-host-page">
+    <div class="container">
+        <div class="wo-livekit-host-layout">
+            <div>
+                <div id="remote-media" class="wo-livekit-host-stage-shell">
+                    <div class="liv_vid_cont wo-livekit-host-stage" id="main_live_video">
+                        <div id="wo-livekit-host-empty" class="wo-livekit-host-empty"><?php echo $wo['lang']['please_wait']; ?></div>
+                    </div>
+                    <div class="wo-livekit-host-meta">
+                        <div class="wow_liv_counter"><span id="live_word"><?php echo $wo['lang']['live']; ?></span> <span id="live_count">0</span></div>
+                        <div id="wo-livekit-host-status" class="wo-livekit-host-status">Dang xem truoc camera</div>
+                    </div>
+                    <div class="wo-livekit-host-actions">
+                        <button type="button" class="btn btn-mat btn-default" id="wo-livekit-toggle-mic">Mic dang bat</button>
+                        <button type="button" class="btn btn-mat btn-default" id="wo-livekit-toggle-cam">Camera dang bat</button>
+                    </div>
+                </div>
+                <div class="wo-livekit-bottom-actions">
+                    <a class="btn btn-mat end_vdo_call wow_end_live_btn hidden" id="wo-livekit-end-live" href="<?php echo($wo['config']['site_url']) ?>" onclick="DeleteLive()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" /></svg> <?php echo $wo['lang']['end_live']; ?>
+                    </a>
+                    <button class="btn btn-mat btn-success start_vdo_call wow_go_live_btn" id="publishBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17,14.5V11A1,1 0 0,0 16,10H4A1,1 0 0,0 3,11V21A1,1 0 0,0 4,22H16A1,1 0 0,0 17,21V17.5L21,21.5V10.5M3,3.86L4.4,5.24C7.5,2.19 12.5,2.19 15.6,5.24L17,3.86C13.14,0.05 6.87,0.05 3,3.86M5.8,6.62L7.2,8C8.75,6.5 11.25,6.5 12.8,8L14.2,6.62C11.88,4.34 8.12,4.34 5.8,6.62Z" /></svg> <?php echo $wo['lang']['go_live']; ?>
+                    </button>
+                </div>
+            </div>
+            <div class="wo-livekit-side">
+                <h4><?php echo !empty($wo['lang']['comments']) ? $wo['lang']['comments'] : 'Comments'; ?></h4>
+                <div id="live_post_comments" class="wow_liv_comments_feed"></div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="live_post_id">
 </div>
-<?php if ($wo['config']['millicast_live_video'] == 1 && !empty($wo['config']['live_token']) && !empty($wo['config']['live_account_id'])) {
-  echo Wo_LoadPage('live/millicast');
-} elseif ($wo['config']['agora_live_video'] == 1 && !empty($wo['config']['agora_app_id'])) {
-  echo Wo_LoadPage('live/agora');
-} ?>
 
-
+<script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
 <script>
-  <?php if ($wo['config']['agora_live_video'] == 1 && $wo['config']['amazone_s3_2'] == 1 && $wo['config']['live_video_save'] == 1) { ?>
-    console.error("Creating a live stream that cloud recording is not enabled.");
-  <?php } ?>
-  window.onbeforeunload = function() {
+const livekitHostSession = <?php echo json_encode($livekit_host); ?>;
+const liveCreateUrl = Wo_Ajax_Requests_File() + "?f=live&s=create";
+const liveDeleteUrl = Wo_Ajax_Requests_File() + "?f=live&s=delete";
+const liveThumbUrl = Wo_Ajax_Requests_File() + "?f=live&s=create_thumb";
+let hostRoom = null;
+let hostTracks = [];
+let liveCreated = false;
+let deletingLive = false;
+
+function setHostStatus(message) {
+  $('#wo-livekit-host-status').text(message || '');
+}
+
+function getHostTrack(kind) {
+  for (let i = 0; i < hostTracks.length; i += 1) {
+    if (hostTracks[i] && hostTracks[i].kind === kind) {
+      return hostTracks[i];
+    }
+  }
+  return null;
+}
+
+function renderHostPreview() {
+  const stage = document.getElementById('main_live_video');
+  if (!stage) {
+    return;
+  }
+  const oldVideos = stage.querySelectorAll('video');
+  oldVideos.forEach(function(video) {
+    video.remove();
+  });
+  const videoTrack = getHostTrack('video');
+  if (!videoTrack || videoTrack.isMuted) {
+    $('#wo-livekit-host-empty').removeClass('hidden').text('Camera dang tat');
+    return;
+  }
+  const element = videoTrack.attach();
+  element.id = 'wo-livekit-host-preview';
+  element.muted = true;
+  element.autoplay = true;
+  element.playsInline = true;
+  stage.appendChild(element);
+  $('#wo-livekit-host-empty').addClass('hidden');
+}
+
+function updateTrackButtons() {
+  const audioTrack = getHostTrack('audio');
+  const videoTrack = getHostTrack('video');
+  $('#wo-livekit-toggle-mic')
+    .toggleClass('wo-livekit-track-off', !!(audioTrack && audioTrack.isMuted))
+    .text(audioTrack && audioTrack.isMuted ? 'Mic dang tat' : 'Mic dang bat');
+  $('#wo-livekit-toggle-cam')
+    .toggleClass('wo-livekit-track-off', !!(videoTrack && videoTrack.isMuted))
+    .text(videoTrack && videoTrack.isMuted ? 'Camera dang tat' : 'Camera dang bat');
+}
+
+async function ensureHostPreview() {
+  if (hostTracks.length) {
+    renderHostPreview();
+    updateTrackButtons();
+    return hostTracks;
+  }
+  if (!window.LivekitClient || !livekitHostSession || !livekitHostSession.ws_url || !livekitHostSession.token) {
+    throw new Error('LiveKit chua duoc cau hinh day du.');
+  }
+  hostTracks = await LivekitClient.createLocalTracks({audio: true, video: true});
+  renderHostPreview();
+  updateTrackButtons();
+  return hostTracks;
+}
+
+async function toggleHostTrack(kind) {
+  try {
+    await ensureHostPreview();
+    const track = getHostTrack(kind);
+    if (!track) {
+      return;
+    }
+    if (track.isMuted) {
+      await track.unmute();
+    } else {
+      await track.mute();
+    }
+    if (kind === 'video') {
+      renderHostPreview();
+    }
+    updateTrackButtons();
+  } catch (err) {
+    setHostStatus(err && err.message ? err.message : 'Khong the truy cap camera/microphone.');
+  }
+}
+
+function disconnectHostRoom() {
+  if (hostRoom) {
+    try {
+      hostRoom.disconnect();
+    } catch (err) {}
+    hostRoom = null;
+  }
+  hostTracks.forEach(function(track) {
+    if (!track) {
+      return;
+    }
+    try {
+      track.stop();
+    } catch (err) {}
+    try {
+      track.detach().forEach(function(element) {
+        element.remove();
+      });
+    } catch (err) {}
+  });
+  hostTracks = [];
+}
+
+function captureHostThumbnail(postId) {
+  const preview = document.getElementById('wo-livekit-host-preview');
+  if (!preview || !postId || !preview.videoWidth || !preview.videoHeight) {
+    return;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = preview.videoWidth;
+  canvas.height = preview.videoHeight;
+  canvas.getContext('2d').drawImage(preview, 0, 0);
+  canvas.toBlob(function(blob) {
+    if (!blob) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append('thumb', blob, 'thumb.png');
+    formData.append('post_id', postId);
+    $.ajax({
+      processData: false,
+      url: liveThumbUrl,
+      type: 'POST',
+      dataType: 'json',
+      data: formData,
+      contentType: false
+    });
+  }, 'image/png');
+}
+
+async function startHostLive() {
+  if (liveCreated) {
+    return;
+  }
+  $('#publishBtn').attr('disabled', true).text("<?php echo($wo['lang']['please_wait']); ?>");
+  setHostStatus('Dang ket noi phong LiveKit');
+  try {
+    const tracks = await ensureHostPreview();
+    hostRoom = new LivekitClient.Room({adaptiveStream: true, dynacast: true});
+    await hostRoom.connect(livekitHostSession.ws_url, livekitHostSession.token);
+    for (let i = 0; i < tracks.length; i += 1) {
+      await hostRoom.localParticipant.publishTrack(tracks[i]);
+    }
+    const response = await $.ajax({
+      url: liveCreateUrl,
+      type: 'POST',
+      dataType: 'json',
+      data: {stream_name: livekitHostSession.stream_name}
+    });
+    if (!response || response.status !== 200 || !response.post_id) {
+      throw new Error('Khong the tao bai livestream.');
+    }
+    liveCreated = true;
+    $('#live_post_id').val(response.post_id);
+    $('#publishBtn').addClass('hidden');
+    $('#wo-livekit-end-live').removeClass('hidden');
+    setHostStatus('Ban dang phat truc tiep');
+    captureHostThumbnail(response.post_id);
+  } catch (err) {
+    if (hostRoom) {
+      try {
+        hostRoom.disconnect();
+      } catch (disconnectErr) {}
+      hostRoom = null;
+    }
+    $('#publishBtn').removeAttr('disabled').html('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17,14.5V11A1,1 0 0,0 16,10H4A1,1 0 0,0 3,11V21A1,1 0 0,0 4,22H16A1,1 0 0,0 17,21V17.5L21,21.5V10.5M3,3.86L4.4,5.24C7.5,2.19 12.5,2.19 15.6,5.24L17,3.86C13.14,0.05 6.87,0.05 3,3.86M5.8,6.62L7.2,8C8.75,6.5 11.25,6.5 12.8,8L14.2,6.62C11.88,4.34 8.12,4.34 5.8,6.62Z" /></svg> <?php echo $wo['lang']['go_live']; ?>');
+    setHostStatus(err && err.message ? err.message : 'Khong the bat livestream.');
+  }
+}
+
+function DeleteLive() {
+  if (deletingLive) {
+    return true;
+  }
+  const postId = $('#live_post_id').val();
+  disconnectHostRoom();
+  if (!postId) {
+    return true;
+  }
+  deletingLive = true;
+  try {
+    fetch(liveDeleteUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      keepalive: true,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: 'post_id=' + encodeURIComponent(postId)
+    }).catch(function() {});
+  } catch (err) {}
+  $.post(liveDeleteUrl, {post_id: postId}, function() {});
+  return true;
+}
+
+window.onbeforeunload = function() {
   DeleteLive();
- }
-var main_live = setInterval(function(){ 
-  data = {};
+};
+
+var main_live = setInterval(function() {
+  const postId = $('#live_post_id').val();
+  if (!postId) {
+    return;
+  }
+  const data = {};
   for (var i = 0; i < $('.live_comments').length; i++) {
     if ($($('.live_comments')[i]).attr('live_comment_id')) {
       data[i] = $($('.live_comments')[i]).attr('live_comment_id');
     }
   }
-  post_id = $('#live_post_id').val();
-  if ($('#live_post_id').length == 0) {
-    clearInterval(main_live);
-  }
-  $.post(Wo_Ajax_Requests_File() + "?f=live&s=check_comments", {post_id: post_id,ids:data,page:'live'}, function(data, textStatus, xhr) {
-    if (data.status == 200) {
-      $('#live_post_comments').append(data.html);
-      $('#live_count').html(data.count);
-      $('#live_word').html(data.word);
+  $.post(Wo_Ajax_Requests_File() + "?f=live&s=check_comments", {post_id: postId, ids: data, page: 'live'}, function(response) {
+    if (response.status == 200) {
+      $('#live_post_comments').append(response.html);
+      $('#live_count').html(response.count);
+      $('#live_word').html(response.word);
       var comments = $('#live_post_comments .live_comments');
       if (comments.length > 4) {
-        var i;
-        for (i = 0; i < comments.length; i++) {
+        for (var j = 0; j < comments.length; j++) {
           if ($('#live_post_comments .live_comments').length > 4) {
-            comments[i].remove();
+            comments[j].remove();
           }
         }
       }
-    }
-    else if(data.removed == 'yes'){
-        clearInterval(main_live);
-        return false;
+    } else if (response.removed == 'yes') {
+      clearInterval(main_live);
     }
   });
 }, 3000);
-function DeleteLive() {
-  post_id = $('#live_post_id').val();
-  $.post(Wo_Ajax_Requests_File() + "?f=live&s=delete", {post_id: post_id}, function(data, textStatus, xhr) {});
-}
 
+$('#publishBtn').on('click', function() {
+  startHostLive();
+});
+$('#wo-livekit-toggle-mic').on('click', function() {
+  toggleHostTrack('audio');
+});
+$('#wo-livekit-toggle-cam').on('click', function() {
+  toggleHostTrack('video');
+});
 
-
-navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-if (!navigator.getUserMedia) {
-  $('#remote-media h3').text('Sorry, WebRTC is not available in your browser.');
-}
-
-
-
-
-function getMedia() {
-  return new Promise((resolve, reject) => {
-    /*
-    //getusermedia constraints
-    let constraints = {
-      audio:true,
-      video: {
-        width:  { min: 640, max: 1920, ideal: 1280 },
-        height: { min: 480, max: 1080, ideal: 720 },
-        frameRate: { min: 10, max: 60, ideal: 24 },
-        advanced: [
-          // additional constraints go here, tried in order until something succeeds
-          // can attempt high level exact constraints, slowly falling back to lower ones
-          { aspectRatio: 16/9 },
-          { aspectRatio:  4/3 },
-        ]
-      }
-    } */
-
-    let constraints = {audio: true, video: true};
-    navigator.mediaDevices.getUserMedia(constraints)
-      .then(str => {
-        resolve(str);
-		$('#remote-media h3').addClass('hidden');
-        $('#remote-media .liv_vid_cont').html('<video id="basic-stream" class="hidden videostream" autoplay="" style="width: 100%;height: 100%;vertical-align: middle;"></video>');
-      }).catch(err => {
-      $('#remote-media h3').text('Could not get Media: '+err);
-      reject(err);
-    })
-  });
-}
-
-if (navigator.getUserMedia) {
-  ready();
-}
-function base64_2_blob(dataURI) {
-    var byteString;
-    if (dataURI.split(',')[0].indexOf('base64') >= 0)
-        byteString = atob(dataURI.split(',')[1]);
-    else
-        byteString = unescape(dataURI.split(',')[1]);
-
-    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-    var ia = new Uint8Array(byteString.length);
-    for (var i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-    }
-
-    return new Blob([ia], { type:mimeString });
-}
-function capture_video_frame(video, format) {
-    if (typeof video === 'string') {
-        video = document.getElementById(video);
-    }
-
-    format = format || 'jpeg';
-
-    if (!video || (format !== 'png' && format !== 'jpeg')) {
-        return false;
-    }
-
-    var canvas = document.createElement("canvas");
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    canvas.getContext('2d').drawImage(video, 0, 0);
-
-
-    var dataUri = canvas.toDataURL('image/' + format);
-    var data = dataUri.split(',')[1];
-    var mimeType = dataUri.split(';')[0].slice(5)
-
-    var bytes = window.atob(data);
-    var buf = new ArrayBuffer(bytes.length);
-    var arr = new Uint8Array(buf);
-
-    for (var i = 0; i < bytes.length; i++) {
-        arr[i] = bytes.charCodeAt(i);
-    }
-
-    var blob = new Blob([ arr ], { type: mimeType });
-    return { blob: blob, dataUri: dataUri, format: format };
-}
-$.getScript("<?php echo $wo['config']['theme_url'];?>/javascript/excanvas.js?version=<?php echo $wo['config']['version']; ?>", function(data, textStatus) {});
+ensureHostPreview().then(function() {
+  setHostStatus('San sang bat dau livestream');
+}).catch(function(err) {
+  setHostStatus(err && err.message ? err.message : 'Khong the truy cap camera/microphone.');
+});
 </script>

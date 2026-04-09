@@ -2372,9 +2372,6 @@ function Wo_OpenAlbumLightBox(image_id, type) {
   });
 }
 function Wo_CloseLightbox() {
-  if (window.WoStoryPlayback && typeof window.WoStoryPlayback.clear === 'function') {
-    window.WoStoryPlayback.clear();
-  }
   $('.lightbox-container').remove();
   document.body.style.overflow = 'auto';
 }

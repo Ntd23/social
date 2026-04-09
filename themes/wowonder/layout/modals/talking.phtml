@@ -1,6 +1,6 @@
 <script>
     var woAudioCallReturnUrl = encodeURIComponent(typeof Wo_GetCallReturnUrl === 'function' ? Wo_GetCallReturnUrl() : window.location.href);
-    window.location.href = "<?php echo $wo['config']['site_url']; ?>/call.php?room=<?php echo $wo['incall']['room_name']; ?>&type=audio&return_url=" + woAudioCallReturnUrl;
+    window.location.href = "<?php echo $wo['incall']['url'];?>&return_url=" + woAudioCallReturnUrl;
 </script>
 <div class="modal fade" id="re-talking-modal" role="dialog" data-backdrop="static" data-keyboard="false">
    <div class="modal-dialog">
@@ -24,12 +24,12 @@
             </div>
          </div>
          <div class="modal-footer">
-             <button type="button" class="btn decline-call btn-default" onclick="Wo_CloseCall('<?php echo $wo['incall']['id'];?>');"><i class="fa fa-times progress-icon" data-icon="times"></i> <?php echo $wo['lang']['cancel'];?></button>
+             <button type="button" class="btn decline-call btn-default" onclick="Wo_CloseCall('<?php echo $wo['incall']['id'];?>', '<?php echo (!empty($wo['incall']['provider']) ? $wo['incall']['provider'] : Wo_GetActiveCallProvider('audio'));?>', 'audio');"><i class="fa fa-times progress-icon" data-icon="times"></i> <?php echo $wo['lang']['cancel'];?></button>
          </div>
       </div>
    </div>
 </div>
-<?php if ($wo['config']['agora_chat_video'] == 1) { ?>
+<?php if (!empty($wo['incall']['provider']) && $wo['incall']['provider'] == 'agora') { ?>
   <script type="text/javascript">
     var woTalkingReturnUrl = document.referrer || "<?php echo $wo['config']['site_url']; ?>";
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
@@ -156,7 +156,7 @@ function Wo_ReportTalkingClose(status, redirectNow) {
     f: 'close_call',
     id: woTalkingCallId,
     call_type: 'audio',
-    provider: '<?php echo ($wo['config']['agora_chat_video'] == 1 ? 'agora' : 'twilio'); ?>',
+    provider: '<?php echo (!empty($wo['incall']['provider']) ? $wo['incall']['provider'] : Wo_GetActiveCallProvider('audio')); ?>',
     status: status,
     duration: duration
   }).always(function () {
