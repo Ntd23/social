@@ -1,7 +1,7 @@
 <nav class="ads-navbar-wrapper" role="navigation">
 	<div class="ads_mini_wallet">
 		<p><?php echo $wo['lang']['my_balance'];?></p>
-		<h3><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><?php echo number_format($wo['user']['wallet'],2);?></h3>
+		<h3><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><?php echo Wo_FormatPriceByCurrency($wo['user']['wallet'], $wo['config']['ads_currency']);?></h3>
 	</div>
 	<ul class="ads-nav list-unstyled">
 		<?php if ($wo['config']['user_ads'] == 1) { ?>

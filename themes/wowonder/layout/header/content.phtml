@@ -138,6 +138,12 @@
   </nav>
 </div>
 <div class="barloading"></div>
+<style>
+.search-dropdown-result {
+    max-height: 450px;
+    overflow-y: auto;
+}
+</style>
 <script type="text/javascript">
 
 jQuery(document).ready(function($) {
@@ -151,6 +157,164 @@ jQuery(document).ready(function($) {
 var Searchcontainer = $('.search-container');
 var SearchBox = $('.search-container .search-input');
 var SearchResult = $('.search-dropdown-result');
+var Wo_HeaderSearchMapLoader = null;
+var Wo_HeaderSearchMapCssLoaded = false;
+var Wo_HeaderSearchMapCache = {};
+
+function Wo_LoadHeaderSearchMaps() {
+  if (typeof L !== 'undefined') {
+    return Promise.resolve();
+  }
+
+  if (Wo_HeaderSearchMapLoader) {
+    return Wo_HeaderSearchMapLoader;
+  }
+
+  if (!Wo_HeaderSearchMapCssLoaded) {
+    $('<link>', {
+      rel: 'stylesheet',
+      href: '<?php echo $wo['config']['theme_url'];?>/stylesheet/leaflet.css?version=<?php echo $wo['config']['version']; ?>'
+    }).appendTo('head');
+    Wo_HeaderSearchMapCssLoaded = true;
+  }
+
+  Wo_HeaderSearchMapLoader = new Promise(function(resolve, reject) {
+    $.getScript('<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?version=<?php echo $wo['config']['version']; ?>')
+      .done(function() {
+        resolve();
+      })
+      .fail(function() {
+        reject(new Error('Unable to load Leaflet'));
+      });
+  });
+
+  return Wo_HeaderSearchMapLoader;
+}
+
+function Wo_GeocodeHeaderSearchAddress(address) {
+  var normalizedAddress = $.trim(address || '');
+  if (!normalizedAddress) {
+    return Promise.resolve(null);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(Wo_HeaderSearchMapCache, normalizedAddress)) {
+    return Promise.resolve(Wo_HeaderSearchMapCache[normalizedAddress]);
+  }
+
+  return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(normalizedAddress), {
+    headers: {
+      'Accept': 'application/json'
+    }
+  })
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error('Geocoding request failed');
+      }
+      return response.json();
+    })
+    .then(function(results) {
+      var coordinates = null;
+
+      if (Array.isArray(results) && results.length > 0) {
+        var result = results[0];
+        var lat = parseFloat(result.lat);
+        var lng = parseFloat(result.lon);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+          coordinates = {
+            lat: lat,
+            lng: lng
+          };
+        }
+      }
+
+      Wo_HeaderSearchMapCache[normalizedAddress] = coordinates;
+      return coordinates;
+    })
+    .catch(function() {
+      Wo_HeaderSearchMapCache[normalizedAddress] = null;
+      return null;
+    });
+}
+
+function Wo_RenderHeaderSearchMap(element, coordinates, pageName, address) {
+  if (!coordinates || typeof L === 'undefined' || !element || !document.body.contains(element)) {
+    return;
+  }
+
+  if (element._leaflet_id) {
+    try {
+      element._leaflet_map_ref.remove();
+    } catch (err) {}
+    element._leaflet_map_ref = null;
+  }
+
+  var map = L.map(element, {
+    attributionControl: false,
+    dragging: false,
+    doubleClickZoom: false,
+    keyboard: false,
+    scrollWheelZoom: false,
+    tap: false,
+    touchZoom: false,
+    zoomControl: false,
+    boxZoom: false
+  }).setView([coordinates.lat, coordinates.lng], 15);
+
+  element._leaflet_map_ref = map;
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '',
+    maxZoom: 18
+  }).addTo(map);
+
+  var popupHtml = '<strong>' + escapeHtml(pageName || '') + '</strong>';
+  if (address) {
+    popupHtml += '<br>' + escapeHtml(address);
+  }
+
+  L.marker([coordinates.lat, coordinates.lng]).addTo(map).bindPopup(popupHtml);
+}
+
+function Wo_InitHeaderSearchMaps() {
+  var mapElements = SearchResult.find('.js-search-page-map');
+
+  if (mapElements.length === 0) {
+    return;
+  }
+
+  Wo_LoadHeaderSearchMaps()
+    .then(function() {
+      mapElements.each(function() {
+        var element = this;
+        var $element = $(element);
+        var address = $element.data('address') || '';
+        var pageName = $element.data('page-name') || '';
+
+        if (!$.trim(address)) {
+          return;
+        }
+
+        $element.addClass('search-page-map-loading').attr('data-loading-text', '<?php echo $wo['lang']['loading']; ?>');
+
+        Wo_GeocodeHeaderSearchAddress(address).then(function(coordinates) {
+          if (!document.body.contains(element)) {
+            return;
+          }
+
+          $element.removeClass('search-page-map-loading').removeAttr('data-loading-text');
+
+          if (!coordinates) {
+            $element.hide();
+            return;
+          }
+
+          Wo_RenderHeaderSearchMap(element, coordinates, pageName, address);
+        });
+      });
+    })
+    .catch(function() {});
+}
 
 function Wo_IsMobileHeaderSearchMode() {
   return $('.wow_new_search_bbtn:visible').length > 0;
@@ -198,6 +362,10 @@ function Wo_BindHeaderSearchClose() {
   $(document).on('click.woHeaderSearch touchstart.woHeaderSearch', '#wo_home_search, #wo_home_search .search-container, #wo_home_search .dropdown-menu, #wo_home_search .search-input, #wo_home_search #navbar-searchbox, .wow_new_search_bbtn', function(event) {
     event.stopPropagation();
   });
+
+  $(document).on('click.woHeaderSearch', '#wo_home_search .search-dropdown-result a, #wo_home_search .search-advanced-link', function() {
+    Wo_CloseMobileHeaderSearch();
+  });
 }
 
 Wo_BindHeaderSearchClose();
@@ -232,6 +400,7 @@ function Wo_GetRecentSearchs() {
       if (data.status == 200) {
           if (data.html.length > 0) {
             SearchResult.html('<div class="recent"><div class="gray recent-searches <?php echo Wo_RightToLeft("pull-left");?>"> <?php echo $wo["lang"]["recent_searches"]?></div><div onclick="Wo_ClearSearches();" class="gray recent-searches clear-searches pointer <?php echo Wo_RightToLeft("pull-right");?>" style="color: #F44336;"><svg style="vertical-align: middle;margin-top: -3px;" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg><?php echo $wo["lang"]["clear"]?></div><div class="clear"></div></div>' + data.html);
+            Wo_InitHeaderSearchMaps();
           }
         }
   });
@@ -248,6 +417,7 @@ function Wo_SearchResult(query) {
             SearchResult.html('<span class="center-text">' + " <?php echo $wo['lang']['no_result']; ?>" + '<span>');
           } else {
             SearchResult.html(data.html);
+            Wo_InitHeaderSearchMaps();
           }
         }
         Wo_progressIconLoader(Searchcontainer.find('.navbar-form'));

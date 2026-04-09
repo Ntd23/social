@@ -161,6 +161,7 @@ $jwt = JWT::encode($payload, $app_secret, 'HS256');
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Đang gọi... | <?php echo $wo['config']['siteTitle']; ?></title>
     <script src="https://jitsi.vnseea.vn/libs/external_api.min.js"></script>
     <style>
@@ -216,11 +217,11 @@ $jwt = JWT::encode($payload, $app_secret, 'HS256');
         .call-btn svg { fill: white; width: 24px; height: 24px; }
 
         @media (max-width: 768px) {
-            :root { --toolbar-height: 64px; }
-            #custom-toolbar { gap: 18px; }
-            .call-btn { width: 46px; height: 46px; }
-            .btn-hangup { width: 52px; height: 52px; }
-            .call-btn svg { width: 22px; height: 22px; }
+            :root { --toolbar-height: 84px; }
+            #custom-toolbar { gap: 22px; }
+            .call-btn { width: 58px; height: 58px; }
+            .btn-hangup { width: 66px; height: 66px; }
+            .call-btn svg { width: 28px; height: 28px; }
         }
     </style>
 </head>

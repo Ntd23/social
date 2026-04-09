@@ -15,7 +15,7 @@
 				<div class="user-name h5">
 					<a href="<?php echo $wo['story']['user_data']['url'];?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['user_data']['username']; ?>"><?php echo $wo['story']['user_data']['name'];?></a>
 				</div>
-				<span class="ajax-time" title="<?php echo date('c',$wo['story']['posted']); ?>"><?php echo Wo_Time_Elapsed_String($wo['story']['posted']); ?></span>
+				<span class="ajax-time story-time" title="<?php echo date('c',$wo['story']['posted']); ?>"><?php echo Wo_Time_Elapsed_String_Story($wo['story']['posted']); ?></span>
 			</div>
 		</div>
 		<div class="wo_stor_h_opts">
@@ -85,10 +85,10 @@
 				<img src="<?php echo $wo['story']['story_media'][0]['filename']. "?cache=" . time();?>" alt="media" class="<?php echo isset($wo['story']['ad']) ? 'rads-' . $wo['story']['ad']['bidding'] : '' ?>"
                      id="<?php echo isset($wo['story']['ad']) ?  $wo['story']['ad']['id'] : '' ?>">
 			<?php }else{ ?>
-				<video class="" preload="auto" autoplay  style="width: 100%; height: 100%;" data-story-video="<?php echo $wo['story']['story_media'][0]['id'];?>" id="video_story">
-					<source src="<?php echo $wo['story']['story_media'][0]['filename'];?>" type='video/mp4'>
-					<source src="<?php echo $wo['story']['story_media'][0]['filename'];?>" type='video/webm'>
-				</video>
+					<video class="story-lightbox-video" preload="metadata" playsinline webkit-playsinline x-webkit-airplay="deny" disablepictureinpicture disableremoteplayback controlslist="nofullscreen nodownload noplaybackrate noremoteplayback" style="width: 100%; height: 100%;" data-story-video="<?php echo $wo['story']['story_media'][0]['id'];?>" id="video_story">
+						<source src="<?php echo $wo['story']['story_media'][0]['filename'];?>" type='video/mp4'>
+						<source src="<?php echo $wo['story']['story_media'][0]['filename'];?>" type='video/webm'>
+					</video>
 			<?php } ?>
 		</div>
 			<?php if (!empty($wo['story']['description'])) { ?>
@@ -207,9 +207,11 @@ $(document).on('touchend.storySwipe', '.story_lightbox .story-img', function() {
   var storyId = $(this).attr('id');
   var storyType = $(this).attr('data-story-type');
   if (swipe.deltaX < 0) {
+    window.WoStoryTapLockUntil = Date.now() + 500;
     Get_NextStory(storyId, storyType);
   }
   else {
+    window.WoStoryTapLockUntil = Date.now() + 500;
     Get_PreviousStory(storyId, storyType);
   }
 });

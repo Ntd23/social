@@ -5423,6 +5423,43 @@ function Wo_GetStoryThumb($story_id = 0, $thumbnail = '')
 	}
 	return false;
 }
+function Wo_GetStoryEntryPoint($owner_id = 0, $viewer_id = 0)
+{
+	global $db, $wo;
+	$owner_id = (int) $owner_id;
+	if ($owner_id < 1) {
+		return null;
+	}
+	$viewer_id = (int) $viewer_id;
+	if ($viewer_id < 1 && !empty($wo['user']['user_id'])) {
+		$viewer_id = (int) $wo['user']['user_id'];
+	}
+
+	$story = null;
+	if ($viewer_id > 0) {
+		$story = $db->where("expire > " . time() . " AND ad_id IS NULL AND user_id = {$owner_id} AND id NOT IN (SELECT story_id FROM " . T_STORY_SEEN . " WHERE user_id = {$viewer_id})")
+		            ->orderBy('id', 'ASC')
+		            ->getOne(T_USER_STORY);
+	}
+
+	if (empty($story)) {
+		$ads_ids = (array) Wo_GetAlddAdIdsByType('story');
+		$ads_ids = array_filter(array_map('intval', $ads_ids));
+		if (!empty($ads_ids)) {
+			$ads_in = implode(',', $ads_ids);
+			$story  = $db->where("expire > " . time() . " AND ((ad_id IN ({$ads_in})) OR (ad_id IS NULL AND user_id = {$owner_id}))")
+			             ->orderBy('id', 'ASC')
+			             ->getOne(T_USER_STORY);
+		}
+		if (empty($story)) {
+			$story = $db->where("expire > " . time() . " AND ad_id IS NULL AND user_id = {$owner_id}")
+			            ->orderBy('id', 'ASC')
+			            ->getOne(T_USER_STORY);
+		}
+	}
+
+	return $story;
+}
 function Wo_CountUserStatus($id = false)
 {
 	global $sqlConnect, $wo;
@@ -7022,7 +7059,6 @@ function Wo_GetFriendsStatus($data_array = array('limit' => 8, 'user_id' => 0, '
 	// $query     = "SELECT * FROM " . T_USER_STORY . " WHERE (user_id IN (SELECT following_id FROM " . T_FOLLOWERS . " WHERE follower_id = '$user_id') OR user_id = $user_id) AND user_id IN (SELECT user_id FROM " . T_USERS . " WHERE active = '1') $group_by ORDER BY id DESC";
 	$query     = "SELECT DISTINCT user_id,title,description,posted,expire,thumbnail,ad_id,(SELECT MAX(us.id) FROM " . T_USER_STORY . " us WHERE us.user_id = " . T_USER_STORY . ".user_id AND us.expire > UNIX_TIMESTAMP() ) AS id  FROM " . T_USER_STORY . " WHERE  ".T_USER_STORY.".expire > UNIX_TIMESTAMP()   AND  (user_id IN (SELECT following_id FROM " . T_FOLLOWERS . " WHERE follower_id = '$user_id') OR user_id = $user_id  OR user_id IN (SELECT user_id FROM " . T_USER_ADS . " WHERE status = 1) ) AND user_id IN (SELECT user_id FROM " . T_USERS . " WHERE active = '1') $offset_query $group_by ORDER BY id DESC LIMIT " . $data_array['limit'];
 	$query_run = mysqli_query($sqlConnect, $query);
-	$last_story = null;
 	while ($fetched_data = mysqli_fetch_assoc($query_run)) {
 
 		$not_seen = $db->where("(user_id = " . $fetched_data['user_id'] ."
@@ -7033,24 +7069,20 @@ function Wo_GetFriendsStatus($data_array = array('limit' => 8, 'user_id' => 0, '
 		}
 		$story_images              = Wo_GetStoryMedia($fetched_data['id'], 'image');
 		$fetched_data['user_data'] = Wo_UserData($fetched_data['user_id']);
-		$ads = Wo_GetAlddAdIdsByType('story', $last_story ? $last_story['id'] : null);
-		$ad_query = "";
-		$ad_query_second = "";
-		if (count($ads) > 0) {
-			$ads = implode(',', $ads);
-			$ad_query = "(ad_id in ({$ads})) OR ";
+		$entry_story = Wo_GetStoryEntryPoint($fetched_data['user_id'], $wo['user']['user_id']);
+		if (empty($entry_story) || empty($entry_story->id)) {
+			continue;
 		}
-		$ad_query_second = "ad_id is null AND";
-		$last_story = $db->where("$ad_query ($ad_query_second user_id = " . $fetched_data['user_id'] . ")")->ArrayBuilder()->orderBy('id', 'DESC')->getOne(T_USER_STORY);
-		if (!$last_story) {
-			break;
+		$thumb_story_id = (int) $entry_story->id;
+		$thumb_file     = $entry_story->thumbnail;
+		$fetched_data['entry_story_id']    = $thumb_story_id;
+		if (!empty($entry_story->ad_id)) {
+			$ad = $db->where('id', $entry_story->ad_id)->ArrayBuilder()->getOne(T_USER_ADS);
+			if (!empty($ad['ad_media'])) {
+				$thumb_file = $ad['ad_media'];
+			}
 		}
-		if (!empty($last_story['ad_id'])) {
-			$ad = $db->where('id', $last_story['ad_id'])->ArrayBuilder()->getOne(T_USER_ADS);
-			$last_story['thumbnail'] = $ad['ad_media'];
-			$last_story['thumbnail'] = $ad['ad_media'];
-		}
-		$fetched_data['thumb']             = Wo_GetStoryThumb($fetched_data['id'], $last_story['thumbnail']);
+		$fetched_data['thumb']             = Wo_GetStoryThumb($thumb_story_id, $thumb_file);
 		if (empty($fetched_data['thumb'])) {
 			$fetched_data['thumb'] = array(
 				'type' => 'image',
@@ -7065,7 +7097,7 @@ function Wo_GetFriendsStatus($data_array = array('limit' => 8, 'user_id' => 0, '
 }
 function Wo_GetFriendsStatusAPI($data_array = array('limit' => 8, 'user_id' => 0, 'offset' => 0))
 {
-	global $wo, $sqlConnect;
+	global $wo, $sqlConnect, $db;
 	if ($wo['loggedin'] == false) {
 		return false;
 	}
@@ -7089,7 +7121,17 @@ function Wo_GetFriendsStatusAPI($data_array = array('limit' => 8, 'user_id' => 0
 	while ($fetched_data = mysqli_fetch_assoc($query_run)) {
 		$story_images              = Wo_GetStoryMedia($fetched_data['id'], 'image');
 		$fetched_data['user_data'] = Wo_UserData($fetched_data['user_id']);
-		$fetched_data['thumb']             = Wo_GetStoryThumb($fetched_data['id'], $fetched_data['thumbnail']);
+		$entry_story = Wo_GetStoryEntryPoint($fetched_data['user_id'], $wo['user']['user_id']);
+		$thumb_story_id = !empty($entry_story->id) ? (int) $entry_story->id : (int) $fetched_data['id'];
+		$thumb_file     = !empty($entry_story->thumbnail) ? $entry_story->thumbnail : $fetched_data['thumbnail'];
+		$fetched_data['entry_story_id']    = $thumb_story_id;
+		if (!empty($entry_story->ad_id)) {
+			$ad = $db->where('id', $entry_story->ad_id)->ArrayBuilder()->getOne(T_USER_ADS);
+			if (!empty($ad['ad_media'])) {
+				$thumb_file = $ad['ad_media'];
+			}
+		}
+		$fetched_data['thumb']             = Wo_GetStoryThumb($thumb_story_id, $thumb_file);
 		if (empty($fetched_data['thumb'])) {
 			$fetched_data['thumb'] = array(
 				'type' => 'image',
@@ -7178,7 +7220,9 @@ function Wo_UpdateUserDetails($user_id = 0, $me = false, $time = true, $get_data
 			$mutual_ids     = array();
 			if (!empty($get_mutual_ids)) {
 				foreach ($get_mutual_ids as $key => $user) {
-					$mutual_ids[] = $user['user_id'];
+					if (!empty($user) && isset($user['user_id'])) {
+						$mutual_ids[] = $user['user_id'];
+					}
 				}
 			}
 			$get_likes_ids = Wo_GetLikes($wo['user_profile']['user_id'], 'profile', 9);
@@ -7501,7 +7545,7 @@ function Wo_GetAllStatus()
 {
 	global $wo, $db;
 	$user_id = $wo['user']['user_id'];
-	return $db->rawQuery("SELECT DISTINCT user_id,title,description,posted,expire,thumbnail,(SELECT MAX(us.id) FROM " . T_USER_STORY . " us WHERE us.user_id = " . T_USER_STORY . ".user_id) AS id  FROM " . T_USER_STORY . " WHERE (user_id IN (SELECT following_id FROM " . T_FOLLOWERS . " WHERE follower_id = '$user_id') OR user_id = $user_id) AND user_id IN (SELECT user_id FROM " . T_USERS . " WHERE active = '1') GROUP BY user_id ORDER BY id DESC");
+	return $db->rawQuery("SELECT DISTINCT user_id,title,description,posted,expire,thumbnail,ad_id,(SELECT MAX(us.id) FROM " . T_USER_STORY . " us WHERE us.user_id = " . T_USER_STORY . ".user_id AND us.expire > UNIX_TIMESTAMP()) AS id FROM " . T_USER_STORY . " WHERE " . T_USER_STORY . ".expire > UNIX_TIMESTAMP() AND (user_id IN (SELECT following_id FROM " . T_FOLLOWERS . " WHERE follower_id = '$user_id') OR user_id = $user_id OR user_id IN (SELECT user_id FROM " . T_USER_ADS . " WHERE status = 1)) AND user_id IN (SELECT user_id FROM " . T_USERS . " WHERE active = '1') GROUP BY user_id ORDER BY id DESC");
 }
 function Wo_SharePostOn($id = false, $type_id = 0, $type = '')
 {
@@ -8210,35 +8254,115 @@ function Wo_GetNearbyShops($args = array())
 	$unit         = 6371;
 	$user_lat     = $wo['user']['lat'];
 	$user_lng     = $wo['user']['lng'];
-	$user         = $wo['user']['id'];
-	$t_users      = T_USERS;
-	$t_followers  = T_FOLLOWERS;
 	$distance     = 25;
 	$data         = array();
-	$sub_sql      = "";
-	$sub_sql2     = "";
+	$search_sql   = "";
+	$offset_sql   = "";
+
+	if (!is_numeric($user_lat) || !is_numeric($user_lng)) {
+		return $data;
+	}
 	if ($loc_distance && is_numeric($loc_distance) && $loc_distance > 0) {
 		$distance = $loc_distance;
 	}
 	if ($name) {
 		$name     = Wo_Secure($name);
-		//$sub_sql .= " AND (`page_name` LIKE '%$name%' OR `page_title` LIKE '%$name%' OR `page_description` LIKE '%$name%') ";
-		$sub_sql2 = " AND (`name` LIKE '%$name%' OR `description` LIKE '%$name%') ";
+		$search_sql = " AND (
+			prod.`name` LIKE '%$name%' OR
+			prod.`description` LIKE '%$name%' OR
+			prod.`location` LIKE '%$name%' OR
+			page.`page_name` LIKE '%$name%' OR
+			page.`page_title` LIKE '%$name%' OR
+			page.`page_description` LIKE '%$name%' OR
+			page.`address` LIKE '%$name%'
+		) ";
 	}
 	if ($offset && is_numeric($offset) && $offset > 0) {
-		$sub_sql .= " AND `page_id` <  '$offset' AND `page_id` <> '$offset' ";
+		$offset_sql = " AND post.`page_id` < '$offset' AND post.`page_id` <> '$offset' ";
 	}
-	$sql   = "
-    SELECT `page_id`,`product_id` FROM " . T_POSTS . " WHERE `product_id` > '0' AND `page_id` > '0'  {$sub_sql}
-    AND `product_id` IN (SELECT `id` FROM " . T_PRODUCTS . " WHERE ( {$unit} * acos(cos(radians('$user_lat'))  *
-    cos(radians(lat)) * cos(radians(lng) - radians('$user_lng')) +
-    sin(radians('$user_lat')) * sin(radians(lat ))) ) < '$distance' {$sub_sql2}) GROUP BY `page_id` ORDER BY `page_id` DESC LIMIT 0, $limit ";
+
+	if ($name) {
+		$sql = "
+		SELECT
+			post.`id`,
+			post.`page_id`,
+			post.`product_id`,
+			prod.`lat`,
+			prod.`lng`
+		FROM " . T_POSTS . " AS post
+		INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
+		INNER JOIN " . T_PAGES . " AS page ON post.`page_id` = page.`page_id`
+		WHERE post.`product_id` > '0'
+			AND post.`page_id` > '0'
+			AND prod.`lat` <> ''
+			AND prod.`lng` <> ''
+			AND prod.`lat` <> '0'
+			AND prod.`lng` <> '0'
+			{$offset_sql}
+			{$search_sql}
+		ORDER BY post.`id` DESC
+		LIMIT 250";
+	}
+	else {
+		$sql   = "
+		SELECT
+			post.`page_id`,
+			post.`product_id`,
+			(
+				{$unit} * acos(
+					cos(radians('$user_lat')) *
+					cos(radians(prod.`lat`)) *
+					cos(radians(prod.`lng`) - radians('$user_lng')) +
+					sin(radians('$user_lat')) *
+					sin(radians(prod.`lat`))
+				)
+			) AS `distance_value`
+		FROM " . T_POSTS . " AS post
+		INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
+		INNER JOIN " . T_PAGES . " AS page ON post.`page_id` = page.`page_id`
+		WHERE post.`product_id` > '0'
+			AND post.`page_id` > '0'
+			AND prod.`lat` <> ''
+			AND prod.`lng` <> ''
+			AND prod.`lat` <> '0'
+			AND prod.`lng` <> '0'
+			{$offset_sql}
+		HAVING `distance_value` < '$distance'
+		ORDER BY `distance_value` ASC, post.`page_id` DESC, post.`id` DESC";
+	}
 	$query = mysqli_query($sqlConnect, $sql);
-	if (mysqli_num_rows($query)) {
+	if ($query && mysqli_num_rows($query)) {
+		$seen_pages = array();
 		while ($fetched_data = mysqli_fetch_assoc($query)) {
+			if (!isset($fetched_data['distance_value'])) {
+				$lat = (float) ($fetched_data['lat'] ?? 0);
+				$lng = (float) ($fetched_data['lng'] ?? 0);
+				if (empty($lat) || empty($lng)) {
+					continue;
+				}
+				$distance_value = $unit * acos(
+					cos(deg2rad($user_lat)) *
+					cos(deg2rad($lat)) *
+					cos(deg2rad($lng) - deg2rad($user_lng)) +
+					sin(deg2rad($user_lat)) *
+					sin(deg2rad($lat))
+				);
+				$fetched_data['distance_value'] = $distance_value;
+			}
+			if ($fetched_data['distance_value'] > $distance) {
+				continue;
+			}
+			if (isset($seen_pages[$fetched_data['page_id']])) {
+				continue;
+			}
+			$seen_pages[$fetched_data['page_id']] = true;
 			$fetched_data['page_data'] = Wo_PageData($fetched_data['page_id']);
 			$fetched_data['product']   = Wo_GetProduct($fetched_data['product_id']);
+			$fetched_data['distance']  = round($fetched_data['distance_value'], 2);
 			$data[]                    = $fetched_data;
+			if (count($data) >= $limit) {
+				break;
+			}
 		}
 	}
 	return $data;
@@ -8259,25 +8383,57 @@ function Wo_GetNearbyShopsCount($args = array())
 	$unit         = 6371;
 	$user_lat     = $wo['user']['lat'];
 	$user_lng     = $wo['user']['lng'];
-	$user         = $wo['user']['id'];
 	$distance     = 25;
-	$sub_sql      = "";
-	$sub_sql2     = "";
+	$search_sql   = "";
+
+	if (!is_numeric($user_lat) || !is_numeric($user_lng)) {
+		return 0;
+	}
 	if ($loc_distance && is_numeric($loc_distance) && $loc_distance > 0) {
 		$distance = $loc_distance;
 	}
 	if ($name) {
 		$name     = Wo_Secure($name);
-		//$sub_sql .= " AND (`page_name` LIKE '%$name%' OR `page_title` LIKE '%$name%' OR `page_description` LIKE '%$name%') ";
-		$sub_sql2 = " AND (`name` LIKE '%$name%' OR `description` LIKE '%$name%') ";
+		$search_sql = " AND (
+			prod.`name` LIKE '%$name%' OR
+			prod.`description` LIKE '%$name%' OR
+			prod.`location` LIKE '%$name%' OR
+			page.`page_name` LIKE '%$name%' OR
+			page.`page_title` LIKE '%$name%' OR
+			page.`page_description` LIKE '%$name%' OR
+			page.`address` LIKE '%$name%'
+		) ";
 	}
 	$sql   = "
-    SELECT `page_id` FROM " . T_POSTS . " WHERE `product_id` > '0' AND `page_id` > '0'  {$sub_sql}
-    AND `product_id` IN (SELECT `id` FROM " . T_PRODUCTS . " WHERE ( {$unit} * acos(cos(radians('$user_lat'))  *
-    cos(radians(lat)) * cos(radians(lng) - radians('$user_lng')) +
-    sin(radians('$user_lat')) * sin(radians(lat ))) ) < '$distance' {$sub_sql2}) GROUP BY `page_id`";
+	SELECT COUNT(*) AS `count` FROM (
+		SELECT
+			post.`page_id`,
+			(
+				{$unit} * acos(
+					cos(radians('$user_lat')) *
+					cos(radians(prod.`lat`)) *
+					cos(radians(prod.`lng`) - radians('$user_lng')) +
+					sin(radians('$user_lat')) *
+					sin(radians(prod.`lat`))
+				)
+			) AS `distance_value`
+		FROM " . T_POSTS . " AS post
+		INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
+		INNER JOIN " . T_PAGES . " AS page ON post.`page_id` = page.`page_id`
+		WHERE post.`product_id` > '0'
+			AND post.`page_id` > '0'
+			AND prod.`lat` <> ''
+			AND prod.`lng` <> ''
+			{$search_sql}
+		HAVING `distance_value` < '$distance'
+		GROUP BY post.`page_id`
+	) AS nearby_pages";
 	$query = mysqli_query($sqlConnect, $sql);
-	return mysqli_num_rows($query);
+	if ($query && mysqli_num_rows($query)) {
+		$fetched_data = mysqli_fetch_assoc($query);
+		return (int) $fetched_data['count'];
+	}
+	return 0;
 }
 function Wo_GetNearbyBusiness($args = array())
 {

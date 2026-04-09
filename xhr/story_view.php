@@ -3,8 +3,8 @@ if ($f == 'story_view') {
     if (!empty($_POST['id'])) {
         if (is_numeric($_POST['id']) && $_POST['id'] > 0) {
             $story_id        = Wo_Secure($_POST['id']);
-            $get_story_owner = $db->where('id', $story_id)->getValue(T_USER_STORY, 'user_id');
-            $story           = $db->where('id', $story_id)->getOne(T_USER_STORY);
+            $story           = $db->where('expire', time(), '>')->where('id', $story_id)->getOne(T_USER_STORY);
+            $get_story_owner = !empty($story->user_id) ? $story->user_id : 0;
             $wo['story']     = ToArray($story);
             if (!empty($story)) {
                 $story_media = Wo_GetStoryMedia($story_id, 'image');

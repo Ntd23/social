@@ -18,7 +18,7 @@
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M21,18V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5A2,2 0 0,1 5,3H19A2,2 0 0,1 21,5V6H12C10.89,6 10,6.9 10,8V16A2,2 0 0,0 12,18M12,16H22V8H12M16,13.5A1.5,1.5 0 0,1 14.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,12A1.5,1.5 0 0,1 16,13.5Z" /></svg>&nbsp;&nbsp;&nbsp;
 					<div class="infoz">
 						<b><?php echo $wo['lang']['my_balance'] ?></b>
-						<p><?php echo Wo_GetCurrency($wo['config']['ads_currency']) . ($wo['user']['balance'] + $wo['user']['wallet']);?></p>
+						<p><?php echo Wo_GetCurrency($wo['config']['ads_currency']) . Wo_FormatPriceByCurrency(($wo['user']['balance'] + $wo['user']['wallet']), $wo['config']['ads_currency']);?></p>
 					</div>
 				</div>
 				<hr>
@@ -26,8 +26,8 @@
 				<?php if ($wo['user']['balance'] < $wo['config']['m_withdrawal']): ?>
 				<div class="alert alert-danger">
 					<?php 
-						$your_balance = str_replace('{balance}',  $wo['user']['balance'], $wo['lang']['your_balance']); 
-						$your_balance = str_replace('{m_withdrawal}',  $wo['config']['m_withdrawal'], $your_balance); 
+						$your_balance = str_replace('{balance}',  Wo_FormatPriceByCurrency($wo['user']['balance'], $wo['config']['ads_currency']), $wo['lang']['your_balance']); 
+						$your_balance = str_replace('{m_withdrawal}',  Wo_FormatPriceByCurrency($wo['config']['m_withdrawal'], $wo['config']['ads_currency']), $your_balance); 
 						$your_balance = str_replace('$', Wo_GetCurrency($wo['config']['ads_currency']), $your_balance);
 						
 					?>
@@ -61,8 +61,9 @@
 						</div>
 						<div class="col-md-6">
 							<div class="wow_form_fields">
-								<label for="amount"><?php echo $wo['lang']['amount']; ?></label>  
-								<input name="amount" id="amount" type="text" class="form-control input-md" value="<?php echo $wo['user']['balance'];?>">
+								<label for="amount_display"><?php echo $wo['lang']['amount']; ?></label>  
+								<input id="amount_display" type="text" class="form-control input-md" value="<?php echo Wo_FormatPriceByCurrency($wo['user']['balance'], $wo['config']['ads_currency']);?>" inputmode="decimal" autocomplete="off">
+								<input name="amount" id="amount" type="hidden" value="<?php echo Wo_ParsePriceByCurrency(Wo_FormatPriceByCurrency($wo['user']['balance'], $wo['config']['ads_currency']), $wo['config']['ads_currency']); ?>">
 							</div>
 						</div>
 						<?php if ($wo['config']['bank_withdrawal_system'] == 1) { ?>
@@ -152,6 +153,41 @@
 </div>
 
 <script type="text/javascript">
+var withdrawCurrencyRule = <?php echo json_encode(Wo_GetCurrencyRule($wo['config']['ads_currency'])); ?>;
+function normalizeWithdrawalAmount(value) {
+  var input = String(value || '').trim();
+  if (!input) {
+    return '';
+  }
+  input = input.replace(/\s+/g, '');
+  if ((withdrawCurrencyRule.decimals || 0) === 0) {
+    return input.replace(/[^\d]/g, '');
+  }
+  input = input.replace(new RegExp('\\' + withdrawCurrencyRule.thousand_sep, 'g'), '');
+  if (withdrawCurrencyRule.decimal_sep && withdrawCurrencyRule.decimal_sep !== '.') {
+    input = input.replace(new RegExp('\\' + withdrawCurrencyRule.decimal_sep, 'g'), '.');
+  }
+  input = input.replace(/[^0-9.]/g, '');
+  var firstDot = input.indexOf('.');
+  if (firstDot !== -1) {
+    input = input.slice(0, firstDot + 1) + input.slice(firstDot + 1).replace(/\./g, '');
+  }
+  return input;
+}
+function formatWithdrawalAmount(value) {
+  var normalized = normalizeWithdrawalAmount(value);
+  if (!normalized) {
+    return '';
+  }
+  var decimals = parseInt(withdrawCurrencyRule.decimals || 0, 10);
+  if (decimals === 0) {
+    return normalized.replace(/\B(?=(\d{3})+(?!\d))/g, withdrawCurrencyRule.thousand_sep);
+  }
+  var parts = normalized.split('.');
+  var integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, withdrawCurrencyRule.thousand_sep);
+  var decimalPart = (parts[1] || '').slice(0, decimals);
+  return decimalPart ? integerPart + withdrawCurrencyRule.decimal_sep + decimalPart : integerPart;
+}
 function Wo_ShowWithdrawMethod(self) {
 	if ($(self).val() == 'bank') {
 		$('.paypal_withdrawal').slideUp();
@@ -163,9 +199,24 @@ function Wo_ShowWithdrawMethod(self) {
 	}
 }
 $(function() {
+  var $amount = $('#amount');
+  var $amountDisplay = $('#amount_display');
+  function syncWithdrawalAmount(value) {
+    var raw = normalizeWithdrawalAmount(value);
+    $amount.val(raw);
+    $amountDisplay.val(formatWithdrawalAmount(raw));
+    return raw;
+  }
+  if ($amountDisplay.length) {
+    $amountDisplay.on('input', function() {
+      syncWithdrawalAmount(this.value);
+    });
+    syncWithdrawalAmount($amountDisplay.val());
+  }
   $('form.setting-general-form').ajaxForm({
     url: Wo_Ajax_Requests_File() + '?f=request_payment',
     beforeSend: function() {
+      syncWithdrawalAmount($amountDisplay.val());
       $('.wo_settings_page').find('.add_wow_loader').addClass('btn-loading');
     },
     success: function(data) {

@@ -8,7 +8,7 @@ if ($f == 'view_story_by_id') {
     );
     if (!empty($_POST['story_id']) && is_numeric($_POST['story_id']) && $_POST['story_id'] > 0 && !empty($_POST['type']) && in_array($_POST['type'], $types)) {
         $data['story_id'] = 0;
-        $main_story       = $db->where('id', Wo_Secure($_POST['story_id']))->getOne(T_USER_STORY);
+        $main_story       = $db->where('expire', time(), '>')->where('id', Wo_Secure($_POST['story_id']))->getOne(T_USER_STORY);
         if (!empty($main_story)) {
             $ads = Wo_GetAlddAdIdsByType('story');
             $ad_query = "";
@@ -19,7 +19,7 @@ if ($f == 'view_story_by_id') {
             }
             $ad_query_second = "ad_id is null AND";
             if ($_POST['type'] == 'previous') {
-                $story = $db->where('id', Wo_Secure($_POST['story_id']), '<')->where("($ad_query ($ad_query_second user_id = $main_story->user_id))")->orderBy('id', "DESC")->getOne(T_USER_STORY);
+                $story = $db->where('expire', time(), '>')->where('id', Wo_Secure($_POST['story_id']), '<')->where("($ad_query ($ad_query_second user_id = $main_story->user_id))")->orderBy('id', "DESC")->getOne(T_USER_STORY);
                 if (!empty($story) && !empty($story->id)) {
                     $data['story_id'] = $story->id;
                 }
@@ -34,34 +34,36 @@ if ($f == 'view_story_by_id') {
                         }
                     }
                     if ($next_story_id > 0) {
-                        $story            = $db->where('id', $next_story_id)->getOne(T_USER_STORY);
+                        $story            = $db->where('expire', time(), '>')->where('id', $next_story_id)->getOne(T_USER_STORY);
                         $data['story_id'] = $story->id;
                     }
                 }
             } else if ($_POST['type'] == 'next') {
-                $story = $db->where('id', Wo_Secure($_POST['story_id']), '>')->where("($ad_query ($ad_query_second user_id = $main_story->user_id))")->orderBy('id', "ASC")->getOne(T_USER_STORY);
+                $story = $db->where('expire', time(), '>')->where('id', Wo_Secure($_POST['story_id']), '>')->where("($ad_query ($ad_query_second user_id = $main_story->user_id))")->orderBy('id', "ASC")->getOne(T_USER_STORY);
                 if (!empty($story) && !empty($story->id)) {
                     $data['story_id'] = $story->id;
                 }
                 if (empty($story) && !empty($_POST['story_type']) && $_POST['story_type'] == 'friends') {
                     $all_stories   = Wo_GetAllStatus();
                     $next_story_id = 0;
-                    $n_ids         = array();
                     for ($i = 0; $i < count($all_stories); $i++) {
                         if ($i < count($all_stories) && $all_stories[$i]->user_id == $main_story->user_id) {
                             if (!empty($all_stories[$i + 1])) {
-                                $next_story_id = $all_stories[$i + 1]->id;
+                                $next_story = Wo_GetStoryEntryPoint($all_stories[$i + 1]->user_id, $wo['user']['user_id']);
+                                if (!empty($next_story) && !empty($next_story->id)) {
+                                    $next_story_id = $next_story->id;
+                                }
                             }
                             break;
                         }
                     }
                     if ($next_story_id > 0) {
-                        $story            = $db->where('id', $next_story_id)->getOne(T_USER_STORY);
+                        $story            = $db->where('expire', time(), '>')->where('id', $next_story_id)->getOne(T_USER_STORY);
                         $data['story_id'] = $story->id;
                     }
                 }
             } else {
-                $story = $db->where('id', Wo_Secure($_POST['story_id']))->getOne(T_USER_STORY);
+                $story = $db->where('expire', time(), '>')->where('id', Wo_Secure($_POST['story_id']))->getOne(T_USER_STORY);
                 if (!empty($story) && !empty($story->id)) {
                     $data['story_id'] = $story->id;
                 }

@@ -25,16 +25,20 @@
               <div class="alert alert-info"><?php echo $wo['lang']['u_send_money']; ?></div>
             <?php endif; ?>
           </div>
-          <div class="wow_snd_money_form text-center">
-            <p class="bold"><?php echo $wo['lang']['amount']; ?></p>
-            <div class="add-amount">
-              <h5><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><input type="number" placeholder="0.00" name="amount" id="amount" /></h5>
-            </div>
-          </div>
-
           <div class="row">
             <div class="col-md-2"></div>
             <div class="col-md-8">
+              <div class="wow_snd_money_form">
+                <div class="wow_form_fields send-money-amount-field">
+                  <label for="amount"><?php echo $wo['lang']['amount']; ?></label>
+                  <div class="send-money-amount-input">
+                    <span class="send-money-currency"><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?></span>
+                    <input type="text" placeholder="0" id="amount_display" inputmode="decimal" autocomplete="off" />
+                    <input type="hidden" name="amount" id="amount" value="" />
+                  </div>
+                </div>
+              </div>
+
               <div class="wow_form_fields">
                 <label for="search">
                   <?php echo $wo['lang']['send_to']; ?>
@@ -69,6 +73,89 @@
     </div>
   </div>
 </div><!-- Modal quét QR -->
+<style>
+  #send_money_modal .row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  #send_money_modal .row > .col-md-2 {
+    display: none;
+  }
+
+  #send_money_modal .row > .col-md-8 {
+    float: none;
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  #send_money_modal .wow_snd_money_form {
+    margin-bottom: 6px;
+  }
+
+  #send_money_modal .send-money-amount-field {
+    margin: 10px 0 18px;
+  }
+
+  #send_money_modal .send-money-amount-field > label {
+    margin-bottom: 8px;
+  }
+
+  #send_money_modal .send-money-amount-input {
+    position: relative;
+  }
+
+  #send_money_modal .send-money-currency {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: 700;
+    color: #5f6368;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  #send_money_modal .send-money-amount-input input {
+    width: 100%;
+    height: 52px;
+    padding-left: 62px;
+    padding-right: 14px;
+    font-size: 24px;
+    line-height: 1.2;
+    font-weight: 700;
+  }
+
+  #send_money_modal .send-money-amount-input input::placeholder {
+    color: #9aa0a6;
+    font-weight: 500;
+  }
+
+  @media (max-width: 767px) {
+    #send_money_modal .row > .col-md-8 {
+      width: 100%;
+    }
+
+    #send_money_modal .send-money-amount-field {
+      margin-bottom: 16px;
+    }
+
+    #send_money_modal .send-money-currency {
+      left: 12px;
+      font-size: 13px;
+    }
+
+    #send_money_modal .send-money-amount-input input {
+      height: 48px;
+      padding-left: 56px;
+      padding-right: 12px;
+      font-size: 20px;
+    }
+  }
+</style>
 <div class="modal fade" id="scan_qr_modal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-sm" role="document">
     <div class="modal-content">
@@ -110,12 +197,53 @@
 
 
 <script>
+var sendMoneyCurrencyRule = <?php echo json_encode(Wo_GetCurrencyRule($wo['config']['ads_currency'])); ?>;
+
+function normalizeSendMoneyAmount(value) {
+  var input = String(value || '').trim();
+  if (!input) {
+    return '';
+  }
+  input = input.replace(/\s+/g, '');
+  if ((sendMoneyCurrencyRule.decimals || 0) === 0) {
+    return input.replace(/[^\d]/g, '');
+  }
+  input = input.replace(new RegExp('\\' + sendMoneyCurrencyRule.thousand_sep, 'g'), '');
+  if (sendMoneyCurrencyRule.decimal_sep && sendMoneyCurrencyRule.decimal_sep !== '.') {
+    input = input.replace(new RegExp('\\' + sendMoneyCurrencyRule.decimal_sep, 'g'), '.');
+  }
+  input = input.replace(/[^0-9.]/g, '');
+  var firstDot = input.indexOf('.');
+  if (firstDot !== -1) {
+    input = input.slice(0, firstDot + 1) + input.slice(firstDot + 1).replace(/\./g, '');
+  }
+  return input;
+}
+
+function formatSendMoneyAmount(value) {
+  var normalized = normalizeSendMoneyAmount(value);
+  if (!normalized) {
+    return '';
+  }
+  var decimals = parseInt(sendMoneyCurrencyRule.decimals || 0, 10);
+  if (decimals === 0) {
+    return normalized.replace(/\B(?=(\d{3})+(?!\d))/g, sendMoneyCurrencyRule.thousand_sep);
+  }
+  var parts = normalized.split('.');
+  var integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, sendMoneyCurrencyRule.thousand_sep);
+  var decimalPart = (parts[1] || '').slice(0, decimals);
+  return decimalPart ? integerPart + sendMoneyCurrencyRule.decimal_sep + decimalPart : integerPart;
+}
+</script>
+
+<script>
 jQuery(function ($) {
   // ====== Config & cache DOM
   const ajaxUrl     = (typeof Wo_Ajax_Requests_File === 'function') ? Wo_Ajax_Requests_File() : '/requests.php';
   const $sendForm   = $('#send-money-form');
   const $searchInp  = $sendForm.find('#search');
   const $amountInp  = $sendForm.find('#amount');
+  const $amountDisplay = $sendForm.find('#amount_display');
   const $recipIdInp = $('#recipient_user_id');
   const $alertBox   = $('#send-money-form-alert');
   const $scanModal  = $('#scan_qr_modal');
@@ -125,6 +253,12 @@ jQuery(function ($) {
   function debounce(fn, t){ let id; return function(){ clearTimeout(id); id=setTimeout(fn, t); }; }
   function showFormAlert(msg, ok){
     $alertBox.html($('<div>', {class:'alert '+(ok?'alert-info':'alert-danger'), text: msg}));
+  }
+  function syncSendMoneyAmount(value){
+    const raw = normalizeSendMoneyAmount(value);
+    $amountInp.val(raw);
+    $amountDisplay.val(formatSendMoneyAmount(raw));
+    return raw;
   }
   async function closeQRUI(){
     try { if (scanner && typeof scanner.clear === 'function') await scanner.clear(); } catch(_) {}
@@ -194,8 +328,14 @@ jQuery(function ($) {
     $recipIdInp.val(p.to);
     fetchUserBrief(p.to);
     if (p.amount!=null && !isNaN(p.amount)){
-      $amountInp.val(String(p.amount));
+      syncSendMoneyAmount(String(Math.round(p.amount)));
       if (p.lock) $amountInp.prop('readonly', true);
+      if (p.lock) $amountDisplay.prop('readonly', true);
+      if (!p.lock) $amountInp.prop('readonly', false);
+      if (!p.lock) $amountDisplay.prop('readonly', false);
+    } else {
+      $amountInp.prop('readonly', false);
+      $amountDisplay.prop('readonly', false);
     }
     $scanModal.modal('hide');
     $('#send_money_modal').modal('show');
@@ -230,10 +370,18 @@ jQuery(function ($) {
   });
 
   // ====== Submit gửi tiền (AJAX)
+  $amountDisplay.on('input', function(){
+    syncSendMoneyAmount(this.value);
+  });
+  syncSendMoneyAmount($amountDisplay.val());
+
   $sendForm.ajaxForm({
     url: ajaxUrl + '?f=wallet&s=send',
     type: 'POST',
     dataType: 'json',
+    beforeSubmit: function(){
+      syncSendMoneyAmount($amountDisplay.val());
+    },
     beforeSend: function(){
       $sendForm.find('.add_wow_loader').attr('disabled', true).addClass('btn-loading');
     },
@@ -255,6 +403,9 @@ jQuery(function ($) {
 
         showFormAlert(data.message || 'Đã gửi tiền thành công.', true);
         $sendForm.resetForm();
+        $amountDisplay.val('');
+        $amountDisplay.prop('readonly', false);
+        $amountInp.prop('readonly', false);
 
         // đóng modal gửi sau 2s
         setTimeout(function(){
@@ -356,6 +507,7 @@ jQuery(function ($) {
   const $sendForm = $('#send-money-form');
   const $searchInp = $sendForm.find('#search');
   const $amountInp = $sendForm.find('#amount');
+  const $amountDisplay = $sendForm.find('#amount_display');
   const $recipIdInp = $('#recipient_user_id');
   const $alertBox = $('#send-money-form-alert');
   const ajaxUrl = (typeof Wo_Ajax_Requests_File === 'function') ? Wo_Ajax_Requests_File() : '/requests.php';
@@ -363,6 +515,13 @@ jQuery(function ($) {
 
   function showFormAlert(msg, ok) {
     $alertBox.html($('<div>', { class: 'alert ' + (ok ? 'alert-info' : 'alert-danger'), text: msg }));
+  }
+
+  function syncSendMoneyAmountDirect(value) {
+    const raw = normalizeSendMoneyAmount(value);
+    $amountInp.val(raw);
+    $amountDisplay.val(formatSendMoneyAmount(raw));
+    return raw;
   }
 
   function parseWalletQRDirect(text) {
@@ -438,10 +597,12 @@ jQuery(function ($) {
     $recipIdInp.val(p.to);
     fetchUserBriefDirect(p.to);
     if (p.amount != null && !isNaN(p.amount)) {
-      $amountInp.val(String(p.amount));
+      syncSendMoneyAmountDirect(String(Math.round(p.amount)));
       $amountInp.prop('readonly', !!p.lock);
+      $amountDisplay.prop('readonly', !!p.lock);
     } else {
       $amountInp.prop('readonly', false);
+      $amountDisplay.prop('readonly', false);
     }
     $scanModal.modal('hide');
     $('#send_money_modal').modal('show');

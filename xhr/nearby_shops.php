@@ -20,13 +20,22 @@ if ($f == 'nearby_shops') {
                 $user_info['name'] = $wo['UsersList']['page_data']['name'];
                 $user_info['lng']  = $wo['UsersList']['product']['lng'];
                 $user_info['lat']  = $wo['UsersList']['product']['lat'];
+                $user_info['location'] = (!empty($wo['UsersList']['product']['location']) ? $wo['UsersList']['product']['location'] : $wo['UsersList']['page_data']['address']);
                 $users_info[]      = $user_info;
                 $wo['result']      = $wo['UsersList']['page_data'];
+                $wo['result']['nearby_location'] = $user_info['location'];
+                $wo['result']['nearby_lat'] = $user_info['lat'];
+                $wo['result']['nearby_lng'] = $user_info['lng'];
+                $wo['result']['nearby_distance'] = (!empty($wo['UsersList']['distance']) ? $wo['UsersList']['distance'] : '');
                 $html .= Wo_LoadPage('nearby_shops/list');
             }
             $data['status']     = 200;
             $data['html']       = $html;
             $data['users_info'] = $users_info;
+            $data['count']      = (!empty($name) ? count($users) : Wo_GetNearbyShopsCount($filter));
+        }
+        else {
+            $data['count'] = 0;
         }
     }
     if ($s == 'load_jobs') {

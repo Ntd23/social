@@ -4,7 +4,7 @@ if ($f == 'pages') {
         if (!empty($_POST['page_name']) && ($_POST['page_name'] == 'wowonder' || $_POST['page_name'] == 'sunshine' || $_POST['page_name'] == $wo['config']['theme'])) {
             $_POST['page_name'] = "";
         }
-        if (empty($_POST['page_name']) || empty($_POST['page_title']) || empty(Wo_Secure($_POST['page_title'])) || Wo_CheckSession($hash_id) === false) {
+        if (empty($_POST['page_name']) || empty($_POST['page_title']) || empty(Wo_Secure($_POST['page_title'])) || empty($_POST['address']) || empty(Wo_Secure($_POST['address'])) || Wo_CheckSession($hash_id) === false) {
             $errors[] = $error_icon . $wo['lang']['please_check_details'];
         } else {
             $is_exist = Wo_IsNameExist($_POST['page_name'], 0);
@@ -38,6 +38,7 @@ if ($f == 'pages') {
                 'user_id' => Wo_Secure($wo['user']['user_id']),
                 'page_title' => Wo_Secure($_POST['page_title'],1),
                 'page_description' => Wo_Secure($_POST['page_description'],1),
+                'address' => Wo_Secure($_POST['address'],1),
                 'page_category' => Wo_Secure($_POST['page_category']),
                 'sub_category' => $sub_category,
                 'active' => '1',
