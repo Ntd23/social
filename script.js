@@ -496,9 +496,7 @@ function Wo_CheckForCallAnswerTabs(id) {
       clearTimeout(checkcalls);
       clearTimeout(window.woActiveCallTimeout);
       if (data1.status == 200) {
-        setTimeout(function () {
-          window.location.href = Wo_PrepareCallUrl(data1.url);
-        }, 1000);
+        window.location.href = Wo_PrepareCallUrl(data1.url);
       } else {
         setTimeout(function () {
           $( '#re-calling-modal' ).remove();
@@ -511,7 +509,7 @@ function Wo_CheckForCallAnswerTabs(id) {
   });
   checkcalls = setTimeout(function () {
       Wo_CheckForCallAnswerTabs(id);
-  }, 2000);
+  }, 500);
 }
 function Wo_CheckForAudioCallAnswerTabs(id) {
   $.get(Wo_Ajax_Requests_File(), {f:'check_for_audio_answer', id:id}, function (data1) {
@@ -519,9 +517,7 @@ function Wo_CheckForAudioCallAnswerTabs(id) {
       clearTimeout(checkcalls);
       clearTimeout(window.woActiveCallTimeout);
       if (data1.status == 200) {
-        setTimeout(function () {
-          window.location.href = Wo_PrepareCallUrl(data1.url);
-        }, 1000);
+        window.location.href = Wo_PrepareCallUrl(data1.url);
       } else {
         setTimeout(function () {
           $( '#re-calling-modal' ).remove();
@@ -538,7 +534,7 @@ function Wo_CheckForAudioCallAnswerTabs(id) {
   });
   checkcalls = setTimeout(function () {
       Wo_CheckForAudioCallAnswerTabs(id);
-  }, 2000);
+  }, 500);
 }
 // Notifications & follow requests updates
 function Wo_intervalUpdates(force_update = 0, loop = 0) {
@@ -2883,9 +2879,7 @@ function Wo_CheckForCallAnswer(id) {
       clearTimeout(window.woActiveCallTimeout);
       $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-video-camera"></i> ' + data1.text_answered);
       $('#calling-modal').find('.modal-body p').text(data1.text_please_wait);
-      setTimeout(function () {
-          window.location.href = Wo_PrepareCallUrl(data1.url);
-      }, 1000);
+      window.location.href = Wo_PrepareCallUrl(data1.url);
       return false;
     } else if (data1.status == 400) {
       clearTimeout(checkcalls);
@@ -2905,7 +2899,7 @@ function Wo_CheckForCallAnswer(id) {
     }
     checkcalls = setTimeout(function () {
         Wo_CheckForCallAnswer(id);
-    }, 2000);
+    }, 500);
   });
 }
 
@@ -2917,9 +2911,7 @@ function Wo_CheckForAudioCallAnswer(id) {
       $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-phone"></i> ' + data1.text_answered);
       $('#calling-modal').find('.modal-body p').text(data1.text_please_wait);
       Wo_PlayAudioCall('stop');
-      setTimeout(function () {
-          window.location.href = Wo_PrepareCallUrl(data1.url);
-      }, 1000);
+      window.location.href = Wo_PrepareCallUrl(data1.url);
     } else if (data1.status == 400) {
       clearTimeout(checkcalls);
       clearTimeout(window.woActiveCallTimeout);
@@ -2938,7 +2930,7 @@ function Wo_CheckForAudioCallAnswer(id) {
     } else {
       checkcalls = setTimeout(function () {
         Wo_CheckForAudioCallAnswer(id);
-      }, 2000);
+      }, 500);
     }
   });
 }

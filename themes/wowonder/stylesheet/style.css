@@ -21,6 +21,9 @@ body {
     font-size: 14.5px;
 }
 
+body * {
+  font-family: inherit;
+}
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 5px;

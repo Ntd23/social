@@ -5,6 +5,16 @@ if ($f == 'live') {
             $data['message'] = $error_icon . $wo['lang']['please_check_details'];
         } else {
             $stream_name = !empty($_POST['stream_name']) ? Wo_Secure($_POST['stream_name']) : Wo_GenerateLiveStreamName($wo['user']['id']);
+            $live_title = !empty($_POST['title']) ? Wo_Secure(trim($_POST['title'])) : '';
+            $live_description = !empty($_POST['description']) ? Wo_Secure(trim($_POST['description'])) : '';
+            $post_text_parts = array();
+            if ($live_title !== '') {
+                $post_text_parts[] = $live_title;
+            }
+            if ($live_description !== '') {
+                $post_text_parts[] = $live_description;
+            }
+            $post_text = implode(PHP_EOL . PHP_EOL, $post_text_parts);
             $join_payload = Wo_GetLiveKitLivestreamJoinPayload($stream_name, 'host', $wo['user']['id'], $wo['user']);
             if (empty($stream_name) || empty($join_payload)) {
                 $data['message'] = $error_icon . $wo['lang']['please_check_details'];
@@ -22,7 +32,7 @@ if ($f == 'live') {
                 }
                 $post_id = $db->insert(T_POSTS, array(
                     'user_id' => $wo['user']['id'],
-                    'postText' => '',
+                    'postText' => $post_text,
                     'postType' => 'live',
                     'postPrivacy' => $postPrivacy,
                     'stream_name' => $stream_name,
@@ -42,6 +52,8 @@ if ($f == 'live') {
                     $data['room_name'] = $join_payload['room_name'];
                     $data['ws_url']    = $join_payload['ws_url'];
                     $data['token']     = $join_payload['token'];
+                    $data['title']     = $live_title;
+                    $data['description'] = $live_description;
                 } else {
                     $data['message'] = $error_icon . $wo['lang']['please_check_details'];
                 }
@@ -85,12 +97,14 @@ if ($f == 'live') {
     if ($s == 'check_comments') {
         if (!empty($_POST['post_id']) && is_numeric($_POST['post_id']) && $_POST['post_id'] > 0) {
             $post_id   = Wo_Secure($_POST['post_id']);
-            $post_data = $db->where('id', $post_id)->getOne(T_POSTS);
+            $post_row  = $db->where('id', $post_id)->getOne(T_POSTS);
+            $post_data = is_object($post_row) ? (array) $post_row : (is_array($post_row) ? $post_row : array());
             if (!empty($post_data)) {
-                if ($post_data->live_ended == 0) {
-                    $user_comment = $db->where('post_id', $post_id)->where('user_id', $wo['user']['id'])->getOne(T_COMMENTS);
+                if (intval(!empty($post_data['live_ended']) ? $post_data['live_ended'] : 0) == 0) {
+                    $user_comment_row = $db->where('post_id', $post_id)->where('user_id', $wo['user']['id'])->getOne(T_COMMENTS);
+                    $user_comment = is_object($user_comment_row) ? (array) $user_comment_row : (is_array($user_comment_row) ? $user_comment_row : array());
                     if (!empty($user_comment)) {
-                        $db->where('id', $user_comment->id, '>');
+                        $db->where('id', intval($user_comment['id']), '>');
                     }
                     if (!empty($_POST['ids'])) {
                         $ids = array();
@@ -114,10 +128,10 @@ if ($f == 'live') {
                         }
                     }
                     $word = $wo['lang']['offline'];
-                    if (!empty($post_data->live_time) && $post_data->live_time >= (time() - 10)) {
+                    if (!empty($post_data['live_time']) && intval($post_data['live_time']) >= (time() - 10)) {
                         $word  = $wo['lang']['live'];
                         $count = $db->where('post_id', $post_id)->where('time', time() - 6, '>=')->getValue(T_LIVE_SUB, 'COUNT(*)');
-                        if ($wo['user']['id'] == $post_data->user_id) {
+                        if ($wo['user']['id'] == intval(!empty($post_data['user_id']) ? $post_data['user_id'] : 0)) {
                             $joined_users = $db->where('post_id', $post_id)->where('time', time() - 6, '>=')->where('is_watching', 0)->get(T_LIVE_SUB);
                             $joined_ids   = array();
                             if (!empty($joined_users)) {
@@ -161,7 +175,7 @@ if ($f == 'live') {
                         }
                     }
                     $still_live = 'offline';
-                    if (!empty($post_data) && $post_data->live_time >= (time() - 10)) {
+                    if (!empty($post_data['live_time']) && intval($post_data['live_time']) >= (time() - 10)) {
                         $still_live = 'live';
                     }
                     $data = array(
@@ -171,7 +185,7 @@ if ($f == 'live') {
                         'word' => $word,
                         'still_live' => $still_live
                     );
-                    if ($wo['user']['id'] == $post_data->user_id) {
+                    if ($wo['user']['id'] == intval(!empty($post_data['user_id']) ? $post_data['user_id'] : 0)) {
                         if ($_POST['page'] == 'live') {
                             $time = time();
                             $db->where('id', $post_id)->update(T_POSTS, array(
@@ -182,7 +196,7 @@ if ($f == 'live') {
                             ));
                         }
                     } else {
-                        if (!empty($post_data->live_time) && $post_data->live_time >= (time() - 10) && $_POST['page'] == 'story') {
+                        if (!empty($post_data['live_time']) && intval($post_data['live_time']) >= (time() - 10) && $_POST['page'] == 'story') {
                             $is_watching = $db->where('user_id', $wo['user']['id'])->where('post_id', $post_id)->getValue(T_LIVE_SUB, 'COUNT(*)');
                             if ($is_watching > 0) {
                                 $db->where('user_id', $wo['user']['id'])->where('post_id', $post_id)->update(T_LIVE_SUB, array(
