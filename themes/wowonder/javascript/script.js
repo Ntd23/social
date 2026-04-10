@@ -3245,13 +3245,28 @@ function Wo_BuildGroupCallUrl(callId, callType) {
   return websiteUrl + '/call_group_livekit.php?id=' + encodeURIComponent(callId) + '&type=' + encodeURIComponent(callType || 'video');
 }
 
+function Wo_GetMainRequestHash() {
+  if (typeof window.main_hash_id !== 'undefined' && window.main_hash_id) {
+    return window.main_hash_id;
+  }
+  if (typeof main_hash_id !== 'undefined' && main_hash_id) {
+    return main_hash_id;
+  }
+  var sessionField = $('.main_session').first();
+  if (sessionField.length > 0 && sessionField.val()) {
+    return sessionField.val();
+  }
+  return '';
+}
+
 function Wo_GenerateGroupVideoCall(groupId) {
   groupId = parseInt(groupId || 0, 10);
+  var requestHash = Wo_GetMainRequestHash();
   if (!groupId || window.woGroupCallCreatePending === true) {
     return;
   }
   window.woGroupCallCreatePending = true;
-  $.get(Wo_Ajax_Requests_File(), {f:'create_new_group_call', group_id: groupId, call_type:'video'}, function(data) {
+  $.get(Wo_Ajax_Requests_File(), {f:'create_new_group_call', hash: requestHash, group_id: groupId, call_type:'video'}, function(data) {
     if (data.status == 200) {
       window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(data.id, 'video'));
     }
@@ -3262,11 +3277,12 @@ function Wo_GenerateGroupVideoCall(groupId) {
 
 function Wo_GenerateGroupVoiceCall(groupId) {
   groupId = parseInt(groupId || 0, 10);
+  var requestHash = Wo_GetMainRequestHash();
   if (!groupId || window.woGroupCallCreatePending === true) {
     return;
   }
   window.woGroupCallCreatePending = true;
-  $.get(Wo_Ajax_Requests_File(), {f:'create_new_group_call', group_id: groupId, call_type:'audio'}, function(data) {
+  $.get(Wo_Ajax_Requests_File(), {f:'create_new_group_call', hash: requestHash, group_id: groupId, call_type:'audio'}, function(data) {
     if (data.status == 200) {
       window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(data.id, 'audio'));
     }
@@ -3279,11 +3295,12 @@ function Wo_JoinGroupCall(callId, groupId, callType) {
   callId = parseInt(callId || 0, 10);
   groupId = parseInt(groupId || 0, 10);
   callType = (callType === 'audio') ? 'audio' : 'video';
+  var requestHash = Wo_GetMainRequestHash();
   if (!callId || window.woGroupCallJoinPending === true) {
     return;
   }
   window.woGroupCallJoinPending = true;
-  $.get(Wo_Ajax_Requests_File(), {f:'join_group_call', call_id: callId, group_id: groupId, call_type: callType}, function(data) {
+  $.get(Wo_Ajax_Requests_File(), {f:'join_group_call', hash: requestHash, call_id: callId, group_id: groupId, call_type: callType}, function(data) {
     if (data.status == 200) {
       window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(callId, callType));
     }
@@ -3304,10 +3321,11 @@ function Wo_CloseGroupCallPicker() {
 function Wo_OpenGroupCallMemberPicker(callId, groupId) {
   callId = parseInt(callId || 0, 10);
   groupId = parseInt(groupId || 0, 10);
+  var requestHash = Wo_GetMainRequestHash();
   if (!callId || !groupId) {
     return;
   }
-  $.get(Wo_Ajax_Requests_File(), {f:'get_group_call_candidates', call_id: callId, group_id: groupId}, function(data) {
+  $.get(Wo_Ajax_Requests_File(), {f:'get_group_call_candidates', hash: requestHash, call_id: callId, group_id: groupId}, function(data) {
     if (data.status != 200) {
       return;
     }
@@ -3339,7 +3357,7 @@ function Wo_OpenGroupCallMemberPicker(callId, groupId) {
       }
       var button = $(this);
       button.prop('disabled', true);
-      $.post(Wo_Ajax_Requests_File() + '?f=add_group_call_members&hash=' + main_hash_id, {call_id: callId, user_ids: selected}, function(response) {
+      $.post(Wo_Ajax_Requests_File() + '?f=add_group_call_members&hash=' + encodeURIComponent(requestHash), {call_id: callId, user_ids: selected}, function(response) {
         if (response.status == 200) {
           Wo_CloseGroupCallPicker();
         }

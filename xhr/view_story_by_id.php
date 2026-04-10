@@ -87,6 +87,11 @@ if ($f == 'view_story_by_id') {
                 if (empty($story_media)) {
                     $story_media = Wo_GetStoryMedia($story_id, 'video');
                 }
+                if (empty($story_media)) {
+                    header("Content-type: application/json");
+                    echo json_encode($data);
+                    exit();
+                }
                 $wo['story']['story_media'] = $story_media;
                 $wo['story']['view_count']  = $db->where('story_id', $story_id)->where('user_id', $story->user_id, '!=')->getValue(T_STORY_SEEN, 'COUNT(*)');
                 $story_views                = $db->where('story_id', $story_id)->where('user_id', $story->user_id, '!=')->get(T_STORY_SEEN, 10);
