@@ -856,94 +856,87 @@ if (isset($_SESSION['open_chat'])) {
       $(document).ready(function() {
         updateUI(); // sync UI ban đầu
       });
+      function renderSidebarMultiUserItem(u) {
+        const id = parseInt(u.user_id || u.target_user_id, 10);
+        const name = u.user_name || u.name || '';
+        const avatar = u.avatar || u.user_avatar || '';
+        const isOnline = !!u.lastseen && (Date.now() / 1000 - parseInt(u.lastseen, 10) < 60);
+        const dot = isOnline ? '#60d465' : '#CDCDCD';
+
+        return `
+          <li class="multi-user-item" data-uid="${id}" data-name="${name}" data-avatar="${avatar}">
+            <div class="recipient-chat-user-mul">
+              <div class="user-information">
+                <img src="${avatar}" width="36" height="36" alt="" style="border-radius:50%; object-fit:cover;">
+                <span class="chat-user-text-mul" style="margin-left:10px;">${name}</span>
+                <div class="user-status-dot" style="padding-left:70px!important;" title="${isOnline ? 'Online' : 'Offline'}">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="${dot}" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="wow_chat_list-right">
+                <label style="margin:0 8px;">
+                  <input type="checkbox" class="multi-ck" value="${id}" data-name="${name}"> Chọn
+                </label>
+                <button class="btn btn-default btn-xs" onclick="Wo_OpenChatTab(${id});return false;">
+                  Mở chat
+                </button>
+              </div>
+            </div>
+          </li>`;
+      }
+
+      var sidebarChatOriginalHTML = '';
+      $(document).ready(function() {
+        sidebarChatOriginalHTML = $('#multi-all').html();
+        updateUI();
+      });
+
       $('#tag_user_id').on('change', function() {
         const tagId = $(this).val();
-        var tagText = $('#tag_user_id option:selected').text() || '';
-        const main_hash_id =
-          $('input[name="hash_id"]').val() ||
-          $('.main_session').val() ||
-          (window.wo && window.wo.user && window.wo.user.session_hash) ||
-          '';
-        console.log('Tag changed', tagId);
-        if (tagId === '0') {
-          $.ajax({
-            url: (typeof Wo_Ajax_Requests_File === 'function' ?
-              Wo_Ajax_Requests_File() :
-              '/requests.php') + '?f=tags&s=all_tags',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-              hash_id: main_hash_id
-            },
-            success: function(resp) {
-              var ids = Array.isArray(resp && resp.user_ids) ? resp.user_ids : [];
-              ids = ids.map(x => parseInt(x, 10) || null).filter(Boolean);
-              $('.multi-ck').prop('checked', false);
-
-              // Hiển thị chỉ những user có thẻ + tick (tuỳ bạn)
-              var set = {};
-              ids.forEach(i => set[i] = 1);
-              $('.multi-user-item').each(function() {
-                var uid = parseInt($(this).data('uid'), 10) || 0;
-                $(this).toggle(!!set[uid]);
-              });
-              // $('.multi-ck').prop('checked', false);
-              // ids.forEach(uid => $('.multi-ck[value="'+uid+'"]').prop('checked', true));
-
-              $('#multi-status').text('Tất cả người đã gắn thẻ — ' + ids.length + ' user');
-              updateUI();
-            }
-          });
+        const tagText = $('#tag_user_id option:selected').text() || '';
+        const main_hash_id = $('.main_session').val() || (window.wo?.user?.session_hash || '');
+        
+        if (!tagId || tagId === "") {
+          $('#multi-all').html(sidebarChatOriginalHTML);
+          $('#multi-status').text('');
+          updateUI();
           return;
         }
 
+        var endpoint = tagId === '0' ? 'all_tags' : 'selected_tags';
+        var postData = tagId === '0' ? { hash_id: main_hash_id } : { tag_id: tagId, hash_id: main_hash_id };
+
+        console.log('Sidebar Tag Filter:', endpoint, tagId);
 
         $.ajax({
-          url: (typeof Wo_Ajax_Requests_File === 'function' ?
-            Wo_Ajax_Requests_File() :
-            '/requests.php') + '?f=tags&s=selected_tags&hash=' + main_hash_id,
+          url: (typeof Wo_Ajax_Requests_File === 'function' ? Wo_Ajax_Requests_File() : '/requests.php') + '?f=tags&s=' + endpoint + '&hash=' + main_hash_id,
           method: 'POST',
           dataType: 'json',
-          data: {
-            tag_id: tagId,
-            hash_id: main_hash_id
-          },
+          data: postData,
           success: function(resp) {
-            var ids = Array.isArray(resp && resp.user_ids) ?
-              resp.user_ids :
-              Array.isArray(resp && resp.data) ?
-              resp.data.map(function(r) {
-                return parseInt(r.target_user_id, 10) || null;
-              }) : [];
-
-            ids = ids.filter(Boolean); // loại null/NaN
-            // 1) Tick checkbox đúng id
-            $('.multi-ck').prop('checked', false);
-            ids.forEach(function(uid) {
-              $('.multi-ck[value="' + uid + '"]').prop('checked', true);
-            });
-
-            // 2) LỌC LIST: chỉ hiển thị user thuộc thẻ
-            if (ids.length > 0) {
-              var set = {};
-              ids.forEach(function(id) {
-                set[id] = 1;
+            const users = Array.isArray(resp && resp.data) ? resp.data : [];
+            if (users.length > 0) {
+              let html = '';
+              users.forEach(function(u) {
+                html += renderSidebarMultiUserItem(u);
               });
-              $('.multi-user-item').each(function() {
-                var uid = parseInt($(this).data('uid'), 10) || 0;
-                $(this).toggle(!!set[uid]);
-              });
-              $('#multi-status').text('Đang lọc theo thẻ "' + tagText + '" — ' + ids.length + ' user');
+              $('#multi-all').html(html);
+              
+              // Auto-check all (matching Messenger structure)
+              setTimeout(function() {
+                $('#multi-all .multi-ck').prop('checked', true);
+                updateUI();
+              }, 50);
+
+              const label = (tagId === '0') ? 'Tất cả người đã gắn thẻ' : 'Đang lọc theo thẻ "' + tagText + '"';
+              $('#multi-status').text(label + ' — ' + users.length + ' user');
             } else {
-              // Không có ai thuộc thẻ → ẩn tất cả cho rõ ràng
-              $('.multi-user-item').hide();
-              $('#multi-status').text('Không có user nào gán thẻ "' + tagText + '"');
+              $('#multi-all').html('');
+              $('#multi-status').text('Không có user nào thuộc thẻ "' + tagText + '"');
+              updateUI();
             }
-
-            updateUI();
-          },
-          error: function(xhr) {
-            console.error('AJAX failed', xhr);
           }
         });
       });
@@ -1277,98 +1270,6 @@ if (isset($_SESSION['open_chat'])) {
 
       $(document).ready(function() {
         updateUI(); // sync UI ban đầu
-      });
-      $('#tag_user_id').on('change', function() {
-        const tagId = $(this).val();
-        var tagText = $('#tag_user_id option:selected').text() || '';
-        const main_hash_id =
-          $('input[name="hash_id"]').val() ||
-          $('.main_session').val() ||
-          (window.wo && window.wo.user && window.wo.user.session_hash) ||
-          '';
-        console.log('Tag changed', tagId);
-        if (tagId === '0') {
-          $.ajax({
-            url: (typeof Wo_Ajax_Requests_File === 'function' ?
-              Wo_Ajax_Requests_File() :
-              '/requests.php') + '?f=tags&s=all_tags',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-              hash_id: main_hash_id
-            },
-            success: function(resp) {
-              var ids = Array.isArray(resp && resp.user_ids) ? resp.user_ids : [];
-              ids = ids.map(x => parseInt(x, 10) || null).filter(Boolean);
-              $('.multi-ck').prop('checked', false);
-
-              // Hiển thị chỉ những user có thẻ + tick (tuỳ bạn)
-              var set = {};
-              ids.forEach(i => set[i] = 1);
-              $('.multi-user-item').each(function() {
-                var uid = parseInt($(this).data('uid'), 10) || 0;
-                $(this).toggle(!!set[uid]);
-              });
-              // $('.multi-ck').prop('checked', false);
-              // ids.forEach(uid => $('.multi-ck[value="'+uid+'"]').prop('checked', true));
-
-              $('#multi-status').text('Tất cả người đã gắn thẻ — ' + ids.length + ' user');
-              updateUI();
-            }
-          });
-          return;
-        }
-
-
-        $.ajax({
-          url: (typeof Wo_Ajax_Requests_File === 'function' ?
-            Wo_Ajax_Requests_File() :
-            '/requests.php') + '?f=tags&s=selected_tags&hash=' + main_hash_id,
-          method: 'POST',
-          dataType: 'json',
-          data: {
-            tag_id: tagId,
-            hash_id: main_hash_id
-          },
-          success: function(resp) {
-            var ids = Array.isArray(resp && resp.user_ids) ?
-              resp.user_ids :
-              Array.isArray(resp && resp.data) ?
-              resp.data.map(function(r) {
-                return parseInt(r.target_user_id, 10) || null;
-              }) :
-              [];
-
-            ids = ids.filter(Boolean); // loại null/NaN
-            // 1) Tick checkbox đúng id
-            $('.multi-ck').prop('checked', false);
-            ids.forEach(function(uid) {
-              $('.multi-ck[value="' + uid + '"]').prop('checked', true);
-            });
-
-            // 2) LỌC LIST: chỉ hiển thị user thuộc thẻ
-            if (ids.length > 0) {
-              var set = {};
-              ids.forEach(function(id) {
-                set[id] = 1;
-              });
-              $('.multi-user-item').each(function() {
-                var uid = parseInt($(this).data('uid'), 10) || 0;
-                $(this).toggle(!!set[uid]);
-              });
-              $('#multi-status').text('Đang lọc theo thẻ "' + tagText + '" — ' + ids.length + ' user');
-            } else {
-              // Không có ai thuộc thẻ → ẩn tất cả cho rõ ràng
-              $('.multi-user-item').hide();
-              $('#multi-status').text('Không có user nào gán thẻ "' + tagText + '"');
-            }
-
-            updateUI();
-          },
-          error: function(xhr) {
-            console.error('AJAX failed', xhr);
-          }
-        });
       });
 
       $('#multi-send-btn').on('click', function(e) {
@@ -3378,7 +3279,7 @@ if (isset($_SESSION['open_chat'])) {
 
   /* Input Group for Creating New Tag */
   .input-group {
-    display: flex;
+    /* display: flex; */
     align-items: center;
     gap: 0.5rem;
   }
