@@ -108,6 +108,8 @@ $callMeta = array(
 );
 
 $callSource = false;
+$is_caller_join = false;
+$is_receiver_join = false;
 if (!empty($callMeta['id'])) {
     $callSource = Wo_GetCallSourceById($callMeta['id'], $callType);
 }
@@ -198,10 +200,11 @@ if ($livekitConfigured) {
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Dang goi... | <?php echo $wo['config']['siteTitle']; ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Calling... | <?php echo $wo['config']['siteTitle']; ?></title>
     <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
     <style>
-        :root{--toolbar-height:118px;--panel:#0d1120;--panel-soft:rgba(35,40,57,.88);--danger:#ef2f2f;--danger-shadow:rgba(239,47,47,.35);--accent:#7a88ff;--text:#f8fafc;--muted:#98a4c0;--border:rgba(148,163,184,.18)}
+        :root{--toolbar-height:132px;--toolbar-btn-size:92px;--toolbar-gap:18px;--toolbar-max-width:760px;--panel:#0d1120;--panel-soft:rgba(35,40,57,.88);--danger:#ef2f2f;--danger-shadow:rgba(239,47,47,.35);--accent:#7a88ff;--text:#f8fafc;--muted:#98a4c0;--border:rgba(148,163,184,.18)}
         *{box-sizing:border-box;margin:0;padding:0}
         html,body{height:100%;color:var(--text);overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 50% 35%,rgba(96,110,255,.16) 0%,rgba(96,110,255,.06) 22%,rgba(7,10,20,0) 48%),linear-gradient(180deg,#090b12 0%,#0c1020 46%,#06070c 100%)}
         .lk-shell{min-height:100vh;min-height:100dvh;padding-bottom:var(--toolbar-height);position:relative}
@@ -211,10 +214,12 @@ if ($livekitConfigured) {
         .lk-tile video{width:100%;height:100%;display:block;object-fit:cover;background:#020617}
         body:not(.lk-audio-mode) .lk-stage .lk-tile{position:absolute;inset:0;min-height:100vh;min-height:100dvh;height:100%;border:0;border-radius:0;box-shadow:none;background:#020617}
         body:not(.lk-audio-mode) .lk-stage .lk-label{display:none}
-        .lk-self{position:fixed;top:32px;right:32px;width:min(26vw,210px);height:min(34vw,286px);z-index:14;border-radius:34px;overflow:hidden;border:2px solid rgba(255,255,255,.26);background:rgba(15,23,42,.54);box-shadow:0 24px 40px rgba(2,6,23,.34);backdrop-filter:blur(12px)}
+        .lk-self{position:fixed;top:32px;right:32px;width:min(26vw,210px);height:min(34vw,286px);z-index:14;border-radius:34px;overflow:hidden;border:2px solid rgba(255,255,255,.26);background:rgba(15,23,42,.54);box-shadow:0 24px 40px rgba(2,6,23,.34);backdrop-filter:blur(12px);cursor:grab;touch-action:none;user-select:none}
+        .lk-self.dragging{cursor:grabbing}
         .lk-self .lk-tile{position:absolute;inset:0;min-height:100%;width:100%;height:100%;border:0;border-radius:0;box-shadow:none;background:transparent}
-        .lk-self video{width:100%;height:100%;object-fit:cover}
+        .lk-self video{width:100%;height:100%;object-fit:cover;pointer-events:none}
         .lk-self .lk-label{display:none}
+        .lk-self-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(15,23,42,.86) 0%,rgba(10,15,28,.96) 100%);color:rgba(226,232,240,.78);font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;z-index:3}
         .lk-empty,.lk-error{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted);font-size:16px;background:rgba(15,23,42,.6)}
         .lk-error{color:#fecaca;background:rgba(127,29,29,.56)}
         .lk-label{position:absolute;left:12px;right:12px;bottom:12px;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(15,23,42,.74);font-size:13px;color:var(--text);backdrop-filter:blur(10px)}
@@ -263,16 +268,19 @@ if ($livekitConfigured) {
         .lk-audio-timer{color:var(--accent);font-size:22px;font-weight:500;letter-spacing:.08em}
         .lk-audio-sub{color:rgba(226,232,240,.72);font-size:14px}
         .lk-audio-sink{position:absolute;width:0;height:0;overflow:hidden}
-        #custom-toolbar{position:fixed;left:50%;transform:translateX(-50%);bottom:max(18px,env(safe-area-inset-bottom));min-height:200px;display:flex;align-items:center;justify-content:center;gap:22px;padding:16px 30px;background:none;border:0;box-shadow:none;z-index:20}
-        .call-btn{position:relative;width:100px;height:100px;border-radius:999px;border:0;background:var(--panel-soft);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:transform .15s ease,background .15s ease,box-shadow .15s ease;box-shadow:0 8px 20px rgba(0,0,0,.22)}
+        #custom-toolbar{position:fixed;left:50%;transform:translateX(-50%);bottom:max(18px,env(safe-area-inset-bottom));width:min(calc(100% - 28px),var(--toolbar-max-width));display:flex;align-items:center;justify-content:center;gap:var(--toolbar-gap);padding:14px 18px calc(14px + env(safe-area-inset-bottom));background:none;border:0;box-shadow:none;z-index:20}
+        .call-btn{position:relative;flex:0 0 var(--toolbar-btn-size);width:var(--toolbar-btn-size);height:var(--toolbar-btn-size);min-width:var(--toolbar-btn-size);min-height:var(--toolbar-btn-size);border-radius:999px;border:0;background:var(--panel-soft);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:transform .15s ease,background .15s ease,box-shadow .15s ease;box-shadow:0 8px 20px rgba(0,0,0,.22);touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         .call-btn.active{background:rgba(122,136,255,.16);box-shadow:0 0 0 1px rgba(123,140,255,.35) inset,0 10px 26px rgba(52,66,183,.22)}
         .call-btn.muted{background:rgba(147,33,43,.95)}
         .call-btn.muted::after{content:"";position:absolute;width:40px;height:4px;border-radius:999px;background:#fff;transform:rotate(-45deg);box-shadow:0 0 0 2px rgba(0,0,0,.06)}
-        .btn-hangup{width:150px;height:150px;background:var(--danger);box-shadow:0 18px 34px var(--danger-shadow)}
+        .btn-hangup{background:var(--danger);box-shadow:0 18px 34px var(--danger-shadow)}
         .call-btn svg{width:34px;height:34px;fill:currentColor}
+        #toolbar-more-wrap,#btn-more,.toolbar-popover{display:none}
+        .toolbar-popover{position:absolute;left:50%;bottom:calc(100% + 12px);transform:translateX(-50%) translateY(10px);align-items:center;justify-content:center;gap:12px;padding:12px 14px;border-radius:30px;background:rgba(9,14,26,.94);border:1px solid rgba(148,163,184,.2);box-shadow:0 20px 40px rgba(0,0,0,.32);opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+        .toolbar-popover.is-open{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
         .lk-toast{position:fixed;left:50%;top:28px;transform:translateX(-50%);padding:12px 18px;border-radius:999px;background:rgba(8,11,18,.92);color:#fff;font-size:13px;box-shadow:0 16px 36px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.05);opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:40}
         .lk-toast.show{opacity:1;display:block}
-        @media (max-width:768px){:root{--toolbar-height:128px}.lk-video-ui{padding:24px 14px calc(var(--toolbar-height) + 30px)}.lk-video-name{font-size:clamp(30px,9vw,46px)}.lk-video-status{font-size:13px;letter-spacing:.18em}.lk-video-timer{min-width:96px;padding:14px 24px;font-size:18px}.lk-video-avatar-wrap{width:220px;height:220px}.lk-video-avatar-fallback{font-size:78px}.lk-self{top:22px;right:14px;width:132px;height:176px;border-radius:28px}.lk-audio-ui{padding:14px 14px 0}.lk-audio-avatar-wrap{width:210px;height:210px}.lk-audio-name{font-size:clamp(34px,9vw,52px)}#custom-toolbar{width:calc(100% - 18px);gap:16px;padding:14px 16px;min-height:200px}.call-btn{width:150px;height:150px}.btn-hangup{width:150px;height:150px}.call-btn svg{width:30px;height:30px}}
+        @media (max-width:768px){:root{--toolbar-height:114px;--toolbar-gap:5px}.lk-video-ui{padding:24px 14px calc(var(--toolbar-height) + 26px)}.lk-video-name{font-size:clamp(30px,9vw,46px)}.lk-video-status{font-size:13px;letter-spacing:.18em}.lk-video-timer{min-width:96px;padding:14px 24px;font-size:18px}.lk-video-avatar-wrap{width:220px;height:220px}.lk-video-avatar-fallback{font-size:78px}.lk-self{top:22px;right:14px;width:132px;height:176px;border-radius:28px}.lk-audio-ui{padding:14px 14px 0}.lk-audio-avatar-wrap{width:210px;height:210px}.lk-audio-name{font-size:clamp(34px,9vw,52px)}#custom-toolbar{width:auto;max-width:calc(100% - 12px);justify-content:center;gap:var(--toolbar-gap);padding:8px 10px;background:rgba(9,14,26,.78);border:1px solid rgba(148,163,184,.14);box-shadow:0 18px 34px rgba(0,0,0,.3);backdrop-filter:blur(18px);border-radius:999px;bottom:max(10px,env(safe-area-inset-bottom))}.call-btn{flex:0 0 clamp(74px,22vw,90px);width:clamp(74px,22vw,90px);height:clamp(74px,22vw,90px);min-width:clamp(74px,22vw,90px);min-height:clamp(74px,22vw,90px)}.call-btn svg{width:32px;height:32px}#toolbar-more-wrap{position:relative;display:flex;align-items:center;justify-content:center}#btn-more{display:inline-flex}#btn-cam,#btn-flip-cam{display:none}.toolbar-popover{display:flex;bottom:calc(100% + 10px)}.toolbar-popover .call-btn{flex:0 0 78px;width:78px;height:78px;min-width:78px;min-height:78px}}
     </style>
 </head>
 <body>
@@ -337,6 +345,13 @@ if ($livekitConfigured) {
         <?php } else { ?>
         <button class="call-btn" id="btn-mic" title="Tat/Bat mic"><svg viewBox="0 0 24 24"><path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/></svg></button>
         <button class="call-btn" id="btn-speaker" title="Loa ngoai"><svg viewBox="0 0 24 24"><path d="M14,3.23V20.77C14,21.55 13.16,22.03 12.5,21.65L7,18H3C1.9,18 1,17.1 1,16V8C1,6.9 1.9,6 3,6H7L12.5,2.35C13.16,1.97 14,2.45 14,3.23M16.5,12C16.5,10.23 15.73,8.63 14.5,7.53V16.46C15.73,15.37 16.5,13.76 16.5,12M14.5,3.97V6.18C17.39,7.04 19.5,9.71 19.5,12.5C19.5,15.29 17.39,17.96 14.5,18.82V21.03C18.5,20.13 21.5,16.63 21.5,12.5C21.5,8.37 18.5,4.87 14.5,3.97Z"/></svg></button>
+        <div id="toolbar-more-wrap">
+            <button class="call-btn" id="btn-more" title="Tuy chon"><svg viewBox="0 0 24 24"><path d="M6,10A2,2 0 1,1 4,12A2,2 0 0,1 6,10M12,10A2,2 0 1,1 10,12A2,2 0 0,1 12,10M18,10A2,2 0 1,1 16,12A2,2 0 0,1 18,10Z"/></svg></button>
+            <div class="toolbar-popover" id="toolbar-popover">
+                <button class="call-btn toolbar-pop-btn" id="btn-cam-menu" title="Tat/Bat camera"><svg viewBox="0 0 24 24"><path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/></svg></button>
+                <button class="call-btn toolbar-pop-btn" id="btn-flip-cam-menu" title="Xoay camera"><svg viewBox="0 0 24 24"><path d="M4 6H16C17.1 6 18 6.9 18 8V10H16V8H4V16H16V14H18V16C18 17.1 17.1 18 16 18H4C2.9 18 2 17.1 2 16V8C2 6.9 2.9 6 4 6M20 5V8H17L20.5 11.5L24 8H21V5H20M20.5 12.5L17 16H20V19H21V16H24L20.5 12.5M9.5 9L13 12L9.5 15V13H6V11H9.5V9Z"/></svg></button>
+            </div>
+        </div>
         <button class="call-btn<?php echo $isAudioCall ? ' lk-hidden' : ''; ?>" id="btn-cam" title="Tat/Bat camera"><svg viewBox="0 0 24 24"><path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/></svg></button>
         <button class="call-btn<?php echo $isAudioCall ? ' lk-hidden' : ''; ?>" id="btn-flip-cam" title="Xoay camera"><svg viewBox="0 0 24 24"><path d="M4 6H16C17.1 6 18 6.9 18 8V10H16V8H4V16H16V14H18V16C18 17.1 17.1 18 16 18H4C2.9 18 2 17.1 2 16V8C2 6.9 2.9 6 4 6M20 5V8H17L20.5 11.5L24 8H21V5H20M20.5 12.5L17 16H20V19H21V16H24L20.5 12.5M9.5 9L13 12L9.5 15V13H6V11H9.5V9Z"/></svg></button>
         <button class="call-btn btn-hangup" id="btn-hangup" title="Cup may"><svg viewBox="0 0 24 24"><path d="M12,9C10.4,9 8.85,9.25 7.4,9.72V12.82C7.4,13.22 7.17,13.56 6.84,13.72C5.86,14.21 4.97,14.84 4.18,15.57C4,15.75 3.75,15.86 3.5,15.86C3.2,15.86 2.95,15.74 2.77,15.56L0.29,13.08C0.11,12.9 0,12.65 0,12.38C0,12.1 0.11,11.85 0.29,11.67C3.34,8.77 7.46,7 12,7C16.54,7 20.66,8.77 23.71,11.67C23.89,11.85 24,12.1 24,12.38C24,12.65 23.89,12.9 23.71,13.08L21.23,15.56C21.05,15.74 20.8,15.86 20.5,15.86C20.25,15.86 20,15.75 19.82,15.57C19.03,14.84 18.14,14.21 17.16,13.72C16.83,13.56 16.6,13.22 16.6,12.82V9.72C15.15,9.25 13.6,9 12,9Z"/></svg></button>
@@ -347,6 +362,7 @@ if ($livekitConfigured) {
         const redirectUrl = <?php echo json_encode($redirectTarget); ?>;
         const isAudioCall = <?php echo json_encode($isAudioCall); ?>;
         const callMeta = <?php echo json_encode($callMeta); ?>;
+        const isReceiverJoin = <?php echo json_encode($is_receiver_join); ?>;
         const syncCallTimerUrl = <?php echo json_encode($wo['config']['site_url'] . '/requests.php'); ?>;
         const callStartedAt = <?php echo json_encode($callStartedAt); ?>;
         const serverNowAtRender = <?php echo json_encode($serverNow); ?>;
@@ -382,8 +398,12 @@ if ($livekitConfigured) {
         const toast = document.getElementById('lk-toast');
         const btnMic = document.getElementById('btn-mic');
         const btnSpeaker = document.getElementById('btn-speaker');
+        const btnMore = document.getElementById('btn-more');
+        const toolbarPopover = document.getElementById('toolbar-popover');
         const btnCam = document.getElementById('btn-cam');
+        const btnCamMenu = document.getElementById('btn-cam-menu');
         const btnFlipCam = document.getElementById('btn-flip-cam');
+        const btnFlipCamMenu = document.getElementById('btn-flip-cam-menu');
         const btnHangup = document.getElementById('btn-hangup');
         const clientPageLoadedAt = Date.now();
         const hasServerCallStart = (parseInt(callStartedAt || 0, 10) > 0 && parseInt(serverNowAtRender || 0, 10) >= parseInt(callStartedAt || 0, 10));
@@ -402,6 +422,87 @@ if ($livekitConfigured) {
         let remoteDisconnectTimer = null;
         let currentAudioParticipantIdentity = '';
         let currentFacingMode = 'user';
+        let remoteParticipantSeen = false;
+        let isPageUnloading = false;
+        let manualHangupRequested = false;
+        let selfPreviewDragState = null;
+        const camButtons = [btnCam, btnCamMenu].filter(Boolean);
+        const flipCamButtons = [btnFlipCam, btnFlipCamMenu].filter(Boolean);
+
+        function setMenuOpen(isOpen) {
+            if (!btnMore || !toolbarPopover) {
+                return;
+            }
+            toolbarPopover.classList.toggle('is-open', !!isOpen);
+            btnMore.classList.toggle('active', !!isOpen);
+            btnMore.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+
+        function clampSelfPreviewPosition(left, top) {
+            const rect = selfPreview.getBoundingClientRect();
+            const maxLeft = Math.max(12, window.innerWidth - rect.width - 12);
+            const maxTop = Math.max(12, window.innerHeight - rect.height - 12);
+            return {
+                left: Math.min(Math.max(12, left), maxLeft),
+                top: Math.min(Math.max(12, top), maxTop)
+            };
+        }
+
+        function applySelfPreviewPosition(left, top) {
+            const next = clampSelfPreviewPosition(left, top);
+            selfPreview.style.left = next.left + 'px';
+            selfPreview.style.top = next.top + 'px';
+            selfPreview.style.right = 'auto';
+            selfPreview.style.bottom = 'auto';
+            selfPreview.style.transform = 'none';
+        }
+
+        function startSelfPreviewDrag(event) {
+            if (!selfPreview || selfPreview.classList.contains('lk-hidden')) {
+                return;
+            }
+            if (event.pointerType === 'mouse' && event.button !== 0) {
+                return;
+            }
+            const rect = selfPreview.getBoundingClientRect();
+            applySelfPreviewPosition(rect.left, rect.top);
+            selfPreviewDragState = {
+                pointerId: event.pointerId,
+                offsetX: event.clientX - rect.left,
+                offsetY: event.clientY - rect.top
+            };
+            selfPreview.classList.add('dragging');
+            if (typeof selfPreview.setPointerCapture === 'function') {
+                try {
+                    selfPreview.setPointerCapture(event.pointerId);
+                } catch (err) {}
+            }
+            event.preventDefault();
+        }
+
+        function moveSelfPreview(event) {
+            if (!selfPreviewDragState || event.pointerId !== selfPreviewDragState.pointerId) {
+                return;
+            }
+            applySelfPreviewPosition(
+                event.clientX - selfPreviewDragState.offsetX,
+                event.clientY - selfPreviewDragState.offsetY
+            );
+            event.preventDefault();
+        }
+
+        function stopSelfPreviewDrag(event) {
+            if (!selfPreviewDragState || (event && event.pointerId !== selfPreviewDragState.pointerId)) {
+                return;
+            }
+            if (event && typeof selfPreview.releasePointerCapture === 'function') {
+                try {
+                    selfPreview.releasePointerCapture(event.pointerId);
+                } catch (err) {}
+            }
+            selfPreviewDragState = null;
+            selfPreview.classList.remove('dragging');
+        }
 
         function getMuteIndicatorMarkup() {
             return '<div class="lk-mute-indicator lk-hidden" data-role="mute-indicator" aria-label="Mic da tat"><svg viewBox="0 0 24 24"><path d="M19 11H17.91C17.7 12.49 16.97 13.81 15.91 14.82L17.33 16.24C18.67 14.91 19.54 13.08 19.73 11M4.27 3L3 4.27L9.01 10.28V11A3 3 0 0 0 12 14C12.23 14 12.45 13.97 12.66 13.92L14.31 15.57C13.61 15.84 12.83 16 12 16A5 5 0 0 1 7 11H5A7 7 0 0 0 11 17.93V21H13V17.93C14.08 17.78 15.08 17.42 15.97 16.9L19.73 20.66L21 19.39L4.27 3M12 3A3 3 0 0 1 15 6V9.18L11.12 5.3C11.39 5.11 11.68 5 12 5A1 1 0 0 1 13 6V11A1 1 0 0 1 12.7 11.71L15.66 14.67C16.5 13.76 17 12.54 17 11V6A5 5 0 0 0 12 1C11.14 1 10.33 1.2 9.61 1.56L11.08 3.03C11.37 3 11.68 3 12 3Z"/></svg></div>';
@@ -473,6 +574,34 @@ if ($livekitConfigured) {
             conferenceJoinedAt = Date.now();
         }
 
+        function getEstimatedServerNowMs() {
+            return (parseInt(serverNowAtRender || 0, 10) * 1000) + (Date.now() - clientPageLoadedAt);
+        }
+
+        function getReceiverJoinDelayMs() {
+            if (!isReceiverJoin || !hasServerCallStart) {
+                return 0;
+            }
+            const targetJoinAtMs = (parseInt(callStartedAt || 0, 10) * 1000) + 2000;
+            return Math.max(0, targetJoinAtMs - getEstimatedServerNowMs());
+        }
+
+        async function waitForSynchronizedJoin() {
+            const waitMs = getReceiverJoinDelayMs();
+            if (waitMs <= 0) {
+                return;
+            }
+            if (isAudioCall && audioStatus) {
+                audioStatus.textContent = 'Dang doi nguoi goi vao phong';
+            }
+            if (!isAudioCall && videoStatus) {
+                videoStatus.textContent = 'Dang doi nguoi goi vao phong';
+            }
+            await new Promise(function (resolve) {
+                window.setTimeout(resolve, waitMs);
+            });
+        }
+
         function stopTimerSync() {
             if (timerSyncInterval) {
                 clearInterval(timerSyncInterval);
@@ -482,10 +611,10 @@ if ($livekitConfigured) {
 
         function syncTimerWithServer() {
             if (!callMeta || !callMeta.id) {
-                return;
+                return Promise.resolve();
             }
             const url = syncCallTimerUrl + '?f=sync_call_timer&id=' + encodeURIComponent(callMeta.id) + '&call_type=' + encodeURIComponent(callMeta.type || (isAudioCall ? 'audio' : 'video')) + '&provider=' + encodeURIComponent(callMeta.provider || 'livekit') + '&_t=' + encodeURIComponent(Date.now());
-            fetch(url, {
+            return fetch(url, {
                 method: 'GET',
                 credentials: 'same-origin',
                 headers: {'X-Requested-With': 'XMLHttpRequest'}
@@ -510,7 +639,7 @@ if ($livekitConfigured) {
                 return;
             }
             syncTimerWithServer();
-            timerSyncInterval = window.setInterval(syncTimerWithServer, 8000);
+            timerSyncInterval = window.setInterval(syncTimerWithServer, 3000);
         }
 
         function getParticipantMeta(participant, isSelf) {
@@ -669,12 +798,22 @@ if ($livekitConfigured) {
 
         function scheduleRemoteDisconnectCheck() {
             clearRemoteDisconnectTimer();
+            if (!remoteParticipantSeen || conferenceJoinedAt <= 0) {
+                return;
+            }
+            syncTimerWithServer();
+            if (audioStatus && isAudioCall) {
+                audioStatus.textContent = 'Nguoi kia dang ket noi lai';
+            }
+            if (videoStatus && !isAudioCall) {
+                videoStatus.textContent = 'Nguoi kia dang ket noi lai';
+            }
             remoteDisconnectTimer = window.setTimeout(function () {
                 remoteDisconnectTimer = null;
                 if (room && room.remoteParticipants && room.remoteParticipants.size === 0 && conferenceJoinedAt > 0) {
                     redirectAfterCallEnd('ended', 120);
                 }
-            }, 900);
+            }, 12000);
         }
 
         function setAudioHeroParticipant(participant, isSelf) {
@@ -788,6 +927,44 @@ if ($livekitConfigured) {
             return cameraTrack;
         }
 
+        function ensureSelfPreviewPlaceholder() {
+            if (!selfPreview) {
+                return null;
+            }
+            let placeholder = selfPreview.querySelector('.lk-self-placeholder');
+            if (!placeholder) {
+                placeholder = document.createElement('div');
+                placeholder.className = 'lk-self-placeholder';
+                placeholder.textContent = 'Camera off';
+                selfPreview.appendChild(placeholder);
+            }
+            return placeholder;
+        }
+
+        function setSelfPreviewCameraState(isVisible) {
+            const placeholder = ensureSelfPreviewPlaceholder();
+            selfPreview.classList.remove('lk-hidden');
+            if (placeholder) {
+                placeholder.classList.toggle('lk-hidden', !!isVisible);
+            }
+        }
+
+        function refreshLocalPreview() {
+            if (!room || !room.localParticipant) {
+                return;
+            }
+            const cameraTrack = getLocalCameraTrack();
+            if (!cameraTrack) {
+                selfPreview.querySelectorAll('video').forEach(function (video) {
+                    video.remove();
+                });
+                setSelfPreviewCameraState(false);
+                return;
+            }
+            attachTrack(cameraTrack, room.localParticipant, true);
+            setSelfPreviewCameraState(true);
+        }
+
         async function flipCameraFacing() {
             const cameraTrack = getLocalCameraTrack();
             if (!cameraTrack || typeof cameraTrack.restartTrack !== 'function') {
@@ -892,6 +1069,8 @@ if ($livekitConfigured) {
                 tile.prepend(element);
                 if (!isSelf) {
                     updateVideoPosterVisibility();
+                } else {
+                    setSelfPreviewCameraState(true);
                 }
             } else {
                 element.classList.add('lk-hidden');
@@ -938,8 +1117,12 @@ if ($livekitConfigured) {
             });
             room.on(LivekitClient.RoomEvent.ParticipantConnected, function (participant) {
                 clearRemoteDisconnectTimer();
+                remoteParticipantSeen = true;
                 if (isAudioCall && audioStatus) {
                     audioStatus.textContent = 'Dang trong cuoc goi';
+                }
+                if (!isAudioCall && videoStatus) {
+                    videoStatus.textContent = 'Dang trong cuoc goi';
                 }
                 setAudioHeroParticipant(participant, false);
                 updateParticipantMuteIndicator(participant, false);
@@ -959,11 +1142,21 @@ if ($livekitConfigured) {
                 }
             });
             room.on(LivekitClient.RoomEvent.Disconnected, function () {
-                redirectAfterCallEnd((conferenceJoinedAt > 0 ? 'ended' : 'no_answer'), 0);
+                clearRemoteDisconnectTimer();
+                if (manualHangupRequested || isPageUnloading) {
+                    redirectAfterCallEnd((conferenceJoinedAt > 0 ? 'ended' : 'no_answer'), 0);
+                    return;
+                }
+                if (conferenceJoinedAt > 0) {
+                    showToast('Ket noi cuoc goi bi gian doan.');
+                    return;
+                }
+                redirectAfterCallEnd('no_answer', 0);
             });
             room.on(LivekitClient.RoomEvent.Reconnecting, function () { btnHangup.disabled = true; });
             room.on(LivekitClient.RoomEvent.Reconnected, function () { btnHangup.disabled = false; });
             try {
+                await waitForSynchronizedJoin();
                 syncPopupState({status: 'connecting'});
                 await room.connect(wsUrl, token);
                 setConferenceJoinedAt();
@@ -1000,32 +1193,72 @@ if ($livekitConfigured) {
             showToast(microphoneEnabled ? 'microphone turned on' : 'microphone turned off');
         });
 
-        if (btnCam) {
-            btnCam.addEventListener('click', async function () {
+        camButtons.forEach(function (button) {
+            button.addEventListener('click', async function () {
                 if (!room) return;
                 cameraEnabled = !cameraEnabled;
                 if (cameraEnabled && isAudioCall) promoteCallLogToVideo();
                 await room.localParticipant.setCameraEnabled(cameraEnabled);
-                btnCam.classList.toggle('muted', !cameraEnabled);
-                btnCam.classList.toggle('active', cameraEnabled);
-                if (!cameraEnabled) {
-                    selfPreview.innerHTML = '';
-                    selfPreview.classList.add('lk-hidden');
-                }
+            camButtons.forEach(function (camButton) {
+                camButton.classList.toggle('muted', !cameraEnabled);
+                camButton.classList.toggle('active', cameraEnabled);
+            });
+            if (!cameraEnabled) {
+                selfPreview.querySelectorAll('video').forEach(function (video) {
+                    video.remove();
+                });
+                setSelfPreviewCameraState(false);
+            } else {
+                refreshLocalPreview();
+            }
+                setMenuOpen(false);
                 showToast(cameraEnabled ? 'Camera turned on' : 'Camera turned off');
             });
-        }
+        });
 
-        if (btnFlipCam) {
-            btnFlipCam.addEventListener('click', async function () {
+        flipCamButtons.forEach(function (button) {
+            button.addEventListener('click', async function () {
                 if (!room) return;
                 if (!cameraEnabled) {
                     showToast('Hay bat camera truoc khi xoay.');
                     return;
                 }
+                setMenuOpen(false);
                 await flipCameraFacing();
             });
+        });
+
+        if (btnMore) {
+            btnMore.addEventListener('click', function (event) {
+                event.stopPropagation();
+                setMenuOpen(!(toolbarPopover && toolbarPopover.classList.contains('is-open')));
+            });
         }
+
+        document.addEventListener('click', function (event) {
+            if (!toolbarPopover || !btnMore) {
+                return;
+            }
+            if (toolbarPopover.contains(event.target) || btnMore.contains(event.target)) {
+                return;
+            }
+            setMenuOpen(false);
+        });
+
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 768) {
+                setMenuOpen(false);
+            }
+            if (!selfPreview.classList.contains('lk-hidden')) {
+                const rect = selfPreview.getBoundingClientRect();
+                applySelfPreviewPosition(rect.left, rect.top);
+            }
+        });
+
+        selfPreview.addEventListener('pointerdown', startSelfPreviewDrag);
+        selfPreview.addEventListener('pointermove', moveSelfPreview);
+        selfPreview.addEventListener('pointerup', stopSelfPreviewDrag);
+        selfPreview.addEventListener('pointercancel', stopSelfPreviewDrag);
 
         btnSpeaker.addEventListener('click', async function () {
             speakerEnabled = !speakerEnabled;
@@ -1035,6 +1268,7 @@ if ($livekitConfigured) {
         });
 
         btnHangup.addEventListener('click', function () {
+            manualHangupRequested = true;
             if (room) {
                 try { room.disconnect(); } catch (err) {}
             }
@@ -1042,12 +1276,18 @@ if ($livekitConfigured) {
         });
 
         window.addEventListener('beforeunload', function () {
+            isPageUnloading = true;
             stopPresenceHeartbeat();
             clearPopupState();
             reportCallEnd();
         });
         btnMic.classList.add('active');
         btnSpeaker.classList.add('active');
+        if (!isAudioCall) {
+            camButtons.forEach(function (button) {
+                button.classList.add('active');
+            });
+        }
         syncPopupState({status: 'opening'});
         connectRoom();
     </script>

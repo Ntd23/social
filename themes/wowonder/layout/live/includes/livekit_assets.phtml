@@ -1,12 +1,134 @@
 <?php if (empty($wo['livekit_live_assets_loaded'])) { $wo['livekit_live_assets_loaded'] = true; ?>
 <style>
 .wo-livekit-live-wrap {position: relative;background: #020617;border-radius: 16px;overflow: hidden}
+.wo-livekit-post-file {position: relative}
 .wo-livekit-live-stage {position: absolute;inset: 0;background: #020617}
 .wo-livekit-live-stage video {width: 100%;height: 100%;display: block;object-fit: cover;background: #000}
 .wo-livekit-live-state {position: absolute;inset: 0;display: flex;align-items: center;justify-content: center;text-align: center;padding: 20px;color: #e2e8f0;font-size: 16px;background: linear-gradient(180deg,rgba(15,23,42,.82),rgba(15,23,42,.96))}
 .wo-livekit-live-state.is-ended {color: #fff;background: linear-gradient(180deg,rgba(127,29,29,.78),rgba(15,23,42,.96))}
 .wo-livekit-live-hidden {display: none !important}
 .wo-livekit-live-ended-card {display: flex;align-items: center;justify-content: center;min-height: 240px;padding: 28px;text-align: center;background: linear-gradient(180deg,#0f172a,#111827);color: #fff}
+.wo-livekit-open-fullscreen {position: absolute;top: 18px;right: 18px;z-index: 12;width: 44px;height: 44px;border: 0;border-radius: 999px;background: rgba(15,23,42,.82);color: #fff;display: inline-flex;align-items: center;justify-content: center;box-shadow: 0 12px 24px rgba(2,6,23,.32);backdrop-filter: blur(12px);cursor: pointer;transition: transform .18s ease, background .18s ease}
+.wo-livekit-open-fullscreen:hover {transform: translateY(-1px);background: rgba(30,41,59,.92)}
+.wo-livekit-open-fullscreen svg {width: 20px;height: 20px;fill: currentColor}
+.wo-livekit-fs-lock {overflow: hidden !important}
+.wo-livekit-fs-shell {position: fixed;inset: 0;z-index: 2147483000;display: none}
+.wo-livekit-fs-shell.is-active {display: block}
+.wo-livekit-fs-backdrop {position: absolute;inset: 0;background: rgba(0,0,0,.96)}
+.wo-livekit-fs-dialog {position: relative;height: 100%;width: 100%}
+.wo-livekit-fs-stage-panel {position: relative;min-width: 0;background: #020617;overflow: hidden}
+.wo-livekit-fs-stage-panel::before,
+.wo-livekit-fs-stage-panel::after {content: "";position: absolute;left: 0;right: 0;z-index: 2;pointer-events: none}
+.wo-livekit-fs-stage-panel::before {top: 0;height: 180px;background: linear-gradient(180deg,rgba(0,0,0,.66) 0%,rgba(0,0,0,.28) 58%,rgba(0,0,0,0) 100%)}
+.wo-livekit-fs-stage-panel::after {bottom: 0;height: 260px;background: linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.22) 18%,rgba(0,0,0,.82) 100%)}
+.wo-livekit-fs-stage-host {position: absolute;inset: 0;background: #020617}
+.wo-livekit-fs-stage-host .wo-livekit-live-wrap {width: 100%;height: 100%;max-height: 100%;border-radius: 0}
+.wo-livekit-fs-stage-host .embed-responsive {height: 100%;padding-bottom: 0 !important}
+.wo-livekit-fs-stage-host .wo-livekit-live-stage {position: absolute;inset: 0}
+.wo-livekit-fs-stage-host .wo-livekit-live-stage video {object-fit: cover}
+.wo-livekit-fs-stage-host .wow_liv_counter,
+.wo-livekit-fs-stage-host .wo-livekit-open-fullscreen {display: none !important}
+.wo-livekit-fs-topbar {position: absolute;top: 22px;left: 22px;right: 22px;z-index: 6;display: flex;align-items: flex-start;justify-content: space-between;gap: 16px;pointer-events: none}
+.wo-livekit-fs-meta {display: inline-flex;align-items: center;gap: 14px;pointer-events: auto;max-width: calc(100% - 90px)}
+.wo-livekit-fs-user-link {display: inline-flex;align-items: center;gap: 12px;color: #fff;text-decoration: none;min-width: 0}
+.wo-livekit-fs-avatar {width: 48px;height: 48px;min-width: 48px;border-radius: 50%;object-fit: cover;border: 1px solid rgba(255,255,255,.42);background: rgba(15,23,42,.82);box-shadow: 0 12px 22px rgba(0,0,0,.24)}
+.wo-livekit-fs-user-copy {display: grid;grid-template-columns: auto auto;align-items: center;gap: 6px 10px;min-width: 0}
+.wo-livekit-fs-name {grid-column: 1 / span 1;font-size: 17px;font-weight: 800;color: #fff;max-width: 220px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;line-height: 1.1}
+.wo-livekit-fs-badge {display: inline-flex;align-items: center;justify-content: center;padding: 0 12px;height: 34px;border-radius: 8px;background: #ff3434;color: #fff;font-size: 12px;font-weight: 800;letter-spacing: .08em;text-transform: uppercase;box-shadow: 0 10px 18px rgba(255,52,52,.24)}
+.wo-livekit-fs-count {grid-column: 1 / span 2;display: inline-flex;align-items: center;gap: 6px;color: rgba(255,255,255,.95);font-size: 14px;font-weight: 700;text-shadow: 0 8px 18px rgba(0,0,0,.3)}
+.wo-livekit-fs-count svg {width: 16px;height: 16px;fill: currentColor}
+.wo-livekit-fs-close {pointer-events: auto;width: 50px;height: 50px;border: 1px solid rgba(255,255,255,.12);border-radius: 50%;background: rgba(15,23,42,.24);color: #fff;display: inline-flex;align-items: center;justify-content: center;cursor: pointer;backdrop-filter: blur(14px);box-shadow: 0 14px 24px rgba(0,0,0,.24)}
+.wo-livekit-fs-close svg {width: 22px;height: 22px;fill: currentColor}
+.wo-livekit-fs-mobile-comments,
+.wo-livekit-fs-mobile-input {display: none}
+.wo-livekit-fs-hearts {position: absolute;right: 30px;bottom: 118px;z-index: 7;pointer-events: none}
+.wo-livekit-fs-heart {position: absolute;right: 0;bottom: 0;font-size: 28px;opacity: 0;animation: wo-livekit-heart-rise 1.2s ease forwards;filter: drop-shadow(0 8px 18px rgba(255,45,85,.35))}
+@keyframes wo-livekit-heart-rise {
+  0% {transform: translate3d(0,0,0) scale(.72);opacity: 0}
+  20% {opacity: 1}
+  100% {transform: translate3d(var(--drift, -10px), calc(var(--rise, -140px)), 0) scale(1.15);opacity: 0}
+}
+.wo-livekit-fs-react {position: absolute;right: 24px;bottom: 28px;z-index: 7;width: 56px;height: 56px;border: 1px solid rgba(255,255,255,.12);border-radius: 50%;background: rgba(2,6,23,.52);color: #fff;display: inline-flex;align-items: center;justify-content: center;backdrop-filter: blur(14px);cursor: pointer;box-shadow: 0 14px 26px rgba(0,0,0,.32)}
+.wo-livekit-fs-react svg {width: 24px;height: 24px;fill: currentColor}
+.wo-livekit-fs-shell .wow_liv_comments_feed {position: static;background: transparent;padding: 0;width: 100%}
+.wo-livekit-fs-empty {display: inline-flex;align-items: center;justify-content: center;padding: 10px 14px;border-radius: 16px;background: rgba(15,23,42,.42);backdrop-filter: blur(10px);color: rgba(226,232,240,.78);font-size: 14px;line-height: 1.5}
+.wo-livekit-fs-shell .live_comments {display: flex;align-items: flex-start;gap: 10px;padding: 0;margin: 0 0 12px}
+.wo-livekit-fs-shell .live_comments:last-child {margin-bottom: 0}
+.wo-livekit-fs-shell .live_comments .live_avatar {width: 38px !important;height: 38px !important;min-width: 38px;border-radius: 50% !important;margin-right: 0 !important;object-fit: cover}
+.wo-livekit-fs-shell .live_comments .comment-body {min-width: 0}
+.wo-livekit-fs-shell .live_comments .comment-heading {display: inline-block;max-width: 100%;padding: 12px 14px;border-radius: 18px;background: rgba(15,23,42,.72);backdrop-filter: blur(12px);box-shadow: 0 12px 24px rgba(2,6,23,.26)}
+.wo-livekit-fs-shell .live_comments .live_user_h {display: inline;margin: 0;font-size: 14px;color: #fff}
+.wo-livekit-fs-shell .live_comments .verified-color {display: inline-flex;margin-left: 4px}
+.wo-livekit-fs-shell .live_comments .comment-text {margin-top: 4px;color: rgba(248,250,252,.94);font-size: 15px;line-height: 1.45;word-break: break-word}
+.wo-livekit-fs-shell .post-comments {background: transparent !important;border: 0 !important;box-shadow: none !important;padding: 0 !important;margin: 0 !important}
+.wo-livekit-fs-shell .post-comments > * {display: none !important}
+.wo-livekit-fs-shell .post-comments > .post-commet-textarea {display: block !important}
+.wo-livekit-fs-shell .post-comments .post-commet-textarea {background: transparent !important;padding: 0 !important;border: 0 !important}
+.wo-livekit-fs-shell .post-comments .remove_combo_on_click {background: transparent !important;border: 0 !important;padding: 0 !important}
+.wo-livekit-fs-shell .post-comments .remove_combo_on_click > div:first-child {display: flex !important;align-items: center !important;gap: 10px !important;padding: 12px 16px !important;border-radius: 999px !important;background: rgba(2,6,23,.56) !important;border: 1px solid rgba(255,255,255,.12) !important}
+.wo-livekit-fs-shell .post-comments .remove_combo_on_click .avatar {display: none !important}
+.wo-livekit-fs-shell .post-comments .comment-textarea {min-height: 28px !important;height: 28px !important;max-height: 80px !important;background: transparent !important;border: 0 !important;box-shadow: none !important;color: #fff !important;padding: 0 !important;resize: none !important;font-size: 18px !important;line-height: 28px !important}
+.wo-livekit-fs-shell .post-comments .comment-textarea::placeholder {color: rgba(255,255,255,.56) !important}
+.wo-livekit-fs-shell .post-comments .comment_combo_footer {margin-top: 10px !important;border: 0 !important;background: transparent !important;padding: 0 !important}
+.wo-livekit-fs-shell .post-comments .wo_comment_fopt {display: flex !important;align-items: center !important;justify-content: flex-end !important}
+.wo-livekit-fs-shell .post-comments .wo_feed_post_comments > div:first-child,
+.wo-livekit-fs-shell .post-comments .wo_feed_post_comments .btngif,
+.wo-livekit-fs-shell .post-comments .wo_feed_post_comments .emo-comment2,
+.wo-livekit-fs-shell .post-comments .wo_feed_post_comments .dropdown-menu,
+.wo-livekit-fs-shell .post-comments .wo_feed_post_comments .image-comment,
+.wo-livekit-fs-shell .post-comments .record-comment-audio,
+.wo-livekit-fs-shell .post-comments [id^="gif-form-"],
+.wo-livekit-fs-shell .post-comments [id^="sticker-form-"] {display: none !important}
+.wo-livekit-fs-shell .post-comments .wo_feed_post_comments > div:last-child {display: flex !important;justify-content: flex-end !important;width: 100% !important}
+.wo-livekit-fs-shell .post-comments .sendbtn {width: 52px !important;height: 52px !important;padding: 0 !important;border: 0 !important;border-radius: 50% !important;background: linear-gradient(180deg,#3b82f6,#2563eb) !important;display: inline-flex !important;align-items: center !important;justify-content: center !important;box-shadow: 0 14px 26px rgba(37,99,235,.32) !important}
+.wo-livekit-fs-shell .post-comments .sendbtn svg {width: 20px !important;height: 20px !important;fill: #fff !important}
+.wo-livekit-fs-shell .post-comments .sendbtn[disabled] {opacity: .48;cursor: not-allowed}
+.wo-livekit-fs-composer {position: relative}
+.wo-livekit-fs-composer-textarea {width: 100%;min-height: 56px;max-height: 120px;padding: 16px 72px 16px 18px;border-radius: 999px;border: 1px solid rgba(255,255,255,.12);background: rgba(2,6,23,.56);color: #fff;resize: none;outline: none;box-shadow: none;font-size: 16px;line-height: 24px;backdrop-filter: blur(12px)}
+.wo-livekit-fs-composer-textarea::placeholder {color: rgba(255,255,255,.56)}
+.wo-livekit-fs-composer-send {position: absolute;right: 8px;top: 50%;transform: translateY(-50%);width: 46px;height: 46px;border: 0;border-radius: 50%;background: linear-gradient(180deg,#3b82f6,#2563eb);display: inline-flex;align-items: center;justify-content: center;color: #fff;box-shadow: 0 14px 26px rgba(37,99,235,.32);cursor: pointer}
+.wo-livekit-fs-composer-send svg {width: 18px;height: 18px;fill: currentColor}
+.wo-livekit-fs-composer-send[disabled] {opacity: .48;cursor: not-allowed}
+.wo-livekit-fs-shell.is-ended .wo-livekit-fs-react {display: none}
+.wo-livekit-fs-stage-panel {height: 100vh;height: 100dvh}
+.wo-livekit-fs-stage-host,
+.wo-livekit-fs-stage-host .wo-livekit-live-wrap,
+.wo-livekit-fs-stage-host .embed-responsive {height: 100% !important}
+@media (max-width: 991px) {
+  .wo-livekit-fs-topbar {top: max(18px,env(safe-area-inset-top));left: 14px;right: 14px;gap: 12px}
+  .wo-livekit-fs-meta {max-width: calc(100% - 68px);gap: 10px}
+  .wo-livekit-fs-avatar {width: 42px;height: 42px;min-width: 42px}
+  .wo-livekit-fs-user-copy {gap: 5px 8px}
+  .wo-livekit-fs-name {max-width: 128px;font-size: 14px}
+  .wo-livekit-fs-badge {height: 30px;padding: 0 10px;font-size: 11px}
+  .wo-livekit-fs-count {font-size: 13px}
+  .wo-livekit-fs-close {width: 44px;height: 44px}
+  .wo-livekit-fs-mobile-comments {display: block;position: absolute;left: 14px;right: 80px;bottom: calc(112px + env(safe-area-inset-bottom));z-index: 6;min-height: 120px}
+  .wo-livekit-fs-mobile-comments .wow_liv_comments_feed {display: flex;flex-direction: column;gap: 10px}
+  .wo-livekit-fs-mobile-comments .live_comments {margin: 0;gap: 10px;max-width: 100%}
+  .wo-livekit-fs-mobile-comments .live_comments .live_avatar {width: 34px !important;height: 34px !important;min-width: 34px}
+  .wo-livekit-fs-mobile-comments .live_comments .comment-heading {padding: 10px 14px;border-radius: 20px;background: rgba(17,24,39,.52);box-shadow: none}
+  .wo-livekit-fs-mobile-comments .live_comments .live_user_h {display: block;font-size: 12px;font-weight: 700;color: rgba(255,255,255,.76);margin-bottom: 3px}
+  .wo-livekit-fs-mobile-comments .live_comments .comment-text {margin-top: 0;font-size: 16px;line-height: 1.4;color: #fff}
+  .wo-livekit-fs-mobile-input {display: block;position: absolute;left: 14px;right: 82px;bottom: calc(14px + env(safe-area-inset-bottom));z-index: 6}
+  .wo-livekit-fs-mobile-comments .live_comments:nth-last-child(n+4) {display: none}
+  .wo-livekit-fs-composer-textarea {min-height: 54px;padding: 15px 64px 15px 18px;font-size: 15px;background: rgba(8,12,22,.58)}
+  .wo-livekit-fs-composer-send {width: 42px;height: 42px}
+  .wo-livekit-fs-react {right: 14px;bottom: calc(14px + env(safe-area-inset-bottom));width: 52px;height: 52px}
+  .wo-livekit-fs-hearts {right: 18px;bottom: calc(92px + env(safe-area-inset-bottom))}
+}
+@media (min-width: 992px) {
+  .wo-livekit-fs-topbar {top: 28px;left: 28px;right: 28px}
+  .wo-livekit-fs-mobile-comments {display: block;position: absolute;left: 26px;right: 120px;bottom: 128px;z-index: 6;min-height: 140px;max-width: 560px}
+  .wo-livekit-fs-mobile-comments .wow_liv_comments_feed {display: flex;flex-direction: column;gap: 12px}
+  .wo-livekit-fs-mobile-comments .live_comments {margin: 0;max-width: 100%}
+  .wo-livekit-fs-mobile-comments .live_comments .comment-heading {padding: 12px 16px;border-radius: 22px;background: rgba(15,23,42,.54)}
+  .wo-livekit-fs-mobile-comments .live_comments .live_user_h {display: block;font-size: 13px;font-weight: 700;color: rgba(255,255,255,.74);margin-bottom: 4px}
+  .wo-livekit-fs-mobile-comments .live_comments .comment-text {margin-top: 0;font-size: 16px;line-height: 1.45}
+  .wo-livekit-fs-mobile-input {display: block;position: absolute;left: 26px;right: 120px;bottom: 24px;z-index: 6;max-width: 640px}
+  .wo-livekit-fs-react {right: 30px;bottom: 24px}
+  .wo-livekit-fs-hearts {right: 36px;bottom: 98px}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
 <script>
@@ -14,15 +136,104 @@
   if (window.WoLiveKitLive && window.WoLiveKitLive.__ready) {
     return;
   }
+
   const players = {};
+  const fullscreenState = {
+    shell: null,
+    stageHost: null,
+    commentsHost: null,
+    inputHost: null,
+    metaName: null,
+    metaAvatar: null,
+    metaCount: null,
+    metaLink: null,
+    hearts: null,
+    activePostId: null,
+    escBound: false
+  };
 
   function ensureDom(postId) {
-    if (!players[postId]) {
-      players[postId] = {postId: postId};
+    const safePostId = String(postId);
+    if (!players[safePostId]) {
+      players[safePostId] = {
+        postId: safePostId,
+        placeholders: {}
+      };
     }
-    players[postId].stage = document.getElementById('wo-livekit-stage-' + postId);
-    players[postId].audioSink = document.getElementById('wo-livekit-audio-' + postId);
-    return players[postId];
+    const entry = players[safePostId];
+    entry.wrap = document.getElementById('wo-livekit-wrap-' + safePostId);
+    entry.stage = document.getElementById('wo-livekit-stage-' + safePostId);
+    entry.audioSink = document.getElementById('wo-livekit-audio-' + safePostId);
+    entry.button = document.getElementById('wo-livekit-open-fullscreen-' + safePostId);
+    entry.link = document.querySelector('.live_link_' + safePostId);
+    entry.commentFeed = document.getElementById('live_post_comments_' + safePostId);
+    entry.postComments = document.getElementById('post-comments-' + safePostId);
+    entry.countNode = document.getElementById('live_count_' + safePostId);
+    entry.publisherId = (entry.wrap && entry.wrap.getAttribute('data-publisher-id')) || entry.publisherId || '0';
+    entry.pageId = (entry.wrap && entry.wrap.getAttribute('data-page-id')) || entry.pageId || '0';
+    entry.hostName = (entry.wrap && entry.wrap.getAttribute('data-host-name')) || entry.hostName || '';
+    entry.hostAvatar = (entry.wrap && entry.wrap.getAttribute('data-host-avatar')) || entry.hostAvatar || '';
+    entry.hostUrl = (entry.wrap && entry.wrap.getAttribute('data-host-url')) || entry.hostUrl || '#';
+    if (!entry.openBound) {
+      bindOpenTriggers(entry);
+      entry.openBound = true;
+    }
+    if (!entry.countObserved && entry.countNode && window.MutationObserver) {
+      entry.countObserved = true;
+      entry.countObserver = new MutationObserver(function() {
+        updateFullscreenMeta(entry.postId);
+      });
+      entry.countObserver.observe(entry.countNode, {childList: true, characterData: true, subtree: true});
+    }
+    if (!entry.commentsObserved && entry.commentFeed && window.MutationObserver) {
+      entry.commentsObserved = true;
+      entry.commentsObserver = new MutationObserver(function() {
+        syncFullscreenComments(entry.postId);
+      });
+      entry.commentsObserver.observe(entry.commentFeed, {childList: true, characterData: true, subtree: true});
+    }
+    return entry;
+  }
+
+  function createPlaceholder(node, preserveSize) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'wo-livekit-fs-placeholder';
+    if (preserveSize && node) {
+      placeholder.style.width = '100%';
+      placeholder.style.minHeight = Math.max(node.offsetHeight, 1) + 'px';
+      placeholder.style.display = 'block';
+    } else {
+      placeholder.style.display = 'none';
+    }
+    return placeholder;
+  }
+
+  function restoreNode(node, placeholder) {
+    if (placeholder && placeholder.parentNode) {
+      if (node && node.isConnected) {
+        placeholder.parentNode.insertBefore(node, placeholder);
+      }
+      placeholder.parentNode.removeChild(placeholder);
+    }
+  }
+
+  function shouldUseInlineFullscreen() {
+    return window.matchMedia && window.matchMedia('(max-width: 991px)').matches;
+  }
+
+  function isDesktopLayout() {
+    return window.matchMedia && window.matchMedia('(min-width: 992px)').matches;
+  }
+
+  function bindOpenTriggers(entry) {
+    if (entry.button) {
+      entry.button.addEventListener('click', function(event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        event.stopPropagation();
+        openFullscreen(entry.postId);
+      }, true);
+    }
   }
 
   function setStageMessage(postId, message, ended) {
@@ -35,6 +246,9 @@
     state.className = 'wo-livekit-live-state' + (ended ? ' is-ended' : '');
     state.textContent = message;
     entry.stage.appendChild(state);
+    if (fullscreenState.activePostId === String(postId) && fullscreenState.shell) {
+      fullscreenState.shell.classList.toggle('is-ended', !!ended);
+    }
   }
 
   function clearAttachedTrack(track) {
@@ -54,6 +268,7 @@
     const element = track.attach();
     element.autoplay = true;
     element.playsInline = true;
+    element.setAttribute('playsinline', 'playsinline');
     if (track.kind === 'video') {
       entry.stage.innerHTML = '';
       entry.stage.appendChild(element);
@@ -83,13 +298,13 @@
       return;
     }
     entry.started = true;
-    setStageMessage(postId, 'Dang ket noi livestream...', false);
+    setStageMessage(postId, 'Đang kết nối livestream...', false);
     try {
       const payload = await fetchJoinPayload(entry.joinUrl, postId);
       if (!payload || payload.status !== 200 || !payload.token || !payload.ws_url) {
         entry.started = false;
         entry.stopped = true;
-        setStageMessage(postId, entry.endedText || 'Livestream da ket thuc.', true);
+        setStageMessage(postId, entry.endedText || 'Livestream đã kết thúc.', true);
         return;
       }
       entry.room = new window.LivekitClient.Room({adaptiveStream: true, dynacast: true});
@@ -101,12 +316,12 @@
       });
       entry.room.on(window.LivekitClient.RoomEvent.Disconnected, function() {
         if (!entry.stopped) {
-          setStageMessage(postId, entry.endedText || 'Livestream da ket thuc.', true);
+          setStageMessage(postId, entry.endedText || 'Livestream đã kết thúc.', true);
         }
       });
       await entry.room.connect(payload.ws_url, payload.token);
       if (!entry.room.remoteParticipants.size) {
-        setStageMessage(postId, 'Dang cho host bat dau livestream...', false);
+        setStageMessage(postId, 'Đang chờ host bắt đầu livestream...', false);
       }
       entry.room.remoteParticipants.forEach(function(participant) {
         participant.trackPublications.forEach(function(publication) {
@@ -118,11 +333,33 @@
     } catch (error) {
       entry.started = false;
       entry.stopped = true;
-      setStageMessage(postId, entry.endedText || 'Livestream da ket thuc.', true);
+      setStageMessage(postId, entry.endedText || 'Livestream đã kết thúc.', true);
     }
   }
 
-  function stopPlayer(postId, endedText) {
+  function disableCommentComposer(postId) {
+    const entry = ensureDom(postId);
+    const textarea = entry.postComments ? entry.postComments.querySelector('.comment-textarea') : null;
+    const sendButton = entry.postComments ? entry.postComments.querySelector('.sendbtn') : null;
+    if (textarea) {
+      textarea.disabled = true;
+      textarea.placeholder = 'Livestream đã kết thúc';
+    }
+    if (sendButton) {
+      sendButton.disabled = true;
+    }
+    if (fullscreenState.shell) {
+      fullscreenState.shell.querySelectorAll('.wo-livekit-fs-composer-textarea').forEach(function(node) {
+        node.disabled = true;
+        node.placeholder = 'Livestream đã kết thúc';
+      });
+      fullscreenState.shell.querySelectorAll('.wo-livekit-fs-composer-send').forEach(function(node) {
+        node.disabled = true;
+      });
+    }
+  }
+
+  function markEnded(postId, endedText) {
     const entry = ensureDom(postId);
     entry.stopped = true;
     if (entry.room) {
@@ -134,7 +371,328 @@
     if (entry.audioSink) {
       entry.audioSink.innerHTML = '';
     }
-    setStageMessage(postId, endedText || entry.endedText || 'Livestream da ket thuc.', true);
+    disableCommentComposer(postId);
+    setStageMessage(postId, endedText || entry.endedText || 'Livestream đã kết thúc.', true);
+  }
+
+  function ensureFullscreenShell() {
+    if (fullscreenState.shell) {
+      return fullscreenState.shell;
+    }
+    const shell = document.createElement('div');
+    shell.className = 'wo-livekit-fs-shell';
+    shell.innerHTML =
+      '<div class="wo-livekit-fs-backdrop"></div>' +
+      '<div class="wo-livekit-fs-dialog">' +
+        '<div class="wo-livekit-fs-stage-panel">' +
+          '<div class="wo-livekit-fs-stage-host"></div>' +
+          '<div class="wo-livekit-fs-topbar">' +
+            '<div class="wo-livekit-fs-meta">' +
+              '<a class="wo-livekit-fs-user-link" href="#" data-role="meta-link">' +
+                '<img class="wo-livekit-fs-avatar" data-role="meta-avatar" src="" alt="avatar">' +
+                '<span class="wo-livekit-fs-user-copy">' +
+                  '<span class="wo-livekit-fs-name" data-role="meta-name"></span>' +
+                  '<span class="wo-livekit-fs-badge">LIVE</span>' +
+                  '<span class="wo-livekit-fs-count"><svg viewBox="0 0 24 24"><path d="M12 5C6.5 5 2 12 2 12S6.5 19 12 19 22 12 22 12 17.5 5 12 5Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"/></svg><span data-role="meta-count">0</span></span>' +
+                '</span>' +
+              '</a>' +
+            '</div>' +
+            '<button type="button" class="wo-livekit-fs-close" data-role="close-fullscreen" aria-label="Đóng fullscreen">' +
+              '<svg viewBox="0 0 24 24"><path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.71 2.88 18.3 9.17 12 2.88 5.71 4.29 4.29l6.3 6.3 6.3-6.3Z"/></svg>' +
+            '</button>' +
+          '</div>' +
+          '<div class="wo-livekit-fs-mobile-comments" data-empty="Chưa có bình luận"></div>' +
+          '<div class="wo-livekit-fs-mobile-input"></div>' +
+          '<button type="button" class="wo-livekit-fs-react" data-role="react-live" aria-label="Thả tim">' +
+            '<svg viewBox="0 0 24 24"><path d="M12.1 21.35 10.55 19.93C5.4 15.24 2 12.16 2 8.38A5.38 5.38 0 0 1 7.5 3c1.74 0 3.41.81 4.5 2.09A5.93 5.93 0 0 1 16.5 3 5.38 5.38 0 0 1 22 8.38c0 3.78-3.4 6.86-8.55 11.57L12.1 21.35Z"/></svg>' +
+          '</button>' +
+          '<div class="wo-livekit-fs-hearts"></div>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(shell);
+
+    fullscreenState.shell = shell;
+    fullscreenState.stageHost = shell.querySelector('.wo-livekit-fs-stage-host');
+    fullscreenState.commentsHost = shell.querySelector('.wo-livekit-fs-mobile-comments');
+    fullscreenState.inputHost = shell.querySelector('.wo-livekit-fs-mobile-input');
+    fullscreenState.metaName = shell.querySelector('[data-role="meta-name"]');
+    fullscreenState.metaAvatar = shell.querySelector('[data-role="meta-avatar"]');
+    fullscreenState.metaCount = shell.querySelector('[data-role="meta-count"]');
+    fullscreenState.metaLink = shell.querySelector('[data-role="meta-link"]');
+    fullscreenState.hearts = shell.querySelector('.wo-livekit-fs-hearts');
+    fullscreenState.inputHost.innerHTML = buildFullscreenComposerMarkup();
+
+    shell.querySelector('.wo-livekit-fs-backdrop').addEventListener('click', function() {
+      closeFullscreen();
+    });
+    shell.querySelector('[data-role="close-fullscreen"]').addEventListener('click', function() {
+      closeFullscreen();
+    });
+    shell.querySelector('[data-role="react-live"]').addEventListener('click', function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      triggerReaction();
+    });
+    bindComposer(fullscreenState.inputHost);
+
+    if (!fullscreenState.escBound) {
+      fullscreenState.escBound = true;
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && fullscreenState.activePostId) {
+          event.preventDefault();
+          closeFullscreen();
+        }
+      });
+      window.addEventListener('resize', function() {
+        syncFullscreenLayout();
+      });
+    }
+
+    return shell;
+  }
+
+  function updateFullscreenMeta(postId) {
+    if (!fullscreenState.shell || fullscreenState.activePostId !== String(postId)) {
+      return;
+    }
+    const entry = ensureDom(postId);
+    if (fullscreenState.metaName) {
+      fullscreenState.metaName.textContent = entry.hostName || 'Livestream';
+    }
+    if (fullscreenState.metaAvatar) {
+      fullscreenState.metaAvatar.src = entry.hostAvatar || '';
+      fullscreenState.metaAvatar.alt = entry.hostName || 'avatar';
+    }
+    if (fullscreenState.metaLink) {
+      fullscreenState.metaLink.href = entry.hostUrl || '#';
+    }
+    if (fullscreenState.metaCount) {
+      fullscreenState.metaCount.textContent = entry.countNode ? String(entry.countNode.textContent || '0').trim() : '0';
+    }
+    if (fullscreenState.shell) {
+      fullscreenState.shell.classList.toggle('is-ended', !!entry.stopped);
+    }
+  }
+
+  function buildFullscreenComposerMarkup() {
+    return '' +
+      '<div class="wo-livekit-fs-composer">' +
+        '<textarea class="wo-livekit-fs-composer-textarea" rows="1" placeholder="Viết bình luận..."></textarea>' +
+        '<button type="button" class="wo-livekit-fs-composer-send" aria-label="Gửi bình luận">' +
+          '<svg viewBox="0 0 24 24"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2Z"/></svg>' +
+        '</button>' +
+      '</div>';
+  }
+
+  function syncComposerText(value) {
+    if (!fullscreenState.shell) {
+      return;
+    }
+    fullscreenState.shell.querySelectorAll('.wo-livekit-fs-composer-textarea').forEach(function(node) {
+      if (node.value !== value) {
+        node.value = value;
+      }
+    });
+  }
+
+  function renderEmptyComments() {
+    const empty = document.createElement('div');
+    empty.className = 'wo-livekit-fs-empty';
+    empty.textContent = 'Chưa có bình luận';
+    return empty;
+  }
+
+  function bindComposer(scope) {
+    if (!scope) {
+      return;
+    }
+    const textarea = scope.querySelector('.wo-livekit-fs-composer-textarea');
+    const sendButton = scope.querySelector('.wo-livekit-fs-composer-send');
+    if (!textarea || !sendButton) {
+      return;
+    }
+    textarea.addEventListener('input', function() {
+      syncComposerText(textarea.value);
+    });
+    textarea.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        submitFullscreenComment();
+      }
+    });
+    sendButton.addEventListener('click', function(event) {
+      event.preventDefault();
+      submitFullscreenComment();
+    });
+  }
+
+  function getActiveComposerValue() {
+    if (!fullscreenState.shell) {
+      return '';
+    }
+    const active = fullscreenState.shell.querySelector('.wo-livekit-fs-composer-textarea:not([disabled])');
+    if (active) {
+      return String(active.value || '').trim();
+    }
+    return '';
+  }
+
+  function submitFullscreenComment() {
+    if (!fullscreenState.activePostId) {
+      return;
+    }
+    const entry = ensureDom(fullscreenState.activePostId);
+    const text = getActiveComposerValue();
+    if (!text || !entry.postComments) {
+      return;
+    }
+    const sourceTextarea = entry.postComments.querySelector('.comment-textarea');
+    if (!sourceTextarea || sourceTextarea.disabled) {
+      return;
+    }
+    sourceTextarea.value = text;
+    syncComposerText(text);
+    if (typeof window.Wo_LiveComment === 'function') {
+      window.Wo_LiveComment(text, {keyCode: 13}, entry.postId, 1);
+    }
+    if (typeof window.Wo_RegisterComment2 === 'function') {
+      window.Wo_RegisterComment2(entry.postId, entry.publisherId || '0', entry.pageId || '0');
+    }
+    sourceTextarea.value = '';
+    syncComposerText('');
+  }
+
+  function cloneCommentFeed(entry, limit) {
+    const cloneHost = document.createElement('div');
+    cloneHost.className = 'wow_liv_comments_feed';
+    if (!entry.commentFeed) {
+      return cloneHost;
+    }
+    let comments = Array.prototype.slice.call(entry.commentFeed.querySelectorAll('.live_comments'));
+    if (limit && comments.length > limit) {
+      comments = comments.slice(comments.length - limit);
+    }
+    comments.forEach(function(node) {
+      cloneHost.appendChild(node.cloneNode(true));
+    });
+    return cloneHost;
+  }
+
+  function syncFullscreenComments(postId) {
+    if (!fullscreenState.activePostId || String(fullscreenState.activePostId) !== String(postId)) {
+      return;
+    }
+    const entry = ensureDom(postId);
+    if (!entry) {
+      return;
+    }
+    if (fullscreenState.commentsHost) {
+      const clone = cloneCommentFeed(entry, 3);
+      fullscreenState.commentsHost.innerHTML = '';
+      if (clone.children.length) {
+        fullscreenState.commentsHost.appendChild(clone);
+      } else {
+        fullscreenState.commentsHost.appendChild(renderEmptyComments());
+      }
+    }
+  }
+
+  function syncFullscreenLayout() {
+    if (!fullscreenState.activePostId) {
+      return;
+    }
+    const entry = ensureDom(fullscreenState.activePostId);
+    if (!entry) {
+      return;
+    }
+    const desktop = isDesktopLayout();
+    fullscreenState.shell.setAttribute('data-layout', desktop ? 'desktop' : 'mobile');
+    syncFullscreenComments(entry.postId);
+    const sourceTextarea = entry.postComments ? entry.postComments.querySelector('.comment-textarea') : null;
+    syncComposerText(sourceTextarea ? String(sourceTextarea.value || '') : '');
+  }
+
+  function openFullscreen(postId) {
+    const entry = ensureDom(postId);
+    if (!entry || !entry.wrap) {
+      return;
+    }
+    if (fullscreenState.activePostId === String(postId)) {
+      updateFullscreenMeta(postId);
+      return;
+    }
+    if (fullscreenState.activePostId) {
+      closeFullscreen();
+    }
+
+    ensureFullscreenShell();
+
+    entry.placeholders.wrap = createPlaceholder(entry.wrap, true);
+    entry.wrap.parentNode.insertBefore(entry.placeholders.wrap, entry.wrap);
+    fullscreenState.stageHost.appendChild(entry.wrap);
+
+    fullscreenState.activePostId = String(postId);
+    syncFullscreenLayout();
+    updateFullscreenMeta(postId);
+    window.wo_active_fullscreen_post_id = String(postId);
+    document.documentElement.classList.add('wo-livekit-fs-lock');
+    document.body.classList.add('wo-livekit-fs-lock');
+    fullscreenState.shell.classList.add('is-active');
+  }
+
+  function closeFullscreen() {
+    if (!fullscreenState.activePostId) {
+      return;
+    }
+    const entry = ensureDom(fullscreenState.activePostId);
+    restoreNode(entry.wrap, entry.placeholders.wrap);
+    entry.placeholders = {};
+
+    fullscreenState.activePostId = null;
+    if (fullscreenState.stageHost) {
+      fullscreenState.stageHost.innerHTML = '';
+    }
+    if (fullscreenState.commentsHost) {
+      fullscreenState.commentsHost.innerHTML = '';
+    }
+    if (fullscreenState.hearts) {
+      fullscreenState.hearts.innerHTML = '';
+    }
+    if (fullscreenState.shell) {
+      fullscreenState.shell.classList.remove('is-active', 'is-ended');
+      fullscreenState.shell.removeAttribute('data-layout');
+    }
+    window.wo_active_fullscreen_post_id = null;
+    document.documentElement.classList.remove('wo-livekit-fs-lock');
+    document.body.classList.remove('wo-livekit-fs-lock');
+  }
+
+  function triggerReaction() {
+    if (!fullscreenState.activePostId) {
+      return;
+    }
+    const postId = String(fullscreenState.activePostId);
+    const likeButton = document.getElementById('react_' + postId) || document.querySelector('.like-btn-post[data-post-id="' + postId + '"]');
+    if (likeButton && typeof likeButton.click === 'function') {
+      likeButton.click();
+    }
+    if (!fullscreenState.hearts) {
+      return;
+    }
+    for (let i = 0; i < 5; i += 1) {
+      const heart = document.createElement('span');
+      heart.className = 'wo-livekit-fs-heart';
+      heart.textContent = i % 2 === 0 ? '❤' : '♥';
+      heart.style.setProperty('--drift', ((Math.random() * 44) - 22) + 'px');
+      heart.style.setProperty('--rise', '-' + (120 + Math.round(Math.random() * 90)) + 'px');
+      fullscreenState.hearts.appendChild(heart);
+      (function(target) {
+        setTimeout(function() {
+          target.remove();
+        }, 1300);
+      })(heart);
+    }
   }
 
   window.WoLiveKitLive = {
@@ -146,16 +704,28 @@
       const postId = String(options.postId);
       const entry = ensureDom(postId);
       entry.joinUrl = options.joinUrl || '';
-      entry.endedText = options.endedText || 'Livestream da ket thuc.';
+      entry.endedText = options.endedText || 'Livestream đã kết thúc.';
+      entry.hostName = options.hostName || entry.hostName || '';
+      entry.hostAvatar = options.hostAvatar || entry.hostAvatar || '';
+      entry.hostUrl = options.hostUrl || entry.hostUrl || '#';
       entry.stopped = options.isStillLive === false;
       if (options.isStillLive === false) {
-        stopPlayer(postId, entry.endedText);
+        markEnded(postId, entry.endedText);
         return;
       }
       startPlayer(postId);
     },
     stopPlayer: function(postId, endedText) {
-      stopPlayer(String(postId), endedText);
+      markEnded(String(postId), endedText);
+    },
+    markEnded: function(postId, endedText) {
+      markEnded(String(postId), endedText);
+    },
+    openFullscreen: function(postId) {
+      openFullscreen(String(postId));
+    },
+    closeFullscreen: function() {
+      closeFullscreen();
     }
   };
 })(window, document);
