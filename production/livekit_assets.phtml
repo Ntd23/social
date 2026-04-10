@@ -1,16 +1,14 @@
 <?php if (empty($wo['livekit_live_assets_loaded'])) { $wo['livekit_live_assets_loaded'] = true; ?>
 <style>
-.wo-livekit-post-file {position: relative;isolation: isolate}
-.wo-livekit-live-wrap {position: relative;background: #020617;border-radius: 16px;overflow: hidden;z-index: 0;isolation: isolate}
-.wo-livekit-post-file .wo-livekit-live-wrap {z-index: 0}
-.wo-livekit-inline-link {z-index: 5 !important}
+.wo-livekit-post-file {position: relative}
+.wo-livekit-live-wrap {position: relative;background: #020617;border-radius: 16px;overflow: hidden}
 .wo-livekit-live-stage {position: absolute;inset: 0;background: #020617}
 .wo-livekit-live-stage video {width: 100%;height: 100%;display: block;object-fit: cover;background: #000}
 .wo-livekit-live-state {position: absolute;inset: 0;display: flex;align-items: center;justify-content: center;text-align: center;padding: 20px;color: #e2e8f0;font-size: 16px;background: linear-gradient(180deg,rgba(15,23,42,.82),rgba(15,23,42,.96))}
-.wo-livekit-live-state.is-ended {color: #fff;background: linear-gradient(180deg,#0f172a,#111827)}
+.wo-livekit-live-state.is-ended {color: #fff;background: linear-gradient(180deg,rgba(127,29,29,.78),rgba(15,23,42,.96))}
 .wo-livekit-live-hidden {display: none !important}
 .wo-livekit-live-ended-card {display: flex;align-items: center;justify-content: center;min-height: 240px;padding: 28px;text-align: center;background: linear-gradient(180deg,#0f172a,#111827);color: #fff}
-.wo-livekit-open-fullscreen {position: absolute;top: 18px;right: 18px;z-index: 12;width: 44px;height: 44px;border: 0;border-radius: 999px;background: rgba(15,23,42,.82);color: #fff;display: inline-flex;align-items: center;justify-content: center;box-shadow: 0 12px 24px rgba(2,6,23,.32);backdrop-filter: blur(12px);cursor: pointer;transition: transform .18s ease, background .18s ease;touch-action: manipulation}
+.wo-livekit-open-fullscreen {position: absolute;top: 18px;right: 18px;z-index: 12;width: 44px;height: 44px;border: 0;border-radius: 999px;background: rgba(15,23,42,.82);color: #fff;display: inline-flex;align-items: center;justify-content: center;box-shadow: 0 12px 24px rgba(2,6,23,.32);backdrop-filter: blur(12px);cursor: pointer;transition: transform .18s ease, background .18s ease}
 .wo-livekit-open-fullscreen:hover {transform: translateY(-1px);background: rgba(30,41,59,.92)}
 .wo-livekit-open-fullscreen svg {width: 20px;height: 20px;fill: currentColor}
 .wo-livekit-fs-lock {overflow: hidden !important}
@@ -25,7 +23,6 @@
 .wo-livekit-fs-stage-host {position: absolute;inset: 0;background: #020617}
 .wo-livekit-fs-stage-host .wo-livekit-live-wrap,
 .wo-livekit-fs-stage-host .embed-responsive {width: 100%;height: 100%;max-height: 100%;padding-bottom: 0 !important;border-radius: 0}
-.wo-livekit-fs-stage-host .wo-livekit-live-wrap {z-index: 1 !important}
 .wo-livekit-fs-stage-host .wo-livekit-live-stage {position: absolute;inset: 0}
 .wo-livekit-fs-stage-host .wo-livekit-live-stage video {object-fit: cover}
 .wo-livekit-fs-stage-host .wow_liv_counter,
@@ -129,7 +126,6 @@
     metaLink: null,
     hearts: null,
     activePostId: null,
-    lastOpenTriggerAt: 0,
     reactionCloseTimer: null,
     escBound: false
   };
@@ -179,36 +175,16 @@
     return entry;
   }
 
-  function triggerOpenEvent(event, postId) {
-    if (event) {
-      if (typeof event.preventDefault === 'function') {
-        event.preventDefault();
-      }
-      if (typeof event.stopPropagation === 'function') {
-        event.stopPropagation();
-      }
-      if (typeof event.stopImmediatePropagation === 'function') {
-        event.stopImmediatePropagation();
-      }
-    }
-    var now = Date.now();
-    if (fullscreenState.lastOpenTriggerAt && (now - fullscreenState.lastOpenTriggerAt) < 320) {
-      return false;
-    }
-    fullscreenState.lastOpenTriggerAt = now;
-    openFullscreen(postId);
-    return false;
-  }
-
   function bindOpenTrigger(entry) {
     if (!entry.button) {
       return;
     }
-    ['pointerup', 'touchend', 'click'].forEach(function(eventName) {
-      entry.button.addEventListener(eventName, function(event) {
-        triggerOpenEvent(event, entry.postId);
-      }, true);
-    });
+    entry.button.addEventListener('click', function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      openFullscreen(entry.postId);
+    }, true);
   }
 
   function createPlaceholder(node) {
@@ -942,9 +918,6 @@
 
   window.WoLiveKitLive = {
     __ready: true,
-    triggerOpenFromEvent: function(event, postId) {
-      return triggerOpenEvent(event, String(postId));
-    },
     register: function(options) {
       if (!options || !options.postId) {
         return;

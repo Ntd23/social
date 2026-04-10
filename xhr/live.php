@@ -69,11 +69,22 @@ if ($f == 'live') {
         } else {
             $post_id = (!empty($_POST['post_id']) && is_numeric($_POST['post_id']) && $_POST['post_id'] > 0) ? Wo_Secure($_POST['post_id']) : 0;
             $post = !empty($post_id) ? Wo_PostData($post_id) : false;
+            $heartbeat_window = 10;
+            $stale_window = 45;
+            $live_time = !empty($post['live_time']) ? intval($post['live_time']) : 0;
+            $heartbeat_age = ($live_time > 0) ? max(0, time() - $live_time) : ($stale_window + 1);
+            $stream_state = 'offline';
+            if ($live_time > 0 && $heartbeat_age <= $heartbeat_window) {
+                $stream_state = 'live';
+            } else if ($live_time > 0 && $heartbeat_age <= $stale_window) {
+                $stream_state = 'stale';
+            }
             if (empty($post) || empty($post['stream_name']) || $post['postType'] !== 'live') {
                 $data['removed'] = 'yes';
                 $data['message'] = $error_icon . $wo['lang']['please_check_details'];
-            } else if (intval($post['live_ended']) === 1 || empty($post['live_time']) || intval($post['live_time']) < (time() - 10)) {
+            } else if (intval($post['live_ended']) === 1 || $stream_state === 'offline') {
                 $data['removed'] = 'yes';
+                $data['stream_state'] = 'offline';
                 $data['message'] = $error_icon . $wo['lang']['stream_has_ended'];
             } else {
                 $join_payload = Wo_GetLiveKitLivestreamJoinPayload($post['stream_name'], 'viewer', $wo['user']['id'], $wo['user']);
@@ -87,6 +98,8 @@ if ($f == 'live') {
                     $data['room_name'] = $join_payload['room_name'];
                     $data['ws_url']    = $join_payload['ws_url'];
                     $data['token']     = $join_payload['token'];
+                    $data['stream_state'] = $stream_state;
+                    $data['heartbeat_age'] = $heartbeat_age;
                 }
             }
         }
@@ -100,6 +113,29 @@ if ($f == 'live') {
             $post_row  = $db->where('id', $post_id)->getOne(T_POSTS);
             $post_data = is_object($post_row) ? (array) $post_row : (is_array($post_row) ? $post_row : array());
             if (!empty($post_data)) {
+                $heartbeat_window = 10;
+                $stale_window = 45;
+                $live_time = !empty($post_data['live_time']) ? intval($post_data['live_time']) : 0;
+                $heartbeat_age = ($live_time > 0) ? max(0, time() - $live_time) : ($stale_window + 1);
+                $stream_state = 'offline';
+                if (intval(!empty($post_data['live_ended']) ? $post_data['live_ended'] : 0) === 0 && $live_time > 0) {
+                    if ($heartbeat_age <= $heartbeat_window) {
+                        $stream_state = 'live';
+                    } else if ($heartbeat_age <= $stale_window) {
+                        $stream_state = 'stale';
+                    }
+                }
+                $word = ($stream_state === 'offline') ? $wo['lang']['offline'] : $wo['lang']['live'];
+                $reactions_count = intval($db->where('post_id', $post_id)->getValue(T_REACTIONS, 'COUNT(*)'));
+                $shares_count = intval(Wo_CountShares($post_id)) + intval(Wo_CountPostShare($post_id));
+                $clips_count = 0;
+                if (isset($post_data['clips_count'])) {
+                    $clips_count = intval($post_data['clips_count']);
+                } else if (isset($post_data['clip_count'])) {
+                    $clips_count = intval($post_data['clip_count']);
+                }
+                $html = '';
+                $count = 0;
                 if (intval(!empty($post_data['live_ended']) ? $post_data['live_ended'] : 0) == 0) {
                     $user_comment_row = $db->where('post_id', $post_id)->where('user_id', $wo['user']['id'])->getOne(T_COMMENTS);
                     $user_comment = is_object($user_comment_row) ? (array) $user_comment_row : (is_array($user_comment_row) ? $user_comment_row : array());
@@ -115,8 +151,6 @@ if ($f == 'live') {
                     }
                     $db->where('user_id', $wo['user']['id'], '!=');
                     $comments = $db->where('post_id', $post_id)->where('text', '', '!=')->get(T_COMMENTS);
-                    $html     = '';
-                    $count    = 0;
                     foreach ($comments as $key => $value) {
                         if (!empty($value->text)) {
                             $wo['comment'] = Wo_GetPostComment($value->id);
@@ -127,9 +161,7 @@ if ($f == 'live') {
                             }
                         }
                     }
-                    $word = $wo['lang']['offline'];
-                    if (!empty($post_data['live_time']) && intval($post_data['live_time']) >= (time() - 10)) {
-                        $word  = $wo['lang']['live'];
+                    if ($stream_state !== 'offline') {
                         $count = $db->where('post_id', $post_id)->where('time', time() - 6, '>=')->getValue(T_LIVE_SUB, 'COUNT(*)');
                         if ($wo['user']['id'] == intval(!empty($post_data['user_id']) ? $post_data['user_id'] : 0)) {
                             $joined_users = $db->where('post_id', $post_id)->where('time', time() - 6, '>=')->where('is_watching', 0)->get(T_LIVE_SUB);
@@ -174,16 +206,17 @@ if ($f == 'live') {
                             }
                         }
                     }
-                    $still_live = 'offline';
-                    if (!empty($post_data['live_time']) && intval($post_data['live_time']) >= (time() - 10)) {
-                        $still_live = 'live';
-                    }
                     $data = array(
                         'status' => 200,
                         'html' => $html,
                         'count' => $count,
                         'word' => $word,
-                        'still_live' => $still_live
+                        'still_live' => $stream_state,
+                        'is_final' => intval($stream_state === 'offline'),
+                        'heartbeat_age' => $heartbeat_age,
+                        'reactions_count' => $reactions_count,
+                        'shares_count' => $shares_count,
+                        'clips_count' => $clips_count
                     );
                     if ($wo['user']['id'] == intval(!empty($post_data['user_id']) ? $post_data['user_id'] : 0)) {
                         if ($_POST['page'] == 'live') {
@@ -196,7 +229,7 @@ if ($f == 'live') {
                             ));
                         }
                     } else {
-                        if (!empty($post_data['live_time']) && intval($post_data['live_time']) >= (time() - 10) && $_POST['page'] == 'story') {
+                        if ($stream_state !== 'offline' && $_POST['page'] == 'story') {
                             $is_watching = $db->where('user_id', $wo['user']['id'])->where('post_id', $post_id)->getValue(T_LIVE_SUB, 'COUNT(*)');
                             if ($is_watching > 0) {
                                 $db->where('user_id', $wo['user']['id'])->where('post_id', $post_id)->update(T_LIVE_SUB, array(
@@ -213,7 +246,18 @@ if ($f == 'live') {
                         }
                     }
                 } else {
-                    $data['message'] = $error_icon . $wo['lang']['please_check_details'];
+                    $data = array(
+                        'status' => 200,
+                        'html' => '',
+                        'count' => 0,
+                        'word' => $wo['lang']['offline'],
+                        'still_live' => 'offline',
+                        'is_final' => 1,
+                        'heartbeat_age' => $heartbeat_age,
+                        'reactions_count' => $reactions_count,
+                        'shares_count' => $shares_count,
+                        'clips_count' => $clips_count
+                    );
                 }
             } else {
                 $data['message'] = $error_icon . $wo['lang']['please_check_details'];

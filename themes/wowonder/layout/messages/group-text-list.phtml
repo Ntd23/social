@@ -1,3 +1,4 @@
+<?php $groupCallMessage = Wo_GetGroupCallMessage($wo['message']); ?>
 <?php $reactions = Wo_GetPostReactions($wo['message']['id'],'message'); ?>
 <div class="message-contnaier <?php echo ($wo['message']['onwer'] == 0) ? 'incoming pull-left' : 'outgoing pull-right';?> <?php echo(!empty($reactions) ? 'margin-active' : '') ?>" id="messageId_<?php echo $wo['message']['id']; ?>">
 <?php if ($wo['message']['onwer'] == 0): ?>
@@ -8,7 +9,22 @@
 <div class="messages-wrapper messages-text message-model <?php echo ($wo['message']['onwer'] == 0) ? 'pull-left' : 'pull-right';?>" data-message-id="<?php echo $wo['message']['id'] ?>" onclick="Wo_ShowMessageOptions(<?php echo $wo['message']['id'] ?>);">
    <div class="clear"></div>
    <div class="message" data-toggle="tooltip" title="<?php echo Wo_Time_Elapsed_String($wo['message']['time']);?>" data-placement="<?php echo ($wo['message']['onwer'] == 0) ? 'right': 'left';?>">
+      <?php if ($groupCallMessage): ?>
+      <div class="message-text" id="message_text_reply_<?php echo $wo['message']['id'] ?>" dir="auto" style="min-width:280px">
+        <div style="font-weight:600;margin-bottom:6px;"><?php echo $groupCallMessage['title']; ?></div>
+        <div><?php echo $groupCallMessage['actor_name']; ?> <?php echo $groupCallMessage['detail']; ?></div>
+        <?php if ($groupCallMessage['is_active']): ?>
+          <div style="margin-top:6px;color:#667085;font-size:12px;"><?php echo intval($groupCallMessage['participant_count']); ?> participant(s) in call</div>
+          <div style="margin-top:10px;">
+            <button type="button" class="btn btn-main btn-sm" onclick="event.stopPropagation(); Wo_JoinGroupCall(<?php echo intval($groupCallMessage['call_id']); ?>, <?php echo intval($groupCallMessage['group_id']); ?>, '<?php echo $groupCallMessage['call_type']; ?>');">Join call</button>
+          </div>
+        <?php else: ?>
+          <div style="margin-top:8px;color:#98a2b3;font-size:12px;">Call ended</div>
+        <?php endif; ?>
+      </div>
+      <?php else: ?>
       <p class="message-text" id="message_text_reply_<?php echo $wo['message']['id'] ?>" dir="auto"><?php echo $wo['message']['text'] ?></p>
+      <?php endif; ?>
       <div class="message-media" id="message_media_reply_<?php echo $wo['message']['id'] ?>">
          <div class="clear"></div>
           <?php

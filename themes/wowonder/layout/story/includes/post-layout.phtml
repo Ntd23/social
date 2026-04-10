@@ -314,6 +314,18 @@ $current_post = $wo['current_post'] = $wo['story'];
       }
     });
     <?php if ($wo['config']['live_video'] == 1 && !empty($wo['story']['stream_name']) && $wo['story']['is_still_live'] && $wo['story']['comments_status'] == 1 && $wo['story']['live_ended'] == 0) { ?>
+      var post_live_offline_checks_<?php echo $wo['story']['id']; ?> = 0;
+      function finalize_live_post_<?php echo $wo['story']['id']; ?>() {
+        clearInterval(post_live_<?php echo $wo['story']['id']; ?>);
+        if (window.WoLiveKitLive) {
+          window.WoLiveKitLive.stopPlayer(<?php echo (int) $wo['story']['id']; ?>, "<?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?>");
+        }
+        $('#live_count_<?php echo $wo['story']['id']; ?>').html(0);
+        $('#live_word_<?php echo $wo['story']['id']; ?>').html("<?php echo $wo['lang']['offline']; ?>");
+        $('.was_live_text_<?php echo $wo['story']['id']; ?>').html("<?php echo ($wo['lang']['was_live']) ?>");
+        $('#post-<?php echo $wo['story']['id']; ?>').find('.comment-textarea').prop('disabled', true).attr('placeholder', "<?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], addslashes($wo['lang']['stream_has_ended']))) ?>");
+        $('#post-<?php echo $wo['story']['id']; ?>').find('.sendbtn').prop('disabled', true);
+      }
       var post_live_<?php echo $wo['story']['id']; ?> = setInterval(function() {
         data = {};
         for (var i = 0; i < $('.live_comments').length; i++) {
@@ -327,16 +339,25 @@ $current_post = $wo['current_post'] = $wo['story'];
           page: "<?php echo ($wo['page']) ?>"
         }, function(data, textStatus, xhr) {
           if (data.status == 200) {
-            if (data.still_live == 'offline') {
-              if (window.WoLiveKitLive) {
-                window.WoLiveKitLive.stopPlayer(<?php echo (int) $wo['story']['id']; ?>, "<?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?>");
+            var streamState = data.still_live || 'offline';
+            if (streamState == 'offline') {
+              post_live_offline_checks_<?php echo $wo['story']['id']; ?> += 1;
+              if (window.WoLiveKitLive && typeof window.WoLiveKitLive.setStreamState === 'function') {
+                window.WoLiveKitLive.setStreamState(<?php echo (int) $wo['story']['id']; ?>, 'stale');
               }
-              $('#live_post_comments_<?php echo $wo['story']['id']; ?>').remove();
-              $('.was_live_text_<?php echo $wo['story']['id']; ?>').html("<?php echo ($wo['lang']['was_live']) ?>");
-              $('[id=post-<?php echo $wo['story']['id']; ?>]').find('.comment-textarea').attr('disabled');
+              if (data.is_final != 1 && post_live_offline_checks_<?php echo $wo['story']['id']; ?> < 3) {
+                return false;
+              }
+              finalize_live_post_<?php echo $wo['story']['id']; ?>();
               return false;
             }
-            $('#live_post_comments_<?php echo $wo['story']['id']; ?>').append(data.html);
+            post_live_offline_checks_<?php echo $wo['story']['id']; ?> = 0;
+            if (window.WoLiveKitLive && typeof window.WoLiveKitLive.setStreamState === 'function') {
+              window.WoLiveKitLive.setStreamState(<?php echo (int) $wo['story']['id']; ?>, streamState);
+            }
+            if (data.html) {
+              $('#live_post_comments_<?php echo $wo['story']['id']; ?>').append(data.html);
+            }
             $('#live_count_<?php echo $wo['story']['id']; ?>').html(data.count);
             $('#live_word_<?php echo $wo['story']['id']; ?>').html(data.word);
             var comments = $('#live_post_comments_<?php echo $wo['story']['id']; ?> .live_comments');
@@ -349,29 +370,17 @@ $current_post = $wo['current_post'] = $wo['story'];
               }
             }
           } else if (data.removed == 'yes') {
-            clearInterval(post_live_<?php echo $wo['story']['id']; ?>);
-            if (window.WoLiveKitLive) {
-              window.WoLiveKitLive.stopPlayer(<?php echo (int) $wo['story']['id']; ?>, "<?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?>");
-            }
-            $('#live_count_<?php echo $wo['story']['id']; ?>').html(0);
-            $('#live_post_comments_<?php echo $wo['story']['id']; ?>').html("<h3 class='end_video_text'><?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?></h3>");
-            /*$('#live_post_comments_<?php echo $wo['story']['id']; ?>').remove();*/
-            $('.was_live_text_<?php echo $wo['story']['id']; ?>').html("<?php echo ($wo['lang']['was_live']) ?>");
-            $('#post-<?php echo $wo['story']['id']; ?>').find('.comment-textarea').attr('disabled', 'true');
-            $('#post-comments-<?php echo $wo['story']['id']; ?>').remove();
+            finalize_live_post_<?php echo $wo['story']['id']; ?>();
             return false;
           } else {
-            clearInterval(post_live_<?php echo $wo['story']['id']; ?>);
-            if (window.WoLiveKitLive) {
-              window.WoLiveKitLive.stopPlayer(<?php echo (int) $wo['story']['id']; ?>, "<?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?>");
+            post_live_offline_checks_<?php echo $wo['story']['id']; ?> += 1;
+            if (window.WoLiveKitLive && typeof window.WoLiveKitLive.setStreamState === 'function') {
+              window.WoLiveKitLive.setStreamState(<?php echo (int) $wo['story']['id']; ?>, 'stale');
             }
-            $('#live_count_<?php echo $wo['story']['id']; ?>').html(0);
-            $('#live_post_comments_<?php echo $wo['story']['id']; ?>').html("<h3 class='end_video_text'><?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended'])) ?></h3>");
-            /*$('#live_post_comments_<?php echo $wo['story']['id']; ?>').remove();*/
-            $('.was_live_text_<?php echo $wo['story']['id']; ?>').html("<?php echo ($wo['lang']['was_live']) ?>");
-            $('#post-<?php echo $wo['story']['id']; ?>').find('.comment-textarea').attr('disabled', 'true');
-            $('#post-comments-<?php echo $wo['story']['id']; ?>').remove();
-            return false;
+            if (post_live_offline_checks_<?php echo $wo['story']['id']; ?> >= 3) {
+              finalize_live_post_<?php echo $wo['story']['id']; ?>();
+              return false;
+            }
           }
         });
       }, 3000);

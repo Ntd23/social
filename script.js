@@ -11,6 +11,16 @@ window.wo_video_observer = window.wo_video_observer || null;
 window.wo_active_fullscreen_post_id =
   window.wo_active_fullscreen_post_id || null;
 
+document.addEventListener(
+  "click",
+  function (event) {
+    if (event.target && event.target.closest('[data-livekit-fullscreen-button="1"]')) {
+      event.stopPropagation();
+    }
+  },
+  true,
+);
+
 if ('IntersectionObserver' in window && !window.wo_video_observer) {
   window.wo_video_observer = new IntersectionObserver(function(entries) {
     entries.forEach(function(entry) {

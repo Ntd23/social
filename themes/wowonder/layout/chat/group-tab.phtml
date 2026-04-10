@@ -1,3 +1,4 @@
+<?php $activeGroupCall = !empty($wo['chat']['group']['active_call']) ? $wo['chat']['group']['active_call'] : false; ?>
 <div class="chat-wrapper chat_group_<?php echo $wo['chat']['group']['group_id'];?>">
 	<div class="online-toggle-hdr pointer">
 		<div class="wow_chat_hdr_usr" onclick="javascript:$('.group-tab-container-<?php echo $wo['chat']['group']['group_id'];?>').slideToggle(100)";>
@@ -9,6 +10,15 @@
 			</div>
 		</div>
 		<div class="close-chat">
+			<?php if (!empty($wo['config']['can_use_video_call']) && !empty($wo['config']['video_chat'])): ?>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" title="Start video call" onclick="Wo_GenerateGroupVideoCall(<?php echo $wo['chat']['group']['group_id'];?>);"><path fill="currentColor" d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z" /></svg>
+			<?php endif; ?>
+			<?php if (!empty($wo['config']['can_use_audio_call']) && !empty($wo['config']['audio_chat'])): ?>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" title="Start audio call" onclick="Wo_GenerateGroupVoiceCall(<?php echo $wo['chat']['group']['group_id'];?>);"><path fill="currentColor" d="M12 1A3 3 0 0 0 9 4V10A3 3 0 0 0 12 13A3 3 0 0 0 15 10V4A3 3 0 0 0 12 1M19 10V11A7 7 0 0 1 13 17.93V21H11V17.93A7 7 0 0 1 5 11V10H7V11A5 5 0 0 0 12 16A5 5 0 0 0 17 11V10H19Z" /></svg>
+			<?php endif; ?>
+			<?php if ($activeGroupCall): ?>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" title="Join active call" onclick="Wo_JoinGroupCall(<?php echo intval($activeGroupCall['id']); ?>, <?php echo $wo['chat']['group']['group_id'];?>, '<?php echo $activeGroupCall['call_type']; ?>');"><path fill="#16a34a" d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5M8,9L15,12L8,15V9Z" /></svg>
+			<?php endif; ?>
 			<?php if ($wo['chat']['group']['user_id'] == $wo['user']['id']): ?>
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" title="<?php echo $wo['lang']['delete_group'];?>" onclick="Wo_DeleteGroupChat(<?php echo $wo['chat']['group']['group_id'];?>)"><path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" title="<?php echo $wo['lang']['edit_group'];?>" onclick="Wo_EditGChat(event,<?php echo $wo['chat']['group']['group_id'];?>)"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
@@ -23,6 +33,15 @@
 	</div>
 
 	<div class="chat-tab-container group-tab-container-<?php echo $wo['chat']['group']['group_id'];?> chat-tab-box-<?php echo $wo['chat']['group']['group_id'];?>">
+		<?php if ($activeGroupCall): ?>
+			<div class="group-call-active-banner" style="padding:10px 12px;border-bottom:1px solid #eef2f6;background:#f8fbff;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+				<div style="min-width:0;">
+					<div style="font-weight:600;font-size:13px;color:#101828;">Active <?php echo $activeGroupCall['call_type']; ?> call</div>
+					<div style="font-size:12px;color:#667085;"><?php echo intval(!empty($activeGroupCall['participant_count']) ? $activeGroupCall['participant_count'] : 0); ?> participant(s) in room</div>
+				</div>
+				<button type="button" class="btn btn-main btn-sm" onclick="Wo_JoinGroupCall(<?php echo intval($activeGroupCall['id']); ?>, <?php echo $wo['chat']['group']['group_id'];?>, '<?php echo $activeGroupCall['call_type']; ?>');">Join</button>
+			</div>
+		<?php endif; ?>
 		<div class="chat-messages-wrapper group-messages-wrapper-<?php echo $wo['chat']['group']['group_id'];?>">
 			<div class="chat-messages">
 				<?php if (count($wo['chat']['group']['messages']) > 0): ?>

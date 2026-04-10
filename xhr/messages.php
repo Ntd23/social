@@ -81,6 +81,7 @@ if ($f == 'messages') {
     $html      = '';
     $group_id  = Wo_Secure($_GET['group_id']);
     $group_tab = Wo_GroupTabData($group_id);
+    $active_call = !empty($group_tab['active_call']) ? $group_tab['active_call'] : false;
     $messages  = Wo_GetGroupMessages(array(
         'group_id' => $group_id
     ));
@@ -107,7 +108,12 @@ if ($f == 'messages') {
         'group_name' => !empty($group_tab['group_name']) ? $group_tab['group_name'] : '',
         'group_avatar' => !empty($group_tab['avatar']) ? Wo_GetMedia($group_tab['avatar']) : '',
         'can_audio_call' => (!empty($wo['config']['audio_chat']) && !empty($wo['config']['can_use_audio_call'])) ? 1 : 0,
-        'can_video_call' => (!empty($wo['config']['video_chat']) && !empty($wo['config']['can_use_video_call'])) ? 1 : 0
+        'can_video_call' => (!empty($wo['config']['video_chat']) && !empty($wo['config']['can_use_video_call'])) ? 1 : 0,
+        'active_group_call' => !empty($active_call) ? intval($active_call['id']) : 0,
+        'active_group_call_type' => !empty($active_call['call_type']) ? $active_call['call_type'] : '',
+        'active_group_call_participant_count' => !empty($active_call['participant_count']) ? intval($active_call['participant_count']) : 0,
+        'active_group_call_join_url' => !empty($active_call['url']) ? $active_call['url'] : '',
+        'can_join' => !empty($active_call) ? 1 : 0
     );
 
     header("Content-type: application/json");
