@@ -3226,6 +3226,138 @@ function Wo_GenerateVoiceCall(user_id1, user_id2) {
       window.woCallCreatePending = false;
    });
 }
+
+
+function Wo_BuildGroupCallUrl(callId, callType) {
+  if (!callId) {
+    return '';
+  }
+  return websiteUrl + '/call_group_livekit.php?id=' + encodeURIComponent(callId) + '&type=' + encodeURIComponent(callType || 'video');
+}
+
+function Wo_GetMainRequestHash() {
+  if (typeof window.main_hash_id !== 'undefined' && window.main_hash_id) {
+    return window.main_hash_id;
+  }
+  if (typeof main_hash_id !== 'undefined' && main_hash_id) {
+    return main_hash_id;
+  }
+  var sessionField = $('.main_session').first();
+  if (sessionField.length > 0 && sessionField.val()) {
+    return sessionField.val();
+  }
+  return '';
+}
+
+function Wo_GenerateGroupVideoCall(groupId) {
+  groupId = parseInt(groupId || 0, 10);
+  var requestHash = Wo_GetMainRequestHash();
+  if (!groupId || window.woGroupCallCreatePending === true) {
+    return;
+  }
+  window.woGroupCallCreatePending = true;
+  $.get(Wo_Ajax_Requests_File(), {f:'create_new_group_call', hash: requestHash, group_id: groupId, call_type:'video'}, function(data) {
+    if (data.status == 200) {
+      window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(data.id, 'video'));
+    }
+  }).always(function () {
+    window.woGroupCallCreatePending = false;
+  });
+}
+
+function Wo_GenerateGroupVoiceCall(groupId) {
+  groupId = parseInt(groupId || 0, 10);
+  var requestHash = Wo_GetMainRequestHash();
+  if (!groupId || window.woGroupCallCreatePending === true) {
+    return;
+  }
+  window.woGroupCallCreatePending = true;
+  $.get(Wo_Ajax_Requests_File(), {f:'create_new_group_call', hash: requestHash, group_id: groupId, call_type:'audio'}, function(data) {
+    if (data.status == 200) {
+      window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(data.id, 'audio'));
+    }
+  }).always(function () {
+    window.woGroupCallCreatePending = false;
+  });
+}
+
+function Wo_JoinGroupCall(callId, groupId, callType) {
+  callId = parseInt(callId || 0, 10);
+  groupId = parseInt(groupId || 0, 10);
+  callType = (callType === 'audio') ? 'audio' : 'video';
+  var requestHash = Wo_GetMainRequestHash();
+  if (!callId || window.woGroupCallJoinPending === true) {
+    return;
+  }
+  window.woGroupCallJoinPending = true;
+  $.get(Wo_Ajax_Requests_File(), {f:'join_group_call', hash: requestHash, call_id: callId, group_id: groupId, call_type: callType}, function(data) {
+    if (data.status == 200) {
+      window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(callId, callType));
+    }
+  }).always(function () {
+    window.woGroupCallJoinPending = false;
+  });
+}
+
+function Wo_CloseGroupCallPicker() {
+  $('#group-call-picker-modal').modal('hide');
+  setTimeout(function () {
+    $('#group-call-picker-modal').remove();
+    $('.modal-backdrop').remove();
+    $('body').removeClass('modal-open');
+  }, 200);
+}
+
+function Wo_OpenGroupCallMemberPicker(callId, groupId) {
+  callId = parseInt(callId || 0, 10);
+  groupId = parseInt(groupId || 0, 10);
+  var requestHash = Wo_GetMainRequestHash();
+  if (!callId || !groupId) {
+    return;
+  }
+  $.get(Wo_Ajax_Requests_File(), {f:'get_group_call_candidates', hash: requestHash, call_id: callId, group_id: groupId}, function(data) {
+    if (data.status != 200) {
+      return;
+    }
+    var html = '<div class="modal fade" id="group-call-picker-modal" role="dialog"><div class="modal-dialog modal-md"><div class="modal-content"><div class="modal-header"><button type="button" class="close" onclick="Wo_CloseGroupCallPicker();"><span>&times;</span></button><h4 class="modal-title">Add members to call</h4></div><div class="modal-body">';
+    if (!data.candidates || data.candidates.length === 0) {
+      html += '<p class="text-muted">No more group members available to invite.</p>';
+    } else {
+      html += '<div class="group-call-picker-list">';
+      data.candidates.forEach(function(candidate) {
+        html += '<label class="wo_group_call_candidate" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f2f4f7;"><input type="checkbox" class="wo-group-call-candidate" value="' + candidate.user_id + '"><img src="' + candidate.avatar + '" alt="" style="width:38px;height:38px;border-radius:999px;object-fit:cover;"><span style="font-weight:500;">' + candidate.name + '</span></label>';
+      });
+      html += '</div>';
+    }
+    html += '</div><div class="modal-footer"><button type="button" class="btn btn-default" onclick="Wo_CloseGroupCallPicker();">Close</button>';
+    if (data.candidates && data.candidates.length > 0) {
+      html += '<button type="button" class="btn btn-main" id="wo-group-call-invite-submit">Invite selected</button>';
+    }
+    html += '</div></div></div></div>';
+    $('#group-call-picker-modal').remove();
+    $('body').append(html);
+    $('#group-call-picker-modal').modal({show: true});
+    $('#wo-group-call-invite-submit').on('click', function () {
+      var selected = [];
+      $('#group-call-picker-modal').find('.wo-group-call-candidate:checked').each(function () {
+        selected.push($(this).val());
+      });
+      if (selected.length === 0) {
+        return;
+      }
+      var button = $(this);
+      button.prop('disabled', true);
+      $.post(Wo_Ajax_Requests_File() + '?f=add_group_call_members&hash=' + encodeURIComponent(requestHash), {call_id: callId, user_ids: selected}, function(response) {
+        if (response.status == 200) {
+          Wo_CloseGroupCallPicker();
+        }
+      }).always(function () {
+        button.prop('disabled', false);
+      });
+    });
+  });
+}
+
 function Wo_PlayAudioCall(type) {
   var audioElement = document.getElementById('calling-sound');
   if (type == 'play') {
