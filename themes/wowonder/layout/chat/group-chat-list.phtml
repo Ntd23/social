@@ -1,9 +1,23 @@
+<?php $groupCallMessage = Wo_GetGroupCallMessage($wo['chatMessage']); ?>
 <div class="group-messages-wrapper messages-wrapper <?php echo ($wo['chatMessage']['onwer']) ? 'pull-right' : 'pull-left';?>" id="messageId_<?php echo $wo['chatMessage']['id'] ?>" data-group-tmessage-id="<?php echo $wo['chatMessage']['id'] ?>" data-message-id="<?php echo $wo['chatMessage']['id'] ?>">
 	<div class="message <?php echo ($wo['chatMessage']['onwer']) ? 'outgoing pull-right' : 'incoming pull-left';?>">
 		<?php if (!$wo['chatMessage']['onwer']): ?>
 			<p class="message-group_owner"><a href="<?php echo Wo_SeoLink('index.php?link1=timeline&u='.$wo['chatMessage']['user_data']['username']);?>" data-ajax="?link1=timeline&u=<?php echo $wo['chatMessage']['user_data']['username']?>"><?php echo $wo['chatMessage']['user_data']['username']?></a></p>
 		<?php endif; ?>
-		<?php if (!empty($wo['chatMessage']['text'])): ?>
+		<?php if ($groupCallMessage): ?>
+			<div class="message-text" dir="auto" style="min-width:240px">
+				<div style="font-weight:600;margin-bottom:6px;"><?php echo $groupCallMessage['title']; ?></div>
+				<div><?php echo $groupCallMessage['actor_name']; ?> <?php echo $groupCallMessage['detail']; ?></div>
+				<?php if ($groupCallMessage['is_active']): ?>
+					<div style="margin-top:6px;color:#667085;font-size:12px;"><?php echo intval($groupCallMessage['participant_count']); ?> participant(s) in call</div>
+					<div style="margin-top:10px;">
+						<button type="button" class="btn btn-main btn-sm" onclick="Wo_JoinGroupCall(<?php echo intval($groupCallMessage['call_id']); ?>, <?php echo intval($groupCallMessage['group_id']); ?>, '<?php echo $groupCallMessage['call_type']; ?>');">Join call</button>
+					</div>
+				<?php else: ?>
+					<div style="margin-top:8px;color:#98a2b3;font-size:12px;">Call ended</div>
+				<?php endif; ?>
+			</div>
+		<?php elseif (!empty($wo['chatMessage']['text'])): ?>
 			<p class="message-text" dir="auto">
 				<?php if($wo['chatMessage']['type_two'] == 'contact'): 
 					$json = json_decode(trim(htmlspecialchars_decode($wo['chatMessage']['text'])), true);

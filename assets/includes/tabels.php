@@ -91,6 +91,8 @@ define('T_GROUP_ADMINS', 'Wo_GroupAdmins');
 define('T_PAGE_ADMINS', 'Wo_PageAdmins');
 define('T_GROUP_CHAT', 'Wo_GroupChat');
 define('T_GROUP_CHAT_USERS', 'Wo_GroupChatUsers');
+define('T_GROUP_CALLS', 'Wo_GroupCalls');
+define('T_GROUP_CALL_PARTICIPANTS', 'Wo_GroupCallParticipants');
 define('T_PAGE_RATING', 'Wo_PageRating');
 define('T_FAMILY', 'Wo_Family');
 define('T_REL_SHIP', 'Wo_Relationship');

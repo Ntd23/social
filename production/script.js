@@ -506,9 +506,7 @@ function Wo_CheckForCallAnswerTabs(id) {
       clearTimeout(checkcalls);
       clearTimeout(window.woActiveCallTimeout);
       if (data1.status == 200) {
-        setTimeout(function () {
-          window.location.href = Wo_PrepareCallUrl(data1.url);
-        }, 1000);
+        window.location.href = Wo_PrepareCallUrl(data1.url);
       } else {
         setTimeout(function () {
           $( '#re-calling-modal' ).remove();
@@ -521,7 +519,7 @@ function Wo_CheckForCallAnswerTabs(id) {
   });
   checkcalls = setTimeout(function () {
       Wo_CheckForCallAnswerTabs(id);
-  }, 2000);
+  }, 500);
 }
 function Wo_CheckForAudioCallAnswerTabs(id) {
   $.get(Wo_Ajax_Requests_File(), {f:'check_for_audio_answer', id:id}, function (data1) {
@@ -529,9 +527,7 @@ function Wo_CheckForAudioCallAnswerTabs(id) {
       clearTimeout(checkcalls);
       clearTimeout(window.woActiveCallTimeout);
       if (data1.status == 200) {
-        setTimeout(function () {
-          window.location.href = Wo_PrepareCallUrl(data1.url);
-        }, 1000);
+        window.location.href = Wo_PrepareCallUrl(data1.url);
       } else {
         setTimeout(function () {
           $( '#re-calling-modal' ).remove();
@@ -548,7 +544,7 @@ function Wo_CheckForAudioCallAnswerTabs(id) {
   });
   checkcalls = setTimeout(function () {
       Wo_CheckForAudioCallAnswerTabs(id);
-  }, 2000);
+  }, 500);
 }
 // Notifications & follow requests updates
 function Wo_intervalUpdates(force_update = 0, loop = 0) {
@@ -2382,9 +2378,6 @@ function Wo_OpenAlbumLightBox(image_id, type) {
   });
 }
 function Wo_CloseLightbox() {
-  if (window.WoStoryPlayback && typeof window.WoStoryPlayback.clear === 'function') {
-    window.WoStoryPlayback.clear();
-  }
   $('.lightbox-container').remove();
   document.body.style.overflow = 'auto';
 }
@@ -2896,9 +2889,7 @@ function Wo_CheckForCallAnswer(id) {
       clearTimeout(window.woActiveCallTimeout);
       $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-video-camera"></i> ' + data1.text_answered);
       $('#calling-modal').find('.modal-body p').text(data1.text_please_wait);
-      setTimeout(function () {
-          window.location.href = Wo_PrepareCallUrl(data1.url);
-      }, 1000);
+      window.location.href = Wo_PrepareCallUrl(data1.url);
       return false;
     } else if (data1.status == 400) {
       clearTimeout(checkcalls);
@@ -2918,7 +2909,7 @@ function Wo_CheckForCallAnswer(id) {
     }
     checkcalls = setTimeout(function () {
         Wo_CheckForCallAnswer(id);
-    }, 2000);
+    }, 500);
   });
 }
 
@@ -2930,9 +2921,7 @@ function Wo_CheckForAudioCallAnswer(id) {
       $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-phone"></i> ' + data1.text_answered);
       $('#calling-modal').find('.modal-body p').text(data1.text_please_wait);
       Wo_PlayAudioCall('stop');
-      setTimeout(function () {
-          window.location.href = Wo_PrepareCallUrl(data1.url);
-      }, 1000);
+      window.location.href = Wo_PrepareCallUrl(data1.url);
     } else if (data1.status == 400) {
       clearTimeout(checkcalls);
       clearTimeout(window.woActiveCallTimeout);
@@ -2951,7 +2940,7 @@ function Wo_CheckForAudioCallAnswer(id) {
     } else {
       checkcalls = setTimeout(function () {
         Wo_CheckForAudioCallAnswer(id);
-      }, 2000);
+      }, 500);
     }
   });
 }
@@ -3236,118 +3225,6 @@ function Wo_GenerateVoiceCall(user_id1, user_id2) {
    }).always(function () {
       window.woCallCreatePending = false;
    });
-}
-
-function Wo_BuildGroupCallUrl(callId, callType) {
-  if (!callId) {
-    return '';
-  }
-  return websiteUrl + '/call_group_livekit.php?id=' + encodeURIComponent(callId) + '&type=' + encodeURIComponent(callType || 'video');
-}
-
-function Wo_GenerateGroupVideoCall(groupId) {
-  groupId = parseInt(groupId || 0, 10);
-  if (!groupId || window.woGroupCallCreatePending === true) {
-    return;
-  }
-  window.woGroupCallCreatePending = true;
-  $.get(Wo_Ajax_Requests_File(), {f:'create_new_group_call', group_id: groupId, call_type:'video'}, function(data) {
-    if (data.status == 200) {
-      window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(data.id, 'video'));
-    }
-  }).always(function () {
-    window.woGroupCallCreatePending = false;
-  });
-}
-
-function Wo_GenerateGroupVoiceCall(groupId) {
-  groupId = parseInt(groupId || 0, 10);
-  if (!groupId || window.woGroupCallCreatePending === true) {
-    return;
-  }
-  window.woGroupCallCreatePending = true;
-  $.get(Wo_Ajax_Requests_File(), {f:'create_new_group_call', group_id: groupId, call_type:'audio'}, function(data) {
-    if (data.status == 200) {
-      window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(data.id, 'audio'));
-    }
-  }).always(function () {
-    window.woGroupCallCreatePending = false;
-  });
-}
-
-function Wo_JoinGroupCall(callId, groupId, callType) {
-  callId = parseInt(callId || 0, 10);
-  groupId = parseInt(groupId || 0, 10);
-  callType = (callType === 'audio') ? 'audio' : 'video';
-  if (!callId || window.woGroupCallJoinPending === true) {
-    return;
-  }
-  window.woGroupCallJoinPending = true;
-  $.get(Wo_Ajax_Requests_File(), {f:'join_group_call', call_id: callId, group_id: groupId, call_type: callType}, function(data) {
-    if (data.status == 200) {
-      window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(callId, callType));
-    }
-  }).always(function () {
-    window.woGroupCallJoinPending = false;
-  });
-}
-
-function Wo_CloseGroupCallPicker() {
-  $('#group-call-picker-modal').modal('hide');
-  setTimeout(function () {
-    $('#group-call-picker-modal').remove();
-    $('.modal-backdrop').remove();
-    $('body').removeClass('modal-open');
-  }, 200);
-}
-
-function Wo_OpenGroupCallMemberPicker(callId, groupId) {
-  callId = parseInt(callId || 0, 10);
-  groupId = parseInt(groupId || 0, 10);
-  if (!callId || !groupId) {
-    return;
-  }
-  $.get(Wo_Ajax_Requests_File(), {f:'get_group_call_candidates', call_id: callId, group_id: groupId}, function(data) {
-    if (data.status != 200) {
-      return;
-    }
-    var html = '<div class="modal fade" id="group-call-picker-modal" role="dialog"><div class="modal-dialog modal-md"><div class="modal-content"><div class="modal-header"><button type="button" class="close" onclick="Wo_CloseGroupCallPicker();"><span>&times;</span></button><h4 class="modal-title">Add members to call</h4></div><div class="modal-body">';
-    if (!data.candidates || data.candidates.length === 0) {
-      html += '<p class="text-muted">No more group members available to invite.</p>';
-    } else {
-      html += '<div class="group-call-picker-list">';
-      data.candidates.forEach(function(candidate) {
-        html += '<label class="wo_group_call_candidate" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f2f4f7;"><input type="checkbox" class="wo-group-call-candidate" value="' + candidate.user_id + '"><img src="' + candidate.avatar + '" alt="" style="width:38px;height:38px;border-radius:999px;object-fit:cover;"><span style="font-weight:500;">' + candidate.name + '</span></label>';
-      });
-      html += '</div>';
-    }
-    html += '</div><div class="modal-footer"><button type="button" class="btn btn-default" onclick="Wo_CloseGroupCallPicker();">Close</button>';
-    if (data.candidates && data.candidates.length > 0) {
-      html += '<button type="button" class="btn btn-main" id="wo-group-call-invite-submit">Invite selected</button>';
-    }
-    html += '</div></div></div></div>';
-    $('#group-call-picker-modal').remove();
-    $('body').append(html);
-    $('#group-call-picker-modal').modal({show: true});
-    $('#wo-group-call-invite-submit').on('click', function () {
-      var selected = [];
-      $('#group-call-picker-modal').find('.wo-group-call-candidate:checked').each(function () {
-        selected.push($(this).val());
-      });
-      if (selected.length === 0) {
-        return;
-      }
-      var button = $(this);
-      button.prop('disabled', true);
-      $.post(Wo_Ajax_Requests_File() + '?f=add_group_call_members&hash=' + main_hash_id, {call_id: callId, user_ids: selected}, function(response) {
-        if (response.status == 200) {
-          Wo_CloseGroupCallPicker();
-        }
-      }).always(function () {
-        button.prop('disabled', false);
-      });
-    });
-  });
 }
 function Wo_PlayAudioCall(type) {
   var audioElement = document.getElementById('calling-sound');
@@ -4890,13 +4767,13 @@ function FileListItems (files) {
         overlayState.touchStartX = e.touches[0].clientX;
         overlayState.touchStartFromDismissZone =
           e.touches[0].clientX <= window.innerWidth / 3;
-        overlayDebug(
-          "touchstart",
-          "active=" + String(overlayState.activePostId || ""),
-          "y=" + String(overlayState.touchStartY),
-          "x=" + String(overlayState.touchStartX),
-          "dismissZone=" + String(overlayState.touchStartFromDismissZone),
-        );
+        // overlayDebug(
+        //   "touchstart",
+        //   "active=" + String(overlayState.activePostId || ""),
+        //   "y=" + String(overlayState.touchStartY),
+        //   "x=" + String(overlayState.touchStartX),
+        //   "dismissZone=" + String(overlayState.touchStartFromDismissZone),
+        // );
       },
       { passive: true },
     );
@@ -4957,13 +4834,13 @@ function FileListItems (files) {
         var startedFromDismissZone = overlayState.touchStartFromDismissZone;
         overlayState.touchStartFromDismissZone = false;
 
-        overlayDebug(
-          "touchend",
-          "active=" + String(overlayState.activePostId || ""),
-          "deltaY=" + String(deltaY),
-          "deltaX=" + String(deltaX),
-          "dismissZone=" + String(startedFromDismissZone),
-        );
+        // overlayDebug(
+        //   "touchend",
+        //   "active=" + String(overlayState.activePostId || ""),
+        //   "deltaY=" + String(deltaY),
+        //   "deltaX=" + String(deltaX),
+        //   "dismissZone=" + String(startedFromDismissZone),
+        // );
 
         if (
           startedFromDismissZone &&
@@ -5119,11 +4996,11 @@ function FileListItems (files) {
     var postId = getPostIdFromPlyr(container);
     if (!postId) return false;
 
-    overlayDebug("openVideoOverlay:start", {
-      postId: postId,
-      hasPlaceholder: !!container.__wo_overlay_placeholder,
-      activePostId: overlayState.activePostId,
-    });
+    // overlayDebug("openVideoOverlay:start", {
+    //   postId: postId,
+    //   hasPlaceholder: !!container.__wo_overlay_placeholder,
+    //   activePostId: overlayState.activePostId,
+    // });
 
     ensureOverlayShell();
 
@@ -5176,10 +5053,10 @@ function FileListItems (files) {
 
       player.__wo_overlay_media = mediaEl;
       player.__wo_overlay_ended_handler = function () {
-        overlayDebug("overlay-media-ended", {
-          postId: postId,
-          activePostId: overlayState.activePostId,
-        });
+        // overlayDebug("overlay-media-ended", {
+        //   postId: postId,
+        //   activePostId: overlayState.activePostId,
+        // });
         playNextFullscreenVideo(player);
       };
       mediaEl.addEventListener("ended", player.__wo_overlay_ended_handler);
@@ -5188,10 +5065,10 @@ function FileListItems (files) {
     updateOverlayButtonState(container, true);
     pauseOtherPlayers(postId);
     createFullscreenButtons(container);
-    overlayDebug("openVideoOverlay:done", {
-      postId: postId,
-      activePostId: overlayState.activePostId,
-    });
+    // overlayDebug("openVideoOverlay:done", {
+    //   postId: postId,
+    //   activePostId: overlayState.activePostId,
+    // });
 
     return true;
   }
@@ -5260,12 +5137,12 @@ function FileListItems (files) {
     var tries = attempt || 0;
     var player = getPlayerByPostId(postId);
 
-    overlayDebug("waitForPlayerByPostId", {
-      postId: postId,
-      tries: tries,
-      found: !!player,
-      sameAsActive: player && player === overlayState.activePlayer,
-    });
+    // overlayDebug("waitForPlayerByPostId", {
+    //   postId: postId,
+    //   tries: tries,
+    //   found: !!player,
+    //   sameAsActive: player && player === overlayState.activePlayer,
+    // });
 
     if (player) {
       callback(player);
@@ -5350,30 +5227,47 @@ function FileListItems (files) {
     }
 
     var targetIndex = currentIndex + offset;
+    // Trigger loading more posts if we're near the end of the current feed
+    if (offset > 0 && targetIndex >= feedOrder.length - 3) {
+      if (typeof scrolled !== "undefined" && scrolled == 0) {
+        if (typeof Wo_GetMorePosts === "function") {
+          Wo_GetMorePosts();
+        }
+      }
+    }
     if (targetIndex < 0 || targetIndex >= feedOrder.length) {
-      overlayDebug(
-        "active=" + String(overlayState.activePostId || ""),
-        "offset=" + String(offset),
-        "currentIndex=" + String(currentIndex),
-        "targetIndex=out",
-        "order=" + feedOrder.join(" > "),
-      );
+      // overlayDebug(
+      //   "active=" + String(overlayState.activePostId || ""),
+      //   "offset=" + String(offset),
+      //   "currentIndex=" + String(currentIndex),
+      //   "targetIndex=out",
+      //   "order=" + feedOrder.join(" > "),
+      // );
 
       // Let users dismiss fullscreen with a downward swipe on the first item
       // instead of relying on the browser edge-back gesture.
       if (targetIndex < 0 && offset < 0) {
         closeActiveVideoOverlay(false);
+        } else if (targetIndex >= feedOrder.length && offset > 0) {
+        // We reached the absolute end of the loaded list.
+        // If we are already loading, show a toast.
+        if (typeof scrolled !== "undefined" && scrolled == 1) {
+          var container = getPlayerContainer(overlayState.activePlayer);
+          if (container) {
+            showToast(container, "Đang tải thêm video...");
+          }
+        }
       }
       return;
     }
 
-    overlayDebug(
-      "active=" + String(overlayState.activePostId || ""),
-      "offset=" + String(offset),
-      "currentIndex=" + String(currentIndex),
-      "target=" + String(feedOrder[targetIndex] || ""),
-      "order=" + feedOrder.join(" > "),
-    );
+    // overlayDebug(
+    //   "active=" + String(overlayState.activePostId || ""),
+    //   "offset=" + String(offset),
+    //   "currentIndex=" + String(currentIndex),
+    //   "target=" + String(feedOrder[targetIndex] || ""),
+    //   "order=" + feedOrder.join(" > "),
+    // );
 
     switchOverlayToPost(feedOrder[targetIndex], overlayState.activePlayer);
   }
@@ -5390,12 +5284,12 @@ function FileListItems (files) {
         String(overlayState.activePostId || "") !==
           String(currentPostIdFromEvent || ""))
     ) {
-      overlayDebug("playNextFullscreenVideo:skip", {
-        hasActivePlayer: !!overlayState.activePlayer,
-        currentMatchesActive: overlayState.activePlayer === currentPlayer,
-        activePostId: overlayState.activePostId,
-        eventPostId: currentPostIdFromEvent,
-      });
+      // overlayDebug("playNextFullscreenVideo:skip", {
+      //   hasActivePlayer: !!overlayState.activePlayer,
+      //   currentMatchesActive: overlayState.activePlayer === currentPlayer,
+      //   activePostId: overlayState.activePostId,
+      //   eventPostId: currentPostIdFromEvent,
+      // });
       return;
     }
 
@@ -5413,20 +5307,37 @@ function FileListItems (files) {
         ? overlayState.feedOrder.slice()
         : getFeedVideoOrder();
 
-    overlayDebug("playNextFullscreenVideo:orderedPlayers", {
-      activePostId: overlayState.activePostId,
-      total: feedOrder.length,
-      postIds: feedOrder,
-    });
+    // overlayDebug("playNextFullscreenVideo:orderedPlayers", {
+    //   activePostId: overlayState.activePostId,
+    //   total: feedOrder.length,
+    //   postIds: feedOrder,
+    // });
 
     var currentIndex = feedOrder.indexOf(String(overlayState.activePostId || ""));
+    // If we reach the end of the available videos, trigger loading more.
+    if (currentIndex >= feedOrder.length - 2) {
+      if (typeof scrolled !== "undefined" && scrolled == 0) {
+        if (typeof Wo_GetMorePosts === "function") {
+          Wo_GetMorePosts();
+        }
+      }
+    }
 
     if (currentIndex === -1 || currentIndex >= feedOrder.length - 1) {
-      overlayDebug("playNextFullscreenVideo:no-next", {
-        currentIndex: currentIndex,
-        total: feedOrder.length,
-      });
-      closeActiveVideoOverlay();
+      // overlayDebug("playNextFullscreenVideo:no-next", {
+      //   currentIndex: currentIndex,
+      //   total: feedOrder.length,
+      // });
+      ``
+      // If we are at the very last video and reached the end of playback,
+      // we might want to wait a bit or close.
+      // For now, let's close if nothing more is loaded.
+      if (typeof scrolled !== "undefined" && scrolled == 1) {
+         // Still loading, maybe just loop or wait?
+         // For UX, it's better to stay on the same video or close.
+      } else {
+        closeActiveVideoOverlay();
+      }
       return;
     }
 
@@ -5439,9 +5350,9 @@ function FileListItems (files) {
     }
 
     if (!nextPostId) {
-      overlayDebug("playNextFullscreenVideo:nextPostId-missing", {
-        currentIndex: currentIndex,
-      });
+      // overlayDebug("playNextFullscreenVideo:nextPostId-missing", {
+      //   currentIndex: currentIndex,
+      // });
       closeActiveVideoOverlay();
       return;
     }
@@ -5473,10 +5384,10 @@ function FileListItems (files) {
         openVideoOverlay(player);
       };
       player.fullscreen.exit = function () {
-        overlayDebug("player.fullscreen.exit intercepted", {
-          playerPostId: player.__wo_post_id,
-          activePostId: overlayState.activePostId,
-        });
+        // overlayDebug("player.fullscreen.exit intercepted", {
+        //   playerPostId: player.__wo_post_id,
+        //   activePostId: overlayState.activePostId,
+        // });
       };
       player.fullscreen.toggle = function () {
         if (overlayState.activePlayer === player) {

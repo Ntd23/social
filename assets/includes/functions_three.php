@@ -6171,6 +6171,7 @@ function Wo_GroupTabData($id = false, $update_seen = true)
 		$data['messages'] = Wo_GetGroupMessages(array(
 			'group_id' => $data['group_id']
 		));
+		$data['active_call'] = Wo_GetActiveGroupCallByGroupId($data['group_id']);
 	}
 	return $data;
 }
@@ -9675,6 +9676,9 @@ function messageMarkup($message_info = [])
 		if (Wo_IsCallLogType($message['type_two'])) {
 			$message['type'] = $message['type_two'];
 		}
+		if (Wo_IsGroupCallMessageType($message['type_two'])) {
+			$message['type'] = $message['type_two'];
+		}
 		if (!empty($message['lng']) && !empty($message['lat'])) {
 			$message['type']   = 'map';
 		}
@@ -9718,6 +9722,9 @@ function messageMarkup($message_info = [])
 				$message['reply']['type']   = 'contact';
 			}
 			if (Wo_IsCallLogType($message['reply']['type_two'])) {
+				$message['reply']['type'] = $message['reply']['type_two'];
+			}
+			if (Wo_IsGroupCallMessageType($message['reply']['type_two'])) {
 				$message['reply']['type'] = $message['reply']['type_two'];
 			}
 			if (!empty($message['reply']['lng']) && !empty($message['reply']['lat'])) {

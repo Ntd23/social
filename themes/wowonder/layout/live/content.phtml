@@ -442,7 +442,10 @@ let liveMeta = {
   postId: 0,
   startedAt: 0,
   viewers: 0,
-  comments: 0
+  comments: 0,
+  reactions: 0,
+  shares: 0,
+  clips: 0
 };
 
 function setStudioMode(mode) {
@@ -527,10 +530,24 @@ function updateLiveCount(count) {
 }
 
 function updateCommentStats() {
-  const count = $('#live_post_comments .live_comments').length;
+  const count = $('#live_post_comments .live_comments').filter(function() {
+    return !!$(this).attr('live_comment_id');
+  }).length;
   liveMeta.comments = count;
   $('#wo-livekit-stat-comments').text(count);
   $('#wo-livekit-detail-comments').text(count);
+}
+
+function updateEngagementStats(reactions, shares, clips) {
+  const safeReactions = Math.max(0, parseInt(reactions || 0, 10) || 0);
+  const safeShares = Math.max(0, parseInt(shares || 0, 10) || 0);
+  const safeClips = Math.max(0, parseInt(clips || 0, 10) || 0);
+  liveMeta.reactions = safeReactions;
+  liveMeta.shares = safeShares;
+  liveMeta.clips = safeClips;
+  $('#wo-livekit-detail-reactions').text(safeReactions);
+  $('#wo-livekit-detail-shares').text(safeShares);
+  $('#wo-livekit-detail-clips').text(safeClips);
 }
 
 function syncCommentsState() {
@@ -840,6 +857,7 @@ async function startHostLive() {
     setLiveDetails(response.title || liveMeta.title, response.description || liveMeta.description);
     updateLiveCount(0);
     updateCommentStats();
+    updateEngagementStats(0, 0, 0);
     startLiveTimer();
     captureHostThumbnail(liveMeta.postId);
     syncSetupProgress();
@@ -906,13 +924,14 @@ var main_live = setInterval(function() {
     if (response.status == 200) {
       $('#live_post_comments').append(response.html);
       updateLiveCount(response.count);
+      updateEngagementStats(response.reactions_count, response.shares_count, response.clips_count);
 
       const comments = $('#live_post_comments .live_comments');
       if (comments.length > 8) {
         comments.slice(0, comments.length - 8).remove();
       }
       syncCommentsState();
-    } else if (response.removed == 'yes' || response.still_live === false) {
+    } else if (response.removed == 'yes' || response.still_live === 'offline' || response.is_final === 1) {
       clearInterval(main_live);
       setHostStatus('Buổi phát đã kết thúc');
     }
@@ -958,6 +977,7 @@ setStudioMode('setup');
 setLiveDetails('', '');
 setPostLink(0);
 updateLiveCount(0);
+updateEngagementStats(0, 0, 0);
 syncCommentsState();
 refreshDeviceLists().catch(function() {});
 ensureHostPreview().then(function() {
