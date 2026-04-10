@@ -30,8 +30,8 @@
 				<h4><?php echo $wo['lang']['location_dist'];?></h4>
 				<div class="select-nearby-users-distance">
 					<form>
-						<input type="range" class="cusrange" id="nearby-users-distance" name="amountRange" onchange="Wo_LoadNearByShops(this);" value="25" min="1" max="1000" oninput="this.form.amountInput.value=this.value">
-						<input type="number" name="amountInput" min="1" max="1000" value="25" oninput="this.form.amountRange.value=this.value" readonly id="cusrange-reader"/>
+						<input type="range" class="cusrange" id="nearby-users-distance" name="amountRange" onchange="Wo_LoadNearByShops(this);" value="100" min="1" max="1000" oninput="this.form.amountInput.value=this.value">
+						<input type="number" name="amountInput" min="1" max="1000" value="100" oninput="this.form.amountRange.value=this.value" readonly id="cusrange-reader"/>
 					</form>
 				</div>
 			</div>
@@ -41,7 +41,7 @@
 	<div class="page-margin">
 		<div class="row wow_frnd_usr wo_my_pages" id="nearby_users_list">
 			<?php
-				$nearby_users = Wo_GetNearbyShops(array('limit' => 20));
+				$nearby_users = Wo_GetNearbyShops(array('limit' => 20, 'distance' => 100));
 				if (count($nearby_users) > 0) {
 					foreach ($nearby_users as $wo['UsersList']) {
 						$wo['result'] = $wo['UsersList']['page_data'];

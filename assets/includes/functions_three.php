@@ -8254,7 +8254,8 @@ function Wo_GetNearbyShops($args = array())
 	$unit         = 6371;
 	$user_lat     = $wo['user']['lat'];
 	$user_lng     = $wo['user']['lng'];
-	$distance     = 25;
+	$distance     = 100;
+	$use_distance_filter = true;
 	$data         = array();
 	$search_sql   = "";
 	$offset_sql   = "";
@@ -8264,6 +8265,9 @@ function Wo_GetNearbyShops($args = array())
 	}
 	if ($loc_distance && is_numeric($loc_distance) && $loc_distance > 0) {
 		$distance = $loc_distance;
+	}
+	if ($distance >= 1000) {
+		$use_distance_filter = false;
 	}
 	if ($name) {
 		$name     = Wo_Secure($name);
@@ -8281,88 +8285,68 @@ function Wo_GetNearbyShops($args = array())
 		$offset_sql = " AND post.`page_id` < '$offset' AND post.`page_id` <> '$offset' ";
 	}
 
-	if ($name) {
-		$sql = "
-		SELECT
-			post.`id`,
-			post.`page_id`,
-			post.`product_id`,
-			prod.`lat`,
-			prod.`lng`
-		FROM " . T_POSTS . " AS post
-		INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
-		INNER JOIN " . T_PAGES . " AS page ON post.`page_id` = page.`page_id`
-		WHERE post.`product_id` > '0'
-			AND post.`page_id` > '0'
-			AND prod.`lat` <> ''
-			AND prod.`lng` <> ''
-			AND prod.`lat` <> '0'
-			AND prod.`lng` <> '0'
-			{$offset_sql}
-			{$search_sql}
-		ORDER BY post.`id` DESC
-		LIMIT 250";
-	}
-	else {
-		$sql   = "
-		SELECT
-			post.`page_id`,
-			post.`product_id`,
-			(
-				{$unit} * acos(
-					cos(radians('$user_lat')) *
-					cos(radians(prod.`lat`)) *
-					cos(radians(prod.`lng`) - radians('$user_lng')) +
-					sin(radians('$user_lat')) *
-					sin(radians(prod.`lat`))
-				)
-			) AS `distance_value`
-		FROM " . T_POSTS . " AS post
-		INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
-		INNER JOIN " . T_PAGES . " AS page ON post.`page_id` = page.`page_id`
-		WHERE post.`product_id` > '0'
-			AND post.`page_id` > '0'
-			AND prod.`lat` <> ''
-			AND prod.`lng` <> ''
-			AND prod.`lat` <> '0'
-			AND prod.`lng` <> '0'
-			{$offset_sql}
-		HAVING `distance_value` < '$distance'
-		ORDER BY `distance_value` ASC, post.`page_id` DESC, post.`id` DESC";
-	}
+	$sql = "
+	SELECT
+		post.`id`,
+		post.`page_id`,
+		post.`product_id`,
+		prod.`lat`,
+		prod.`lng`
+	FROM " . T_POSTS . " AS post
+	INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
+	INNER JOIN " . T_PAGES . " AS page ON post.`page_id` = page.`page_id`
+	WHERE post.`product_id` > '0'
+		AND post.`page_id` > '0'
+		AND prod.`lat` <> ''
+		AND prod.`lng` <> ''
+		AND prod.`lat` <> '0'
+		AND prod.`lng` <> '0'
+		{$offset_sql}
+		{$search_sql}
+	ORDER BY post.`id` DESC
+	LIMIT 500";
 	$query = mysqli_query($sqlConnect, $sql);
 	if ($query && mysqli_num_rows($query)) {
-		$seen_pages = array();
+		$pages_data = array();
 		while ($fetched_data = mysqli_fetch_assoc($query)) {
-			if (!isset($fetched_data['distance_value'])) {
-				$lat = (float) ($fetched_data['lat'] ?? 0);
-				$lng = (float) ($fetched_data['lng'] ?? 0);
-				if (empty($lat) || empty($lng)) {
-					continue;
-				}
-				$distance_value = $unit * acos(
-					cos(deg2rad($user_lat)) *
-					cos(deg2rad($lat)) *
-					cos(deg2rad($lng) - deg2rad($user_lng)) +
-					sin(deg2rad($user_lat)) *
-					sin(deg2rad($lat))
-				);
-				$fetched_data['distance_value'] = $distance_value;
-			}
-			if ($fetched_data['distance_value'] > $distance) {
+			$lat = (float) ($fetched_data['lat'] ?? 0);
+			$lng = (float) ($fetched_data['lng'] ?? 0);
+			if (empty($lat) || empty($lng)) {
 				continue;
 			}
-			if (isset($seen_pages[$fetched_data['page_id']])) {
+			$distance_value = $unit * acos(
+				cos(deg2rad($user_lat)) *
+				cos(deg2rad($lat)) *
+				cos(deg2rad($lng) - deg2rad($user_lng)) +
+				sin(deg2rad($user_lat)) *
+				sin(deg2rad($lat))
+			);
+			$fetched_data['distance_value'] = $distance_value;
+			if (empty($name) && $use_distance_filter && $distance_value > $distance) {
 				continue;
 			}
-			$seen_pages[$fetched_data['page_id']] = true;
 			$fetched_data['page_data'] = Wo_PageData($fetched_data['page_id']);
 			$fetched_data['product']   = Wo_GetProduct($fetched_data['product_id']);
 			$fetched_data['distance']  = round($fetched_data['distance_value'], 2);
-			$data[]                    = $fetched_data;
-			if (count($data) >= $limit) {
-				break;
+			if (!isset($pages_data[$fetched_data['page_id']])) {
+				$pages_data[$fetched_data['page_id']] = $fetched_data;
+				continue;
 			}
+			if (empty($name) && $distance_value < $pages_data[$fetched_data['page_id']]['distance_value']) {
+				$pages_data[$fetched_data['page_id']] = $fetched_data;
+			}
+		}
+		$data = array_values($pages_data);
+		if (empty($name)) {
+			usort($data, function($a, $b) {
+				if ($a['distance_value'] == $b['distance_value']) {
+					return 0;
+				}
+				return ($a['distance_value'] < $b['distance_value']) ? -1 : 1;
+			});
+		}
+		if (count($data) > $limit) {
+			$data = array_slice($data, 0, $limit);
 		}
 	}
 	return $data;
@@ -8383,7 +8367,7 @@ function Wo_GetNearbyShopsCount($args = array())
 	$unit         = 6371;
 	$user_lat     = $wo['user']['lat'];
 	$user_lng     = $wo['user']['lng'];
-	$distance     = 25;
+	$distance     = 100;
 	$search_sql   = "";
 
 	if (!is_numeric($user_lat) || !is_numeric($user_lng)) {

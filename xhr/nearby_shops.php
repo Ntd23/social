@@ -32,7 +32,7 @@ if ($f == 'nearby_shops') {
             $data['status']     = 200;
             $data['html']       = $html;
             $data['users_info'] = $users_info;
-            $data['count']      = (!empty($name) ? count($users) : Wo_GetNearbyShopsCount($filter));
+            $data['count']      = count($users);
         }
         else {
             $data['count'] = 0;

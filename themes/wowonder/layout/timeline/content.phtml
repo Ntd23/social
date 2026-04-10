@@ -1223,14 +1223,14 @@ if ($wo['loggedin'] && $IsOwnerUser) {
             </li>
             <?php } ?>
             <?php if(!empty($wo['user_profile']['address']) && $wo['user_profile']['share_my_location'] == 1) {  ?>
-            <li class="list-group-item">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z"></path></svg>
-                <span><?php echo $wo['lang']['located_in'];?> <?php echo $wo['user_profile']['address'];?></span>
-                <?php if (!empty($wo['config']['google_map_api']) && $wo['config']['google_map']) { ?>
-                <iframe width="100%" class="user-location-frame" frameborder="0" style="border:0;margin-top: 10px;" src="https://www.google.com/maps/embed/v1/place?key=<?php echo $wo['config']['google_map_api']; ?>&q=<?php echo $wo['user_profile']['address'];?>&language=en"></iframe>
-                <?php } ?>
+            <li class="list-group-item" style="display: block;">
+                <div style="width: 100%;">
+                    <div style="display: flex; align-items: flex-start; width: 100%; margin-bottom: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" style="margin-top: 3px; margin-right: 12px; flex-shrink: 0;"><path fill="currentColor" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z"></path></svg>
+                        <div style="width: 100%;"><?php echo $wo['lang']['located_in'];?> <?php echo $wo['user_profile']['address'];?></div>
+                    </div>
                 <?php if ($wo['config']['yandex_map'] == 1) { ?>
-		            <div id="place_<?php echo($wo['user_profile']['user_id']) ?>" <?php echo($wo['config']['yandex_map'] == 1 ? 'style="width: 100%; height: 300px; padding: 0; margin: 10px 0 0;"' : '') ?>></div>
+		            <div id="place_<?php echo($wo['user_profile']['user_id']) ?>" <?php echo($wo['config']['yandex_map'] == 1 ? 'style="width: 100%; height: 300px; padding: 0; margin: 0;"' : '') ?>></div>
 		            <script type="text/javascript">
 		                  <?php if (!empty($wo['user_profile']['address'])) { ?>
 		                    setTimeout(function () {
@@ -1247,7 +1247,58 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 		                    },1000);
 		                  <?php } ?>
 		                </script>
+		          <?php } else { ?>
+                    <div id="osm_place_<?php echo($wo['user_profile']['user_id']) ?>" class="user-location-frame" style="width: 100%; height: 300px; padding: 0; margin: 0;"></div>
+                    <script type="text/javascript">
+                        (function () {
+                            var mapId = 'osm_place_<?php echo($wo['user_profile']['user_id']) ?>';
+                            var address = <?php echo json_encode($wo['user_profile']['address']); ?>;
+
+                            if (!address || typeof L === 'undefined') {
+                                return;
+                            }
+
+                            fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(address), {
+                                headers: {
+                                    'Accept': 'application/json'
+                                }
+                            }).then(function (response) {
+                                if (!response.ok) {
+                                    throw new Error('OSM geocoding failed');
+                                }
+
+                                return response.json();
+                            }).then(function (results) {
+                                if (!Array.isArray(results) || results.length === 0) {
+                                    return;
+                                }
+
+                                var lat = parseFloat(results[0].lat);
+                                var lng = parseFloat(results[0].lon);
+                                if (isNaN(lat) || isNaN(lng)) {
+                                    return;
+                                }
+
+                                var map = L.map(mapId).setView([lat, lng], 13);
+                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    attribution: '',
+                                    maxZoom: 18
+                                }).addTo(map);
+                                L.marker([lat, lng]).addTo(map);
+
+                                setTimeout(function () {
+                                    map.invalidateSize();
+                                }, 100);
+                            }).catch(function () {
+                                var mapContainer = document.getElementById(mapId);
+                                if (mapContainer) {
+                                    mapContainer.style.display = 'none';
+                                }
+                            });
+                        })();
+                    </script>
 		          <?php } ?>
+                </div>
             </li>
             <?php } ?>
 

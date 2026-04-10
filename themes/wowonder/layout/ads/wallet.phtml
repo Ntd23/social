@@ -153,6 +153,26 @@
 			font-size: 20px;
 		}
 	}
+
+	/* Mobile: keep long balances inside the wallet card (no overflow) */
+	.wo_new_wallet .wow_mini_wallets h5 {
+		font-size: clamp(18px, 6vw, 34px);
+		line-height: 1.15;
+		max-width: 100%;
+		white-space: normal;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+	}
+
+	@media (min-width: 992px) {
+		.wo_new_wallet .wow_mini_wallets h5 {
+			font-size: 60px;
+			line-height: 1.1;
+			white-space: nowrap;
+			overflow-wrap: normal;
+			word-break: normal;
+		}
+	}
 </style>
 <script>
 	var walletCurrencyRule = <?php echo json_encode(Wo_GetCurrencyRule($wo['config']['ads_currency'])); ?>;

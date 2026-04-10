@@ -24600,8 +24600,14 @@ body .wo_chat_story_innr p {
 
 .wo_new_wallet .wow_mini_wallets h5 {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    font-size: 60px;
+    /* Mobile-first: keep long balances inside the card without overflowing */
+    font-size: clamp(18px, 6vw, 34px);
+    line-height: 1.15;
     margin-bottom: 20px;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .wo_new_wallet .wow_mini_wallets_btns {
@@ -27361,7 +27367,12 @@ body .navbar-default .dropdown-switch-account>.dropdown-menu .user-avatar>svg {
     }
 
     .wo_new_wallet .wow_mini_wallets h5 {
+        font-size: 60px;
+        line-height: 1.1;
         margin-bottom: 0;
+        white-space: nowrap;
+        overflow-wrap: normal;
+        word-break: normal;
     }
 
     .nearby_user_wrapper.profile {

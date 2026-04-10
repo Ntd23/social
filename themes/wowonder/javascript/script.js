@@ -5228,6 +5228,16 @@ function FileListItems (files) {
     }
 
     var targetIndex = currentIndex + offset;
+
+    // Trigger loading more posts if we're near the end of the current feed
+    if (offset > 0 && targetIndex >= feedOrder.length - 3) {
+      if (typeof scrolled !== "undefined" && scrolled == 0) {
+        if (typeof Wo_GetMorePosts === "function") {
+          Wo_GetMorePosts();
+        }
+      }
+    }
+
     if (targetIndex < 0 || targetIndex >= feedOrder.length) {
       overlayDebug(
         "active=" + String(overlayState.activePostId || ""),
@@ -5241,6 +5251,15 @@ function FileListItems (files) {
       // instead of relying on the browser edge-back gesture.
       if (targetIndex < 0 && offset < 0) {
         closeActiveVideoOverlay(false);
+      } else if (targetIndex >= feedOrder.length && offset > 0) {
+        // We reached the absolute end of the loaded list.
+        // If we are already loading, show a toast.
+        if (typeof scrolled !== "undefined" && scrolled == 1) {
+          var container = getPlayerContainer(overlayState.activePlayer);
+          if (container) {
+            showToast(container, "Đang tải thêm video...");
+          }
+        }
       }
       return;
     }
@@ -5299,12 +5318,30 @@ function FileListItems (files) {
 
     var currentIndex = feedOrder.indexOf(String(overlayState.activePostId || ""));
 
+    // If we reach the end of the available videos, trigger loading more.
+    if (currentIndex >= feedOrder.length - 2) {
+      if (typeof scrolled !== "undefined" && scrolled == 0) {
+        if (typeof Wo_GetMorePosts === "function") {
+          Wo_GetMorePosts();
+        }
+      }
+    }
+
     if (currentIndex === -1 || currentIndex >= feedOrder.length - 1) {
       overlayDebug("playNextFullscreenVideo:no-next", {
         currentIndex: currentIndex,
         total: feedOrder.length,
       });
-      closeActiveVideoOverlay();
+
+      // If we are at the very last video and reached the end of playback,
+      // we might want to wait a bit or close.
+      // For now, let's close if nothing more is loaded.
+      if (typeof scrolled !== "undefined" && scrolled == 1) {
+         // Still loading, maybe just loop or wait?
+         // For UX, it's better to stay on the same video or close.
+      } else {
+        closeActiveVideoOverlay();
+      }
       return;
     }
 

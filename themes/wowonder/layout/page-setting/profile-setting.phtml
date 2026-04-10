@@ -23,12 +23,13 @@
 		</div>
 		<div class="row">
 			<div class="col-md-6">
-				<div class="wow_form_fields">
-					<label for="address"><?php echo $wo['lang']['location']; ?></label>
-					<input name="address" id="address" type="text" value="<?php echo $wo['setting']['address']?>">
-					<?php if ($wo['config']['yandex_map'] == 1) { ?>
-            <div class="yandex_search_page"></div>
-          <?php } ?>
+				<div class="wow_form_fields page_location_field">
+					<label for="page_location_input"><?php echo $wo['lang']['location']; ?></label>
+					<input id="page_location_input" name="wo_page_location_search" type="search" value="<?php echo htmlspecialchars($wo['setting']['address']); ?>" autocomplete="nope" autocorrect="off" autocapitalize="off" spellcheck="false" readonly role="presentation" aria-autocomplete="list">
+					<input id="address_value" name="address" type="hidden" value="<?php echo htmlspecialchars($wo['setting']['address']); ?>">
+					<input id="page_lat_value" name="page_lat" type="hidden" value="">
+					<input id="page_lng_value" name="page_lng" type="hidden" value="">
+					<div class="product_location_suggestions yandex_search_page"></div>
 				</div>
 			</div>
 			<div class="col-md-6">
@@ -53,13 +54,277 @@
 	</form>
 </div>
 <script type="text/javascript">
+var woPageLocationLocale = <?php echo json_encode(strtolower($wo['language'])); ?>;
+function Wo_GetPageLocationLanguage() {
+	return (woPageLocationLocale || document.documentElement.lang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
+}
+function Wo_IsVietnamesePageLocation() {
+	var language = Wo_GetPageLocationLanguage();
+	return language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1;
+}
+function Wo_NormalizePageLocationPart(value) {
+	return (value || '')
+		.toLowerCase()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/[^a-z0-9]+/g, ' ')
+		.trim();
+}
+function Wo_GetPageLocationCanonicalPart(value) {
+	return Wo_NormalizePageLocationPart(value)
+		.replace(/^(phuong|xa|quan|huyen|tinh|thanh pho|tp)\s+/i, '')
+		.replace(/\s+(ward|district|province|city)$/i, '')
+		.trim();
+}
+function Wo_LocalizeVietnamesePageLocationPart(value) {
+	if (!value) {
+		return '';
+	}
+
+	var localizedValue = value.trim();
+	localizedValue = localizedValue.replace(/^(.+?)\s+Road$/i, 'Duong $1');
+	localizedValue = localizedValue.replace(/^(.+?)\s+Street$/i, '$1');
+	localizedValue = localizedValue.replace(/^(.+?)\s+Ward$/i, 'Phuong $1');
+	localizedValue = localizedValue.replace(/^Ward\s+(.+)$/i, 'Phuong $1');
+	localizedValue = localizedValue.replace(/^District\s+(.+)$/i, 'Quan $1');
+	localizedValue = localizedValue.replace(/^Province\s+(.+)$/i, 'Tinh $1');
+	localizedValue = localizedValue.replace(/^City\s+(.+)$/i, 'Thanh pho $1');
+	localizedValue = localizedValue.replace(/^Vietnam$/i, 'Viet Nam');
+	localizedValue = localizedValue.replace(/^Ha Noi$/i, 'Ha Noi');
+	localizedValue = localizedValue.replace(/^Ho Chi Minh City$/i, 'TP Ho Chi Minh');
+
+	return localizedValue;
+}
+function Wo_GetPageLocationText(item, queryValue) {
+	if (!item || !item.address) {
+		return item && (item.display_name || item.name) ? (item.display_name || item.name) : '';
+	}
+
+	var address = item.address;
+	var isVietnamese = Wo_IsVietnamesePageLocation();
+	var parts = [];
+	var firstLine = [];
+	var houseNumber = address.house_number || address.house_name || '';
+	var road = address.road || address.pedestrian || address.footway || address.cycleway || '';
+	var normalizedQuery = Wo_NormalizePageLocationPart(queryValue || '');
+	var normalizedRoad = Wo_NormalizePageLocationPart(road);
+
+	if (isVietnamese && normalizedQuery && normalizedRoad) {
+		if (normalizedQuery.indexOf(normalizedRoad) !== -1 || normalizedRoad.indexOf(normalizedQuery) !== -1) {
+			road = queryValue;
+		}
+	}
+
+	if (houseNumber) {
+		firstLine.push(houseNumber);
+	}
+	if (road) {
+		firstLine.push(isVietnamese ? Wo_LocalizeVietnamesePageLocationPart(road) : road);
+	}
+	if (firstLine.length > 0) {
+		parts.push(firstLine.join(' '));
+	}
+
+	[
+		address.suburb,
+		address.neighbourhood,
+		address.quarter,
+		address.city_district,
+		address.county,
+		address.district,
+		address.city,
+		address.town,
+		address.municipality,
+		address.state_district,
+		address.state,
+		address.country
+	].forEach(function(value) {
+		if (!value) {
+			return;
+		}
+		var localizedValue = isVietnamese ? Wo_LocalizeVietnamesePageLocationPart(value) : value;
+		var compareValue = Wo_GetPageLocationCanonicalPart(localizedValue);
+		var alreadyExists = parts.some(function(existingValue) {
+			return Wo_GetPageLocationCanonicalPart(existingValue) === compareValue;
+		});
+		if (!alreadyExists) {
+			parts.push(localizedValue);
+		}
+	});
+
+	return parts.join(', ');
+}
+function Wo_GetPageLocationSearchUrl(locationValue, limit) {
+	var params = new URLSearchParams({
+		format: 'jsonv2',
+		addressdetails: '1',
+		limit: String(limit || 10),
+		'accept-language': Wo_GetPageLocationLanguage(),
+		q: locationValue
+	});
+	if (Wo_IsVietnamesePageLocation()) {
+		params.set('countrycodes', 'vn');
+	}
+	return 'https://nominatim.openstreetmap.org/search?' + params.toString();
+}
+function Wo_RenderPageLocationSuggestions(items, queryValue) {
+	var suggestionBox = $('.yandex_search_page');
+	if (!Array.isArray(items) || items.length === 0) {
+		suggestionBox.empty().hide();
+		return;
+	}
+
+	var seen = {};
+	var html = '';
+	items.forEach(function(item) {
+		var displayName = Wo_GetPageLocationText(item, queryValue);
+		var normalizedDisplayName = Wo_NormalizePageLocationPart(displayName);
+		if (!displayName || seen[normalizedDisplayName]) {
+			return;
+		}
+		seen[normalizedDisplayName] = true;
+		html += '<p class="pointer page_location_suggestion_item" data-location="' + escapeHtml(displayName) + '" data-lat="' + escapeHtml(String(item.lat || '')) + '" data-lng="' + escapeHtml(String(item.lon || item.lng || '')) + '">' + escapeHtml(displayName) + '</p>';
+	});
+
+	if (!html) {
+		suggestionBox.empty().hide();
+		return;
+	}
+	suggestionBox.html(html).show();
+}
+function Wo_SetPageCoordinates(lat, lng) {
+	$('#page_lat_value').val(lat || '');
+	$('#page_lng_value').val(lng || '');
+}
+function Wo_ClearPageCoordinates() {
+	Wo_SetPageCoordinates('', '');
+}
+function Wo_SearchPageLocationSuggestions(locationValue) {
+	if (!locationValue || locationValue.length < 3) {
+		Wo_RenderPageLocationSuggestions([], locationValue);
+		return;
+	}
+
+	fetch(Wo_GetPageLocationSearchUrl(locationValue, 10), {
+		headers: {
+			'Accept': 'application/json'
+		}
+	}).then(function(response) {
+		if (!response.ok) {
+			throw new Error('Page location suggestion request failed');
+		}
+		return response.json();
+	}).then(function(results) {
+		Wo_RenderPageLocationSuggestions(results, locationValue);
+	}).catch(function() {
+		Wo_RenderPageLocationSuggestions([], locationValue);
+	});
+}
+function Wo_GeocodePageLocation(locationValue) {
+	if (!locationValue) {
+		Wo_ClearPageCoordinates();
+		return Promise.resolve(false);
+	}
+	return fetch(Wo_GetPageLocationSearchUrl(locationValue, 1), {
+		headers: {
+			'Accept': 'application/json'
+		}
+	}).then(function(response) {
+		if (!response.ok) {
+			throw new Error('Page location geocode request failed');
+		}
+		return response.json();
+	}).then(function(results) {
+		if (Array.isArray(results) && results.length > 0) {
+			var lat = parseFloat(results[0].lat);
+			var lng = parseFloat(results[0].lon);
+			if (!isNaN(lat) && !isNaN(lng)) {
+				Wo_SetPageCoordinates(lat, lng);
+				return true;
+			}
+		}
+		Wo_ClearPageCoordinates();
+		return false;
+	}).catch(function() {
+		Wo_ClearPageCoordinates();
+		return false;
+	});
+}
+function Wo_PageHasCoordinates() {
+	return $.trim($('#page_lat_value').val()) !== '' && $.trim($('#page_lng_value').val()) !== '';
+}
+function Wo_ResolvePageCoordinates(callback) {
+	var locationValue = $('#page_location_input').val().trim();
+	if (!locationValue) {
+		Wo_ClearPageCoordinates();
+		callback();
+		return;
+	}
+	if (Wo_PageHasCoordinates()) {
+		callback();
+		return;
+	}
+	Wo_GeocodePageLocation(locationValue).then(function() {
+		callback();
+	});
+}
    $(function() {
+     var woPageLocationSuggestionTimer = null;
+     $('#page_location_input').on('focus mousedown touchstart', function() {
+     	if ($(this).prop('readonly')) {
+     		$(this).prop('readonly', false);
+     	}
+     });
+     $('#page_location_input').on('input', function() {
+     	clearTimeout(woPageLocationSuggestionTimer);
+     	var locationValue = $(this).val().trim();
+     	$('#address_value').val(locationValue);
+     	Wo_ClearPageCoordinates();
+     	woPageLocationSuggestionTimer = setTimeout(function() {
+     		Wo_SearchPageLocationSuggestions(locationValue);
+     	}, 250);
+     });
+     $('#page_location_input').on('change blur', function() {
+     	var locationValue = $(this).val().trim();
+     	$('#address_value').val(locationValue);
+     	if (locationValue) {
+     		Wo_GeocodePageLocation(locationValue);
+     	}
+     	else {
+     		Wo_ClearPageCoordinates();
+     	}
+     	setTimeout(function() {
+     		Wo_RenderPageLocationSuggestions([]);
+     	}, 150);
+     });
+     $(document).on('mousedown', '.page_location_suggestion_item', function(e) {
+     	e.preventDefault();
+     	var selectedLocation = $(this).attr('data-location') || '';
+     	var selectedLat = $(this).attr('data-lat') || '';
+     	var selectedLng = $(this).attr('data-lng') || '';
+     	$('#page_location_input').val(selectedLocation);
+     	$('#address_value').val(selectedLocation);
+     	Wo_SetPageCoordinates(selectedLat, selectedLng);
+     	Wo_RenderPageLocationSuggestions([]);
+     });
      $('form.setting-information-form').ajaxForm({
        url: Wo_Ajax_Requests_File() + '?f=pages&s=update_information_setting',
        beforeSend: function() {
-         $('.setting-information-form').find('.add_wow_loader').addClass('btn-loading');
+          $('.setting-information-form').find('.add_wow_loader').addClass('btn-loading');
        },
-       success: function(data) {
+       beforeSubmit: function(arr, form, options) {
+         if ($(form).data('page-info-geocode-ready') === true) {
+         	$(form).removeData('page-info-geocode-ready');
+         	return true;
+         }
+         $('#address_value').val($('#page_location_input').val().trim());
+         Wo_ResolvePageCoordinates(function() {
+         	$(form).data('page-info-geocode-ready', true);
+         	$(form).ajaxSubmit(options);
+         });
+         return false;
+       },
+        success: function(data) {
          if (data.status == 200) {
            scrollToTop();
            $('.setting-information-alert').html('<div class="alert alert-success">' + data.message + '</div>');
@@ -78,45 +343,9 @@
        }
      });
    });
-   <?php if ($wo['config']['google_map'] == 1) { ?>
-   var pac_input = document.getElementById('address');
-     (function pacSelectFirst(input) {
-       // store the original event binding function
-       var _addEventListener = (input.addEventListener) ? input.addEventListener : input.attachEvent;
-       function addEventListenerWrapper(type, listener) {
-         // Simulate a 'down arrow' keypress on hitting 'return' when no pac suggestion is selected,
-         // and then trigger the original listener.
-         if(type == "keydown") {
-           var orig_listener = listener;
-           listener = function (event) {
-             var suggestion_selected = $(".pac-item-selected").length > 0;
-             if(event.which == 13 && !suggestion_selected) {
-               var simulated_downarrow = $.Event("keydown", {
-                 keyCode: 40,
-                 which: 40
-               });
-               orig_listener.apply(input, [simulated_downarrow]);
-             }
-             orig_listener.apply(input, [event]);
-           };
-         }
-         // add the modified listener
-         _addEventListener.apply(input, [type, listener]);
-       }
-       if(input.addEventListener)
-         input.addEventListener = addEventListenerWrapper;
-       else if(input.attachEvent)
-         input.attachEvent = addEventListenerWrapper;
-     })(pac_input);
-   
-     $(function () {
-        var autocomplete = new google.maps.places.Autocomplete(pac_input);
-     });
-   <?php } ?>
 <?php if ($wo['config']['yandex_map'] == 1) { ?>
   $(function() {
-    $('#address').on( "keydown", function() {
-      let self = this;
+    $('#page_location_input').on('keydown', function() {
       var myGeocoder = ymaps.geocode($(this).val());
       myGeocoder.then(
           function (res) {
@@ -126,7 +355,7 @@
             else{
               let html = '';
               for (var i = 0; i < res.geoObjects.getLength(); i++) {
-                html += '<p class="pointer" onclick="AddYandexResult(\'#address\',this,\'.yandex_search_page\')">'+res.geoObjects.get(i).properties.get('name')+'</p>';
+                html += '<p class="pointer" onclick="AddYandexResult(\'#page_location_input\',this,\'.yandex_search_page\');$(\'#address_value\').val($(this).text())">'+res.geoObjects.get(i).properties.get('name')+'</p>';
               }
               $('.yandex_search_page').html(html);
             }
@@ -139,3 +368,14 @@
   });
 <?php } ?>
 </script>
+<style>
+.page_location_field {
+	position: relative;
+}
+.page_location_field .yandex_search_page {
+	left: 0;
+	right: 0;
+	width: 100%;
+	top: calc(100% - 10px);
+}
+</style>

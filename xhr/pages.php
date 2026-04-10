@@ -95,6 +95,18 @@ if ($f == 'pages') {
                         'phone' => $_POST['phone']
                     );
                     if (Wo_UpdatePageData($_POST['page_id'], $Update_data)) {
+                        $old_address = (!empty($PageData['address'])) ? $PageData['address'] : '';
+                        $new_address = (!empty($_POST['address'])) ? $_POST['address'] : '';
+                        $product_update_data = array(
+                            'location' => $new_address
+                        );
+                        if (isset($_POST['page_lat']) && isset($_POST['page_lng']) && is_numeric($_POST['page_lat']) && is_numeric($_POST['page_lng'])) {
+                            $product_update_data['lat'] = Wo_Secure($_POST['page_lat']);
+                            $product_update_data['lng'] = Wo_Secure($_POST['page_lng']);
+                        }
+                        if ($old_address !== $new_address) {
+                            $db->where('page_id', $_POST['page_id'])->update(T_PRODUCTS, $product_update_data);
+                        }
                         $data = array(
                             'status' => 200,
                             'message' => $success_icon . $wo['lang']['setting_updated']
