@@ -7636,15 +7636,15 @@ function Wo_IsUserBusy($user_id = 0) {
     }
 
     // Also check if user is currently RECEIVING a call and hasn't answered yet (within last 40 seconds)
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_VIDEOS_CALLES . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND `time` > '{$time}' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_VIDEOS_CALLES . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AUDIO_CALLES . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND `time` > '{$time}' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AUDIO_CALLES . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AGORA . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND `time` > '{$time}' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AGORA . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
