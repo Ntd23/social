@@ -60,8 +60,12 @@
 					</div>
 					<div class="wow_form_fields page_location_field">
 						<label for="page_location_input"><?php echo $wo['lang']['location']; ?></label>
-						<input id="page_location_input" name="wo_page_location_search" type="search" autocomplete="nope" autocorrect="off" autocapitalize="off" spellcheck="false" readonly role="presentation" aria-autocomplete="list">
+						<div id="page_location_autocomplete_host" class="wo_place_autocomplete_host"></div>
+						<input id="page_location_input" name="wo_page_location_search" type="hidden">
 						<input id="address_value" name="address" type="hidden">
+						<input id="page_lat_value" name="page_lat" type="hidden">
+						<input id="page_lng_value" name="page_lng" type="hidden">
+						<input id="page_place_id_value" name="page_place_id" type="hidden">
 						<div class="product_location_suggestions yandex_search_product"></div>
 					</div>
 					<?php $fields = Wo_GetCustomFields('page'); 
@@ -132,6 +136,16 @@
 .create-page-form .wow_form_fields #page_url_preview {
     font-weight: 500;
 }
+.wo_place_autocomplete_host {
+	width: 100%;
+}
+.wo_place_autocomplete_host gmp-place-autocomplete {
+	display: block;
+	width: 100%;
+}
+.wo_place_autocomplete_host .wo_page_location_inline_input {
+	width: 100%;
+}
 .page_location_field {
     position: relative;
 }
@@ -161,9 +175,34 @@ echo "var sub_categories_array = ". $js_array . ";\n";
 		    $('#page_sub_category').html(text);
 		}
 	}
+var woPageLocationSuggestionTimer = null;
+var woPageLocationSuggestionRequest = 0;
+var woPageGooglePredictionCache = {};
+var woPageGoogleSessionToken = null;
+var woPageUseGoogleMobileSuggestions = true;
 var woPageLocationLocale = <?php echo json_encode(strtolower($wo['language'])); ?>;
+function Wo_ShouldUseInlinePageLocationInput() {
+	return window.matchMedia('(max-width: 768px)').matches || /Android|webOS|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent || '');
+}
 function Wo_GetPageLocationLanguage() {
 	return (woPageLocationLocale || document.documentElement.lang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
+}
+function Wo_GetPageLocationGoogleLanguage() {
+	var language = Wo_GetPageLocationLanguage();
+	if (!language) {
+		return 'en';
+	}
+	if (language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1) {
+		return 'vi';
+	}
+	if (language.indexOf('en') === 0 || language.indexOf('english') !== -1) {
+		return 'en';
+	}
+	var normalizedLanguage = language.split(/[_-]/)[0];
+	if (/^[a-z]{2}$/.test(normalizedLanguage)) {
+		return normalizedLanguage;
+	}
+	return 'en';
 }
 function Wo_IsVietnamesePageLocation() {
 	var language = Wo_GetPageLocationLanguage();
@@ -203,6 +242,9 @@ function Wo_LocalizeVietnamesePageLocationPart(value) {
 	return localizedValue;
 }
 function Wo_GetPageLocationText(item, queryValue) {
+	if (item && item.google_prediction === true) {
+		return item.display_name || item.description || '';
+	}
 	if (!item || !item.address) {
 		return item && (item.display_name || item.name) ? (item.display_name || item.name) : '';
 	}
@@ -274,6 +316,52 @@ function Wo_GetPageLocationSearchUrl(locationValue, limit) {
 	}
 	return 'https://nominatim.openstreetmap.org/search?' + params.toString();
 }
+function Wo_GetGooglePagePredictionLabel(prediction) {
+	if (!prediction) {
+		return '';
+	}
+
+	if (prediction.text && typeof prediction.text.toString === 'function') {
+		return prediction.text.toString();
+	}
+
+	var mainText = '';
+	var secondaryText = '';
+	if (prediction.mainText && typeof prediction.mainText.toString === 'function') {
+		mainText = prediction.mainText.toString();
+	}
+	if (prediction.secondaryText && typeof prediction.secondaryText.toString === 'function') {
+		secondaryText = prediction.secondaryText.toString();
+	}
+
+	if (mainText && secondaryText) {
+		return mainText + ', ' + secondaryText;
+	}
+
+	return mainText || secondaryText || prediction.description || '';
+}
+function Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken) {
+	fetch(Wo_GetPageLocationSearchUrl(normalizedLocationValue, 5), {
+		headers: {
+			'Accept': 'application/json'
+		}
+	}).then(function(response) {
+		if (!response.ok) {
+			throw new Error('Page location suggestion request failed');
+		}
+		return response.json();
+	}).then(function(results) {
+		if (requestToken !== woPageLocationSuggestionRequest) {
+			return;
+		}
+		Wo_RenderPageLocationSuggestions(results, normalizedLocationValue);
+	}).catch(function() {
+		if (requestToken !== woPageLocationSuggestionRequest) {
+			return;
+		}
+		Wo_RenderPageLocationSuggestions([], normalizedLocationValue);
+	});
+}
 function Wo_RenderPageLocationSuggestions(items, queryValue) {
 	var suggestionBox = $('.product_location_suggestions');
 	if (!Array.isArray(items) || items.length === 0) {
@@ -290,7 +378,7 @@ function Wo_RenderPageLocationSuggestions(items, queryValue) {
 			return;
 		}
 		seen[normalizedDisplayName] = true;
-		html += '<p class="pointer product_location_suggestion_item page_location_suggestion_item" data-location="' + escapeHtml(displayName) + '">' + escapeHtml(displayName) + '</p>';
+		html += '<p class="pointer product_location_suggestion_item page_location_suggestion_item" data-location="' + escapeHtml(displayName) + '" data-lat="' + escapeHtml(String(item.lat || '')) + '" data-lng="' + escapeHtml(String(item.lon || item.lng || '')) + '" data-place-id="' + escapeHtml(String(item.place_id || '')) + '">' + escapeHtml(displayName) + '</p>';
 	});
 
 	if (!html) {
@@ -299,62 +387,366 @@ function Wo_RenderPageLocationSuggestions(items, queryValue) {
 	}
 	suggestionBox.html(html).show();
 }
-function Wo_SearchPageLocationSuggestions(locationValue) {
-	if (!locationValue || locationValue.length < 3) {
-		Wo_RenderPageLocationSuggestions([], locationValue);
+function Wo_SetPageCoordinates(lat, lng) {
+	$('#page_lat_value').val(lat || '');
+	$('#page_lng_value').val(lng || '');
+}
+function Wo_SetPagePlaceId(placeId) {
+	$('#page_place_id_value').val(placeId || '');
+}
+var woPagePlaceAutocompleteElement = null;
+function Wo_GetPageLocationField() {
+	return document.getElementById('page_location_input');
+}
+function Wo_ReadPageLocationValue() {
+	var locationField = Wo_GetPageLocationField();
+	if (!locationField) {
+		return '';
+	}
+	if (woPagePlaceAutocompleteElement && typeof woPagePlaceAutocompleteElement.value === 'string') {
+		locationField.value = woPagePlaceAutocompleteElement.value;
+	}
+	return locationField.value || '';
+}
+function Wo_WritePageLocationValue(value) {
+	var normalizedValue = value || '';
+	var locationField = Wo_GetPageLocationField();
+	if (locationField) {
+		locationField.value = normalizedValue;
+	}
+	if (woPagePlaceAutocompleteElement && typeof woPagePlaceAutocompleteElement.value !== 'undefined') {
+		woPagePlaceAutocompleteElement.value = normalizedValue;
+	}
+}
+function Wo_ClearPageLocationMeta() {
+	Wo_SetPageCoordinates('', '');
+	Wo_SetPagePlaceId('');
+}
+function Wo_PageGoogleAutocompleteAvailable() {
+	return (typeof google !== 'undefined' &&
+		google.maps &&
+		typeof google.maps.importLibrary === 'function');
+}
+function Wo_ReadPageCoordinateValue(locationObject, axis) {
+	if (!locationObject) {
+		return '';
+	}
+	if (typeof locationObject[axis] === 'function') {
+		return locationObject[axis]();
+	}
+	if (typeof locationObject[axis] === 'number') {
+		return locationObject[axis];
+	}
+	return '';
+}
+function Wo_ApplyGooglePagePlace(place) {
+	if (!place) {
+		return false;
+	}
+
+	var locationObject = place.location || (place.geometry && place.geometry.location ? place.geometry.location : null);
+	var displayName = '';
+	if (place.displayName) {
+		displayName = typeof place.displayName === 'string' ? place.displayName : (place.displayName.text || '');
+	}
+	var formattedAddress = place.formattedAddress || place.formatted_address || displayName || place.name || $.trim(Wo_ReadPageLocationValue());
+	var lat = Wo_ReadPageCoordinateValue(locationObject, 'lat');
+	var lng = Wo_ReadPageCoordinateValue(locationObject, 'lng');
+	var placeId = place.id || place.place_id || '';
+
+	Wo_WritePageLocationValue(formattedAddress);
+	$('#address_value').val(formattedAddress);
+	Wo_SetPageCoordinates(lat, lng);
+	Wo_SetPagePlaceId(placeId);
+
+	return true;
+}
+async function Wo_InitGooglePageAutocomplete() {
+	var input = Wo_GetPageLocationField();
+	var host = document.getElementById('page_location_autocomplete_host');
+	if (!input || !host || host.dataset.pageGoogleAutocompleteReady === '1') {
 		return;
 	}
 
-	fetch(Wo_GetPageLocationSearchUrl(locationValue, 10), {
-		headers: {
-			'Accept': 'application/json'
+	if (Wo_ShouldUseInlinePageLocationInput()) {
+		if (Wo_PageGoogleAutocompleteAvailable()) {
+			try {
+				await google.maps.importLibrary('places');
+			} catch (err) {}
 		}
-	}).then(function(response) {
-		if (!response.ok) {
-			throw new Error('Page location suggestion request failed');
+		host.dataset.pageGoogleAutocompleteReady = '1';
+		host.innerHTML = '';
+		var inlineInput = document.createElement('input');
+		inlineInput.type = 'text';
+		inlineInput.className = 'wo_page_location_inline_input';
+		inlineInput.autocomplete = 'off';
+		inlineInput.autocorrect = 'off';
+		inlineInput.autocapitalize = 'off';
+		inlineInput.spellcheck = false;
+		inlineInput.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
+		host.appendChild(inlineInput);
+
+		inlineInput.value = input.value || '';
+		inlineInput.addEventListener('input', function() {
+			var locationValue = inlineInput.value || '';
+			Wo_WritePageLocationValue(locationValue);
+			$('#address_value').val(locationValue);
+			Wo_ClearPageLocationMeta();
+			clearTimeout(woPageLocationSuggestionTimer);
+			woPageLocationSuggestionTimer = setTimeout(function() {
+				Wo_SearchPageLocationSuggestions(locationValue);
+			}, 220);
+		});
+		inlineInput.addEventListener('change', function() {
+			var locationValue = inlineInput.value || '';
+			Wo_WritePageLocationValue(locationValue);
+			$('#address_value').val(locationValue);
+		});
+		inlineInput.addEventListener('blur', function() {
+			setTimeout(function() {
+				Wo_RenderPageLocationSuggestions([]);
+			}, 150);
+		});
+		return;
+	}
+
+	if (!Wo_PageGoogleAutocompleteAvailable()) {
+		return;
+	}
+
+	await google.maps.importLibrary('places');
+	if (!google.maps.places || typeof google.maps.places.PlaceAutocompleteElement !== 'function') {
+		return;
+	}
+
+	host.dataset.pageGoogleAutocompleteReady = '1';
+	host.innerHTML = '';
+	woPagePlaceAutocompleteElement = new google.maps.places.PlaceAutocompleteElement({});
+	woPagePlaceAutocompleteElement.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
+	if (typeof woPagePlaceAutocompleteElement.value !== 'undefined') {
+		woPagePlaceAutocompleteElement.value = input.value || '';
+	}
+	host.appendChild(woPagePlaceAutocompleteElement);
+
+	woPagePlaceAutocompleteElement.addEventListener('input', function() {
+		var locationValue = woPagePlaceAutocompleteElement.value || '';
+		Wo_WritePageLocationValue(locationValue);
+		$('#address_value').val(locationValue);
+		Wo_ClearPageLocationMeta();
+		Wo_RenderPageLocationSuggestions([]);
+	});
+
+	woPagePlaceAutocompleteElement.addEventListener('change', function() {
+		var locationValue = woPagePlaceAutocompleteElement.value || '';
+		Wo_WritePageLocationValue(locationValue);
+		$('#address_value').val(locationValue);
+	});
+
+	woPagePlaceAutocompleteElement.addEventListener('gmp-select', async function(event) {
+		var placePrediction = event.placePrediction || (event.detail && event.detail.placePrediction) || null;
+		if (!placePrediction || typeof placePrediction.toPlace !== 'function') {
+			return;
 		}
-		return response.json();
-	}).then(function(results) {
-		Wo_RenderPageLocationSuggestions(results, locationValue);
-	}).catch(function() {
-		Wo_RenderPageLocationSuggestions([], locationValue);
+
+		var place = placePrediction.toPlace();
+		await place.fetchFields({
+			fields: ['displayName', 'formattedAddress', 'location', 'id']
+		});
+		Wo_RenderPageLocationSuggestions([]);
+		Wo_ApplyGooglePagePlace(place);
+	});
+}
+function Wo_SearchPageLocationSuggestions(locationValue) {
+	var normalizedLocationValue = (locationValue || '').trim();
+	woPageLocationSuggestionRequest++;
+	var requestToken = woPageLocationSuggestionRequest;
+
+	if (!normalizedLocationValue || normalizedLocationValue.length < 2) {
+		Wo_RenderPageLocationSuggestions([], normalizedLocationValue);
+		return;
+	}
+
+	if (woPageUseGoogleMobileSuggestions && Wo_PageGoogleAutocompleteAvailable()) {
+		google.maps.importLibrary('places').then(function() {
+			if (requestToken !== woPageLocationSuggestionRequest) {
+				return;
+			}
+			var placesLib = google.maps.places || {};
+			if (!placesLib.AutocompleteSuggestion || typeof placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions !== 'function') {
+				Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+				return;
+			}
+
+			if (!woPageGoogleSessionToken && typeof placesLib.AutocompleteSessionToken === 'function') {
+				woPageGoogleSessionToken = new placesLib.AutocompleteSessionToken();
+			}
+
+			var suggestionRequest = {
+				input: normalizedLocationValue
+			};
+			if (woPageGoogleSessionToken) {
+				suggestionRequest.sessionToken = woPageGoogleSessionToken;
+			}
+			var googleLanguage = Wo_GetPageLocationGoogleLanguage();
+			if (googleLanguage) {
+				suggestionRequest.language = googleLanguage;
+			}
+
+			return placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions(suggestionRequest).then(function(response) {
+				if (requestToken !== woPageLocationSuggestionRequest) {
+					return;
+				}
+
+				var suggestions = (response && Array.isArray(response.suggestions)) ? response.suggestions : [];
+				if (!suggestions.length) {
+					Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+					return;
+				}
+
+				var mappedPredictions = suggestions.map(function(suggestion) {
+					var placePrediction = suggestion.placePrediction || suggestion;
+					var placeId = placePrediction.placeId || placePrediction.place_id || '';
+					if (placeId) {
+						woPageGooglePredictionCache[placeId] = placePrediction;
+					}
+
+					return {
+						google_prediction: true,
+						display_name: Wo_GetGooglePagePredictionLabel(placePrediction),
+						place_id: placeId
+					};
+				});
+				Wo_RenderPageLocationSuggestions(mappedPredictions, normalizedLocationValue);
+			});
+		}).catch(function() {
+			woPageUseGoogleMobileSuggestions = false;
+			Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+		});
+		return;
+	}
+
+	Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+}
+function Wo_GeocodePageLocation(locationValue) {
+	if (!locationValue) {
+		Wo_ClearPageLocationMeta();
+		return Promise.resolve(false);
+	}
+
+	if (Wo_PageGoogleAutocompleteAvailable() && google.maps && typeof google.maps.Geocoder === 'function') {
+		return new Promise(function(resolve) {
+			var geocoder = new google.maps.Geocoder();
+			geocoder.geocode({ address: locationValue }, function(results, status) {
+				if (status === 'OK' && Array.isArray(results) && results[0]) {
+					resolve(Wo_ApplyGooglePagePlace(results[0]));
+					return;
+				}
+
+				Wo_ClearPageLocationMeta();
+				resolve(false);
+			});
+		});
+	}
+
+	Wo_ClearPageLocationMeta();
+	return Promise.resolve(false);
+}
+function Wo_GeocodePagePlaceId(placeId) {
+	if (!placeId) {
+		return Promise.resolve(false);
+	}
+
+	var cachedPrediction = woPageGooglePredictionCache[placeId];
+	if (cachedPrediction && typeof cachedPrediction.toPlace === 'function') {
+		return new Promise(function(resolve) {
+			var place = cachedPrediction.toPlace();
+			place.fetchFields({
+				fields: ['displayName', 'formattedAddress', 'location', 'id']
+			}).then(function() {
+				resolve(Wo_ApplyGooglePagePlace(place));
+			}).catch(function() {
+				resolve(false);
+			});
+		}).then(function(resolved) {
+			if (resolved && window.google && google.maps && google.maps.places && typeof google.maps.places.AutocompleteSessionToken === 'function') {
+				woPageGoogleSessionToken = new google.maps.places.AutocompleteSessionToken();
+			}
+			return resolved;
+		});
+	}
+
+	if (!(window.google && google.maps && typeof google.maps.Geocoder === 'function')) {
+		return Promise.resolve(false);
+	}
+
+	return new Promise(function(resolve) {
+		var geocoder = new google.maps.Geocoder();
+		geocoder.geocode({ placeId: placeId }, function(results, status) {
+			if (status === 'OK' && Array.isArray(results) && results[0]) {
+				resolve(Wo_ApplyGooglePagePlace(results[0]));
+				return;
+			}
+			resolve(false);
+		});
+	});
+}
+function Wo_PageHasCoordinates() {
+	return $.trim($('#page_lat_value').val()) !== '' && $.trim($('#page_lng_value').val()) !== '';
+}
+function Wo_ResolvePageLocation(callback) {
+	var locationValue = $.trim(Wo_ReadPageLocationValue());
+	if (!locationValue) {
+		Wo_ClearPageLocationMeta();
+		callback();
+		return;
+	}
+
+	if (Wo_PageHasCoordinates() || $.trim($('#page_place_id_value').val()) !== '') {
+		callback();
+		return;
+	}
+
+	Wo_GeocodePageLocation(locationValue).then(function() {
+		callback();
 	});
 }
    $(function() {
-     var woPageLocationSuggestionTimer = null;
-     $('#page_location_input').on('focus mousedown touchstart', function() {
-     	if ($(this).prop('readonly')) {
-     		$(this).prop('readonly', false);
-     	}
-     });
-     $('#page_location_input').on('input', function() {
-     	clearTimeout(woPageLocationSuggestionTimer);
-     	var locationValue = $(this).val().trim();
-     	$('#address_value').val(locationValue);
-     	woPageLocationSuggestionTimer = setTimeout(function() {
-     		Wo_SearchPageLocationSuggestions(locationValue);
-     	}, 250);
-     });
-     $('#page_location_input').on('change blur', function() {
-     	$('#address_value').val($(this).val().trim());
-     	setTimeout(function() {
-     		Wo_RenderPageLocationSuggestions([]);
-     	}, 150);
-     });
+     Wo_InitGooglePageAutocomplete();
      $(document).on('mousedown', '.page_location_suggestion_item, .product_location_suggestion_item', function(e) {
-     	e.preventDefault();
+    	e.preventDefault();
      	var selectedLocation = $(this).attr('data-location') || '';
-     	$('#page_location_input').val(selectedLocation);
+     	var selectedLat = $(this).attr('data-lat') || '';
+     	var selectedLng = $(this).attr('data-lng') || '';
+     	var placeId = $(this).attr('data-place-id') || '';
+     	Wo_WritePageLocationValue(selectedLocation);
      	$('#address_value').val(selectedLocation);
      	Wo_RenderPageLocationSuggestions([]);
-     });
-     $('form.create-page-form').on('submit', function() {
-     	$('#address_value').val($('#page_location_input').val().trim());
+     	$('.wo_page_location_inline_input').val(selectedLocation);
+     	if (placeId) {
+     		Wo_SetPageCoordinates('', '');
+     		Wo_SetPagePlaceId(placeId);
+     		Wo_GeocodePagePlaceId(placeId);
+     		return;
+     	}
+     	Wo_SetPageCoordinates(selectedLat, selectedLng);
+     	Wo_SetPagePlaceId('');
      });
      $('form.create-page-form').ajaxForm({
        url: Wo_Ajax_Requests_File() + '?f=pages&s=create_page',
        beforeSend: function() {
          $('.create-page-form').find('.add_wow_loader').addClass('btn-loading');
+       },
+       beforeSubmit: function(arr, form, options) {
+         if ($(form).data('page-create-geocode-ready') === true) {
+         	$(form).removeData('page-create-geocode-ready');
+         	return true;
+         }
+         $('#address_value').val(Wo_ReadPageLocationValue());
+         Wo_ResolvePageLocation(function() {
+         	$(form).data('page-create-geocode-ready', true);
+         	$(form).ajaxSubmit(options);
+         });
+         return false;
        },
        success: function(data) {
          scrollToTop();
@@ -369,30 +761,6 @@ function Wo_SearchPageLocationSuggestions(locationValue) {
        }
      });
    });
-<?php if ($wo['config']['yandex_map'] == 1) { ?>
-  $(function() {
-    $('#page_location_input').on( "keydown", function() {
-      var myGeocoder = ymaps.geocode($(this).val());
-      myGeocoder.then(
-          function (res) {
-            if (res.geoObjects.getLength() == 0) {
-              $('.yandex_search_product').html('');
-            }
-            else{
-              let html = '';
-              for (var i = 0; i < res.geoObjects.getLength(); i++) {
-                html += '<p class="pointer" onclick="AddYandexResult(\'#page_location_input\',this,\'.yandex_search_product\');$(\'#address_value\').val($(this).text())">'+res.geoObjects.get(i).properties.get('name')+'</p>';
-              }
-              $('.yandex_search_product').html(html);
-            }
-          },
-          function (err) {
-              $('.yandex_search_product').html('');
-          }
-      );
-    });
-  });
-<?php } ?>
 </script>
 <script>
     function slugify(str) {

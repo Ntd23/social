@@ -1,4 +1,29 @@
 <?php 
+if (!function_exists('Wo_ProductColumnExists')) {
+    function Wo_ProductColumnExists($column_name = '') {
+        global $sqlConnect;
+
+        if (empty($column_name)) {
+            return false;
+        }
+
+        static $product_columns = null;
+        if ($product_columns === null) {
+            $product_columns = array();
+            $query = mysqli_query($sqlConnect, "SHOW COLUMNS FROM " . T_PRODUCTS);
+            if ($query) {
+                while ($column = mysqli_fetch_assoc($query)) {
+                    if (!empty($column['Field'])) {
+                        $product_columns[$column['Field']] = true;
+                    }
+                }
+            }
+        }
+
+        return !empty($product_columns[$column_name]);
+    }
+}
+
 if ($f == 'products') {
     $data['status'] = 400;
     if ($s == 'create' && Wo_CheckSession($hash_id) === true && $wo['config']['can_use_market']) {
@@ -71,6 +96,10 @@ if ($f == 'products') {
                     $lng = $_POST['lng-product'];
                 }
             }
+            $place_id = '';
+            if (!empty($_POST['place-id-product'])) {
+                $place_id = Wo_Secure($_POST['place-id-product']);
+            }
             $page_id = 0;
             $page_data = array();
             if (!empty($_POST['page_id']) && is_numeric($_POST['page_id']) && $_POST['page_id'] > 0 && Wo_IsPageOnwer(Wo_Secure($_POST['page_id']))) {
@@ -99,6 +128,9 @@ if ($f == 'products') {
                 'units' => $units,
                 'page_id' => $page_id
             );
+            if (Wo_ProductColumnExists('place_id')) {
+                $product_data_array['place_id'] = $place_id;
+            }
             $fields = Wo_GetCustomFields('product'); 
             if (!empty($fields)) {
                 foreach ($fields as $key => $field) {
@@ -229,6 +261,10 @@ if ($f == 'products') {
             if (isset($_POST['lng-product']) && $_POST['lng-product'] !== '' && is_numeric($_POST['lng-product'])) {
                 $lng = Wo_Secure($_POST['lng-product']);
             }
+            $place_id = '';
+            if (!empty($_POST['place-id-product'])) {
+                $place_id = Wo_Secure($_POST['place-id-product']);
+            }
             $page_data = array();
             $page_id = 0;
             $post_id = Wo_GetPostIDFromProdcutID($_POST['product_id']);
@@ -257,6 +293,9 @@ if ($f == 'products') {
                 'lat' => $lat,
                 'lng' => $lng,
             );
+            if (Wo_ProductColumnExists('place_id')) {
+                $product_data_array['place_id'] = $place_id;
+            }
 
             $fields = Wo_GetCustomFields('product'); 
             if (!empty($fields)) {

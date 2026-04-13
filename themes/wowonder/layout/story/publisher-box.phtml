@@ -1352,42 +1352,72 @@ if (!empty($_GET['url'])) {
         });
 
         <?php if ($wo['config']['google_map']) { ?>
-        var pac_input = document.getElementById('searchTextField');
-				
-        (function pacSelectFirst(input) {
-            // store the original event binding function
-            var _addEventListener = (input.addEventListener) ? input.addEventListener : input.attachEvent;
-            function addEventListenerWrapper(type, listener) {
-                // Simulate a 'down arrow' keypress on hitting 'return' when no pac suggestion is selected,
-                // and then trigger the original listener.
-                if(type == "keydown") {
-                    var orig_listener = listener;
-                    listener = function (event) {
-                        var suggestion_selected = $(".pac-item-selected").length > 0;
-                        if(event.which == 13 && !suggestion_selected) {
-                            var simulated_downarrow = $.Event("keydown", {
-                                keyCode: 40,
-                                which: 40
-                            });
-                            orig_listener.apply(input, [simulated_downarrow]);
-                        }
-                        orig_listener.apply(input, [event]);
-                    };
-                }
-                // add the modified listener
-                _addEventListener.apply(input, [type, listener]);
+        async function Wo_InitPublisherPlaceAutocomplete(inputId, placeholderText) {
+            if (typeof google === 'undefined' || !google.maps || typeof google.maps.importLibrary !== 'function') {
+                return null;
             }
-            if(input.addEventListener)
-                input.addEventListener = addEventListenerWrapper;
-            else if(input.attachEvent)
-                input.attachEvent = addEventListenerWrapper;
-        })(pac_input);
+
+            var originalInput = document.getElementById(inputId);
+            if (!originalInput) {
+                return null;
+            }
+            if (originalInput.dataset.placeElementReady === '1') {
+                return originalInput._placeAutocompleteElement || null;
+            }
+
+            await google.maps.importLibrary('places');
+            if (!google.maps.places || typeof google.maps.places.PlaceAutocompleteElement !== 'function') {
+                return null;
+            }
+
+            originalInput.dataset.placeElementReady = '1';
+            originalInput.type = 'hidden';
+
+            var host = document.createElement('div');
+            host.className = 'wo-runtime-place-autocomplete-host';
+            host.style.width = '100%';
+            originalInput.parentNode.insertBefore(host, originalInput);
+
+            var autocompleteElement = new google.maps.places.PlaceAutocompleteElement({});
+            autocompleteElement.placeholder = placeholderText || originalInput.getAttribute('placeholder') || '';
+            autocompleteElement.style.display = 'block';
+            autocompleteElement.style.width = '100%';
+            if (typeof autocompleteElement.value !== 'undefined') {
+                autocompleteElement.value = originalInput.value || '';
+            }
+            host.appendChild(autocompleteElement);
+
+            function syncValue(value) {
+                originalInput.value = value || '';
+            }
+
+            autocompleteElement.addEventListener('input', function() {
+                syncValue(autocompleteElement.value || '');
+            });
+
+            autocompleteElement.addEventListener('change', function() {
+                syncValue(autocompleteElement.value || '');
+            });
+
+            autocompleteElement.addEventListener('gmp-select', async function(event) {
+                var placePrediction = event.placePrediction || (event.detail && event.detail.placePrediction) || null;
+                if (!placePrediction || typeof placePrediction.toPlace !== 'function') {
+                    return;
+                }
+
+                var place = placePrediction.toPlace();
+                await place.fetchFields({
+                    fields: ['formattedAddress', 'displayName']
+                });
+                syncValue(place.formattedAddress || (place.displayName && place.displayName.text) || place.displayName || '');
+            });
+
+            originalInput._placeAutocompleteElement = autocompleteElement;
+            return autocompleteElement;
+        }
 
         $(function () {
-            if (pac_input) {
-                var autocomplete = new google.maps.places.Autocomplete(pac_input);
-            }
-            // var autocomplete = new google.maps.places.PlaceAutocompleteElement({ inputElement: pacInput });
+            Wo_InitPublisherPlaceAutocomplete('searchTextField', <?php echo json_encode($wo['lang']['maps_placeholder']); ?>);
         });
         <?php } ?>
         <?php if ($wo['config']['yandex_map'] == 1) { ?>
@@ -1538,7 +1568,6 @@ if (!empty($_GET['url'])) {
             $('.feeling-types').slideToggle(200);
         }
     }
-    var pac_input2 = document.getElementById('feelings-text');
     function Wo_ShowFeelingType(type, text, placeholder, icon) {
         $('.feeling-types').slideUp(200, function () {
             $('.feelings-type-to').html(text);
@@ -1547,13 +1576,6 @@ if (!empty($_GET['url'])) {
             if (type != 'feelings') {
                 $('#feelings-text').attr('readonly', false);
             }
-            <?php if ($wo['config']['google_map']) { ?>
-            if (type == 'traveling') {
-                var autocomplete = new google.maps.places.Autocomplete(pac_input2);
-            } else {
-                google.maps.event.clearInstanceListeners(pac_input2);
-            }
-            <?php } ?>
             $('.' + type).slideToggle(200);
         });
     }
@@ -1563,9 +1585,6 @@ if (!empty($_GET['url'])) {
         $('#feelings-text').attr('readonly', true);
         $('#feelings-text').attr('placeholder', decodeHtml("<?php echo $wo["lang"]["feel_d"]?>"));
         $('.feeling-type, .feelings-type').slideUp(200);
-        <?php if ($wo['config']['google_map']) { ?>
-        google.maps.event.clearInstanceListeners(pac_input2);
-        <?php } ?>
         Wo_ShowFeelings();
     }
 

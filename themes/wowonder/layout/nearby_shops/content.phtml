@@ -23,8 +23,7 @@
 	<?php endif; ?>
 	
 	<div class="wow_content">
-		<div id="map" class="wow_frnd_map"></div>
-		<hr>
+		<div id="map" class="wow_frnd_map wo_ui_map_state_loading"></div>
 		<div class="row">
 			<div class="col-md-6 wow_frnd_field">
 				<h4><?php echo $wo['lang']['location_dist'];?></h4>
@@ -84,6 +83,57 @@
    </div>
 </div>
 <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/leaflet.css?version=<?php echo $wo['config']['version']; ?>">
+<?php echo Wo_LoadPage('common_things/leaflet-muted-map-config'); ?>
+<style>
+#map {
+	position: relative;
+	margin-bottom: 22px;
+	overflow: hidden;
+	border: 1px solid #e5eaf1;
+	border-radius: 18px;
+	background: linear-gradient(135deg, #f7f4ed 0%, #f2f0ea 100%);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 10px 24px rgba(33, 37, 41, 0.06);
+}
+.wo_ui_map_state_loading::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.62) 50%, rgba(255,255,255,0) 100%);
+	transform: translateX(-100%);
+	animation: woNearbyMapShimmer 1.45s infinite;
+	z-index: 2;
+	pointer-events: none;
+}
+.wo_ui_map_state_loading::after {
+	content: "";
+	position: absolute;
+	left: 18px;
+	top: 18px;
+	width: 42px;
+	height: 8px;
+	z-index: 3;
+	border-radius: 999px;
+	background: rgba(132, 112, 67, 0.18);
+}
+#show_user_location_map .modal-body {
+	padding: 12px;
+}
+#show_user_location_map iframe,
+#show_user_location__map {
+	display: block;
+	width: 100%;
+	overflow: hidden;
+	border: 1px solid #e5eaf1;
+	border-radius: 18px;
+	background: linear-gradient(135deg, #f7f4ed 0%, #f2f0ea 100%);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.82);
+}
+@keyframes woNearbyMapShimmer {
+	100% {
+		transform: translateX(100%);
+	}
+}
+</style>
 <script>
 $('.wow_main_blogs_bg').css('height', ($('.wow_main_float_head').height()) + 'px');
 var planes = [];
@@ -107,11 +157,17 @@ $.getScript('<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?vers
 		<?php endforeach; ?>
 		map = L.map('map').setView([<?php echo $wo['user']['lat']?>, <?php echo $wo['user']['lng']?>], 7);
 
-		L.tileLayer(
-			'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		var tileConfig = window.WoLeafletMutedMapConfig || {};
+		var tileLayer = L.tileLayer(
+			tileConfig.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', $.extend({
 				attribution: '',
-				maxZoom: 18,
-			}).addTo(map);
+				maxZoom: 18
+			}, tileConfig.tileOptions || {})).addTo(map);
+		var clearNearbyMapLoading = function() {
+			$('#map').removeClass('wo_ui_map_state_loading');
+		};
+		tileLayer.once('load', clearNearbyMapLoading);
+		tileLayer.once('tileerror', clearNearbyMapLoading);
 
 		Wo_ResetNearbyShopMarkers(planes, true);
 	});
@@ -415,8 +471,8 @@ $.getScript('<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?vers
 	        					popupHtml += '<br>' + element.location;
 	        				}
 	        				var marker = new L.marker([markerInfo.lat, markerInfo.lng])
-							.bindPopup(popupHtml)
-							.addTo(map);
+	        					.bindPopup(popupHtml)
+	        					.addTo(map);
 							markersArray.push(marker);
 						});
 	        		});

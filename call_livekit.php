@@ -229,6 +229,14 @@ if ($livekitConfigured) {
         .lk-mute-indicator svg{width:20px;height:20px;fill:currentColor}
         .lk-hidden{display:none!important}
         .lk-video-ui,.lk-audio-ui,.lk-audio-sink,.lk-toast{display:none}
+        .lk-debug-panel{position:fixed;left:14px;top:14px;z-index:45;max-width:min(92vw,380px);padding:10px 12px;border-radius:12px;background:rgba(2,6,23,.84);border:1px solid rgba(148,163,184,.34);font-size:12px;line-height:1.5;color:#cbd5e1;backdrop-filter:blur(10px);display:none}
+        .lk-debug-panel.show{display:block}
+        .lk-debug-panel .row{display:flex;gap:8px;align-items:flex-start}
+        .lk-debug-panel .k{min-width:78px;color:#93c5fd;flex:0 0 auto}
+        .lk-debug-panel .v{word-break:break-word}
+        .lk-debug-actions{display:flex;justify-content:flex-end;margin-top:8px}
+        .lk-debug-copy-btn{border:1px solid rgba(148,163,184,.4);background:rgba(30,41,59,.8);color:#e2e8f0;border-radius:999px;padding:4px 10px;font-size:11px;cursor:pointer}
+        .lk-debug-copy-btn:active{transform:scale(.98)}
         body:not(.lk-audio-mode) .lk-video-ui{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:42px 24px calc(var(--toolbar-height) + 34px);z-index:12;pointer-events:none}
         .lk-video-top{display:flex;justify-content:center}
         .lk-video-meta{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;max-width:min(90vw,520px)}
@@ -275,13 +283,16 @@ if ($livekitConfigured) {
         .call-btn.muted{background:rgba(147,33,43,.95)}
         .call-btn.muted::after{content:"";position:absolute;width:40px;height:4px;border-radius:999px;background:#fff;transform:rotate(-45deg);box-shadow:0 0 0 2px rgba(0,0,0,.06)}
         .btn-hangup{background:var(--danger);box-shadow:0 18px 34px var(--danger-shadow)}
+        .btn-debug{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+        .btn-debug.active{background:rgba(34,197,94,.2);box-shadow:0 0 0 1px rgba(74,222,128,.35) inset,0 10px 26px rgba(21,128,61,.24)}
+        .btn-debug span{display:inline-block;line-height:1}
         .call-btn svg{width:34px;height:34px;fill:currentColor}
         #toolbar-more-wrap,#btn-more,.toolbar-popover{display:none}
         .toolbar-popover{position:absolute;left:50%;bottom:calc(100% + 12px);transform:translateX(-50%) translateY(10px);align-items:center;justify-content:center;gap:12px;padding:12px 14px;border-radius:30px;background:rgba(9,14,26,.94);border:1px solid rgba(148,163,184,.2);box-shadow:0 20px 40px rgba(0,0,0,.32);opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease}
         .toolbar-popover.is-open{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
         .lk-toast{position:fixed;left:50%;top:28px;transform:translateX(-50%);padding:12px 18px;border-radius:999px;background:rgba(8,11,18,.92);color:#fff;font-size:13px;box-shadow:0 16px 36px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.05);opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:40}
         .lk-toast.show{opacity:1;display:block}
-        @media (max-width:768px){:root{--toolbar-height:114px;--toolbar-gap:5px}.lk-video-ui{padding:24px 14px calc(var(--toolbar-height) + 26px)}.lk-video-name{font-size:clamp(30px,9vw,46px)}.lk-video-status{font-size:13px;letter-spacing:.18em}.lk-video-timer{min-width:96px;padding:14px 24px;font-size:18px}.lk-video-avatar-wrap{width:220px;height:220px}.lk-video-avatar-fallback{font-size:78px}.lk-self{top:22px;right:14px;width:132px;height:176px;border-radius:28px}.lk-audio-ui{padding:14px 14px 0}.lk-audio-avatar-wrap{width:210px;height:210px}.lk-audio-name{font-size:clamp(34px,9vw,52px)}#custom-toolbar{width:auto;max-width:calc(100% - 12px);justify-content:center;gap:var(--toolbar-gap);padding:8px 10px;background:rgba(9,14,26,.78);border:1px solid rgba(148,163,184,.14);box-shadow:0 18px 34px rgba(0,0,0,.3);backdrop-filter:blur(18px);border-radius:999px;bottom:max(10px,env(safe-area-inset-bottom))}.call-btn{flex:0 0 clamp(74px,22vw,90px);width:clamp(74px,22vw,90px);height:clamp(74px,22vw,90px);min-width:clamp(74px,22vw,90px);min-height:clamp(74px,22vw,90px)}.call-btn svg{width:32px;height:32px}#toolbar-more-wrap{position:relative;display:flex;align-items:center;justify-content:center}#btn-more{display:inline-flex}#btn-cam,#btn-flip-cam{display:none}.toolbar-popover{display:flex;bottom:calc(100% + 10px)}.toolbar-popover .call-btn{flex:0 0 78px;width:78px;height:78px;min-width:78px;min-height:78px}}
+        @media (max-width:768px){:root{--toolbar-height:114px;--toolbar-gap:5px}.lk-video-ui{padding:24px 14px calc(var(--toolbar-height) + 26px)}.lk-video-name{font-size:clamp(30px,9vw,46px)}.lk-video-status{font-size:13px;letter-spacing:.18em}.lk-video-timer{min-width:96px;padding:14px 24px;font-size:18px}.lk-video-avatar-wrap{width:220px;height:220px}.lk-video-avatar-fallback{font-size:78px}.lk-self{top:22px;right:14px;width:132px;height:176px;border-radius:28px}.lk-audio-ui{padding:14px 14px 0}.lk-audio-avatar-wrap{width:210px;height:210px}.lk-audio-name{font-size:clamp(34px,9vw,52px)}#custom-toolbar{width:auto;max-width:calc(100% - 12px);justify-content:center;gap:var(--toolbar-gap);padding:8px 10px;background:rgba(9,14,26,.78);border:1px solid rgba(148,163,184,.14);box-shadow:0 18px 34px rgba(0,0,0,.3);backdrop-filter:blur(18px);border-radius:999px;bottom:max(10px,env(safe-area-inset-bottom))}.call-btn{flex:0 0 clamp(74px,22vw,90px);width:clamp(74px,22vw,90px);height:clamp(74px,22vw,90px);min-width:clamp(74px,22vw,90px);min-height:clamp(74px,22vw,90px)}.call-btn svg{width:32px;height:32px}.btn-debug{font-size:12px;letter-spacing:.06em}#toolbar-more-wrap{position:relative;display:flex;align-items:center;justify-content:center}#btn-more{display:inline-flex}#btn-cam,#btn-flip-cam{display:none}.toolbar-popover{display:flex;bottom:calc(100% + 10px)}.toolbar-popover .call-btn{flex:0 0 78px;width:78px;height:78px;min-width:78px;min-height:78px}}
     </style>
 </head>
 <body>
@@ -342,10 +353,12 @@ if ($livekitConfigured) {
         <?php if ($isAudioCall) { ?>
         <button class="call-btn" id="btn-mic" title="Tat/Bat mic"><svg viewBox="0 0 24 24"><path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/></svg></button>
         <button class="call-btn" id="btn-speaker" title="Loa ngoai"><svg viewBox="0 0 24 24"><path d="M14,3.23V20.77C14,21.55 13.16,22.03 12.5,21.65L7,18H3C1.9,18 1,17.1 1,16V8C1,6.9 1.9,6 3,6H7L12.5,2.35C13.16,1.97 14,2.45 14,3.23M16.5,12C16.5,10.23 15.73,8.63 14.5,7.53V16.46C15.73,15.37 16.5,13.76 16.5,12M14.5,3.97V6.18C17.39,7.04 19.5,9.71 19.5,12.5C19.5,15.29 17.39,17.96 14.5,18.82V21.03C18.5,20.13 21.5,16.63 21.5,12.5C21.5,8.37 18.5,4.87 14.5,3.97Z"/></svg></button>
+        <button class="call-btn btn-debug" id="btn-debug" title="Bat/Tat debug log"><span>OFF</span></button>
         <button class="call-btn btn-hangup" id="btn-hangup" title="Cup may"><svg viewBox="0 0 24 24"><path d="M12,9C10.4,9 8.85,9.25 7.4,9.72V12.82C7.4,13.22 7.17,13.56 6.84,13.72C5.86,14.21 4.97,14.84 4.18,15.57C4,15.75 3.75,15.86 3.5,15.86C3.2,15.86 2.95,15.74 2.77,15.56L0.29,13.08C0.11,12.9 0,12.65 0,12.38C0,12.1 0.11,11.85 0.29,11.67C3.34,8.77 7.46,7 12,7C16.54,7 20.66,8.77 23.71,11.67C23.89,11.85 24,12.1 24,12.38C24,12.65 23.89,12.9 23.71,13.08L21.23,15.56C21.05,15.74 20.8,15.86 20.5,15.86C20.25,15.86 20,15.75 19.82,15.57C19.03,14.84 18.14,14.21 17.16,13.72C16.83,13.56 16.6,13.22 16.6,12.82V9.72C15.15,9.25 13.6,9 12,9Z"/></svg></button>
         <?php } else { ?>
         <button class="call-btn" id="btn-mic" title="Tat/Bat mic"><svg viewBox="0 0 24 24"><path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/></svg></button>
         <button class="call-btn" id="btn-speaker" title="Loa ngoai"><svg viewBox="0 0 24 24"><path d="M14,3.23V20.77C14,21.55 13.16,22.03 12.5,21.65L7,18H3C1.9,18 1,17.1 1,16V8C1,6.9 1.9,6 3,6H7L12.5,2.35C13.16,1.97 14,2.45 14,3.23M16.5,12C16.5,10.23 15.73,8.63 14.5,7.53V16.46C15.73,15.37 16.5,13.76 16.5,12M14.5,3.97V6.18C17.39,7.04 19.5,9.71 19.5,12.5C19.5,15.29 17.39,17.96 14.5,18.82V21.03C18.5,20.13 21.5,16.63 21.5,12.5C21.5,8.37 18.5,4.87 14.5,3.97Z"/></svg></button>
+        <button class="call-btn btn-debug" id="btn-debug" title="Bat/Tat debug log"><span>OFF</span></button>
         <div id="toolbar-more-wrap">
             <button class="call-btn" id="btn-more" title="Tuy chon"><svg viewBox="0 0 24 24"><path d="M6,10A2,2 0 1,1 4,12A2,2 0 0,1 6,10M12,10A2,2 0 1,1 10,12A2,2 0 0,1 12,10M18,10A2,2 0 1,1 16,12A2,2 0 0,1 18,10Z"/></svg></button>
             <div class="toolbar-popover" id="toolbar-popover">
@@ -359,6 +372,7 @@ if ($livekitConfigured) {
         <?php } ?>
     </div>
     <div id="lk-toast" class="lk-toast"></div>
+    <div id="lk-debug-panel" class="lk-debug-panel"></div>
     <script>
         const redirectUrl = <?php echo json_encode($redirectTarget); ?>;
         const isAudioCall = <?php echo json_encode($isAudioCall); ?>;
@@ -405,7 +419,9 @@ if ($livekitConfigured) {
         const btnCamMenu = document.getElementById('btn-cam-menu');
         const btnFlipCam = document.getElementById('btn-flip-cam');
         const btnFlipCamMenu = document.getElementById('btn-flip-cam-menu');
+        const btnDebug = document.getElementById('btn-debug');
         const btnHangup = document.getElementById('btn-hangup');
+        const debugPanel = document.getElementById('lk-debug-panel');
         const clientPageLoadedAt = Date.now();
         const hasServerCallStart = (parseInt(callStartedAt || 0, 10) > 0 && parseInt(serverNowAtRender || 0, 10) >= parseInt(callStartedAt || 0, 10));
         const syncedElapsedAtLoad = hasServerCallStart ? Math.max(0, parseInt(initialElapsedSeconds || 0, 10)) : 0;
@@ -427,8 +443,218 @@ if ($livekitConfigured) {
         let isPageUnloading = false;
         let manualHangupRequested = false;
         let selfPreviewDragState = null;
+        let lastSubscriptionError = '';
+        let lastDebugSnapshot = '';
+        const debugCallStorageKey = 'wo_livekit_debug_enabled';
+        let debugCallEnabled = /(?:^|[?&])debug_call=1(?:&|$)/.test(window.location.search) || window.localStorage.getItem(debugCallStorageKey) === '1';
         const camButtons = [btnCam, btnCamMenu].filter(Boolean);
         const flipCamButtons = [btnFlipCam, btnFlipCamMenu].filter(Boolean);
+
+        function logCallDebug(label, details) {
+            if (!debugCallEnabled || !window.console || typeof window.console.log !== 'function') {
+                return;
+            }
+            var prefix = '[LiveKitDebug] ' + label;
+            if (typeof details === 'undefined') {
+                window.console.log(prefix);
+                return;
+            }
+            window.console.log(prefix, details);
+            updateDebugPanel();
+        }
+
+        function getConnectionStateLabel() {
+            if (!room) {
+                return 'not_started';
+            }
+            if (typeof room.state !== 'undefined' && room.state !== null) {
+                return String(room.state);
+            }
+            return room.isConnected ? 'connected' : 'disconnected';
+        }
+
+        function getPublicationStats(participant) {
+            const stats = {audio: 0, video: 0};
+            if (!participant || !participant.trackPublications) {
+                return stats;
+            }
+            participant.trackPublications.forEach(function (publication) {
+                if (!publication) {
+                    return;
+                }
+                if (isAudioPublication(publication)) {
+                    stats.audio += 1;
+                    return;
+                }
+                if (publication.kind === 'video') {
+                    stats.video += 1;
+                }
+            });
+            return stats;
+        }
+
+        function setDebugPanelVisibility() {
+            if (!debugPanel) {
+                return;
+            }
+            debugPanel.classList.toggle('show', !!debugCallEnabled);
+        }
+
+        function getDebugSnapshotRows() {
+            const localStats = getPublicationStats(room && room.localParticipant ? room.localParticipant : null);
+            let remoteCount = 0;
+            let remoteAudio = 0;
+            let remoteVideo = 0;
+            if (room && room.remoteParticipants) {
+                room.remoteParticipants.forEach(function (participant) {
+                    remoteCount += 1;
+                    const stats = getPublicationStats(participant);
+                    remoteAudio += stats.audio;
+                    remoteVideo += stats.video;
+                });
+            }
+            return [
+                ['time', new Date().toISOString()],
+                ['url', window.location.href],
+                ['state', getConnectionStateLabel()],
+                ['room', room ? 'joined' : 'init'],
+                ['remote', String(remoteCount)],
+                ['local pub', 'audio:' + localStats.audio + ' video:' + localStats.video],
+                ['remote pub', 'audio:' + remoteAudio + ' video:' + remoteVideo],
+                ['last sub err', lastSubscriptionError || 'none']
+            ];
+        }
+
+        function formatDebugSnapshot(rows) {
+            return rows.map(function (item) {
+                return item[0] + ': ' + item[1];
+            }).join('\n');
+        }
+
+        async function copyDebugSnapshot() {
+            const text = lastDebugSnapshot || formatDebugSnapshot(getDebugSnapshotRows());
+            try {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(text);
+                    showToast('Da copy debug');
+                    return;
+                }
+            } catch (err) {}
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', 'readonly');
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('Da copy debug');
+            } catch (err2) {
+                showToast('Khong copy duoc debug tren trinh duyet nay.');
+            }
+        }
+
+        function updateDebugPanel() {
+            if (!debugPanel) {
+                return;
+            }
+            if (!debugCallEnabled) {
+                debugPanel.textContent = '';
+                return;
+            }
+            const rows = getDebugSnapshotRows();
+            lastDebugSnapshot = formatDebugSnapshot(rows);
+            debugPanel.innerHTML = rows.map(function (item) {
+                return '<div class="row"><span class="k">' + item[0] + '</span><span class="v">' + item[1] + '</span></div>';
+            }).join('') + '<div class="lk-debug-actions"><button id="lk-debug-copy" class="lk-debug-copy-btn" type="button">Copy debug</button></div>';
+            const copyBtn = document.getElementById('lk-debug-copy');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', function () {
+                    copyDebugSnapshot();
+                });
+            }
+        }
+
+        function describeTrack(track) {
+            if (!track) {
+                return null;
+            }
+            return {
+                sid: track.sid || '',
+                kind: track.kind || '',
+                source: track.source || '',
+                muted: !!track.isMuted,
+                enabled: typeof track.isEnabled === 'function' ? !!track.isEnabled() : null,
+                streamState: track.streamState || ''
+            };
+        }
+
+        function describePublication(publication) {
+            if (!publication) {
+                return null;
+            }
+            return {
+                sid: publication.trackSid || publication.sid || '',
+                kind: publication.kind || '',
+                source: publication.source || '',
+                trackName: publication.trackName || '',
+                subscribed: typeof publication.isSubscribed === 'boolean' ? publication.isSubscribed : null,
+                muted: typeof publication.isMuted === 'boolean' ? publication.isMuted : null,
+                track: describeTrack(publication.track || null)
+            };
+        }
+
+        function describeParticipant(participant) {
+            if (!participant) {
+                return null;
+            }
+            return {
+                identity: participant.identity || '',
+                sid: participant.sid || '',
+                isLocal: participant === (room && room.localParticipant),
+                trackCount: participant.trackPublications ? participant.trackPublications.size : 0
+            };
+        }
+
+        function logParticipantPublications(participant, label) {
+            if (!debugCallEnabled || !participant || !participant.trackPublications) {
+                return;
+            }
+            var publications = [];
+            participant.trackPublications.forEach(function (publication) {
+                publications.push(describePublication(publication));
+            });
+            logCallDebug(label || 'participant-publications', {
+                participant: describeParticipant(participant),
+                publications: publications
+            });
+        }
+
+        function syncDebugButtonState() {
+            if (!btnDebug) {
+                return;
+            }
+            btnDebug.classList.toggle('active', !!debugCallEnabled);
+            btnDebug.setAttribute('aria-pressed', debugCallEnabled ? 'true' : 'false');
+            btnDebug.setAttribute('title', debugCallEnabled ? 'Debug dang bat' : 'Debug dang tat');
+            btnDebug.innerHTML = '<span>' + (debugCallEnabled ? 'ON' : 'OFF') + '</span>';
+        }
+
+        function setDebugEnabled(enabled, silent) {
+            debugCallEnabled = !!enabled;
+            try {
+                window.localStorage.setItem(debugCallStorageKey, debugCallEnabled ? '1' : '0');
+            } catch (storageError) {}
+            syncDebugButtonState();
+            setDebugPanelVisibility();
+            updateDebugPanel();
+            if (!silent) {
+                showToast(debugCallEnabled ? 'Debug ON' : 'Debug OFF');
+            }
+            logCallDebug('debug-toggle', { enabled: debugCallEnabled });
+        }
 
         function setMenuOpen(isOpen) {
             if (!btnMore || !toolbarPopover) {
@@ -889,6 +1115,14 @@ if ($livekitConfigured) {
             }, 2200);
         }
 
+        syncDebugButtonState();
+        setDebugPanelVisibility();
+        if (btnDebug) {
+            btnDebug.addEventListener('click', function () {
+                setDebugEnabled(!debugCallEnabled, false);
+            });
+        }
+
         function getAttachedAudioElements() {
             return Array.prototype.slice.call(document.querySelectorAll('#lk-audio-sink audio, .lk-tile audio'));
         }
@@ -1109,19 +1343,50 @@ if ($livekitConfigured) {
                 return;
             }
             room = new LivekitClient.Room({adaptiveStream:true,dynacast:true});
-            room.on(LivekitClient.RoomEvent.TrackSubscribed, function (track, publication, participant) { attachTrack(track, participant, false); });
-            room.on(LivekitClient.RoomEvent.TrackUnsubscribed, function (track) { detachTrack(track); });
+            logCallDebug('room-created', {
+                wsUrl: wsUrl,
+                isAudioCall: !!isAudioCall,
+                currentFacingMode: currentFacingMode
+            });
+            room.on(LivekitClient.RoomEvent.TrackSubscribed, function (track, publication, participant) {
+                logCallDebug('track-subscribed', {
+                    participant: describeParticipant(participant),
+                    publication: describePublication(publication),
+                    track: describeTrack(track)
+                });
+                attachTrack(track, participant, false);
+                updateDebugPanel();
+            });
+            room.on(LivekitClient.RoomEvent.TrackUnsubscribed, function (track, publication, participant) {
+                logCallDebug('track-unsubscribed', {
+                    participant: describeParticipant(participant),
+                    publication: describePublication(publication),
+                    track: describeTrack(track)
+                });
+                detachTrack(track);
+                updateDebugPanel();
+            });
             room.on(LivekitClient.RoomEvent.TrackMuted, function (publication, participant) {
+                logCallDebug('track-muted', {
+                    participant: describeParticipant(participant),
+                    publication: describePublication(publication)
+                });
                 if (isAudioPublication(publication)) {
                     updateParticipantMuteIndicator(participant, participant === room.localParticipant);
                 }
             });
             room.on(LivekitClient.RoomEvent.TrackUnmuted, function (publication, participant) {
+                logCallDebug('track-unmuted', {
+                    participant: describeParticipant(participant),
+                    publication: describePublication(publication)
+                });
                 if (isAudioPublication(publication)) {
                     updateParticipantMuteIndicator(participant, participant === room.localParticipant);
                 }
             });
             room.on(LivekitClient.RoomEvent.ParticipantConnected, function (participant) {
+                logCallDebug('participant-connected', describeParticipant(participant));
+                logParticipantPublications(participant, 'participant-connected-publications');
                 clearRemoteDisconnectTimer();
                 remoteParticipantSeen = true;
                 if (isAudioCall && audioStatus) {
@@ -1132,22 +1397,72 @@ if ($livekitConfigured) {
                 }
                 setAudioHeroParticipant(participant, false);
                 updateParticipantMuteIndicator(participant, false);
+                updateDebugPanel();
             });
             room.on(LivekitClient.RoomEvent.LocalTrackPublished, function (publication, participant) {
+                logCallDebug('local-track-published', {
+                    participant: describeParticipant(participant || room.localParticipant),
+                    publication: describePublication(publication)
+                });
                 if (publication.track) attachTrack(publication.track, participant || room.localParticipant, true);
                 updateParticipantMuteIndicator(participant || room.localParticipant, true);
+                updateDebugPanel();
             });
-            room.on(LivekitClient.RoomEvent.LocalTrackUnpublished, function (publication) {
+            room.on(LivekitClient.RoomEvent.LocalTrackUnpublished, function (publication, participant) {
+                logCallDebug('local-track-unpublished', {
+                    participant: describeParticipant(participant || room.localParticipant),
+                    publication: describePublication(publication)
+                });
                 if (publication.track) detachTrack(publication.track);
+                updateDebugPanel();
             });
-            room.on(LivekitClient.RoomEvent.ParticipantDisconnected, function () {
+            room.on(LivekitClient.RoomEvent.ParticipantDisconnected, function (participant) {
+                logCallDebug('participant-disconnected', describeParticipant(participant));
                 setAudioHeroMuteState(false, '');
                 setVideoHeroMuteState(false, '');
                 if (conferenceJoinedAt > 0 && room && room.remoteParticipants && room.remoteParticipants.size === 0) {
                     scheduleRemoteDisconnectCheck();
                 }
+                updateDebugPanel();
             });
-            room.on(LivekitClient.RoomEvent.Disconnected, function () {
+            if (LivekitClient.RoomEvent.TrackSubscriptionFailed) {
+                room.on(LivekitClient.RoomEvent.TrackSubscriptionFailed, function (trackSid, participant, error) {
+                    lastSubscriptionError = (error && error.message ? error.message : String(error || 'unknown')) + ' (sid:' + (trackSid || '-') + ')';
+                    logCallDebug('track-subscription-failed', {
+                        trackSid: trackSid || '',
+                        participant: describeParticipant(participant),
+                        error: error && error.message ? error.message : error
+                    });
+                    updateDebugPanel();
+                });
+            }
+            if (LivekitClient.RoomEvent.TrackPublished) {
+                room.on(LivekitClient.RoomEvent.TrackPublished, function (publication, participant) {
+                    logCallDebug('track-published', {
+                        participant: describeParticipant(participant),
+                        publication: describePublication(publication)
+                    });
+                });
+            }
+            if (LivekitClient.RoomEvent.TrackStreamStateChanged) {
+                room.on(LivekitClient.RoomEvent.TrackStreamStateChanged, function (publication, streamState, participant) {
+                    logCallDebug('track-stream-state-changed', {
+                        participant: describeParticipant(participant),
+                        publication: describePublication(publication),
+                        streamState: streamState || ''
+                    });
+                });
+            }
+            if (LivekitClient.RoomEvent.ConnectionQualityChanged) {
+                room.on(LivekitClient.RoomEvent.ConnectionQualityChanged, function (quality, participant) {
+                    logCallDebug('connection-quality-changed', {
+                        participant: describeParticipant(participant),
+                        quality: quality
+                    });
+                });
+            }
+            room.on(LivekitClient.RoomEvent.Disconnected, function (reason) {
+                logCallDebug('room-disconnected', { reason: reason || '' });
                 clearRemoteDisconnectTimer();
                 if (manualHangupRequested || isPageUnloading) {
                     redirectAfterCallEnd((conferenceJoinedAt > 0 ? 'ended' : 'no_answer'), 0);
@@ -1155,38 +1470,68 @@ if ($livekitConfigured) {
                 }
                 if (conferenceJoinedAt > 0) {
                     showToast('Ket noi cuoc goi bi gian doan.');
+                    updateDebugPanel();
                     return;
                 }
                 redirectAfterCallEnd('no_answer', 0);
             });
-            room.on(LivekitClient.RoomEvent.Reconnecting, function () { btnHangup.disabled = true; });
-            room.on(LivekitClient.RoomEvent.Reconnected, function () { btnHangup.disabled = false; });
+            room.on(LivekitClient.RoomEvent.Reconnecting, function () {
+                logCallDebug('room-reconnecting');
+                btnHangup.disabled = true;
+                updateDebugPanel();
+            });
+            room.on(LivekitClient.RoomEvent.Reconnected, function () {
+                logCallDebug('room-reconnected');
+                btnHangup.disabled = false;
+                updateDebugPanel();
+            });
             try {
                 await waitForSynchronizedJoin();
                 syncPopupState({status: 'connecting'});
+                logCallDebug('room-connect-start', {
+                    tokenPresent: !!token,
+                    waitSynced: true
+                });
                 await room.connect(wsUrl, token);
+                logCallDebug('room-connect-success', {
+                    localParticipant: describeParticipant(room.localParticipant),
+                    remoteParticipantCount: room.remoteParticipants ? room.remoteParticipants.size : 0
+                });
                 setConferenceJoinedAt();
+                lastSubscriptionError = '';
                 startCallTimer();
                 startPresenceHeartbeat();
                 startTimerSync();
                 setAudioHeroParticipant(room.localParticipant, true);
                 await room.localParticipant.setMicrophoneEnabled(true);
+                logParticipantPublications(room.localParticipant, 'after-microphone-enabled');
                 await room.localParticipant.setCameraEnabled(!isAudioCall);
+                logCallDebug('after-set-camera-enabled', {
+                    requestedCameraEnabled: !isAudioCall,
+                    cameraEnabled: cameraEnabled
+                });
+                logParticipantPublications(room.localParticipant, 'after-camera-enabled');
                 room.localParticipant.trackPublications.forEach(function (publication) {
                     if (publication.track) attachTrack(publication.track, room.localParticipant, true);
                 });
                 updateParticipantMuteIndicator(room.localParticipant, true);
                 room.remoteParticipants.forEach(function (participant) {
+                    logParticipantPublications(participant, 'initial-remote-publications');
                     participant.trackPublications.forEach(function (publication) {
                         if (publication.track) attachTrack(publication.track, participant, false);
                     });
                     updateParticipantMuteIndicator(participant, false);
                 });
+                updateDebugPanel();
                 if (!room.remoteParticipants.size && isAudioCall) {
                     audioStatus.textContent = 'Dang cho nguoi kia tham gia';
                 }
             } catch (error) {
+                logCallDebug('room-connect-error', {
+                    message: (error && error.message) ? error.message : error
+                });
                 setError((error && error.message) ? error.message : 'can not connect LiveKit.');
+                updateDebugPanel();
             }
         }
 

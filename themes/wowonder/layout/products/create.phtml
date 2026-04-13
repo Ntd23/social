@@ -1,15 +1,55 @@
+<style>
+	.pac-container {
+		z-index: 200000 !important;
+	}
+
+	.wo_place_autocomplete_host {
+		width: 100%;
+	}
+
+	.wo_place_autocomplete_host gmp-place-autocomplete {
+		display: block;
+		width: 100%;
+		color-scheme: inherit;
+	}
+
+	.wo_place_autocomplete_host .wo_product_location_inline_input {
+		width: 100%;
+	}
+</style>
+
 <div class="modal fade" id="create-product-modal" role="dialog">
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="wow_pops_head">
-				<svg height="100px" preserveAspectRatio="none" version="1.1" viewBox="0 0 300 100" width="300px" xmlns="http://www.w3.org/2000/svg"><path d="M30.913,43.944c0,0,42.911-34.464,87.51-14.191c77.31,35.14,113.304-1.952,146.638-4.729 c48.654-4.056,69.94,16.218,69.94,16.218v54.396H30.913V43.944z" fill="currentColor" opacity="0.6"></path> <path d="M-35.667,44.628c0,0,42.91-34.463,87.51-14.191c77.31,35.141,113.304-1.952,146.639-4.729 c48.653-4.055,69.939,16.218,69.939,16.218v54.396H-35.667V44.628z" fill="currentColor" opacity="0.6"></path> <path d="M-34.667,62.998c0,0,56-45.667,120.316-27.839C167.484,57.842,197,41.332,232.286,30.428 c53.07-16.399,104.047,36.903,104.047,36.903l1.333,36.667l-372-2.954L-34.667,62.998z" fill="currentColor"></path></svg>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"></path></svg></button>
-				<h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12,13A5,5 0 0,1 7,8H9A3,3 0 0,0 12,11A3,3 0 0,0 15,8H17A5,5 0 0,1 12,13M12,3A3,3 0 0,1 15,6H9A3,3 0 0,1 12,3M19,6H17A5,5 0 0,0 12,1A5,5 0 0,0 7,6H5C3.89,6 3,6.89 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8C21,6.89 20.1,6 19,6Z"></path></svg> <?php echo $wo['lang']['sell_new_product'] ?></h4>
+				<svg height="100px" preserveAspectRatio="none" version="1.1" viewBox="0 0 300 100" width="300px"
+					xmlns="http://www.w3.org/2000/svg">
+					<path
+						d="M30.913,43.944c0,0,42.911-34.464,87.51-14.191c77.31,35.14,113.304-1.952,146.638-4.729 c48.654-4.056,69.94,16.218,69.94,16.218v54.396H30.913V43.944z"
+						fill="currentColor" opacity="0.6"></path>
+					<path
+						d="M-35.667,44.628c0,0,42.91-34.463,87.51-14.191c77.31,35.141,113.304-1.952,146.639-4.729 c48.653-4.055,69.939,16.218,69.939,16.218v54.396H-35.667V44.628z"
+						fill="currentColor" opacity="0.6"></path>
+					<path
+						d="M-34.667,62.998c0,0,56-45.667,120.316-27.839C167.484,57.842,197,41.332,232.286,30.428 c53.07-16.399,104.047,36.903,104.047,36.903l1.333,36.667l-372-2.954L-34.667,62.998z"
+						fill="currentColor"></path>
+				</svg>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><svg
+						xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+						<path fill="currentColor"
+							d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z">
+						</path>
+					</svg></button>
+				<h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+						<path fill="currentColor"
+							d="M12,13A5,5 0 0,1 7,8H9A3,3 0 0,0 12,11A3,3 0 0,0 15,8H17A5,5 0 0,1 12,13M12,3A3,3 0 0,1 15,6H9A3,3 0 0,1 12,3M19,6H17A5,5 0 0,0 12,1A5,5 0 0,0 7,6H5C3.89,6 3,6.89 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8C21,6.89 20.1,6 19,6Z">
+						</path>
+					</svg> <?php echo $wo['lang']['sell_new_product'] ?></h4>
 			</div>
 			<form class="create-album-form form-horizontal" method="post">
 				<div class="modal-body">
 					<div class="app-general-alert setting-update-alert"></div>
-					
+
 					<div class="row">
 						<div class="col-md-8">
 							<div class="wow_form_fields">
@@ -26,41 +66,46 @@
 					</div>
 					<div class="wow_form_fields">
 						<label for="description"><?php echo $wo['lang']['description'] ?></label>
-						<textarea name="description" rows="3" id="description" placeholder="<?php echo $wo['lang']['please_describe_your_product'] ?>"></textarea>
+						<textarea name="description" rows="3" id="description"
+							placeholder="<?php echo $wo['lang']['please_describe_your_product'] ?>"></textarea>
 					</div>
 					<div class="row">
 						<div class="col-md-8">
 							<div class="wow_form_fields">
 								<label for="category"><?php echo $wo['lang']['category'] ?></label>
 								<select name="category" id="category" onchange="GetProductSubCategory(this)">
-									<?php 
-										foreach ($wo['products_categories'] as $key => $category) {
-											if ($key > 1) {
-									?>
-										<option value="<?php echo $key;?>"><?php echo $category;?></option>
-									<?php } ?>
-									<?php if ($key == count($wo['products_categories']) && !empty($wo['products_categories'][1]) ) { ?>
-										<option value="1"><?php echo $wo['products_categories'][1];?></option>
-									<?php } ?>
+									<?php
+									foreach ($wo['products_categories'] as $key => $category) {
+										if ($key > 1) {
+											?>
+											<option value="<?php echo $key; ?>"><?php echo $category; ?></option>
+										<?php } ?>
+										<?php if ($key == count($wo['products_categories']) && !empty($wo['products_categories'][1])) { ?>
+											<option value="1"><?php echo $wo['products_categories'][1]; ?></option>
+										<?php } ?>
 									<?php } ?>
 								</select>
 							</div>
 						</div>
 						<?php if (!empty($wo['products_sub_categories'])) { ?>
-						<div class="col-md-8 product_sub_category_class" style="<?php echo((empty($wo['products_sub_categories'][array_keys($wo['products_categories'])[0]])) ? 'display: none;' : '') ?>">
-							<div class="wow_form_fields">
-								<label for="product_sub_category"><?php echo $wo['lang']['sub_category'] ?></label>
-								<select name="product_sub_category" id="product_sub_category">
-									<?php
+							<div class="col-md-8 product_sub_category_class"
+								style="<?php echo ((empty($wo['products_sub_categories'][array_keys($wo['products_categories'])[0]])) ? 'display: none;' : '') ?>">
+								<div class="wow_form_fields">
+									<label for="product_sub_category"><?php echo $wo['lang']['sub_category'] ?></label>
+									<select name="product_sub_category" id="product_sub_category">
+										<?php
 										unset($wo['products_categories'][1]);
 										if (!empty($wo['products_sub_categories'][array_keys($wo['products_categories'])[0]])) {
-										foreach ($wo['products_sub_categories'][array_keys($wo['products_categories'])[0]] as $id => $sub_category) { ?>
-											<option value="<?php echo $sub_category['id']?>"><?php echo $sub_category['lang']; ?></option>
-										<?php } } ?>
-								</select>
+											foreach ($wo['products_sub_categories'][array_keys($wo['products_categories'])[0]] as $id => $sub_category) { ?>
+												<option value="<?php echo $sub_category['id'] ?>">
+													<?php echo $sub_category['lang']; ?>
+												</option>
+											<?php }
+										} ?>
+									</select>
+								</div>
 							</div>
-						</div>
-					    <?php } ?>
+						<?php } ?>
 						<div class="col-md-4">
 							<div class="wow_form_fields">
 								<label for="type"><?php echo $wo['lang']['type']; ?></label>
@@ -76,10 +121,18 @@
 						<div class="col-md-8">
 							<div class="wow_form_fields">
 								<label for="location"><?php echo $wo['lang']['location'] ?></label>
-								<input id="location" name="location" type="text" value="<?php echo ($has_page_fixed_location ? htmlspecialchars($wo['page_profile']['address']) : ''); ?>" <?php echo ($has_page_fixed_location ? 'readonly' : ''); ?>>
+								<?php if ($has_page_fixed_location) { ?>
+									<input id="location" name="location" type="text"
+										value="<?php echo htmlspecialchars($wo['page_profile']['address']); ?>"
+										autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+										readonly>
+								<?php } else { ?>
+									<div id="location-autocomplete-host" class="wo_place_autocomplete_host"></div>
+									<input id="location" name="location" type="hidden" value="">
+								<?php } ?>
 							</div>
 							<?php if (!$has_page_fixed_location) { ?>
-							<div class="product_location_suggestions yandex_search_product"></div>
+								<div class="product_location_suggestions yandex_search_product"></div>
 							<?php } ?>
 						</div>
 						<div class="col-md-4">
@@ -87,36 +140,42 @@
 								<label for="currency"><?php echo $wo['lang']['currency']; ?></label>
 								<select name="currency" id="currency">
 									<?php foreach ($wo['currencies'] as $key => $currency) { ?>
-										<option value="<?php echo $key; ?>"><?php echo  $currency['text'] ?> (<?php echo  $currency['symbol'] ?>)</option>
+										<option value="<?php echo $key; ?>"><?php echo $currency['text'] ?>
+											(<?php echo $currency['symbol'] ?>)</option>
 									<?php } ?>
 								</select>
 							</div>
 						</div>
 					</div>
 					<?php if ($wo['config']['store_system'] == 'on') { ?>
-					<div class="row">
-						<div class="col-md-8">
-							<div class="wow_form_fields">
-								<label for="units"><?php echo $wo['lang']['total_item'] ?></label>
-								<input id="units" name="units" type="number" value="">
+						<div class="row">
+							<div class="col-md-8">
+								<div class="wow_form_fields">
+									<label for="units"><?php echo $wo['lang']['total_item'] ?></label>
+									<input id="units" name="units" type="number" value="">
+								</div>
 							</div>
 						</div>
-					</div>
 					<?php } ?>
-					<?php $fields = Wo_GetCustomFields('product'); 
-						if (!empty($fields)) {
-							foreach ($fields as $key => $wo['field']) {
-								echo Wo_LoadPage('products/fields');
-							}
+					<?php $fields = Wo_GetCustomFields('product');
+					if (!empty($fields)) {
+						foreach ($fields as $key => $wo['field']) {
+							echo Wo_LoadPage('products/fields');
 						}
+					}
 					?>
 					<div class="wow_form_fields mb-0">
 						<label for="photos"><?php echo $wo['lang']['photos']; ?></label>
 					</div>
 					<div class="wow_prod_imgs">
-						<div class="upload-product-image" onclick="document.getElementById('product-photos').click(); return false">
+						<div class="upload-product-image"
+							onclick="document.getElementById('product-photos').click(); return false">
 							<div class="upload-image-content">
-								<svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" /></svg>
+								<svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24"
+									viewBox="0 0 24 24">
+									<path fill="currentColor"
+										d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
+								</svg>
 							</div>
 						</div>
 						<div id="productimage-holder"></div>
@@ -124,24 +183,30 @@
 
 					<div class="publisher-hidden-option">
 						<div id="progress" class="create-product-progress">
-							<span id="percent" class="create-product-percent <?php echo Wo_RightToLeft('pull-right');?>">0%</span>
+							<span id="percent"
+								class="create-product-percent <?php echo Wo_RightToLeft('pull-right'); ?>">0%</span>
 							<div class="progress">
-								<div id="bar" class="progress-bar active create-product-bar"></div> 
+								<div id="bar" class="progress-bar active create-product-bar"></div>
 							</div>
 							<div class="clear"></div>
 						</div>
 					</div>
 					<div class="hidden">
-						<input type="file" id="product-photos" accept="image/x-png, image/gif, image/jpeg" name="postPhotos[]" multiple="multiple">
+						<input type="file" id="product-photos" accept="image/x-png, image/gif, image/jpeg"
+							name="postPhotos[]" multiple="multiple">
 					</div>
 					<input type="hidden" name="id" class="form-control input-md" value="">
-					<input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+					<input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession(); ?>">
 					<input type="hidden" name="lat-product" id="lat-product" class="form-control input-md" value="">
 					<input type="hidden" name="lng-product" id="lng-product" class="form-control input-md" value="">
-					<input type="hidden" name="page_id" id="page_id_product" class="form-control input-md" value="<?php echo(!empty($wo['page_profile']) && !empty($wo['page_profile']['page_id']) ? $wo['page_profile']['page_id'] : 0) ?>">
+					<input type="hidden" name="place-id-product" id="place-id-product" class="form-control input-md"
+						value="">
+					<input type="hidden" name="page_id" id="page_id_product" class="form-control input-md"
+						value="<?php echo (!empty($wo['page_profile']) && !empty($wo['page_profile']['page_id']) ? $wo['page_profile']['page_id'] : 0) ?>">
 				</div>
 				<div class="modal-footer">
-					<button type="submit" class="btn btn-main btn-mat btn-mat-raised add_wow_loader"><?php echo $wo['lang']['publish']; ?></button>
+					<button type="submit"
+						class="btn btn-main btn-mat btn-mat-raised add_wow_loader"><?php echo $wo['lang']['publish']; ?></button>
 				</div>
 			</form>
 		</div>
@@ -149,469 +214,767 @@
 </div>
 <script type="text/javascript">
 	var imgArray = [];
-	<?php 
-$js_array = json_encode($wo['products_sub_categories']);
-echo "var sub_categories_array = ". $js_array . ";\n";
-?>
+	<?php
+	$js_array = json_encode($wo['products_sub_categories']);
+	echo "var sub_categories_array = " . $js_array . ";\n";
+	?>
 	function GetProductSubCategory(self) {
 		id = $(self).val();
 		$('.product_sub_category_class').slideUp();
 		var text = "";
-		if (typeof(sub_categories_array[id]) == 'undefined') {
-		    $('#product_sub_category').html('');
+		if (typeof (sub_categories_array[id]) == 'undefined') {
+			$('#product_sub_category').html('');
 		}
-		else{
+		else {
 			$('.product_sub_category_class').slideDown();
-		   	sub_categories_array[id].forEach(function(entry) {
-				text = text + "<option value='"+entry.id+"'>"+entry.lang+"</option>";
+			sub_categories_array[id].forEach(function (entry) {
+				text = text + "<option value='" + entry.id + "'>" + entry.lang + "</option>";
 			});
-		    $('#product_sub_category').html(text);
+			$('#product_sub_category').html(text);
 		}
 	}
-	function DeleteUploadedImageByIdP(id,self) {
-		$('#delete_uploaded_image_by_id_'+id).remove();
+	function DeleteUploadedImageByIdP(id, self) {
+		$('#delete_uploaded_image_by_id_' + id).remove();
 		imgArray.splice(id, 1);
 		var image_holder = $(self).parents('#create-product-modal').find("#productimage-holder");
 		image_holder.empty();
 
-		for (var i = 0; i < imgArray.length; i++){
+		for (var i = 0; i < imgArray.length; i++) {
 
 			var reader = new FileReader();
 			var ii = 0;
 			reader.onload = function (e) {
-			  image_holder.append('<span class="thumb-image-delete" id="image_to_'+ii+'"><span onclick="DeleteUploadedImageByIdP('+ii+',this)" class="pointer thumb-image-delete-btn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg></span><img src="'+e.target.result+'" class="thumb-image"></span>')
-			  ii = ii +1;
+				image_holder.append('<span class="thumb-image-delete" id="image_to_' + ii + '"><span onclick="DeleteUploadedImageByIdP(' + ii + ',this)" class="pointer thumb-image-delete-btn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg></span><img src="' + e.target.result + '" class="thumb-image"></span>')
+				ii = ii + 1;
 
 			}
 			image_holder.show();
-	    reader.readAsDataURL(imgArray[i]);
+			reader.readAsDataURL(imgArray[i]);
 		}
 		$("#product-photos")[0].files = new FileListItems(imgArray);
 	}
-$(document).ready(function() {
-	$("#product-photos").on('change', function() {
-		let self = this;
-	//Get count of selected files
-	var product_countFiles = $(this)[0].files.length;
-	var product_imgPath = $(this)[0].value;
-	var extn = product_imgPath.substring(product_imgPath.lastIndexOf('.') + 1).toLowerCase();
-	var product_image_holder = $(self).parents('#create-product-modal').find("#productimage-holder");
-	//product_image_holder.empty();
-	if (extn == "gif" || extn == "png" || extn == "jpg" || extn == "jpeg") {
-		if (typeof(FileReader) != "undefined") {
-		//loop for each file selected for uploaded.
-		for (var i = 0; i < product_countFiles; i++) 
-		{
-			var reader = new FileReader();
-					
-			imgArray.push($(self)[0].files[i]);
-			
-			
-			reader.onload = function (e) {
-				if ($(self).parents('#create-product-modal').find("#productimage-holder .thumb-image-delete").length == 0) {
-					var ii = 0;
-				}
-				else{
-					var ii = $(self).parents('#create-product-modal').find("#productimage-holder .thumb-image-delete").length;
-				}
-			  $(product_image_holder).append('<span class="thumb-image thumb-image-delete" id="delete_uploaded_image_by_id_'+ii+'"><span class="pointer thumb-image-delete-btn" onclick="DeleteUploadedImageByIdP('+ii+',this)"><i class="fa fa-remove"></i></span><div class="background_image_product" style="background-image: url('+e.target.result+');"></div></span>');
-			  ii = ii +1;
+	$(document).ready(function () {
+		$("#product-photos").on('change', function () {
+			let self = this;
+			//Get count of selected files
+			var product_countFiles = $(this)[0].files.length;
+			var product_imgPath = $(this)[0].value;
+			var extn = product_imgPath.substring(product_imgPath.lastIndexOf('.') + 1).toLowerCase();
+			var product_image_holder = $(self).parents('#create-product-modal').find("#productimage-holder");
+			//product_image_holder.empty();
+			if (extn == "gif" || extn == "png" || extn == "jpg" || extn == "jpeg") {
+				if (typeof (FileReader) != "undefined") {
+					//loop for each file selected for uploaded.
+					for (var i = 0; i < product_countFiles; i++) {
+						var reader = new FileReader();
 
+						imgArray.push($(self)[0].files[i]);
+
+
+						reader.onload = function (e) {
+							if ($(self).parents('#create-product-modal').find("#productimage-holder .thumb-image-delete").length == 0) {
+								var ii = 0;
+							}
+							else {
+								var ii = $(self).parents('#create-product-modal').find("#productimage-holder .thumb-image-delete").length;
+							}
+							$(product_image_holder).append('<span class="thumb-image thumb-image-delete" id="delete_uploaded_image_by_id_' + ii + '"><span class="pointer thumb-image-delete-btn" onclick="DeleteUploadedImageByIdP(' + ii + ',this)"><i class="fa fa-remove"></i></span><div class="background_image_product" style="background-image: url(' + e.target.result + ');"></div></span>');
+							ii = ii + 1;
+
+						}
+						product_image_holder.show();
+						reader.readAsDataURL($(this)[0].files[i]);
+					}
+					$(this)[0].files = new FileListItemsP(imgArray);
+				} else {
+					product_image_holder.html("<p>This browser does not support FileReader.</p>");
+				}
 			}
-			product_image_holder.show();
-      reader.readAsDataURL($(this)[0].files[i]);
-              }
-              $(this)[0].files = new FileListItemsP(imgArray);
-            } else {
-              product_image_holder.html("<p>This browser does not support FileReader.</p>");
-            }
-         }
+		});
 	});
-});
-function FileListItemsP (files) {
-  var b = new ClipboardEvent("").clipboardData || new DataTransfer()
-  for (var i = 0, len = files.length; i<len; i++) b.items.add(files[i])
-  return b.files
-}
-function Wo_SetProductCoordinates(lat, lng) {
-	$('#lat-product').val(lat || '');
-	$('#lng-product').val(lng || '');
-}
-function Wo_ClearProductCoordinates() {
-	Wo_SetProductCoordinates('', '');
-}
-var woProductLocationSuggestionTimer = null;
-var woProductLocationSuggestionRequest = 0;
-var woProductLocationLocale = <?php echo json_encode(strtolower($wo['language'])); ?>;
-function Wo_GetProductLocationLanguage() {
-	return (woProductLocationLocale || document.documentElement.lang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
-}
-function Wo_IsVietnameseProductLocation() {
-	var language = Wo_GetProductLocationLanguage();
-	return language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1;
-}
-function Wo_NormalizeLocationPartForCompare(value) {
-	return (value || '')
-		.toLowerCase()
-		.normalize('NFD')
-		.replace(/[\u0300-\u036f]/g, '')
-		.replace(/[^a-z0-9]+/g, ' ')
-		.trim();
-}
-function Wo_GetProductLocationCanonicalPart(value) {
-	return Wo_NormalizeLocationPartForCompare(value)
-		.replace(/^(phuong|xa|quan|huyen|tinh|thanh pho|tp)\s+/i, '')
-		.replace(/\s+(ward|district|province|city)$/i, '')
-		.trim();
-}
-function Wo_LocalizeVietnameseLocationPart(value) {
-	if (!value) {
+	function FileListItemsP(files) {
+		var b = new ClipboardEvent("").clipboardData || new DataTransfer()
+		for (var i = 0, len = files.length; i < len; i++) b.items.add(files[i])
+		return b.files
+	}
+	function Wo_SetProductCoordinates(lat, lng) {
+		$('#lat-product').val(lat || '');
+		$('#lng-product').val(lng || '');
+	}
+	function Wo_SetProductPlaceId(placeId) {
+		$('#place-id-product').val(placeId || '');
+	}
+	var woProductPlaceAutocompleteElement = null;
+	function Wo_GetProductLocationField() {
+		return document.getElementById('location');
+	}
+	function Wo_ReadProductLocationValue() {
+		var locationField = Wo_GetProductLocationField();
+		if (!locationField) {
+			return '';
+		}
+		if (woProductPlaceAutocompleteElement && typeof woProductPlaceAutocompleteElement.value === 'string') {
+			locationField.value = woProductPlaceAutocompleteElement.value;
+		}
+		return (locationField.value || '').trim();
+	}
+	function Wo_WriteProductLocationValue(value) {
+		var normalizedValue = (value || '');
+		var locationField = Wo_GetProductLocationField();
+		if (locationField) {
+			locationField.value = normalizedValue;
+		}
+		if (woProductPlaceAutocompleteElement && typeof woProductPlaceAutocompleteElement.value !== 'undefined') {
+			woProductPlaceAutocompleteElement.value = normalizedValue;
+		}
+	}
+	function Wo_ClearProductCoordinates() {
+		Wo_SetProductCoordinates('', '');
+	}
+	function Wo_ClearProductLocationMeta() {
+		Wo_ClearProductCoordinates();
+		Wo_SetProductPlaceId('');
+	}
+	var woProductLocationSuggestionTimer = null;
+	var woProductLocationSuggestionRequest = 0;
+	var woProductGooglePredictionCache = {};
+	var woProductGoogleSessionToken = null;
+	var woProductUseGoogleMobileSuggestions = true;
+	var woProductLocationLocale = <?php echo json_encode(strtolower($wo['language'])); ?>;
+	function Wo_ShouldUseInlineProductLocationInput() {
+		return window.matchMedia('(max-width: 768px)').matches || /Android|webOS|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent || '');
+	}
+	function Wo_GetProductLocationLanguage() {
+		return (woProductLocationLocale || document.documentElement.lang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
+	}
+	function Wo_GetProductLocationGoogleLanguage() {
+		var language = Wo_GetProductLocationLanguage();
+		if (!language) {
+			return 'en';
+		}
+		if (language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1) {
+			return 'vi';
+		}
+		if (language.indexOf('en') === 0 || language.indexOf('english') !== -1) {
+			return 'en';
+		}
+		var normalizedLanguage = language.split(/[_-]/)[0];
+		if (/^[a-z]{2}$/.test(normalizedLanguage)) {
+			return normalizedLanguage;
+		}
+		return 'en';
+	}
+	function Wo_IsVietnameseProductLocation() {
+		var language = Wo_GetProductLocationLanguage();
+		return language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1;
+	}
+	function Wo_NormalizeLocationPartForCompare(value) {
+		return (value || '')
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.replace(/[^a-z0-9]+/g, ' ')
+			.trim();
+	}
+	function Wo_GetProductLocationCanonicalPart(value) {
+		return Wo_NormalizeLocationPartForCompare(value)
+			.replace(/^(phuong|xa|quan|huyen|tinh|thanh pho|tp)\s+/i, '')
+			.replace(/\s+(ward|district|province|city)$/i, '')
+			.trim();
+	}
+	function Wo_LocalizeVietnameseLocationPart(value) {
+		if (!value) {
+			return '';
+		}
+
+		var localizedValue = value.trim();
+		localizedValue = localizedValue.replace(/^(.+?)\s+Road$/i, 'Đường $1');
+		localizedValue = localizedValue.replace(/^(.+?)\s+Street$/i, '$1');
+		localizedValue = localizedValue.replace(/^(.+?)\s+Ward$/i, 'Phường $1');
+		localizedValue = localizedValue.replace(/^Ward\s+(.+)$/i, 'Phường $1');
+		localizedValue = localizedValue.replace(/^District\s+(.+)$/i, 'Quận $1');
+		localizedValue = localizedValue.replace(/^Province\s+(.+)$/i, 'Tỉnh $1');
+		localizedValue = localizedValue.replace(/^City\s+(.+)$/i, 'Thành phố $1');
+		localizedValue = localizedValue.replace(/^Vietnam$/i, 'Việt Nam');
+		localizedValue = localizedValue.replace(/^Ha Noi$/i, 'Hà Nội');
+		localizedValue = localizedValue.replace(/^Ho Chi Minh City$/i, 'TP Hồ Chí Minh');
+
+		return localizedValue;
+	}
+	function Wo_GetProductLocationText(item, queryValue) {
+		if (item && item.google_prediction === true) {
+			return item.display_name || item.description || '';
+		}
+		if (!item || !item.address) {
+			return item && (item.display_name || item.name) ? (item.display_name || item.name) : '';
+		}
+
+		var address = item.address;
+		var isVietnamese = Wo_IsVietnameseProductLocation();
+		var parts = [];
+		var firstLine = [];
+		var houseNumber = address.house_number || address.house_name || '';
+		var road = address.road || address.pedestrian || address.footway || address.cycleway || '';
+		var normalizedQuery = Wo_NormalizeLocationPartForCompare(queryValue || '');
+		var normalizedRoad = Wo_NormalizeLocationPartForCompare(road);
+
+		if (isVietnamese && normalizedQuery && normalizedRoad) {
+			if (normalizedQuery.indexOf(normalizedRoad) !== -1 || normalizedRoad.indexOf(normalizedQuery) !== -1) {
+				road = queryValue;
+			}
+		}
+
+		if (houseNumber) {
+			firstLine.push(houseNumber);
+		}
+		if (road) {
+			firstLine.push(isVietnamese ? Wo_LocalizeVietnameseLocationPart(road) : road);
+		}
+		if (firstLine.length > 0) {
+			parts.push(firstLine.join(' '));
+		}
+
+		[
+			address.suburb,
+			address.neighbourhood,
+			address.quarter,
+			address.city_district,
+			address.county,
+			address.district,
+			address.city,
+			address.town,
+			address.municipality,
+			address.state_district,
+			address.state,
+			address.country
+		].forEach(function (value) {
+			if (!value) {
+				return;
+			}
+			var localizedValue = isVietnamese ? Wo_LocalizeVietnameseLocationPart(value) : value;
+			var compareValue = Wo_GetProductLocationCanonicalPart(localizedValue);
+			var alreadyExists = parts.some(function (existingValue) {
+				return Wo_GetProductLocationCanonicalPart(existingValue) === compareValue;
+			});
+			if (!alreadyExists) {
+				parts.push(localizedValue);
+			}
+		});
+
+		return parts.join(', ');
+	}
+	function Wo_GetProductLocationSearchUrl(locationValue, limit) {
+		var params = new URLSearchParams({
+			format: 'jsonv2',
+			addressdetails: '1',
+			limit: String(limit || 5),
+			'accept-language': Wo_GetProductLocationLanguage(),
+			q: locationValue
+		});
+		return 'https://nominatim.openstreetmap.org/search?' + params.toString();
+	}
+	function Wo_GetGooglePredictionLabel(prediction) {
+		if (!prediction) {
+			return '';
+		}
+
+		if (prediction.text && typeof prediction.text.toString === 'function') {
+			return prediction.text.toString();
+		}
+
+		var mainText = '';
+		var secondaryText = '';
+		if (prediction.mainText && typeof prediction.mainText.toString === 'function') {
+			mainText = prediction.mainText.toString();
+		}
+		if (prediction.secondaryText && typeof prediction.secondaryText.toString === 'function') {
+			secondaryText = prediction.secondaryText.toString();
+		}
+
+		if (mainText && secondaryText) {
+			return mainText + ', ' + secondaryText;
+		}
+
+		return mainText || secondaryText || prediction.description || '';
+	}
+	function Wo_FallbackProductLocationSuggestions(normalizedLocationValue, requestToken) {
+		fetch(Wo_GetProductLocationSearchUrl(normalizedLocationValue, 5), {
+			headers: {
+				'Accept': 'application/json'
+			}
+		}).then(function (response) {
+			if (!response.ok) {
+				throw new Error('Product location suggestion request failed');
+			}
+			return response.json();
+		}).then(function (results) {
+			if (requestToken !== woProductLocationSuggestionRequest) {
+				return;
+			}
+			Wo_RenderProductLocationSuggestions(results, normalizedLocationValue);
+		}).catch(function () {
+			if (requestToken !== woProductLocationSuggestionRequest) {
+				return;
+			}
+			Wo_RenderProductLocationSuggestions([], normalizedLocationValue);
+		});
+	}
+	function Wo_RenderProductLocationSuggestions(items, queryValue) {
+		var suggestionBox = $('.product_location_suggestions');
+		if (!Array.isArray(items) || items.length === 0) {
+			suggestionBox.empty().hide();
+			return;
+		}
+
+		var seen = {};
+		var html = '';
+		items.forEach(function (item) {
+			var displayName = Wo_GetProductLocationText(item, queryValue);
+			var normalizedDisplayName = Wo_NormalizeLocationPartForCompare(displayName);
+			if (!displayName || seen[normalizedDisplayName]) {
+				return;
+			}
+			seen[normalizedDisplayName] = true;
+			var lat = item.lat || '';
+			var lng = item.lon || item.lng || '';
+			var placeId = item.place_id || '';
+			html += '<p class="pointer product_location_suggestion_item" data-location="' + escapeHtml(displayName) + '" data-lat="' + escapeHtml(String(lat)) + '" data-lng="' + escapeHtml(String(lng)) + '" data-place-id="' + escapeHtml(String(placeId)) + '">' + escapeHtml(displayName) + '</p>';
+		});
+
+		if (!html) {
+			suggestionBox.empty().hide();
+			return;
+		}
+		suggestionBox.html(html).show();
+	}
+	function Wo_SearchProductLocationSuggestions(locationValue) {
+		var normalizedLocationValue = (locationValue || '').trim();
+		woProductLocationSuggestionRequest++;
+		var requestToken = woProductLocationSuggestionRequest;
+
+		if (!normalizedLocationValue || normalizedLocationValue.length < 2) {
+			Wo_RenderProductLocationSuggestions([], normalizedLocationValue);
+			return;
+		}
+
+		if (woProductUseGoogleMobileSuggestions && Wo_ProductGoogleAutocompleteAvailable()) {
+			google.maps.importLibrary('places').then(function () {
+				if (requestToken !== woProductLocationSuggestionRequest) {
+					return;
+				}
+				var placesLib = google.maps.places || {};
+				if (!placesLib.AutocompleteSuggestion || typeof placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions !== 'function') {
+					Wo_FallbackProductLocationSuggestions(normalizedLocationValue, requestToken);
+					return;
+				}
+
+				if (!woProductGoogleSessionToken && typeof placesLib.AutocompleteSessionToken === 'function') {
+					woProductGoogleSessionToken = new placesLib.AutocompleteSessionToken();
+				}
+
+				var suggestionRequest = {
+					input: normalizedLocationValue
+				};
+				if (woProductGoogleSessionToken) {
+					suggestionRequest.sessionToken = woProductGoogleSessionToken;
+				}
+				var googleLanguage = Wo_GetProductLocationGoogleLanguage();
+				if (googleLanguage) {
+					suggestionRequest.language = googleLanguage;
+				}
+
+				return placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions(suggestionRequest).then(function (response) {
+					if (requestToken !== woProductLocationSuggestionRequest) {
+						return;
+					}
+
+					var suggestions = (response && Array.isArray(response.suggestions)) ? response.suggestions : [];
+					if (!suggestions.length) {
+						Wo_FallbackProductLocationSuggestions(normalizedLocationValue, requestToken);
+						return;
+					}
+
+					var mappedPredictions = suggestions.map(function (suggestion) {
+						var placePrediction = suggestion.placePrediction || suggestion;
+						var placeId = placePrediction.placeId || placePrediction.place_id || '';
+						if (placeId) {
+							woProductGooglePredictionCache[placeId] = placePrediction;
+						}
+
+						return {
+							google_prediction: true,
+							display_name: Wo_GetGooglePredictionLabel(placePrediction),
+							place_id: placeId
+						};
+					});
+					Wo_RenderProductLocationSuggestions(mappedPredictions, normalizedLocationValue);
+				});
+			}).catch(function () {
+				woProductUseGoogleMobileSuggestions = false;
+				Wo_FallbackProductLocationSuggestions(normalizedLocationValue, requestToken);
+			});
+			return;
+		}
+
+		Wo_FallbackProductLocationSuggestions(normalizedLocationValue, requestToken);
+	}
+	function Wo_ProductGoogleAutocompleteAvailable() {
+		return (typeof google !== 'undefined' &&
+			google.maps &&
+			typeof google.maps.importLibrary === 'function');
+	}
+	function Wo_ReadPlaceCoordinateValue(locationObject, axis) {
+		if (!locationObject) {
+			return '';
+		}
+		if (typeof locationObject[axis] === 'function') {
+			return locationObject[axis]();
+		}
+		if (typeof locationObject[axis] === 'number') {
+			return locationObject[axis];
+		}
 		return '';
 	}
-
-	var localizedValue = value.trim();
-	localizedValue = localizedValue.replace(/^(.+?)\s+Road$/i, 'Đường $1');
-	localizedValue = localizedValue.replace(/^(.+?)\s+Street$/i, '$1');
-	localizedValue = localizedValue.replace(/^(.+?)\s+Ward$/i, 'Phường $1');
-	localizedValue = localizedValue.replace(/^Ward\s+(.+)$/i, 'Phường $1');
-	localizedValue = localizedValue.replace(/^District\s+(.+)$/i, 'Quận $1');
-	localizedValue = localizedValue.replace(/^Province\s+(.+)$/i, 'Tỉnh $1');
-	localizedValue = localizedValue.replace(/^City\s+(.+)$/i, 'Thành phố $1');
-	localizedValue = localizedValue.replace(/^Vietnam$/i, 'Việt Nam');
-	localizedValue = localizedValue.replace(/^Ha Noi$/i, 'Hà Nội');
-	localizedValue = localizedValue.replace(/^Ho Chi Minh City$/i, 'TP Hồ Chí Minh');
-
-	return localizedValue;
-}
-function Wo_GetProductLocationText(item, queryValue) {
-	if (!item || !item.address) {
-		return item && (item.display_name || item.name) ? (item.display_name || item.name) : '';
-	}
-
-	var address = item.address;
-	var isVietnamese = Wo_IsVietnameseProductLocation();
-	var parts = [];
-	var firstLine = [];
-	var houseNumber = address.house_number || address.house_name || '';
-	var road = address.road || address.pedestrian || address.footway || address.cycleway || '';
-	var normalizedQuery = Wo_NormalizeLocationPartForCompare(queryValue || '');
-	var normalizedRoad = Wo_NormalizeLocationPartForCompare(road);
-
-	if (isVietnamese && normalizedQuery && normalizedRoad) {
-		if (normalizedQuery.indexOf(normalizedRoad) !== -1 || normalizedRoad.indexOf(normalizedQuery) !== -1) {
-			road = queryValue;
+	function Wo_ApplyGoogleProductPlace(place) {
+		if (!place) {
+			return false;
 		}
-	}
 
-	if (houseNumber) {
-		firstLine.push(houseNumber);
-	}
-	if (road) {
-		firstLine.push(isVietnamese ? Wo_LocalizeVietnameseLocationPart(road) : road);
-	}
-	if (firstLine.length > 0) {
-		parts.push(firstLine.join(' '));
-	}
+		var locationObject = place.location || (place.geometry && place.geometry.location ? place.geometry.location : null);
+		var formattedAddress = place.formattedAddress || place.formatted_address || place.displayName || place.name || Wo_ReadProductLocationValue();
+		var lat = Wo_ReadPlaceCoordinateValue(locationObject, 'lat');
+		var lng = Wo_ReadPlaceCoordinateValue(locationObject, 'lng');
+		var placeId = place.id || place.place_id || '';
 
-	[
-		address.suburb,
-		address.neighbourhood,
-		address.quarter,
-		address.city_district,
-		address.county,
-		address.district,
-		address.city,
-		address.town,
-		address.municipality,
-		address.state_district,
-		address.state,
-		address.country
-	].forEach(function(value) {
-		if (!value) {
+		Wo_WriteProductLocationValue(formattedAddress);
+		Wo_SetProductCoordinates(lat, lng);
+		Wo_SetProductPlaceId(placeId);
+		return true;
+	}
+	async function Wo_InitGoogleProductAutocomplete() {
+		var input = Wo_GetProductLocationField();
+		var host = document.getElementById('location-autocomplete-host');
+		if (!input || !host || host.dataset.productGoogleAutocompleteReady === '1') {
 			return;
 		}
-		var localizedValue = isVietnamese ? Wo_LocalizeVietnameseLocationPart(value) : value;
-		var compareValue = Wo_GetProductLocationCanonicalPart(localizedValue);
-		var alreadyExists = parts.some(function(existingValue) {
-			return Wo_GetProductLocationCanonicalPart(existingValue) === compareValue;
+
+		if (Wo_ShouldUseInlineProductLocationInput()) {
+		if (Wo_ProductGoogleAutocompleteAvailable()) {
+			try {
+				await google.maps.importLibrary('places');
+			} catch (err) {}
+		}
+		host.dataset.productGoogleAutocompleteReady = '1';
+		host.innerHTML = '';
+		var inlineInput = document.createElement('input');
+		inlineInput.type = 'text';
+		inlineInput.className = 'wo_product_location_inline_input';
+		inlineInput.autocomplete = 'off';
+		inlineInput.autocorrect = 'off';
+		inlineInput.autocapitalize = 'off';
+		inlineInput.spellcheck = false;
+		inlineInput.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
+		host.appendChild(inlineInput);
+
+		inlineInput.value = input.value || '';
+			inlineInput.addEventListener('input', function () {
+				var locationValue = inlineInput.value || '';
+				Wo_WriteProductLocationValue(locationValue);
+				Wo_ClearProductLocationMeta();
+				clearTimeout(woProductLocationSuggestionTimer);
+				woProductLocationSuggestionTimer = setTimeout(function () {
+					Wo_SearchProductLocationSuggestions(locationValue);
+				}, 220);
+			});
+			inlineInput.addEventListener('change', function () {
+				Wo_WriteProductLocationValue(inlineInput.value || '');
+			});
+			inlineInput.addEventListener('blur', function () {
+				setTimeout(function () {
+					Wo_RenderProductLocationSuggestions([]);
+				}, 150);
+			});
+			return;
+		}
+
+		if (!Wo_ProductGoogleAutocompleteAvailable()) {
+			return;
+		}
+
+		await google.maps.importLibrary('places');
+		if (!google.maps.places || typeof google.maps.places.PlaceAutocompleteElement !== 'function') {
+			return;
+		}
+
+		host.dataset.productGoogleAutocompleteReady = '1';
+		host.innerHTML = '';
+		woProductPlaceAutocompleteElement = new google.maps.places.PlaceAutocompleteElement({});
+		woProductPlaceAutocompleteElement.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
+		if (typeof woProductPlaceAutocompleteElement.value !== 'undefined') {
+			woProductPlaceAutocompleteElement.value = input.value || '';
+		}
+		host.appendChild(woProductPlaceAutocompleteElement);
+
+		// Fix dark mode: gmp-place-autocomplete dùng Shadow DOM nên không kế thừa CSS theme.
+		// Đọc màu từ input thông thường và áp vào element.
+		(function() {
+			try {
+				var ref = document.querySelector('input[name="name"]')
+					|| document.querySelector('.wow_form_fields input[type="text"]')
+					|| document.querySelector('input[type="text"]');
+				if (!ref) return;
+				var cs = window.getComputedStyle(ref);
+				var bg = cs.backgroundColor;
+				var fg = cs.color;
+				var border = cs.borderTopColor || cs.borderColor;
+				var el = woProductPlaceAutocompleteElement;
+				el.style.setProperty('--gmp-mat-color-surface', bg);
+				el.style.setProperty('--gmp-mat-color-on-surface', fg);
+				el.style.setProperty('--gmp-mat-color-outline', border);
+				el.style.setProperty('--gmp-mat-color-on-surface-variant', fg);
+				el.style.setProperty('--gmp-mat-color-primary', border);
+				if (el.shadowRoot) {
+					var styleEl = document.createElement('style');
+					styleEl.textContent = 'input,textarea{background:' + bg + '!important;color:' + fg + '!important;border-color:' + border + '!important;}';
+					el.shadowRoot.appendChild(styleEl);
+				}
+			} catch (e) {}
+		})();
+
+		woProductPlaceAutocompleteElement.addEventListener('input', function () {
+			Wo_WriteProductLocationValue(woProductPlaceAutocompleteElement.value || '');
+			Wo_ClearProductLocationMeta();
+			Wo_RenderProductLocationSuggestions([]);
 		});
-		if (!alreadyExists) {
-			parts.push(localizedValue);
-		}
-	});
 
-	return parts.join(', ');
-}
-function Wo_GetProductLocationSearchUrl(locationValue, limit) {
-	var params = new URLSearchParams({
-		format: 'jsonv2',
-		addressdetails: '1',
-		limit: String(limit || 5),
-		'accept-language': Wo_GetProductLocationLanguage(),
-		q: locationValue
-	});
-	return 'https://nominatim.openstreetmap.org/search?' + params.toString();
-}
-function Wo_RenderProductLocationSuggestions(items, queryValue) {
-	var suggestionBox = $('.product_location_suggestions');
-	if (!Array.isArray(items) || items.length === 0) {
-		suggestionBox.empty().hide();
-		return;
-	}
+		woProductPlaceAutocompleteElement.addEventListener('change', function () {
+			Wo_WriteProductLocationValue(woProductPlaceAutocompleteElement.value || '');
+		});
 
-	var seen = {};
-	var html = '';
-	items.forEach(function(item) {
-		var displayName = Wo_GetProductLocationText(item, queryValue);
-		var normalizedDisplayName = Wo_NormalizeLocationPartForCompare(displayName);
-		if (!displayName || seen[normalizedDisplayName]) {
-			return;
-		}
-		seen[normalizedDisplayName] = true;
-		var lat = item.lat || '';
-		var lng = item.lon || item.lng || '';
-		html += '<p class="pointer product_location_suggestion_item" data-location="' + escapeHtml(displayName) + '" data-lat="' + escapeHtml(String(lat)) + '" data-lng="' + escapeHtml(String(lng)) + '">' + escapeHtml(displayName) + '</p>';
-	});
-
-	if (!html) {
-		suggestionBox.empty().hide();
-		return;
-	}
-	suggestionBox.html(html).show();
-}
-function Wo_SearchProductLocationSuggestions(locationValue) {
-	if (!locationValue || locationValue.length < 3) {
-		Wo_RenderProductLocationSuggestions([], locationValue);
-		return;
-	}
-
-	woProductLocationSuggestionRequest++;
-	var currentRequest = woProductLocationSuggestionRequest;
-
-	fetch(Wo_GetProductLocationSearchUrl(locationValue, 5), {
-		headers: {
-			'Accept': 'application/json'
-		}
-	}).then(function(response) {
-		if (!response.ok) {
-			throw new Error('Nominatim suggestion request failed');
-		}
-		return response.json();
-	}).then(function(results) {
-		if (currentRequest !== woProductLocationSuggestionRequest) {
-			return;
-		}
-		Wo_RenderProductLocationSuggestions(results, locationValue);
-	}).catch(function() {
-		if (currentRequest !== woProductLocationSuggestionRequest) {
-			return;
-		}
-		Wo_RenderProductLocationSuggestions([], locationValue);
-	});
-}
-function Wo_GeocodeLocationWithNominatim(locationValue) {
-	return fetch(Wo_GetProductLocationSearchUrl(locationValue, 1), {
-		headers: {
-			'Accept': 'application/json'
-		}
-	}).then(function(response) {
-		if (!response.ok) {
-			throw new Error('Nominatim request failed');
-		}
-		return response.json();
-	}).then(function(results) {
-		if (Array.isArray(results) && results.length > 0) {
-			var lat = parseFloat(results[0].lat);
-			var lng = parseFloat(results[0].lon);
-			if (!isNaN(lat) && !isNaN(lng)) {
-				Wo_SetProductCoordinates(lat, lng);
-				return true;
+		woProductPlaceAutocompleteElement.addEventListener('gmp-select', async function (event) {
+			var placePrediction = event.placePrediction || (event.detail && event.detail.placePrediction) || null;
+			if (!placePrediction || typeof placePrediction.toPlace !== 'function') {
+				return;
 			}
+
+			var place = placePrediction.toPlace();
+			await place.fetchFields({
+				fields: ['displayName', 'formattedAddress', 'location', 'id']
+			});
+			Wo_RenderProductLocationSuggestions([]);
+			Wo_ApplyGoogleProductPlace(place);
+		});
+	}
+	function Wo_GeocodeTypedProductLocation(locationValue) {
+		if (!locationValue) {
+			Wo_ClearProductLocationMeta();
+			return Promise.resolve(false);
 		}
-		Wo_ClearProductCoordinates();
-		return false;
-	}).catch(function() {
-		Wo_ClearProductCoordinates();
-		return false;
-	});
-}
-function Wo_GeocodeTypedProductLocation(locationValue) {
-	if (!locationValue) {
-		Wo_ClearProductCoordinates();
+
+		if (Wo_ProductGoogleAutocompleteAvailable() && google.maps && typeof google.maps.Geocoder === 'function') {
+			return new Promise(function (resolve) {
+				var geocoder = new google.maps.Geocoder();
+				geocoder.geocode({ address: locationValue }, function (results, status) {
+					if (status === 'OK' && Array.isArray(results) && results[0]) {
+						resolve(Wo_ApplyGoogleProductPlace(results[0]));
+					}
+					else {
+						Wo_ClearProductLocationMeta();
+						resolve(false);
+					}
+				});
+			});
+		}
+
+		Wo_ClearProductLocationMeta();
 		return Promise.resolve(false);
 	}
-	<?php if ($wo['config']['yandex_map'] == 1) { ?>
-	if (window.ymaps && typeof ymaps.geocode === 'function') {
+	function Wo_GeocodeProductPlaceId(placeId) {
+		if (!placeId) {
+			return Promise.resolve(false);
+		}
+
+		var cachedPrediction = woProductGooglePredictionCache[placeId];
+		if (cachedPrediction && typeof cachedPrediction.toPlace === 'function') {
+			return new Promise(function(resolve) {
+				var place = cachedPrediction.toPlace();
+				place.fetchFields({
+					fields: ['displayName', 'formattedAddress', 'location', 'id']
+				}).then(function() {
+					resolve(Wo_ApplyGoogleProductPlace(place));
+				}).catch(function() {
+					resolve(false);
+				});
+			}).then(function(resolved) {
+				if (resolved && window.google && google.maps && google.maps.places && typeof google.maps.places.AutocompleteSessionToken === 'function') {
+					woProductGoogleSessionToken = new google.maps.places.AutocompleteSessionToken();
+				}
+				return resolved;
+			});
+		}
+
+		if (!(window.google && google.maps && typeof google.maps.Geocoder === 'function')) {
+			return Promise.resolve(false);
+		}
+
 		return new Promise(function(resolve) {
-			ymaps.geocode(locationValue).then(function (res) {
-				if (res.geoObjects.getLength() > 0) {
-					var coords = res.geoObjects.get(0).geometry.getCoordinates();
-					Wo_SetProductCoordinates(coords[0], coords[1]);
-					resolve(true);
-				}
-				else {
-					Wo_GeocodeLocationWithNominatim(locationValue).then(resolve);
-				}
-			}, function () {
-				Wo_GeocodeLocationWithNominatim(locationValue).then(resolve);
-			});
-		});
-	}
-	<?php } ?>
-	return Wo_GeocodeLocationWithNominatim(locationValue);
-}
-function Wo_ProductCreateHasCoordinates() {
-	return $.trim($('#lat-product').val()) !== '' && $.trim($('#lng-product').val()) !== '';
-}
-function Wo_ResolveProductCreateCoordinates(callback) {
-	var locationValue = $('#location').val().trim();
-	if (!locationValue) {
-		Wo_ClearProductCoordinates();
-		callback();
-		return;
-	}
-	if (Wo_ProductCreateHasCoordinates()) {
-		callback();
-		return;
-	}
-	Wo_GeocodeTypedProductLocation(locationValue).then(function() {
-		callback();
-	});
-}
-$(function() {
-    $('#location').on('input', function() {
-    	Wo_ClearProductCoordinates();
-    	clearTimeout(woProductLocationSuggestionTimer);
-    	var locationValue = $(this).val().trim();
-    	woProductLocationSuggestionTimer = setTimeout(function() {
-    		Wo_SearchProductLocationSuggestions(locationValue);
-    	}, 250);
-    });
-    $('#location').on('change blur', function() {
-    	var locationValue = $(this).val().trim();
-    	if (locationValue) {
-    		Wo_GeocodeTypedProductLocation(locationValue);
-    	}
-    	setTimeout(function() {
-    		Wo_RenderProductLocationSuggestions([]);
-    	}, 150);
-    });
-    $(document).on('mousedown', '.product_location_suggestion_item', function(e) {
-    	e.preventDefault();
-    	var selectedLocation = $(this).attr('data-location') || '';
-    	var lat = $(this).attr('data-lat') || '';
-    	var lng = $(this).attr('data-lng') || '';
-    	$('#location').val(selectedLocation);
-    	Wo_SetProductCoordinates(lat, lng);
-    	Wo_RenderProductLocationSuggestions([]);
-    });
-    var create_bar = $('.create-product-bar');
-    var create_percent = $('.create-product-percent');
-    var status = $('#status');
-     $('form.create-album-form').ajaxForm({
-       url: Wo_Ajax_Requests_File() + '?f=products&s=create',
-       beforeSubmit: function(arr, $form, options) {
-       	if ($form.data('product-create-geocode-ready') === true) {
-       		$form.removeData('product-create-geocode-ready');
-       		return true;
-       	}
-       	Wo_ResolveProductCreateCoordinates(function() {
-       		$form.data('product-create-geocode-ready', true);
-       		$form.ajaxSubmit(options);
-       	});
-       	return false;
-       },
-       beforeSend: function() {
-         var percentVal = '0%';
-         create_bar.width(percentVal);
-         create_percent.html(percentVal);
-         
-         
-         $('.create-album-form').find('.add_wow_loader').addClass('btn-loading');
-       },
-       uploadProgress: function (event, position, total, percentComplete) {
-           var percentVal = percentComplete + '%';
-           create_bar.width(percentVal);
-           $('.create-product-progress').slideDown(200);
-           create_percent.html(percentVal);
-      },
-       success: function(data) {
-         if (data.status == 200) {
-         	$("#productimage-holder").empty();
-      		imgArray = [];
-         	if (data.message) {
-         		$('.app-general-alert').html('<div class="alert alert-success">' + data.message + '</div>');
-         		setTimeout(function (){
-         			$('.app-general-alert').html('');
-         			window.location.reload();
-         		}, 3000);
-         	}
-         	else{
-         		window.location.href = data.href;
-         	}
-         } else {
-             var errors = data.errors.join("<br>");
-             $('.app-general-alert').html('<div class="alert alert-danger">' + errors + '</div>');
-             $('.alert-danger').fadeIn(300);
-         }
-         $('.create-album-form').find('.add_wow_loader').removeClass('btn-loading');
-       }
-	});
-   });
-<?php if ($wo['config']['yandex_map'] == 1) { ?>
-	$(function() {
-		$('#location').on( "keydown", function() {
-			let self = this;
-		  var myGeocoder = ymaps.geocode($(this).val());
-      myGeocoder.then(
-          function (res) {
-          	if (res.geoObjects.getLength() == 0) {
-          		$('.yandex_search_product').html('');
-          	}
-          	else{
-          		let html = '';
-          		for (var i = 0; i < res.geoObjects.getLength(); i++) {
-          			html += '<p class="pointer" onclick="AddYandexResult(\'#location\',this,\'.yandex_search_product\')">'+res.geoObjects.get(i).properties.get('name')+'</p>';
-              }
-              $('.yandex_search_product').html(html);
-          	}
-          },
-          function (err) {
-              $('.yandex_search_product').html('');
-          }
-      );
-		});
-	});
-<?php } ?>
-<?php if ($has_page_fixed_location) { ?>
-	$(function() {
-		var fixedLocation = $('#location').val().trim();
-		if (!fixedLocation) {
-			return;
-		}
-		<?php if ($wo['config']['google_map'] == 1) { ?>
-		if (window.google && google.maps && typeof google.maps.Geocoder === 'function') {
 			var geocoder = new google.maps.Geocoder();
-			geocoder.geocode({ address: fixedLocation }, function(results, status) {
-				if (status === 'OK' && results[0] && results[0].geometry && results[0].geometry.location) {
-					$('#lat-product').val(results[0].geometry.location.lat());
-					$('#lng-product').val(results[0].geometry.location.lng());
+			geocoder.geocode({ placeId: placeId }, function(results, status) {
+				if (status === 'OK' && Array.isArray(results) && results[0]) {
+					resolve(Wo_ApplyGoogleProductPlace(results[0]));
+					return;
 				}
+				resolve(false);
 			});
+		});
+	}
+	function Wo_ProductCreateHasCoordinates() {
+		return ($.trim($('#lat-product').val()) !== '' && $.trim($('#lng-product').val()) !== '') || $.trim($('#place-id-product').val()) !== '';
+	}
+	function Wo_ResolveProductCreateCoordinates(callback) {
+		var locationValue = Wo_ReadProductLocationValue();
+		if (!locationValue) {
+			Wo_ClearProductLocationMeta();
+			callback();
 			return;
 		}
-		<?php } ?>
-		<?php if ($wo['config']['yandex_map'] == 1) { ?>
-		if (window.ymaps && typeof ymaps.geocode === 'function') {
-			ymaps.geocode(fixedLocation).then(function (res) {
-				if (res.geoObjects.getLength() > 0) {
-					var coords = res.geoObjects.get(0).geometry.getCoordinates();
-					$('#lat-product').val(coords[0]);
-					$('#lng-product').val(coords[1]);
-				}
-			});
+		if (Wo_ProductCreateHasCoordinates()) {
+			callback();
+			return;
 		}
-		<?php } ?>
+		Wo_GeocodeTypedProductLocation(locationValue).then(function () {
+			callback();
+		});
+	}
+	$(function () {
+		Wo_InitGoogleProductAutocomplete();
+		$(document).on('mousedown', '.product_location_suggestion_item', function (e) {
+			e.preventDefault();
+			var selectedLocation = $(this).attr('data-location') || '';
+			var lat = $(this).attr('data-lat') || '';
+			var lng = $(this).attr('data-lng') || '';
+			var placeId = $(this).attr('data-place-id') || '';
+			Wo_WriteProductLocationValue(selectedLocation);
+			Wo_RenderProductLocationSuggestions([]);
+			$('.wo_product_location_inline_input').val(selectedLocation);
+			if (placeId) {
+				Wo_SetProductCoordinates('', '');
+				Wo_SetProductPlaceId(placeId);
+				Wo_GeocodeProductPlaceId(placeId);
+				return;
+			}
+			Wo_SetProductCoordinates(lat, lng);
+			Wo_SetProductPlaceId('');
+		});
+		var create_bar = $('.create-product-bar');
+		var create_percent = $('.create-product-percent');
+		var status = $('#status');
+		$('form.create-album-form').ajaxForm({
+			url: Wo_Ajax_Requests_File() + '?f=products&s=create',
+			beforeSubmit: function (arr, $form, options) {
+				if ($form.data('product-create-geocode-ready') === true) {
+					$form.removeData('product-create-geocode-ready');
+					return true;
+				}
+				Wo_ResolveProductCreateCoordinates(function () {
+					$form.data('product-create-geocode-ready', true);
+					$form.ajaxSubmit(options);
+				});
+				return false;
+			},
+			beforeSend: function () {
+				var percentVal = '0%';
+				create_bar.width(percentVal);
+				create_percent.html(percentVal);
+
+
+				$('.create-album-form').find('.add_wow_loader').addClass('btn-loading');
+			},
+			uploadProgress: function (event, position, total, percentComplete) {
+				var percentVal = percentComplete + '%';
+				create_bar.width(percentVal);
+				$('.create-product-progress').slideDown(200);
+				create_percent.html(percentVal);
+			},
+			success: function (data) {
+				if (data.status == 200) {
+					$("#productimage-holder").empty();
+					imgArray = [];
+					if (data.message) {
+						$('.app-general-alert').html('<div class="alert alert-success">' + data.message + '</div>');
+						setTimeout(function () {
+							$('.app-general-alert').html('');
+							window.location.reload();
+						}, 3000);
+					}
+					else {
+						window.location.href = data.href;
+					}
+				} else {
+					var errors = data.errors.join("<br>");
+					$('.app-general-alert').html('<div class="alert alert-danger">' + errors + '</div>');
+					$('.alert-danger').fadeIn(300);
+				}
+				$('.create-album-form').find('.add_wow_loader').removeClass('btn-loading');
+			}
+		});
 	});
-<?php } ?>
+	<?php if ($wo['config']['yandex_map'] == 1) { ?>
+		$(function () {
+			$(document).on('keydown', '#location', function () {
+				let self = this;
+				var myGeocoder = ymaps.geocode($(this).val());
+				myGeocoder.then(
+					function (res) {
+						if (res.geoObjects.getLength() == 0) {
+							$('.yandex_search_product').html('');
+						}
+						else {
+							let html = '';
+							for (var i = 0; i < res.geoObjects.getLength(); i++) {
+								html += '<p class="pointer" onclick="AddYandexResult(\'#location\',this,\'.yandex_search_product\')">' + res.geoObjects.get(i).properties.get('name') + '</p>';
+							}
+							$('.yandex_search_product').html(html);
+						}
+					},
+					function (err) {
+						$('.yandex_search_product').html('');
+					}
+				);
+			});
+		});
+	<?php } ?>
+	<?php if ($has_page_fixed_location) { ?>
+		$(function () {
+			var fixedLocation = $('#location').val().trim();
+			if (!fixedLocation) {
+				return;
+			}
+			<?php if ($wo['config']['google_map'] == 1) { ?>
+				if (window.google && google.maps && typeof google.maps.Geocoder === 'function') {
+					var geocoder = new google.maps.Geocoder();
+					geocoder.geocode({ address: fixedLocation }, function (results, status) {
+						if (status === 'OK' && results[0] && results[0].geometry && results[0].geometry.location) {
+							$('#lat-product').val(results[0].geometry.location.lat());
+							$('#lng-product').val(results[0].geometry.location.lng());
+							$('#place-id-product').val(results[0].place_id || '');
+						}
+					});
+					return;
+				}
+			<?php } ?>
+			<?php if ($wo['config']['yandex_map'] == 1) { ?>
+				if (window.ymaps && typeof ymaps.geocode === 'function') {
+					ymaps.geocode(fixedLocation).then(function (res) {
+						if (res.geoObjects.getLength() > 0) {
+							var coords = res.geoObjects.get(0).geometry.getCoordinates();
+							$('#lat-product').val(coords[0]);
+							$('#lng-product').val(coords[1]);
+							$('#place-id-product').val('');
+						}
+					});
+				}
+			<?php } ?>
+		});
+	<?php } ?>
 </script>
