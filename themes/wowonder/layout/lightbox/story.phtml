@@ -85,7 +85,7 @@
 				<img src="<?php echo $wo['story']['story_media'][0]['filename']. "?cache=" . time();?>" alt="media" class="<?php echo isset($wo['story']['ad']) ? 'rads-' . $wo['story']['ad']['bidding'] : '' ?>"
                      id="<?php echo isset($wo['story']['ad']) ?  $wo['story']['ad']['id'] : '' ?>">
 			<?php }else{ ?>
-					<video class="story-lightbox-video" preload="metadata" playsinline webkit-playsinline x-webkit-airplay="deny" disablepictureinpicture disableremoteplayback controlslist="nofullscreen nodownload noplaybackrate noremoteplayback" style="width: 100%; height: 100%;" data-story-video="<?php echo $wo['story']['story_media'][0]['id'];?>" id="video_story">
+					<video class="story-lightbox-video" preload="auto" playsinline webkit-playsinline x-webkit-airplay="deny" disablepictureinpicture disableremoteplayback controlslist="nofullscreen nodownload noplaybackrate noremoteplayback" style="width: 100%; height: 100%;" data-story-video="<?php echo $wo['story']['story_media'][0]['id'];?>" id="video_story">
 						<source src="<?php echo $wo['story']['story_media'][0]['filename'];?>" type='video/mp4'>
 						<source src="<?php echo $wo['story']['story_media'][0]['filename'];?>" type='video/webm'>
 					</video>

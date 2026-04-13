@@ -3125,16 +3125,19 @@ function Wo_CancelCall() {
   if (window.woCallCancelPending === true) {
     return;
   }
-  Wo_progressIconLoader($('#calling-modal').find('.cancel-call'));
   var callMeta = window.woActiveCallMeta || {};
   if (callMeta.finished === true) {
       Wo_PlayAudioCall('stop');
       clearTimeout(checkcalls);
       clearTimeout(window.woActiveCallTimeout);
       Wo_CloseCallingModal();
+      if (callMeta.busy === true) {
+          Wo_RefreshCallViews(callMeta.userId || 0);
+      }
       window.woActiveCallMeta = null;
       return;
   }
+  Wo_progressIconLoader($('#calling-modal').find('.cancel-call'));
   window.woCallCancelPending = true;
   clearTimeout(checkcalls);
   clearTimeout(window.woActiveCallTimeout);
@@ -3165,35 +3168,68 @@ function Wo_GenerateVideoCall(user_id1, user_id2) {
   window.woCallCreatePending = true;
   $.get(Wo_Ajax_Requests_File(), {f:'create_new_video_call', 'new': 'true', user_id1: user_id1, user_id2:user_id2}, function(data) {
       if (data.status == 200) {
-          window.woActiveCallMeta = {id: data.id, userId: user_id2, callType: 'video'};
-          window.woCallCancelPending = false;
-          if (node_socket_flow == "1") {
-            socket.emit("user_notification", { to_id: user_id2, user_id: _getCookie("user_id"), type: "create_video" });
-          }
-          $('body').append(data.html);
-           $('#calling-modal').modal({
-             show: true
-           });
-           checkcalls = setTimeout(function () {
-              Wo_CheckForCallAnswer(data.id);
-           }, 2000);
-           window.woActiveCallTimeout = setTimeout(function() {
-            $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-video-camera"></i> ' + data.text_no_answer);
-            $('#calling-modal').find('.modal-body p').text(data.text_please_try_again_later);
-            clearTimeout(checkcalls);
-            Wo_PlayAudioCall('stop');
-            $.get(Wo_Ajax_Requests_File(), {f:'close_call', id:data.id, call_type:'video', status:'no_answer'}, function () {
-              window.woActiveCallMeta = {id: data.id, userId: user_id2, callType: 'video', finished: true, finalStatus: 'no_answer'};
+        if (data.busy || data.id == 0 || data.error_type == 'busy') {
+          Wo_PlayAudioCall('stop');
+          var $modal = $(data.html);
+          $modal.find('.cancel-call').attr('onclick', '').click(function(e) {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              Wo_PlayAudioCall('stop');
+              clearTimeout(window.woActiveCallTimeout);
+              Wo_CloseCallingModal();
               Wo_RefreshCallViews(user_id2);
-              setTimeout(function () {
-                Wo_CloseCallingModal();
-                window.woActiveCallMeta = null;
-              }, 1200);
-            });
-           }, 43000);
-          Wo_PlayAudioCall('play');
+              window.woActiveCallMeta = null;
+          });
+          $('body').append($modal);
+          $('#calling-modal').modal({ show: true });
+          
+          window.woActiveCallMeta = {id: 0, userId: user_id2, callType: 'video', busy: true, finished: true};
+          
+          setTimeout(function() {
+            $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-times"></i> Người nhận đang bận');
+            $('#calling-modal').find('.modal-body p').html('Vui lòng thử lại sau.');
+          }, 400);
+
+          window.woActiveCallTimeout = setTimeout(function () {
+              if (window.woActiveCallMeta && window.woActiveCallMeta.busy === true) {
+                  Wo_CloseCallingModal();
+                  Wo_RefreshCallViews(user_id2);
+                  window.woActiveCallMeta = null;
+              }
+          }, 4000);
+          
+          return false;
+        }
+        
+        window.woActiveCallMeta = {id: data.id, userId: user_id2, callType: 'video', busy: false, finished: false};
+        window.woCallCancelPending = false;
+        if (node_socket_flow == "1") {
+          socket.emit("user_notification", { to_id: user_id2, user_id: _getCookie("user_id"), type: "create_video" });
+        }
+        $('body').append(data.html);
+         $('#calling-modal').modal({
+           show: true
+         });
+         checkcalls = setTimeout(function () {
+            Wo_CheckForCallAnswer(data.id);
+         }, 2000);
+         window.woActiveCallTimeout = setTimeout(function() {
+          $('#calling-modal').find('.modal-title').html('<i class="fa fa-video-camera"></i> ' + data.text_no_answer);
+          $('#calling-modal').find('.modal-body p').text(data.text_please_try_again_later);
+          clearTimeout(checkcalls);
+          Wo_PlayAudioCall('stop');
+          $.get(Wo_Ajax_Requests_File(), {f:'close_call', id:data.id, call_type:'video', status:'no_answer'}, function () {
+            window.woActiveCallMeta = {id: data.id, userId: user_id2, callType: 'video', finished: true, finalStatus: 'no_answer'};
+            Wo_RefreshCallViews(user_id2);
+            setTimeout(function () {
+              Wo_CloseCallingModal();
+              window.woActiveCallMeta = null;
+            }, 1200);
+          });
+         }, 43000);
+        Wo_PlayAudioCall('play');
     }
-   }).always(function () {
+   }, 'json').always(function () {
       window.woCallCreatePending = false;
    });
 }
@@ -3205,7 +3241,40 @@ function Wo_GenerateVoiceCall(user_id1, user_id2) {
   window.woCallCreatePending = true;
   $.get(Wo_Ajax_Requests_File(), {f:'create_new_audio_call', 'new': 'true', user_id1: user_id1, user_id2:user_id2}, function(data) {
       if (data.status == 200) {
-           window.woActiveCallMeta = {id: data.id, userId: user_id2, callType: 'audio'};
+        if (data.busy || data.id == 0 || data.error_type == 'busy') {
+            Wo_PlayAudioCall('stop');
+            var $modal = $(data.html);
+            $modal.find('.cancel-call').attr('onclick', '').click(function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                Wo_PlayAudioCall('stop');
+                clearTimeout(window.woActiveCallTimeout);
+                Wo_CloseCallingModal();
+                Wo_RefreshCallViews(user_id2);
+                window.woActiveCallMeta = null;
+            });
+            $('body').append($modal);
+            $('#calling-modal').modal({ show: true });
+            
+            window.woActiveCallMeta = {id: 0, userId: user_id2, callType: 'audio', busy: true, finished: true};
+            
+            setTimeout(function() {
+                $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-times"></i> Người nhận đang bận');
+                $('#calling-modal').find('.modal-body p').html('Vui lòng thử lại sau.');
+            }, 400);
+
+            window.woActiveCallTimeout = setTimeout(function () {
+                if (window.woActiveCallMeta && window.woActiveCallMeta.busy === true) {
+                    Wo_CloseCallingModal();
+                    Wo_RefreshCallViews(user_id2);
+                    window.woActiveCallMeta = null;
+                }
+            }, 4000);
+            
+            return false;
+        }
+
+           window.woActiveCallMeta = {id: data.id, userId: user_id2, callType: 'audio', busy: false, finished: false};
            window.woCallCancelPending = false;
            if (node_socket_flow == "1") {
             socket.emit("user_notification", { to_id: user_id2, user_id: _getCookie("user_id"), type: "create_video" });
@@ -3218,7 +3287,7 @@ function Wo_GenerateVoiceCall(user_id1, user_id2) {
               Wo_CheckForAudioCallAnswer(data.id);
            }, 2000);
            window.woActiveCallTimeout = setTimeout(function() {
-            $('#calling-modal').find('.modal-title').html('<i class="fa fa fa-phone"></i> ' + data.text_no_answer);
+            $('#calling-modal').find('.modal-title').html('<i class="fa fa-phone"></i> ' + data.text_no_answer);
             $('#calling-modal').find('.modal-body p').text(data.text_please_try_again_later);
             clearTimeout(checkcalls);
             Wo_PlayAudioCall('stop');
@@ -3233,7 +3302,7 @@ function Wo_GenerateVoiceCall(user_id1, user_id2) {
            }, 43000);
           Wo_PlayAudioCall('play');
     }
-   }).always(function () {
+   }, 'json').always(function () {
       window.woCallCreatePending = false;
    });
 }
