@@ -781,11 +781,13 @@
         socket.on("group_message", (data)=>{
               var chat_messages_wrapper = $('.group-messages-wrapper-'+data.id);
               if (data.status == 200) {
-              if ($(".group-messages-wrapper-"+data.id).find('.no_message').length > 0) {
-                $(".group-messages-wrapper-"+data.id).find('.chat-messages').html(data.html);
-              }else{
-                $(".group-messages-wrapper-"+data.id).find('.chat-messages').append(data.html);
-              }
+                if ($('#messageId_'+data.message_id).length == 0) {
+                  if ($(".group-messages-wrapper-"+data.id).find('.no_message').length > 0) {
+                    $(".group-messages-wrapper-"+data.id).find('.chat-messages').html(data.html);
+                  }else{
+                    $(".group-messages-wrapper-"+data.id).find('.chat-messages').append(data.html);
+                  }
+                }
               if ($('.chat_group_'+data.id).length == 0) {
               current_messages_number = Number($("[data_messsages_count]").attr('data_messsages_count')) + 1;
               $("[data_messsages_count]").text(current_messages_number).removeClass("hidden");

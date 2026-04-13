@@ -6706,8 +6706,8 @@ function Wo_GetGroupCallMessage($message = array()) {
     $invited_by = intval(!empty($payload['invited_by']) ? $payload['invited_by'] : $initiator_id);
     $initiator = ($initiator_id > 0) ? Wo_UserData($initiator_id) : array();
     $inviter = ($invited_by > 0) ? Wo_UserData($invited_by) : array();
-    $actor_name = !empty($initiator['name']) ? $initiator['name'] : (!empty($inviter['name']) ? $inviter['name'] : (!empty($wo['lang']['someone']) ? $wo['lang']['someone'] : 'Someone'));
-    $detail = ($call_type == 'video') ? 'started a group video call' : 'started a group audio call';
+    $actor_name = !empty($initiator['first_name']) ? $initiator['first_name'] : (!empty($inviter['first_name']) ? $inviter['first_name'] : (!empty($wo['lang']['someone']) ? $wo['lang']['someone'] : 'Someone'));
+    $detail = ($call_type == 'video') ? 'Đã bắt đầu cuộc gọi video' : 'Đã bắt đầu cuộc gọi âm thanh';
     if ($action === 'members_added') {
         $actor_name = !empty($inviter['name']) ? $inviter['name'] : $actor_name;
         $detail = ($call_type == 'video') ? 'invited more members to this video call' : 'invited more members to this audio call';
