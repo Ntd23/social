@@ -1809,13 +1809,14 @@ if (isset($_SESSION['open_chat'])) {
             count_span.html(data.count_chat);
           }
           if (data.update_group_status.length > 0) {
-            if ('<?php echo $wo['page']; ?>' != 'messages') {
+            var currentPageName = <?php echo json_encode((isset($wo['page']) && !is_array($wo['page'])) ? (string) $wo['page'] : (!empty($_GET['link1']) ? (string) $_GET['link1'] : '')); ?>;
+            if (currentPageName != 'messages') {
               for (var i = 0; i < data.update_group_status.length; i++) {
                 if ($(".chat_group_" + data.update_group_status[i]).length == 0) {
                   $("[data-chat-group='" + data.update_group_status[i] + "']").find('.group-lastseen').html('<i class="fa fa-circle main" style="font-size:10px;"></i>');
                 }
               }
-            } else if ('<?php echo $wo['page']; ?>' == 'messages') {} {
+            } else {
               for (var i = 0; i < data.update_group_status.length; i++) {
                 if ($(".chat_group_" + data.update_group_status[i]).length == 0 && $("#messages-group-id").val() != data.update_group_status[i]) {
                   $("#messages-group-" + data.update_group_status[i]).find('.group-lastseen').html('<i class="fa fa-circle main" style="font-size:10px;"></i>');

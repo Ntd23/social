@@ -138,10 +138,59 @@
   </nav>
 </div>
 <div class="barloading"></div>
+<?php echo Wo_LoadPage('common_things/leaflet-muted-map-config'); ?>
 <style>
 .search-dropdown-result {
     max-height: 450px;
     overflow-y: auto;
+}
+.search-page-location-block {
+    margin: 10px 12px 4px;
+}
+.search-page-map {
+    position: relative;
+    height: 116px;
+    margin-top: 8px;
+    overflow: hidden;
+    border: 1px solid #e5eaf1;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f7f4ed 0%, #f2f0ea 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 6px 18px rgba(33, 37, 41, 0.05);
+}
+.wo_ui_map_state_loading::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.62) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-100%);
+    animation: woUiMapShimmer 1.45s infinite;
+    z-index: 1;
+    pointer-events: none;
+}
+.wo_ui_map_state_loading::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 42px;
+    height: 8px;
+    z-index: 2;
+    border-radius: 999px;
+    background: rgba(132, 112, 67, 0.18);
+}
+.search-page-map .leaflet-pane,
+.search-page-map .leaflet-control-container {
+    z-index: 0;
+}
+@keyframes woUiMapShimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+@media (max-width: 768px) {
+    .search-page-map {
+        height: 88px;
+    }
 }
 </style>
 <script type="text/javascript">
@@ -263,10 +312,11 @@ function Wo_RenderHeaderSearchMap(element, coordinates, pageName, address) {
 
   element._leaflet_map_ref = map;
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  var tileConfig = window.WoLeafletMutedMapConfig || {};
+  var tileLayer = L.tileLayer(tileConfig.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', $.extend({
     attribution: '',
     maxZoom: 18
-  }).addTo(map);
+  }, tileConfig.tileOptions || {})).addTo(map);
 
   var popupHtml = '<strong>' + escapeHtml(pageName || '') + '</strong>';
   if (address) {
@@ -274,6 +324,11 @@ function Wo_RenderHeaderSearchMap(element, coordinates, pageName, address) {
   }
 
   L.marker([coordinates.lat, coordinates.lng]).addTo(map).bindPopup(popupHtml);
+  var clearHeaderMapLoading = function() {
+    $(element).removeClass('wo_ui_map_state_loading');
+  };
+  tileLayer.once('load', clearHeaderMapLoading);
+  tileLayer.once('tileerror', clearHeaderMapLoading);
 }
 
 function Wo_InitHeaderSearchMaps() {
@@ -295,14 +350,14 @@ function Wo_InitHeaderSearchMaps() {
           return;
         }
 
-        $element.addClass('search-page-map-loading').attr('data-loading-text', '<?php echo $wo['lang']['loading']; ?>');
+        $element.addClass('search-page-map-loading wo_ui_map_state_loading');
 
         Wo_GeocodeHeaderSearchAddress(address).then(function(coordinates) {
           if (!document.body.contains(element)) {
             return;
           }
 
-          $element.removeClass('search-page-map-loading').removeAttr('data-loading-text');
+          $element.removeClass('search-page-map-loading wo_ui_map_state_loading');
 
           if (!coordinates) {
             $element.hide();
