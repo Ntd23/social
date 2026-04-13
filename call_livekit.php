@@ -212,6 +212,7 @@ if ($livekitConfigured) {
         .lk-stage::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,8,16,.34) 0%,rgba(5,8,16,.08) 24%,rgba(5,8,16,.08) 56%,rgba(5,8,16,.66) 100%);pointer-events:none;z-index:1}
         .lk-tile{position:relative;overflow:hidden;border-radius:24px;border:1px solid var(--border);background:linear-gradient(180deg,rgba(15,23,42,.88) 0%,rgba(17,24,39,.98) 100%);min-height:240px;display:flex;align-items:center;justify-content:center;box-shadow:0 18px 40px rgba(2,6,23,.35)}
         .lk-tile video{width:100%;height:100%;display:block;object-fit:cover;background:#020617}
+        body:not(.lk-audio-mode) .lk-stage .lk-tile video{object-fit:contain!important;background:#020617}
         body:not(.lk-audio-mode) .lk-stage .lk-tile{position:absolute;inset:0;min-height:100vh;min-height:100dvh;height:100%;border:0;border-radius:0;box-shadow:none;background:#020617}
         body:not(.lk-audio-mode) .lk-stage .lk-label{display:none}
         .lk-self{position:fixed;top:32px;right:32px;width:min(26vw,210px);height:min(34vw,286px);z-index:14;border-radius:34px;overflow:hidden;border:2px solid rgba(255,255,255,.26);background:rgba(15,23,42,.54);box-shadow:0 24px 40px rgba(2,6,23,.34);backdrop-filter:blur(12px);cursor:grab;touch-action:none;user-select:none}
@@ -1061,6 +1062,11 @@ if ($livekitConfigured) {
             const element = track.attach();
             element.setAttribute('data-track-sid', track.sid || '');
             if (track.kind === 'video') {
+                element.style.width = '100%';
+                element.style.height = '100%';
+                element.style.background = '#020617';
+                element.style.objectFit = isSelf ? 'cover' : 'contain';
+                // Keep a single rendered video per tile to avoid split/duplicate frames 
                 // Keep a single rendered video per tile to avoid split/duplicate frames
                 // when LiveKit republishes or restarts the camera track.
                 tile.querySelectorAll('video').forEach(function (video) {

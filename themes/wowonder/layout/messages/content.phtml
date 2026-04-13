@@ -1566,6 +1566,29 @@ var close_action = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="2
 $('#audio-button,#audio-button-right').empty();
 $('#video-button,#video-button-right').empty();
 
+<?php if ($wo['config']['audio_chat'] == 1 && $wo['config']['can_use_audio_call'] == 1) { ?>
+  if (data.can_audio_call == 1) {
+     var audio_call = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="cursor: pointer; fill:currentColor;" onclick="Wo_GenerateGroupVoiceCall(' + group_id + ')"><title>Start audio call</title><path fill="currentColor" d="M12 1A3 3 0 0 0 9 4V10A3 3 0 0 0 12 13A3 3 0 0 0 15 10V4A3 3 0 0 0 12 1M19 10V11A7 7 0 0 1 13 17.93V21H11V17.93A7 7 0 0 1 5 11V10H7V11A5 5 0 0 0 12 16A5 5 0 0 0 17 11V10H19Z" /></svg>';
+     $('#audio-button,#audio-button-right').html(audio_call);
+  }
+<?php } ?>
+
+<?php if ($wo['config']['video_chat'] == 1 && $wo['config']['can_use_video_call'] == 1) { ?>
+  if (data.can_video_call == 1) {
+     var video_call = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="cursor: pointer; fill:currentColor;" onclick="Wo_GenerateGroupVideoCall(' + group_id + ')"><title>Start video call</title><path fill="currentColor" d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z" /></svg>';
+     $('#video-button,#video-button-right').html(video_call);
+  }
+<?php } ?>
+
+if (data.can_join == 1) {
+    var active_call = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="cursor: pointer; fill:#16a34a;" onclick="Wo_JoinGroupCall(' + data.active_group_call + ', ' + group_id + ', \'' + data.active_group_call_type + '\');"><title>Join active call</title><path fill="#16a34a" d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5M8,9L15,12L8,15V9Z" /></svg>';
+    if (data.active_group_call_type == 'video') {
+         $('#video-button,#video-button-right').html(active_call);
+    } else {
+         $('#audio-button,#audio-button-right').html(active_call);
+    }
+}
+
 if (data.is_owner == 1) {
   delete_action_html = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" title="<?php echo $wo['lang']['delete_group']; ?>" onclick="Wo_DeleteGroupChat(' + group_id + ')"><path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>';
   edit_action_html = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" title="<?php echo $wo['lang']['edit_group']; ?>" onclick="Wo_EditGChat(event,' + group_id + ')"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>';

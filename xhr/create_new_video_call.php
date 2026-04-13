@@ -18,6 +18,30 @@ if ($f == 'create_new_video_call') {
     $user_2       = Wo_UserData(Wo_Secure($_GET['user_id2']));
     $room_script  = sha1(rand(1111111, 9999999999));
     $provider     = Wo_GetActiveCallProvider('video');
+    if (Wo_IsUserBusy($user_2['user_id'])) {
+        $call_message_id = Wo_RegisterCallLog(array(
+            'from_id' => Wo_Secure($_GET['user_id1']),
+            'to_id' => Wo_Secure($_GET['user_id2']),
+            'call_id' => 0,
+            'call_type' => 'video',
+            'status' => 'busy'
+        ));
+        $wo['calling_user'] = $user_2;
+        $data = array(
+            'status' => 200,
+            'busy' => true,
+            'error_type' => 'busy',
+            'id' => 0,
+            'html' => Wo_LoadPage('modals/calling'),
+            'message' => 'Người nhận đang bận',
+            'text_no_answer' => $wo['lang']['no_answer'],
+            'text_please_try_again_later' => $wo['lang']['please_try_again_later']
+        );
+        header("Content-type: application/json");
+        if (ob_get_length()) ob_clean();
+        echo json_encode($data);
+        exit();
+    }
 
     if ($provider == 'agora') {
         $wo['AgoraToken'] = null;

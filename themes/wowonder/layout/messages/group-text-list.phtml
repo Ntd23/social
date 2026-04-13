@@ -2,8 +2,13 @@
 <?php $reactions = Wo_GetPostReactions($wo['message']['id'],'message'); ?>
 <div class="message-contnaier <?php echo ($wo['message']['onwer'] == 0) ? 'incoming pull-left' : 'outgoing pull-right';?> <?php echo(!empty($reactions) ? 'margin-active' : '') ?>" id="messageId_<?php echo $wo['message']['id']; ?>">
 <?php if ($wo['message']['onwer'] == 0): ?>
+<div class="message-user-name" style="width: 100%; margin-left: 50px; margin-bottom: 2px;">
+   <a href="<?php echo Wo_SeoLink('index.php?link1=timeline&u='.$wo['message']['user_data']['username']);?>" data-ajax="?link1=timeline&u=<?php echo $wo['message']['user_data']['username']?>" style="font-size: 11px; font-weight: 600; color: #888;">
+      <?php echo !empty($wo['message']['user_data']['first_name']) ? $wo['message']['user_data']['first_name'] : $wo['message']['user_data']['name']?>
+   </a>
+</div>
 <div class="message-user-image pull-left">
-  <img src="<?php echo $wo['message']['user_data']['avatar']?>" alt="User image">
+   <img src="<?php echo $wo['message']['user_data']['avatar']?>" alt="User image">
 </div>
 <?php endif ?>
 <div class="messages-wrapper messages-text message-model <?php echo ($wo['message']['onwer'] == 0) ? 'pull-left' : 'pull-right';?>" data-message-id="<?php echo $wo['message']['id'] ?>" onclick="Wo_ShowMessageOptions(<?php echo $wo['message']['id'] ?>);">
@@ -14,18 +19,18 @@
         <div style="font-weight:600;margin-bottom:6px;"><?php echo $groupCallMessage['title']; ?></div>
         <div><?php echo $groupCallMessage['actor_name']; ?> <?php echo $groupCallMessage['detail']; ?></div>
         <?php if ($groupCallMessage['is_active']): ?>
-          <div style="margin-top:6px;color:#667085;font-size:12px;"><?php echo intval($groupCallMessage['participant_count']); ?> participant(s) in call</div>
+          <div style="margin-top:6px;color:#667085;font-size:12px;"><?php echo intval($groupCallMessage['participant_count']); ?> người trong cuộc gọi</div>
           <div style="margin-top:10px;">
-            <button type="button" class="btn btn-main btn-sm" onclick="event.stopPropagation(); Wo_JoinGroupCall(<?php echo intval($groupCallMessage['call_id']); ?>, <?php echo intval($groupCallMessage['group_id']); ?>, '<?php echo $groupCallMessage['call_type']; ?>');">Join call</button>
+            <button type="button" class="btn btn-main btn-sm" onclick="event.stopPropagation(); Wo_JoinGroupCall(<?php echo intval($groupCallMessage['call_id']); ?>, <?php echo intval($groupCallMessage['group_id']); ?>, '<?php echo $groupCallMessage['call_type']; ?>');">Tham gia cuộc gọi</button>
           </div>
         <?php else: ?>
-          <div style="margin-top:8px;color:#98a2b3;font-size:12px;">Call ended</div>
+          <div style="margin-top:8px;color:#98a2b3;font-size:12px;">Cuộc gọi đã kết thúc</div>
         <?php endif; ?>
       </div>
       <?php else: ?>
       <p class="message-text" id="message_text_reply_<?php echo $wo['message']['id'] ?>" dir="auto"><?php echo $wo['message']['text'] ?></p>
       <?php endif; ?>
-      <div class="message-media" id="message_media_reply_<?php echo $wo['message']['id'] ?>">
+      <!-- <div class="message-media" id="message_media_reply_<?php echo $wo['message']['id'] ?>">
          <div class="clear"></div>
           <?php
           if (isset($wo['message']['media']) && !empty($wo['message']['media'])) {
@@ -41,7 +46,7 @@
           <?php if (!empty($wo['message']['stickers'])): ?>
             <img src="<?php echo $wo['message']['stickers']; ?>" style="max-height: 100px;max-width: 100%;">
           <?php endif; ?>
-      </div>
+      </div> -->
       <div class="deleteMessage <?php echo ($wo['message']['onwer'] == 0) ? 'right': '';?>" onclick="Wo_DeleteMessage(<?php echo $wo['message']['id'] ?>);">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
   <!-- <div class="time ajax-time text-right <?php echo ($wo['message']['onwer'] == 0) ? 'pull-right': 'pull-left';?>" title="<?php echo date('c',$wo['message']['time']); ?>">
@@ -117,8 +122,6 @@
       </div>
       <?php } ?>
    </div>
-   
-
 </div>
 <div class="like-stat stat-item post-like-status" style="<?php if ($wo['message']['onwer'] == 0) {?> float:left; <?php }else{ ?> float:right; <?php }?>">
       <span class="like-emo post-reactions-icons-m-<?php echo $wo['message']['id']; ?>">

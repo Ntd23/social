@@ -781,11 +781,13 @@
         socket.on("group_message", (data)=>{
               var chat_messages_wrapper = $('.group-messages-wrapper-'+data.id);
               if (data.status == 200) {
-              if ($(".group-messages-wrapper-"+data.id).find('.no_message').length > 0) {
-                $(".group-messages-wrapper-"+data.id).find('.chat-messages').html(data.html);
-              }else{
-                $(".group-messages-wrapper-"+data.id).find('.chat-messages').append(data.html);
-              }
+                if ($('#messageId_'+data.message_id).length == 0) {
+                  if ($(".group-messages-wrapper-"+data.id).find('.no_message').length > 0) {
+                    $(".group-messages-wrapper-"+data.id).find('.chat-messages').html(data.html);
+                  }else{
+                    $(".group-messages-wrapper-"+data.id).find('.chat-messages').append(data.html);
+                  }
+                }
               if ($('.chat_group_'+data.id).length == 0) {
               current_messages_number = Number($("[data_messsages_count]").attr('data_messsages_count')) + 1;
               $("[data_messsages_count]").text(current_messages_number).removeClass("hidden");
@@ -950,7 +952,7 @@
       <?php
        }
        ?>
-      <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/script.js<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>&v=1.5"></script>
+      <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/script.js<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>&v=1.6"></script>
       <?php if ($wo['loggedin'] == true) {?>
       <?php if ($wo['config']['google_map'] == 1) { ?>
       <script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $wo['config']['google_map_api'];?>&libraries=places"></script>
@@ -1254,12 +1256,18 @@
 	      <!-- // NEW STORY -->
 	      <script type="text/javascript">
 	         window.WoStoryTapLockUntil = 0;
+	         window.WoStoryIsTransitioning = false;
+	         window.WoStoryIsIOS = window.WoStoryIsIOS || /iPad|iPhone|iPod/.test(navigator.userAgent || '') || ((navigator.platform === 'MacIntel') && navigator.maxTouchPoints > 1);
 	         window.WoStoryPlayback = window.WoStoryPlayback || (function () {
 	          var state = {
 	            timer: null,
 	            storyId: null,
 	            storyType: '',
 	            paused: false,
+	            playing: false,
+	            autoplayMuted: false,
+	            waitingForUserGesture: false,
+	            audioUnlocked: false,
 	            startedAt: 0,
 	            remainingMs: 10000,
 	            totalMs: 10000
@@ -1346,6 +1354,76 @@
 	            els.$lightbox.toggleClass('wo_story_paused', !!paused);
 	          }
 
+	          function updateVideoDuration(video) {
+	            var duration = (video && isFinite(video.duration) && video.duration > 0) ? Math.round(video.duration * 1000) : 10000;
+	            state.totalMs = duration;
+	            if (!state.remainingMs || state.remainingMs > duration) {
+	              state.remainingMs = duration;
+	            }
+	            return duration;
+	          }
+
+	          function startPlaybackProgress(resetToStart) {
+	            var els = getElements();
+	            if (!els.$lightbox.length) {
+	              return;
+	            }
+	            if (resetToStart) {
+	              state.remainingMs = state.totalMs || 10000;
+	            }
+	            state.playing = true;
+	            animateProgress(state.remainingMs, resetToStart ? 0 : getProgressPercent(els.$progress));
+	            schedule(state.remainingMs);
+	          }
+
+	          function playVideo(video, withSound, allowMutedFallback) {
+	            if (!video) {
+	              return Promise.resolve();
+	            }
+
+	            video.defaultMuted = !withSound;
+	            video.muted = !withSound;
+	            if (withSound) {
+	              video.volume = 1;
+	            }
+
+	            var playPromise = video.play();
+	            if (!playPromise || typeof playPromise.then !== 'function') {
+	              if (withSound) {
+	                state.audioUnlocked = true;
+	                state.autoplayMuted = false;
+	                state.waitingForUserGesture = false;
+	              }
+	              return Promise.resolve();
+	            }
+
+	            return playPromise.then(function () {
+	              if (withSound) {
+	                state.audioUnlocked = true;
+	                state.autoplayMuted = false;
+	                state.waitingForUserGesture = false;
+	              }
+	            }).catch(function () {
+	              if (!withSound && allowMutedFallback) {
+	                state.autoplayMuted = true;
+	                state.waitingForUserGesture = true;
+	                return null;
+	              }
+	              if (!allowMutedFallback) {
+	                throw new Error('story-video-play-blocked');
+	              }
+	              state.autoplayMuted = true;
+	              state.waitingForUserGesture = true;
+	              video.defaultMuted = true;
+	              video.muted = true;
+	              var mutedPromise = video.play();
+	              if (mutedPromise && typeof mutedPromise.catch === 'function') {
+	                return mutedPromise.catch(function () {});
+	              }
+	              return mutedPromise;
+	            });
+	          }
+
 	          return {
 	            init: function (storyType) {
 	              var els = getElements();
@@ -1355,13 +1433,20 @@
 
 	              clearTimer();
 	              state.paused = false;
+	              state.playing = false;
+	              state.autoplayMuted = false;
+	              state.waitingForUserGesture = false;
 	              state.storyId = els.$story.attr('id') || null;
 	              state.storyType = storyType || els.$story.attr('data-story-type') || '';
+	              state.startedAt = 0;
+	              state.totalMs = 10000;
+	              state.remainingMs = 10000;
 	              setPaused(false);
 
 	              if (els.video) {
 	                els.video.removeAttribute('autoplay');
 	                els.video.removeAttribute('controls');
+	                els.video.preload = 'auto';
 	                els.video.controls = false;
 	                els.video.playsInline = true;
 	                els.video.setAttribute('playsinline', 'playsinline');
@@ -1371,42 +1456,36 @@
 	                els.video.setAttribute('disableremoteplayback', '');
 	                els.video.setAttribute('controlslist', 'nofullscreen nodownload noplaybackrate noremoteplayback');
 
-	                var startVideo = function () {
-	                  var duration = (isFinite(els.video.duration) && els.video.duration > 0) ? Math.round(els.video.duration * 1000) : 10000;
-	                  state.totalMs = duration;
-	                  state.remainingMs = duration;
-	                  animateProgress(duration, 0);
-	                  schedule(duration);
-	                };
-
 	                els.video.onended = function () {
 	                  clearTimer();
+	                  state.playing = false;
 	                  nextStory();
 	                };
 
 	                els.video.onloadedmetadata = function () {
+	                  updateVideoDuration(els.video);
+	                };
+
+	                els.video.onloadeddata = function () {
+	                  updateVideoDuration(els.video);
+	                };
+
+	                els.video.onplaying = function () {
+	                  updateVideoDuration(els.video);
 	                  if (!state.paused) {
-	                    startVideo();
+	                    startPlaybackProgress(getProgressPercent(els.$progress) <= 0);
 	                  }
+	                };
+
+	                els.video.onpause = function () {
+	                  state.playing = false;
 	                };
 
 	                setTimeout(function () {
 	                  if (!$('#video_story').length) {
 	                    return;
 	                  }
-	                  var playPromise = els.video.play();
-	                  if (playPromise && typeof playPromise.catch === 'function') {
-	                    playPromise.catch(function () {
-	                      els.video.muted = true;
-	                      var mutedPromise = els.video.play();
-	                      if (mutedPromise && typeof mutedPromise.catch === 'function') {
-	                        mutedPromise.catch(function () {});
-	                      }
-	                    });
-	                  }
-	                  if (els.video.readyState >= 1) {
-	                    startVideo();
-	                  }
+	                  playVideo(els.video, true, true);
 	                }, 250);
 	              }
 	              else {
@@ -1426,7 +1505,9 @@
 	              }
 	              state.paused = true;
 	              clearTimer();
-	              state.remainingMs = Math.max(250, state.remainingMs - (Date.now() - state.startedAt));
+	              var elapsed = (state.playing && state.startedAt) ? (Date.now() - state.startedAt) : 0;
+	              state.remainingMs = Math.max(250, state.remainingMs - elapsed);
+	              state.playing = false;
 	              freezeProgress(els.$progress);
 	              if (els.video && !els.video.paused) {
 	                els.video.pause();
@@ -1442,15 +1523,32 @@
 	                return;
 	              }
 	              state.paused = false;
-	              animateProgress(state.remainingMs, getProgressPercent(els.$progress));
-	              schedule(state.remainingMs);
-	              if (els.video && els.video.paused) {
-	                var playPromise = els.video.play();
-	                if (playPromise && typeof playPromise.catch === 'function') {
-	                  playPromise.catch(function () {});
+	              if (els.video) {
+	                if (els.video.paused) {
+	                  playVideo(els.video, !els.video.muted, false).catch(function () {});
+	                }
+	                else {
+	                  startPlaybackProgress(false);
 	                }
 	              }
+	              else {
+	                animateProgress(state.remainingMs, getProgressPercent(els.$progress));
+	                schedule(state.remainingMs);
+	              }
 	              setPaused(false);
+	            },
+	            activateAudio: function () {
+	              var els = getElements();
+	              if (!els.video) {
+	                return;
+	              }
+	              state.paused = false;
+	              setPaused(false);
+	              playVideo(els.video, true, false).then(function () {
+	                if (els.video && !els.video.paused) {
+	                  startPlaybackProgress(getProgressPercent(els.$progress) <= 0);
+	                }
+	              }).catch(function () {});
 	            },
 	            toggle: function () {
 	              if (state.paused) {
@@ -1462,11 +1560,110 @@
 	            },
 	            clear: function () {
 	              clearTimer();
+	              var els = getElements();
+	              if (els.video && !els.video.paused) {
+	                els.video.pause();
+	              }
 	              state.paused = false;
+	              state.playing = false;
+	              state.waitingForUserGesture = false;
+	              state.startedAt = 0;
 	              setPaused(false);
+	            },
+	            isVideoMuted: function () {
+	              var els = getElements();
+	              return !!(els.video && els.video.muted);
+	            },
+	            needsGesture: function () {
+	              return !!state.waitingForUserGesture;
+	            },
+	            captureVideo: function () {
+	              var els = getElements();
+	              if (!window.WoStoryIsIOS || !els.video) {
+	                return null;
+	              }
+	              return {
+	                node: els.video,
+	                muted: !!els.video.muted
+	              };
+	            },
+	            restoreVideo: function (payload) {
+	              if (!payload || !payload.node) {
+	                return;
+	              }
+	              var els = getElements();
+	              if (!els.video) {
+	                return;
+	              }
+	              var placeholder = els.video;
+	              var preserved = payload.node;
+	              var sourceHtml = placeholder.innerHTML;
+	              var src = $(placeholder).find('source').first().attr('src') || placeholder.getAttribute('src') || '';
+
+	              preserved.pause();
+	              preserved.className = placeholder.className;
+	              preserved.style.cssText = placeholder.style.cssText;
+	              preserved.id = placeholder.id;
+	              preserved.setAttribute('data-story-video', placeholder.getAttribute('data-story-video') || '');
+	              preserved.setAttribute('playsinline', 'playsinline');
+	              preserved.setAttribute('webkit-playsinline', 'webkit-playsinline');
+	              preserved.setAttribute('x-webkit-airplay', 'deny');
+	              preserved.setAttribute('disablepictureinpicture', '');
+	              preserved.setAttribute('disableremoteplayback', '');
+	              preserved.setAttribute('controlslist', 'nofullscreen nodownload noplaybackrate noremoteplayback');
+	              preserved.controls = false;
+	              preserved.preload = 'auto';
+	              preserved.innerHTML = sourceHtml;
+	              if (src) {
+	                preserved.setAttribute('src', src);
+	              }
+	              preserved.currentTime = 0;
+	              preserved.defaultMuted = payload.muted;
+	              preserved.muted = payload.muted;
+
+	              placeholder.parentNode.replaceChild(preserved, placeholder);
+	              preserved.load();
 	            }
 	          };
 	         })();
+
+	         function Wo_ShowStoryLoader() {
+	          var $container = $('.lightbox-container');
+	          if (!$container.length || $container.find('.story-nav-preloader').length) {
+	            return;
+	          }
+	          $container.append('<div class="lb-preloader story-nav-preloader" style="display:block"><svg width="50px" height="50px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid"><rect x="0" y="0" width="100" height="100" fill="none" class="bk"></rect><circle cx="50" cy="50" r="40" stroke="#676d76" fill="none" stroke-width="6" stroke-linecap="round"><animate attributeName="stroke-dashoffset" dur="1.5s" repeatCount="indefinite" from="0" to="502"></animate><animate attributeName="stroke-dasharray" dur="1.5s" repeatCount="indefinite" values="150.6 100.4;1 250;150.6 100.4"></animate></circle></svg></div>');
+	         }
+
+	         function Wo_HideStoryLoader() {
+	          $('.story-nav-preloader').remove();
+	         }
+
+	         function Wo_CanUseStoryHoverPause() {
+	          if (window.innerWidth <= 768) {
+	            return false;
+	          }
+	          if (window.matchMedia) {
+	            try {
+	              return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+	            }
+	            catch (err) {}
+	          }
+	          return true;
+	         }
+
+	         function Wo_RenderStoryLightbox(data, storyType) {
+	          var preservedVideo = null;
+	          if (window.WoStoryPlayback && typeof window.WoStoryPlayback.captureVideo === 'function') {
+	            preservedVideo = window.WoStoryPlayback.captureVideo();
+	          }
+	          document.body.style.overflow = 'hidden';
+	          $('.lightbox-container').html(data.html);
+	          if (preservedVideo && window.WoStoryPlayback && typeof window.WoStoryPlayback.restoreVideo === 'function') {
+	            window.WoStoryPlayback.restoreVideo(preservedVideo);
+	          }
+	          window.WoStoryPlayback.init(storyType);
+	         }
 
 	         $(document).off('click.storyPause', '.story_lightbox .story-img');
 	         $(document).on('click.storyPause', '.story_lightbox .story-img', function(event) {
@@ -1476,15 +1673,25 @@
 	            if ($(event.target).closest('.changer,a,button,input,textarea,select').length) {
 	              return;
 	            }
+	            if (window.WoStoryPlayback.needsGesture() || window.WoStoryPlayback.isVideoMuted()) {
+	              window.WoStoryPlayback.activateAudio();
+	              return;
+	            }
 	            window.WoStoryPlayback.toggle();
 	         });
 
 	         $(document).on('mouseover', '.story_lightbox', function(event) {
+	                if (!Wo_CanUseStoryHoverPause()) {
+	                  return;
+	                }
 	                value = $(this).attr('data-post-id');
 	                $(this).addClass('dont_close_story_'+value);
 	                window.WoStoryPlayback.pause();
 	          });
 	          $(document).on('mouseleave', '.story_lightbox', function(event) {
+	            if (!Wo_CanUseStoryHoverPause()) {
+	              return;
+	            }
 	            var self = $(this);
 	            setTimeout(function(){
 	               if ($('#users-reacted-modal').is(':hidden')) {
@@ -1502,9 +1709,7 @@
           $value = $(this).parents(".story-container").attr('data-status-id');
           $.post(Wo_Ajax_Requests_File() + '?f=story_view', {id: $value}, function(data, textStatus, xhr) {
 	            if (data.status == 200) {
-	              document.body.style.overflow = 'hidden';
-	                $('.lightbox-container').html(data.html);
-	                window.WoStoryPlayback.init();
+	              Wo_RenderStoryLightbox(data, '');
 	            }
             else{
               Wo_CloseLightbox();
@@ -1538,46 +1743,42 @@
             if (node_socket_flow == "1") {
                socket.emit("user_notification", { to_id: user_id, user_id: _getCookie("user_id"), type: "added" });
             }
-	            document.body.style.overflow = 'hidden';
-	            $('.lightbox-container').html(data.html);
-	            window.WoStoryPlayback.init(type);
+	            Wo_RenderStoryLightbox(data, type);
 	          });
 	        });
         function Get_PreviousStory(story_id,story_type = '') {
-          if ($('.lightbox-container').is(":visible")) {
-
-            Wo_CloseLightbox();
-            $('#contnet').append('<div class="lightbox-container"><div class="lightbox-backgrond" onclick="Wo_CloseLightbox();"></div><div class="lb-preloader" style="display:block"><svg width="50px" height="50px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid"><rect x="0" y="0" width="100" height="100" fill="none" class="bk"></rect><circle cx="50" cy="50" r="40" stroke="#676d76" fill="none" stroke-width="6" stroke-linecap="round"><animate attributeName="stroke-dashoffset" dur="1.5s" repeatCount="indefinite" from="0" to="502"></animate><animate attributeName="stroke-dasharray" dur="1.5s" repeatCount="indefinite" values="150.6 100.4;1 250;150.6 100.4"></animate></circle></svg></div></div>');
+          if ($('.lightbox-container').is(":visible") && !window.WoStoryIsTransitioning) {
+            window.WoStoryIsTransitioning = true;
+            window.WoStoryPlayback.clear();
+            Wo_ShowStoryLoader();
             $.post(Wo_Ajax_Requests_File() + '?f=view_story_by_id', {story_id: story_id,type:'previous',story_type:story_type}, function(data, textStatus, xhr) {
                user_id = $(this).attr('data_story_user_id');
                if (node_socket_flow == "1") {
                socket.emit("user_notification", { to_id: user_id, user_id: _getCookie("user_id"), type: "added" });
             }
 	              if (data.status == 200) {
-	                document.body.style.overflow = 'hidden';
-	                  $('.lightbox-container').html(data.html);
-	                  window.WoStoryPlayback.init(story_type);
+	                  Wo_RenderStoryLightbox(data, story_type);
 	              }
               else{
                 Wo_CloseLightbox();
               }
+              Wo_HideStoryLoader();
+              window.WoStoryIsTransitioning = false;
             });
           }
         }
         function Get_NextStory(story_id,story_type = '') {
-          if ($('.lightbox-container').is(":visible")) {
-
-            Wo_CloseLightbox();
-            $('#contnet').append('<div class="lightbox-container"><div class="lightbox-backgrond" onclick="Wo_CloseLightbox();"></div><div class="lb-preloader" style="display:block"><svg width="50px" height="50px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid"><rect x="0" y="0" width="100" height="100" fill="none" class="bk"></rect><circle cx="50" cy="50" r="40" stroke="#676d76" fill="none" stroke-width="6" stroke-linecap="round"><animate attributeName="stroke-dashoffset" dur="1.5s" repeatCount="indefinite" from="0" to="502"></animate><animate attributeName="stroke-dasharray" dur="1.5s" repeatCount="indefinite" values="150.6 100.4;1 250;150.6 100.4"></animate></circle></svg></div></div>');
+          if ($('.lightbox-container').is(":visible") && !window.WoStoryIsTransitioning) {
+            window.WoStoryIsTransitioning = true;
+            window.WoStoryPlayback.clear();
+            Wo_ShowStoryLoader();
             $.post(Wo_Ajax_Requests_File() + '?f=view_story_by_id', {story_id: story_id,type:'next',story_type:story_type}, function(data, textStatus, xhr) {
 	              if (data.status == 200) {
                user_id = $(this).attr('data_story_user_id');
                if (node_socket_flow == "1") {
                socket.emit("user_notification", { to_id: user_id, user_id: _getCookie("user_id"), type: "added" });
             }
-	                document.body.style.overflow = 'hidden';
-	                  $('.lightbox-container').html(data.html);
-	                  window.WoStoryPlayback.init(story_type);
+	                  Wo_RenderStoryLightbox(data, story_type);
 	              }
               else{
                 if (story_type == 'user') {
@@ -1589,6 +1790,8 @@
                 }
                 Wo_CloseLightbox();
               }
+              Wo_HideStoryLoader();
+              window.WoStoryIsTransitioning = false;
             });
           }
       }
@@ -1602,9 +1805,7 @@
                if (node_socket_flow == "1") {
                socket.emit("user_notification", { to_id: user_id, user_id: _getCookie("user_id"), type: "added" });
             }
-	                document.body.style.overflow = 'hidden';
-	                  $('.lightbox-container').html(data.html);
-	                  window.WoStoryPlayback.init(story_type);
+	                  Wo_RenderStoryLightbox(data, story_type);
 	              }
               else{
                 if (story_type == 'user') {
