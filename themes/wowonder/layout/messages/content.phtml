@@ -849,8 +849,8 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
                 // $('.message').last().append($('#message_media_reply_'+message_reply_id)[0].outerHTML);
                 var user_id_ = $('#user-id').val();
                 $('body').attr('sending-' + user_id_, false);
-                $('form.sendMessages').clearForm();
-                $('#sendMessage').val('').attr('disabled', false).keyup().focus();
+                $('#sendMessasgeFile').val('');
+                $('#sendMessage').attr('disabled', false).focus();
                 setTimeout(function() {
                   $(".messages-container").animate({
                     scrollTop: $('.messages-container')[0].scrollHeight
@@ -928,8 +928,8 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
                 // $('.message').last().append($('#message_media_reply_'+message_reply_id)[0].outerHTML);
                 var user_id_ = $('#user-id').val();
                 $('body').attr('sending-' + user_id_, false);
-                $('form.sendMessages').clearForm();
-                $('#sendMessage').val('').attr('disabled', false).keyup().focus();
+                $('#sendMessasgeFile').val('');
+                $('#sendMessage').attr('disabled', false).focus();
                 setTimeout(function() {
                   $(".messages-container").animate({
                     scrollTop: $('.messages-container')[0].scrollHeight
@@ -1025,8 +1025,8 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
                 }
                 var user_id_ = $('#user-id').val();
                 $('body').attr('sending-' + user_id_, false);
-                $('form.sendMessages').clearForm();
-                $('#sendMessage').val('').attr('disabled', false).keyup().focus();
+                $('#sendMessasgeFile').val('');
+                $('#sendMessage').attr('disabled', false).focus();
                 setTimeout(function() {
                   $(".messages-container").animate({
                     scrollTop: $('.messages-container')[0].scrollHeight
@@ -1155,8 +1155,8 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
             }
             var user_id_ = $('#user-id').val();
             $('body').attr('sending-' + user_id_, false);
-            $('form.sendMessages').clearForm();
-            $('#sendMessage').val('').attr('disabled', false).keyup().focus();
+            $('#sendMessasgeFile').val('');
+            $('#sendMessage').attr('disabled', false).focus();
             setTimeout(function() {
               $(".messages-container").animate({
                 scrollTop: $('.messages-container')[0].scrollHeight
@@ -1568,7 +1568,7 @@ $('#video-button,#video-button-right').empty();
 
 <?php if ($wo['config']['audio_chat'] == 1 && $wo['config']['can_use_audio_call'] == 1) { ?>
   if (data.can_audio_call == 1) {
-     var audio_call = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="cursor: pointer; fill:currentColor;" onclick="Wo_GenerateGroupVoiceCall(' + group_id + ')"><title>Start audio call</title><path fill="currentColor" d="M12 1A3 3 0 0 0 9 4V10A3 3 0 0 0 12 13A3 3 0 0 0 15 10V4A3 3 0 0 0 12 1M19 10V11A7 7 0 0 1 13 17.93V21H11V17.93A7 7 0 0 1 5 11V10H7V11A5 5 0 0 0 12 16A5 5 0 0 0 17 11V10H19Z" /></svg>';
+     var audio_call = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="cursor: pointer; fill:currentColor;" onclick="Wo_GenerateGroupVoiceCall(' + group_id + ')"><title>Start audio call</title><path fill="currentColor" d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z" /></svg>';
      $('#audio-button,#audio-button-right').html(audio_call);
   }
 <?php } ?>
@@ -1901,6 +1901,11 @@ $('.delete-icon').empty();
         if (data.status == 200) {
           if (!$(".messages-container").find(".no-messages").length) {
             if (+user_id === +data.sender || ((+data.id === +user_id))) {
+              var newHtml = $($.parseHTML(String(data.message_page_html).trim()));
+              var msgId = newHtml.filter('.message-contnaier').attr('id') || newHtml.find('.message-contnaier').attr('id') || newHtml.attr('id');
+              if (msgId && $('#' + msgId).length > 0) {
+                 return; // Already appended by AJAX
+              }
               $('.message-contnaier:last').find('.message-typing').empty()
               $(".messages-container").append(data.message_page_html);
               setTimeout(function() {
@@ -1943,6 +1948,11 @@ $('.delete-icon').empty();
         if (data.status == 200) {
           if (!$(".messages-container").find(".no-messages").length) {
             if (+group_id === +data.id || (data.self && (+data.id === +group_id))) {
+              var newHtml = $($.parseHTML(String(data.message_page_html).trim()));
+              var msgId = newHtml.filter('.message-contnaier').attr('id') || newHtml.find('.message-contnaier').attr('id') || newHtml.attr('id');
+              if (msgId && $('#' + msgId).length > 0) {
+                 return; // Already appended by AJAX
+              }
               $('.message-contnaier:last').find('.message-typing').empty()
               $(".messages-container").append(data.message_page_html);
               setTimeout(function() {
@@ -2359,8 +2369,8 @@ $('.delete-icon').empty();
             }
             var user_id_ = $('#user-id').val();
             $('body').attr('sending-' + user_id_, false);
-            $('form.sendMessages').clearForm();
-            $('#sendMessage').val('').attr('disabled', false).keyup().focus();
+            $('#sendMessasgeFile').val('');
+            $('#sendMessage').attr('disabled', false).focus();
             setTimeout(function() {
               $(".messages-container").animate({
                 scrollTop: $('.messages-container')[0].scrollHeight

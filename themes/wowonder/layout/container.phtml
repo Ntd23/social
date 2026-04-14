@@ -745,10 +745,14 @@
           if (chat_container.length > 0) {
              chat_container.find('.chat-messages-wrapper').find("div[class*='message-seen']").empty();
              chat_container.find('.chat-messages-wrapper').find("div[class*='message-typing']").empty();
-             chat_container.find('.chat-messages-wrapper').append(data.messages_html);
-             setTimeout(function(){
-                  chat_container.find('.chat-messages-wrapper').scrollTop(chat_container.find('.chat-messages-wrapper')[0].scrollHeight);
-               }, 100);
+             var newHtml = $($.parseHTML(String(data.messages_html).trim()));
+             var msgId = newHtml.filter('.messages-wrapper').attr('id') || newHtml.find('.messages-wrapper').attr('id') || newHtml.attr('id');
+             if (!(msgId && $('#' + msgId).length > 0)) {
+                 chat_container.find('.chat-messages-wrapper').append(newHtml);
+                 setTimeout(function(){
+                      chat_container.find('.chat-messages-wrapper').scrollTop(chat_container.find('.chat-messages-wrapper')[0].scrollHeight);
+                   }, 100);
+             }
              if (data.sender == <?php echo ($wo['loggedin'] && !empty($wo['user']) ? $wo['user']['user_id'] : 0);?>) {
                $(".chat_" + data.id).find('.outgoing .message-text, .outgoing .message-media').css('background', data.color);
                $(".chat_" + data.id).find('.outgoing .message-text').css('color', '#fff');
@@ -781,7 +785,7 @@
         socket.on("group_message", (data)=>{
               var chat_messages_wrapper = $('.group-messages-wrapper-'+data.id);
               if (data.status == 200) {
-                if ($('#messageId_'+data.message_id).length == 0) {
+                var newHtml = $($.parseHTML(String(data.html).trim())); var msgId = newHtml.filter('.messages-wrapper').attr('id') || newHtml.find('.messages-wrapper').attr('id') || newHtml.attr('id'); var existsInDom = (msgId && $('#' + msgId).length > 0) || (data.message_id && $('#messageId_' + data.message_id).length > 0); if (!existsInDom) {
                   if ($(".group-messages-wrapper-"+data.id).find('.no_message').length > 0) {
                     $(".group-messages-wrapper-"+data.id).find('.chat-messages').html(data.html);
                   }else{
