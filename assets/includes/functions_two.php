@@ -6692,7 +6692,19 @@ function Wo_GetGroupCallMessage($message = array()) {
     if (empty($message) || !Wo_IsGroupCallMessageType($message['type_two'])) {
         return false;
     }
-    $raw_text = isset($message['or_text']) ? $message['or_text'] : (!empty($message['text']) ? $message['text'] : '');
+    $raw_text = '';
+    if (isset($message['or_text'])) {
+        $raw_text = $message['or_text'];
+    }
+    else if (isset($message['org_text'])) {
+        $raw_text = $message['org_text'];
+    }
+    else if (isset($message['orginal_text'])) {
+        $raw_text = $message['orginal_text'];
+    }
+    else if (!empty($message['text'])) {
+        $raw_text = $message['text'];
+    }
     $payload = json_decode(htmlspecialchars_decode($raw_text), true);
     if (empty($payload) || !is_array($payload) || empty($payload['call_id'])) {
         return false;
@@ -6706,11 +6718,15 @@ function Wo_GetGroupCallMessage($message = array()) {
     $invited_by = intval(!empty($payload['invited_by']) ? $payload['invited_by'] : $initiator_id);
     $initiator = ($initiator_id > 0) ? Wo_UserData($initiator_id) : array();
     $inviter = ($invited_by > 0) ? Wo_UserData($invited_by) : array();
-    $actor_name = !empty($initiator['name']) ? $initiator['name'] : (!empty($inviter['name']) ? $inviter['name'] : (!empty($wo['lang']['someone']) ? $wo['lang']['someone'] : 'Someone'));
-    $detail = ($call_type == 'video') ? 'started a group video call' : 'started a group audio call';
+    $actor_name = !empty($initiator['name']) ? $initiator['name'] : (!empty($inviter['name']) ? $inviter['name'] : Wo_GetCallLogLabel('someone', 'Ai đó'));
+    $detail = ($call_type == 'video')
+        ? Wo_GetCallLogLabel('group_video_call_started', 'đã bắt đầu cuộc gọi video nhóm')
+        : Wo_GetCallLogLabel('group_audio_call_started', 'đã bắt đầu cuộc gọi âm thanh nhóm');
     if ($action === 'members_added') {
         $actor_name = !empty($inviter['name']) ? $inviter['name'] : $actor_name;
-        $detail = ($call_type == 'video') ? 'invited more members to this video call' : 'invited more members to this audio call';
+        $detail = ($call_type == 'video')
+            ? Wo_GetCallLogLabel('group_video_call_members_added', 'đã mời thêm thành viên vào cuộc gọi video này')
+            : Wo_GetCallLogLabel('group_audio_call_members_added', 'đã mời thêm thành viên vào cuộc gọi âm thanh này');
         if (!empty($payload['invited_user_ids']) && is_array($payload['invited_user_ids'])) {
             $names = array();
             foreach ($payload['invited_user_ids'] as $invited_user_id) {
@@ -6723,7 +6739,11 @@ function Wo_GetGroupCallMessage($message = array()) {
                 }
             }
             if (!empty($names)) {
-                $detail = 'invited ' . implode(', ', $names) . ' to this call';
+                $detail = str_replace(
+                    '{users}',
+                    implode(', ', $names),
+                    Wo_GetCallLogLabel('group_call_invited_users', 'đã mời {users} vào cuộc gọi này')
+                );
             }
         }
     }

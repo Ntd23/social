@@ -1,9 +1,11 @@
 <?php 
 $messages = Wo_GetGroupMessagesAPP(array('group_id' => $wo['group']['group_id'],'limit' => 1));
 $message = array();
+$groupCallMessage = false;
 if (!empty($messages) && !empty($messages[0])) {
 	$message = $messages[0];
-	if (strlen($message['text']) > 100) {
+	$groupCallMessage = Wo_GetGroupCallMessage($message);
+	if (!$groupCallMessage && strlen($message['text']) > 100) {
 		$message['text'] = mb_substr( $message['text'], 0, 97, "utf-8") . '...';
 	}
 }
@@ -18,7 +20,7 @@ if (!empty($messages) && !empty($messages[0])) {
 		<span class="msg_ava_name">
 			<span class="messages-user-name"><?php echo $wo['group']['group_name']; ?></span>
 		</span>
-		<p><?php echo !empty($message['text']) ? $message['text'] : ''; ?></p>
+		<p><?php echo $groupCallMessage ? ($groupCallMessage['actor_name'] . ' ' . $groupCallMessage['detail']) : (!empty($message['text']) ? $message['text'] : ''); ?></p>
 	</div>
 	<div class="clear"></div>
 </div>

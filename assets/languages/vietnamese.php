@@ -883,4 +883,13 @@ $wo['lang'] = array(
     'new_audio_call_desc' => 'muốn nói chuyện với bạn.',
     'audio_call' => 'Cuộc gọi âm thanh',
     'audio_call_desc' => 'đang nói chuyện với ',
+    'someone' => 'Ai đó',
+    'group_video_call_started' => 'đã bắt đầu cuộc gọi video nhóm',
+    'group_audio_call_started' => 'đã bắt đầu cuộc gọi âm thanh nhóm',
+    'group_video_call_members_added' => 'đã mời thêm thành viên vào cuộc gọi video này',
+    'group_audio_call_members_added' => 'đã mời thêm thành viên vào cuộc gọi âm thanh này',
+    'group_call_invited_users' => 'đã mời {users} vào cuộc gọi này',
+    'participants_in_call' => 'thành viên trong cuộc gọi',
+    'join_call' => 'Tham gia cuộc gọi',
+    'call_ended' => 'Cuộc gọi đã kết thúc',
 );

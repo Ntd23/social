@@ -4122,6 +4122,7 @@ function Wo_GetGroupMessages($args = array())
     if (mysqli_num_rows($query)) {
         while ($fetched_data = mysqli_fetch_assoc($query)) {
             $fetched_data['user_data'] = Wo_UserData($fetched_data['from_id']);
+            $fetched_data['or_text'] = $fetched_data['text'];
             $fetched_data['org_text'] = $fetched_data['text'];
             $fetched_data['text'] = Wo_Markup($fetched_data['text']);
             $fetched_data['text'] = Wo_Emo($fetched_data['text']);
@@ -4332,6 +4333,7 @@ function Wo_GetGroupMessagesAPP($args = array())
     if (mysqli_num_rows($query)) {
         while ($fetched_data = mysqli_fetch_assoc($query)) {
             $fetched_data['user_data'] = Wo_UserData($fetched_data['from_id']);
+            $fetched_data['or_text'] = $fetched_data['text'];
             $fetched_data['orginal_text'] = Wo_EditMarkup($fetched_data['text']);
             $fetched_data['text'] = Wo_Markup($fetched_data['text']);
             $fetched_data['text'] = Wo_Emo($fetched_data['text']);
@@ -12363,4 +12365,3 @@ function Wo_PayPointOrSend($owner_id=null,$point=0,$to_user_id=null){
 //     }
 //     return $countriesData;
 // }
-

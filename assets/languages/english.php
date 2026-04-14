@@ -885,6 +885,15 @@ $wo['lang'] = array(
     'new_audio_call_desc' => 'wants to talk with you.',
     'audio_call' => 'Audio call',
     'audio_call_desc' => 'talking with ',
+    'someone' => 'Someone',
+    'group_video_call_started' => 'started a group video call',
+    'group_audio_call_started' => 'started a group audio call',
+    'group_video_call_members_added' => 'invited more members to this video call',
+    'group_audio_call_members_added' => 'invited more members to this audio call',
+    'group_call_invited_users' => 'invited {users} to this call',
+    'participants_in_call' => 'participants in call',
+    'join_call' => 'Join call',
+    'call_ended' => 'Call ended',
 );
 
 $wo['countries_name'] = array(

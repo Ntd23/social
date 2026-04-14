@@ -14,12 +14,12 @@
         <div style="font-weight:600;margin-bottom:6px;"><?php echo $groupCallMessage['title']; ?></div>
         <div><?php echo $groupCallMessage['actor_name']; ?> <?php echo $groupCallMessage['detail']; ?></div>
         <?php if ($groupCallMessage['is_active']): ?>
-          <div style="margin-top:6px;color:#667085;font-size:12px;"><?php echo intval($groupCallMessage['participant_count']); ?> participant(s) in call</div>
+          <div style="margin-top:6px;color:#667085;font-size:12px;"><?php echo intval($groupCallMessage['participant_count']); ?> <?php echo !empty($wo['lang']['participants_in_call']) ? $wo['lang']['participants_in_call'] : 'thành viên trong cuộc gọi'; ?></div>
           <div style="margin-top:10px;">
-            <button type="button" class="btn btn-main btn-sm" onclick="event.stopPropagation(); Wo_JoinGroupCall(<?php echo intval($groupCallMessage['call_id']); ?>, <?php echo intval($groupCallMessage['group_id']); ?>, '<?php echo $groupCallMessage['call_type']; ?>');">Join call</button>
+            <button type="button" class="btn btn-main btn-sm" onclick="event.stopPropagation(); Wo_JoinGroupCall(<?php echo intval($groupCallMessage['call_id']); ?>, <?php echo intval($groupCallMessage['group_id']); ?>, '<?php echo $groupCallMessage['call_type']; ?>');"><?php echo !empty($wo['lang']['join_call']) ? $wo['lang']['join_call'] : 'Tham gia cuộc gọi'; ?></button>
           </div>
         <?php else: ?>
-          <div style="margin-top:8px;color:#98a2b3;font-size:12px;">Call ended</div>
+          <div style="margin-top:8px;color:#98a2b3;font-size:12px;"><?php echo !empty($wo['lang']['call_ended']) ? $wo['lang']['call_ended'] : 'Cuộc gọi đã kết thúc'; ?></div>
         <?php endif; ?>
       </div>
       <?php else: ?>
