@@ -1,5 +1,29 @@
 <?php
 if ($f == 'pages') {
+    if (!function_exists('Wo_PageColumnExists')) {
+        function Wo_PageColumnExists($column_name = '')
+        {
+            global $sqlConnect;
+            static $page_columns = null;
+
+            if (empty($column_name)) {
+                return false;
+            }
+            if ($page_columns === null) {
+                $page_columns = array();
+                $columns_query = mysqli_query($sqlConnect, "SHOW COLUMNS FROM " . T_PAGES);
+                if ($columns_query) {
+                    while ($column = mysqli_fetch_assoc($columns_query)) {
+                        if (!empty($column['Field'])) {
+                            $page_columns[$column['Field']] = true;
+                        }
+                    }
+                }
+            }
+
+            return !empty($page_columns[$column_name]);
+        }
+    }
     if ($s == 'create_page') {
         if (!empty($_POST['page_name']) && ($_POST['page_name'] == 'wowonder' || $_POST['page_name'] == 'sunshine' || $_POST['page_name'] == $wo['config']['theme'])) {
             $_POST['page_name'] = "";
@@ -44,6 +68,15 @@ if ($f == 'pages') {
                 'active' => '1',
                 'time' => time()
             );
+            if (Wo_PageColumnExists('lat') && isset($_POST['page_lat']) && is_numeric($_POST['page_lat'])) {
+                $re_page_data['lat'] = Wo_Secure($_POST['page_lat']);
+            }
+            if (Wo_PageColumnExists('lng') && isset($_POST['page_lng']) && is_numeric($_POST['page_lng'])) {
+                $re_page_data['lng'] = Wo_Secure($_POST['page_lng']);
+            }
+            if (Wo_PageColumnExists('place_id')) {
+                $re_page_data['place_id'] = !empty($_POST['page_place_id']) ? Wo_Secure($_POST['page_place_id']) : '';
+            }
             $fields       = Wo_GetCustomFields('page');
             if (!empty($fields)) {
                 foreach ($fields as $key => $field) {
@@ -61,9 +94,10 @@ if ($f == 'pages') {
             }
             $register_page = Wo_RegisterPage($re_page_data);
             if ($register_page) {
+                $page_name = Wo_Secure($_POST['page_name']);
                 $data = array(
                     'status' => 200,
-                    'location' => Wo_SeoLink('index.php?link1=timeline&u=' . Wo_Secure($_POST['page_name']))
+                    'location' => rtrim($wo['config']['site_url'], '/') . '/index.php?link1=timeline&u=' . urlencode($page_name)
                 );
             }
         }
@@ -94,6 +128,15 @@ if ($f == 'pages') {
                         'address' => $_POST['address'],
                         'phone' => $_POST['phone']
                     );
+                    if (Wo_PageColumnExists('lat')) {
+                        $Update_data['lat'] = (isset($_POST['page_lat']) && is_numeric($_POST['page_lat'])) ? Wo_Secure($_POST['page_lat']) : '0';
+                    }
+                    if (Wo_PageColumnExists('lng')) {
+                        $Update_data['lng'] = (isset($_POST['page_lng']) && is_numeric($_POST['page_lng'])) ? Wo_Secure($_POST['page_lng']) : '0';
+                    }
+                    if (Wo_PageColumnExists('place_id')) {
+                        $Update_data['place_id'] = !empty($_POST['page_place_id']) ? Wo_Secure($_POST['page_place_id']) : '';
+                    }
                     if (Wo_UpdatePageData($_POST['page_id'], $Update_data)) {
                         $old_address = (!empty($PageData['address'])) ? $PageData['address'] : '';
                         $new_address = (!empty($_POST['address'])) ? $_POST['address'] : '';

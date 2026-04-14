@@ -7,7 +7,107 @@
     width: 81.333333%;
 }
 }
+.wo_post_prod_full_info {
+    margin-top: 18px;
+}
+.wo_post_prod_full_info li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 10px 0;
+}
+.wo_post_prod_full_info li > span:first-child {
+    min-width: 92px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+.wo_post_prod_full_info li > span:last-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+}
+.wo_post_prod_full_info .product-location-value {
+    color: #5f6368;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.wo_post_prod_details_text {
+    line-height: 1.7;
+    color: #1f2937;
+}
+.wo_post_prod_map_card {
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+}
+.wo_post_prod_map_link {
+    display: block;
+    color: inherit;
+    text-decoration: none !important;
+}
+.wo_post_prod_map_preview {
+    position: relative;
+    height: 280px;
+    overflow: hidden;
+    border: 1px solid #e5eaf1;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f7f4ed 0%, #f2f0ea 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 12px 28px rgba(33, 37, 41, 0.06);
+    cursor: pointer;
+}
+.wo_post_prod_map_preview.wo_ui_map_state_loading::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.62) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-100%);
+    animation: woProductMapShimmer 1.45s infinite;
+    z-index: 2;
+    pointer-events: none;
+}
+.wo_post_prod_map_preview.wo_ui_map_state_loading::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    top: 16px;
+    width: 40px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(132, 112, 67, 0.16);
+    pointer-events: none;
+    z-index: 3;
+}
+.wo_post_prod_map_canvas {
+    width: 100%;
+    height: 100%;
+}
+.wo_post_prod_map_canvas .leaflet-control-attribution {
+    opacity: .72;
+}
+@keyframes woProductMapShimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+@media (max-width: 767px) {
+    .wo_post_prod_full_info li {
+        flex-direction: column;
+        gap: 6px;
+    }
+    .wo_post_prod_full_info li > span:first-child,
+    .wo_post_prod_full_info li > span:last-child {
+        min-width: 0;
+        text-align: left;
+    }
+    .wo_post_prod_map_preview {
+        height: 220px;
+    }
+}
 </style>
+<?php echo Wo_LoadPage('common_things/leaflet-muted-map-config'); ?>
 
 <?php
 	$symbol =  (!empty($wo['currencies'][$wo['story']['product']['currency']]['symbol'])) ? $wo['currencies'][$wo['story']['product']['currency']]['symbol'] : $wo['config']['classified_currency_s'];
@@ -18,6 +118,20 @@
     }
 	$type = ($wo['story']['product']['type'] == 0) ? '' . $wo['lang']['new'] . '' : '' . $wo['lang']['used'] . '';
 	$publisher_display_name = !empty($wo['story']['publisher']['first_name']) ? $wo['story']['publisher']['first_name'] : $wo['story']['publisher']['name'];
+	$product_location = !empty($wo['story']['product']['location']) ? trim($wo['story']['product']['location']) : '';
+	$product_lat = (isset($wo['story']['product']['lat']) && is_numeric($wo['story']['product']['lat'])) ? (float) $wo['story']['product']['lat'] : 0;
+	$product_lng = (isset($wo['story']['product']['lng']) && is_numeric($wo['story']['product']['lng'])) ? (float) $wo['story']['product']['lng'] : 0;
+	$product_place_id = !empty($wo['story']['product']['place_id']) ? trim($wo['story']['product']['place_id']) : '';
+	$product_has_coordinates = ($product_lat != 0 && $product_lng != 0);
+	$product_map_url = '';
+	if (!empty($product_location)) {
+		$product_map_url = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($product_location);
+		if (!empty($product_place_id)) {
+			$product_map_url .= '&query_place_id=' . rawurlencode($product_place_id);
+		}
+	} elseif ($product_has_coordinates) {
+		$product_map_url = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($product_lat . ',' . $product_lng);
+	}
 ?>
 
 <div class="wow_content wo_post_prod_full">
@@ -107,8 +221,8 @@
 			
 			<ul class="wow_post_prod_shead wo_post_prod_full_info">
 				<?php
-					if (!empty($wo['story']['product']['location'])) {
-						echo '<li><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#8bc34a" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" /></svg>&nbsp;' . $wo['lang']['location'] . '</span><span>' . $wo['story']['product']['location'] . '</span></li>';
+					if (!empty($product_location)) {
+						echo '<li><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#8bc34a" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" /></svg>&nbsp;' . $wo['lang']['location'] . '</span><span class="product-location-value">' . $product_location . '</span></li>';
 					}
 				?>
 				<?php
@@ -127,7 +241,16 @@
 			<span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"></path></svg></span> <?php echo $wo['lang']['details']?>
 		</div>
 	</div>
-	<p><?php echo $wo['story']['product']['description'] ?></p>
+	<p class="wo_post_prod_details_text"><?php echo $wo['story']['product']['description'] ?></p>
+	<?php if (!empty($product_location)) { ?>
+		<div class="wo_post_prod_map_card" id="wo_product_map_card_<?php echo (int) $wo['story']['product']['id']; ?>">
+			<a class="wo_post_prod_map_link" id="wo_product_map_link_<?php echo (int) $wo['story']['product']['id']; ?>" href="<?php echo $product_map_url; ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo htmlspecialchars($product_location); ?>">
+				<div class="wo_post_prod_map_preview wo_ui_map_state_loading">
+					<div id="wo_product_map_canvas_<?php echo (int) $wo['story']['product']['id']; ?>" class="wo_post_prod_map_canvas"></div>
+				</div>
+			</a>
+		</div>
+	<?php } ?>
 	
 	<?php
 		$fields = Wo_GetCustomFields('product'); 
@@ -185,4 +308,135 @@ $('.wo_post_prod_full_img_slider').flickity({
 	pageDots: false,
 	prevNextButtons: false,
 });
+
+(function () {
+	var mapId = 'wo_product_map_canvas_<?php echo (int) $wo['story']['product']['id']; ?>';
+	var mapLinkId = 'wo_product_map_link_<?php echo (int) $wo['story']['product']['id']; ?>';
+	var mapCardId = 'wo_product_map_card_<?php echo (int) $wo['story']['product']['id']; ?>';
+	var address = <?php echo json_encode($product_location); ?>;
+	var initialLat = <?php echo json_encode($product_has_coordinates ? $product_lat : null); ?>;
+	var initialLng = <?php echo json_encode($product_has_coordinates ? $product_lng : null); ?>;
+	var initialPlaceId = <?php echo json_encode($product_place_id); ?>;
+	var currentPlaceId = initialPlaceId;
+	var currentAddress = address;
+	if (!address) {
+		return;
+	}
+
+	function normalizeMapLabel(label) {
+		return (label || address || '')
+			.replace(/\s+/g, ' ')
+			.trim();
+	}
+
+	function hasValidCoordinates(lat, lng) {
+		return typeof lat === 'number' && typeof lng === 'number' && isFinite(lat) && isFinite(lng);
+	}
+
+	function setPlaceLink(placeId, lat, lng, label) {
+		var linkNode = document.getElementById(mapLinkId);
+		if (!linkNode) {
+			return;
+		}
+
+		var normalizedLabel = normalizeMapLabel(label);
+		if (placeId && normalizedLabel) {
+			linkNode.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel) + '&query_place_id=' + encodeURIComponent(placeId);
+			return;
+		}
+
+		if (normalizedLabel) {
+			linkNode.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel);
+			return;
+		}
+
+		if (hasValidCoordinates(lat, lng)) {
+			linkNode.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
+		}
+	}
+
+	function updateMapLink(lat, lng) {
+		setPlaceLink(currentPlaceId, lat, lng, currentAddress);
+	}
+
+	function hideMapCanvas() {
+		var mapNode = document.getElementById(mapId);
+		var mapCardNode = document.getElementById(mapCardId);
+		if (mapNode) {
+			mapNode.innerHTML = '';
+		}
+		if (mapCardNode) {
+			mapCardNode.style.display = 'none';
+		}
+	}
+
+	function renderMap(lat, lng) {
+		if (typeof L === 'undefined' || !hasValidCoordinates(lat, lng)) {
+			hideMapCanvas();
+			return;
+		}
+
+		updateMapLink(lat, lng);
+
+		var map = L.map(mapId, {
+			zoomControl: false,
+			scrollWheelZoom: false,
+			dragging: false,
+			doubleClickZoom: false,
+			boxZoom: false,
+			keyboard: false,
+			tap: false,
+			touchZoom: false
+		}).setView([lat, lng], 14);
+
+		var mapPreviewNode = document.querySelector('#' + mapCardId + ' .wo_post_prod_map_preview');
+		var tileConfig = window.WoLeafletMutedMapConfig || {};
+		var tileLayer = L.tileLayer(tileConfig.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', $.extend({
+			attribution: '',
+			maxZoom: 18
+		}, tileConfig.tileOptions || {})).addTo(map);
+		var clearMapLoading = function() {
+			if (mapPreviewNode) {
+				mapPreviewNode.classList.remove('wo_ui_map_state_loading');
+			}
+		};
+		tileLayer.once('load', clearMapLoading);
+		tileLayer.once('tileerror', clearMapLoading);
+
+		L.marker([lat, lng]).addTo(map);
+		setTimeout(function () {
+			map.invalidateSize();
+		}, 120);
+	}
+
+	if (hasValidCoordinates(initialLat, initialLng)) {
+		renderMap(initialLat, initialLng);
+	}
+
+	if (window.google && google.maps && typeof google.maps.Geocoder === 'function') {
+		var geocoder = new google.maps.Geocoder();
+		geocoder.geocode({ address: address }, function(results, status) {
+			if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+				var location = results[0].geometry.location;
+				var lat = location.lat();
+				var lng = location.lng();
+				currentPlaceId = results[0].place_id || currentPlaceId;
+				currentAddress = results[0].formatted_address || currentAddress;
+				setPlaceLink(currentPlaceId, lat, lng, currentAddress);
+
+				if (!hasValidCoordinates(initialLat, initialLng)) {
+					renderMap(lat, lng);
+				}
+				return;
+			}
+
+			if (!hasValidCoordinates(initialLat, initialLng)) {
+				hideMapCanvas();
+			}
+		});
+	}
+	else if (!hasValidCoordinates(initialLat, initialLng)) {
+		hideMapCanvas();
+	}
+})();
 </script>

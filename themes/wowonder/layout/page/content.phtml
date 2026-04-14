@@ -1,3 +1,4 @@
+<?php echo Wo_LoadPage('common_things/leaflet-muted-map-config'); ?>
 <div class="row page-margin wo_page_profile" data-page="page" data-id="<?php echo $wo['page_profile']['page_id'];?>">
 	<div class="profile-container">
 		<div class="card hovercard">
@@ -480,90 +481,232 @@
 					<?php echo $wo['page_profile']['company']?>
 				</li>
 			<?php  }  ?>
-			<?php if(!empty($wo['page_profile']['address'])) {  ?>
+			<?php if(!empty($wo['page_profile']['address'])) {
+				$page_address_value = trim($wo['page_profile']['address']);
+				$page_lat_value = (isset($wo['page_profile']['lat']) && is_numeric($wo['page_profile']['lat'])) ? (float) $wo['page_profile']['lat'] : 0;
+				$page_lng_value = (isset($wo['page_profile']['lng']) && is_numeric($wo['page_profile']['lng'])) ? (float) $wo['page_profile']['lng'] : 0;
+				$page_has_coordinates = ($page_lat_value != 0 && $page_lng_value != 0);
+				$page_place_id_value = !empty($wo['page_profile']['place_id']) ? trim($wo['page_profile']['place_id']) : '';
+				$page_map_query_value = !empty($page_address_value) ? $page_address_value : ($page_has_coordinates ? ($page_lat_value . ',' . $page_lng_value) : '');
+				$page_maps_url = !empty($page_map_query_value) ? ('https://www.google.com/maps/search/?api=1&query=' . rawurlencode($page_map_query_value)) : 'https://www.google.com/maps';
+				if (!empty($page_place_id_value) && !empty($page_address_value)) {
+					$page_maps_url .= '&query_place_id=' . rawurlencode($page_place_id_value);
+				}
+			?>
 				<li class="list-group-item" style="display: block;">
 					<div style="width: 100%;">
 						<div style="display: flex; align-items: flex-start; width: 100%; margin-bottom: 10px;">
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" style="margin-top: 3px; margin-right: 12px; flex-shrink: 0;"><path fill="currentColor" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z"></path></svg>
-							<div style="width: 100%;" class="pointer"><?php echo $wo['lang']['located_in']; ?> <?php echo $wo['page_profile']['address'];?></div>
+							<div style="width: 100%;" class="pointer"><?php echo $wo['lang']['located_in']; ?> <?php echo $page_address_value; ?></div>
 						</div>
+						<a id="page_map_link_<?php echo($wo['page_profile']['page_id']) ?>" href="<?php echo $page_maps_url; ?>" target="_blank" rel="noopener noreferrer" style="display:block; text-decoration:none;">
 						<?php if ($wo['config']['yandex_map'] == 1) { ?>
-							<div id="page_place_<?php echo($wo['page_profile']['page_id']) ?>" <?php echo($wo['config']['yandex_map'] == 1 ? 'style="width: 100%; height: 300px; padding: 0; margin: 0;"' : '') ?>></div>
+							<div id="page_place_<?php echo($wo['page_profile']['page_id']) ?>" <?php echo($wo['config']['yandex_map'] == 1 ? 'style="width: 100%; height: 300px; padding: 0; margin: 0; border-radius: 12px; overflow: hidden; cursor: pointer;"' : '') ?>></div>
 							<script type="text/javascript">
-		        				<?php if (!empty($wo['page_profile']['address'])) { ?>
-		        					setTimeout(function () {
-		        						var myMap;
-								        ymaps.geocode(<?php echo json_encode($wo['page_profile']['address']); ?>).then(function (res) {
-								            myMap = new ymaps.Map('page_place_<?php echo($wo['page_profile']['page_id']) ?>', {
-								                center: res.geoObjects.get(0).geometry.getCoordinates(),
-								                zoom : 10
-								            });
-								            myMap.geoObjects.add(new ymaps.Placemark(res.geoObjects.get(0).geometry.getCoordinates(), {
-										            balloonContent: ''
-										        }));
-								        });
-		        					},1000);
+		        				<?php if (!empty($page_address_value)) { ?>
+		        					(function () {
+		        						var mapId = 'page_place_<?php echo($wo['page_profile']['page_id']) ?>';
+		        						var mapLinkId = 'page_map_link_<?php echo($wo['page_profile']['page_id']) ?>';
+		        						var address = <?php echo json_encode($page_address_value); ?>;
+		        						var initialLat = <?php echo json_encode($page_has_coordinates ? $page_lat_value : null); ?>;
+		        						var initialLng = <?php echo json_encode($page_has_coordinates ? $page_lng_value : null); ?>;
+		        						var initialPlaceId = <?php echo json_encode($page_place_id_value); ?>;
+		        						var currentPlaceId = initialPlaceId;
+		        						var currentAddress = address;
+
+		        						function hasValidCoordinates(lat, lng) {
+		        							return typeof lat === 'number' && typeof lng === 'number' && isFinite(lat) && isFinite(lng);
+		        						}
+
+		        						function buildGooglePageLink(lat, lng, label, placeId) {
+		        							var normalizedLabel = (label || address || '').replace(/\s+/g, ' ').trim();
+		        							if (placeId && normalizedLabel) {
+		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel) + '&query_place_id=' + encodeURIComponent(placeId);
+		        							}
+		        							if (hasValidCoordinates(lat, lng)) {
+		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
+		        							}
+		        							if (normalizedLabel) {
+		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel);
+		        							}
+		        							return 'https://www.google.com/maps';
+		        						}
+		        						function updatePageMapLink(lat, lng, label, placeId) {
+		        							var pageMapLink = document.getElementById(mapLinkId);
+		        							if (pageMapLink) {
+		        								pageMapLink.href = buildGooglePageLink(lat, lng, label, placeId);
+		        							}
+		        						}
+		        						function renderYandexMap(lat, lng) {
+		        							if (!hasValidCoordinates(lat, lng)) {
+		        								return;
+		        							}
+		        							updatePageMapLink(lat, lng, currentAddress, currentPlaceId);
+		        							var coordinates = [lat, lng];
+		        							var myMap = new ymaps.Map(mapId, {
+		        								center: coordinates,
+		        								zoom: 10
+		        							});
+		        							myMap.geoObjects.add(new ymaps.Placemark(coordinates, {
+		        								balloonContent: ''
+		        							}));
+		        							myMap.behaviors.disable(['drag', 'scrollZoom', 'dblClickZoom', 'multiTouch']);
+		        						}
+
+		        						updatePageMapLink(initialLat, initialLng, currentAddress, currentPlaceId);
+
+		        						setTimeout(function () {
+		        							if (hasValidCoordinates(initialLat, initialLng)) {
+		        								renderYandexMap(initialLat, initialLng);
+		        								return;
+		        							}
+
+		        							if (window.google && google.maps && typeof google.maps.Geocoder === 'function') {
+		        								var geocoder = new google.maps.Geocoder();
+		        								geocoder.geocode({ address: address }, function (results, status) {
+		        									if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+		        										var location = results[0].geometry.location;
+		        										var lat = location.lat();
+		        										var lng = location.lng();
+		        										currentAddress = results[0].formatted_address || currentAddress;
+		        										currentPlaceId = results[0].place_id || currentPlaceId;
+		        										updatePageMapLink(lat, lng, currentAddress, currentPlaceId);
+		        										renderYandexMap(lat, lng);
+		        										return;
+		        									}
+
+		        									var mapNode = document.getElementById(mapId);
+		        									if (mapNode) {
+		        										mapNode.style.display = 'none';
+		        									}
+		        								});
+		        								return;
+		        							}
+
+		        							var mapNode = document.getElementById(mapId);
+		        							if (mapNode) {
+		        								mapNode.style.display = 'none';
+		        							}
+		        						}, 1000);
+		        					})();
 						        <?php } ?>
 			        		</script>
 						<?php } else { ?>
-							<div id="page_osm_place_<?php echo($wo['page_profile']['page_id']) ?>" class="user-location-frame" style="width: 100%; height: 300px; padding: 0; margin: 0;"></div>
+							<div id="page_osm_place_<?php echo($wo['page_profile']['page_id']) ?>" class="user-location-frame" style="width: 100%; height: 300px; padding: 0; margin: 0; border-radius: 12px; overflow: hidden; cursor: pointer;"></div>
 							<script type="text/javascript">
 								(function () {
 									var mapId = 'page_osm_place_<?php echo($wo['page_profile']['page_id']) ?>';
-									var address = <?php echo json_encode($wo['page_profile']['address']); ?>;
+									var mapLinkId = 'page_map_link_<?php echo($wo['page_profile']['page_id']) ?>';
+									var address = <?php echo json_encode($page_address_value); ?>;
+									var initialLat = <?php echo json_encode($page_has_coordinates ? $page_lat_value : null); ?>;
+									var initialLng = <?php echo json_encode($page_has_coordinates ? $page_lng_value : null); ?>;
+									var initialPlaceId = <?php echo json_encode($page_place_id_value); ?>;
+									var currentPlaceId = initialPlaceId;
+									var currentAddress = address;
+									var mapInstance = null;
 
 									if (!address || typeof L === 'undefined') {
 										return;
 									}
 
-									fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(address), {
-										headers: {
-											'Accept': 'application/json'
-										}
-									}).then(function (response) {
-										if (!response.ok) {
-											throw new Error('OSM geocoding failed');
-										}
+									function hasValidCoordinates(lat, lng) {
+										return typeof lat === 'number' && typeof lng === 'number' && isFinite(lat) && isFinite(lng);
+									}
 
-										return response.json();
-									}).then(function (results) {
-										if (!Array.isArray(results) || results.length === 0) {
+									function buildGooglePageLink(lat, lng, label, placeId) {
+										var normalizedLabel = (label || address || '').replace(/\s+/g, ' ').trim();
+										if (placeId && normalizedLabel) {
+											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel) + '&query_place_id=' + encodeURIComponent(placeId);
+										}
+										if (hasValidCoordinates(lat, lng)) {
+											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
+										}
+										if (normalizedLabel) {
+											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel);
+										}
+										return 'https://www.google.com/maps';
+									}
+									function updatePageMapLink(lat, lng, label, placeId) {
+										var pageMapLink = document.getElementById(mapLinkId);
+										if (!pageMapLink) {
 											return;
 										}
-
-										var lat = parseFloat(results[0].lat);
-										var lng = parseFloat(results[0].lon);
-										if (isNaN(lat) || isNaN(lng)) {
+										pageMapLink.href = buildGooglePageLink(lat, lng, label, placeId);
+									}
+									function renderMap(lat, lng) {
+										if (!hasValidCoordinates(lat, lng)) {
 											return;
 										}
+										updatePageMapLink(lat, lng, currentAddress, currentPlaceId);
 
-										var map = L.map(mapId).setView([lat, lng], 13);
-										L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+										if (mapInstance) {
+											mapInstance.remove();
+										}
+
+										mapInstance = L.map(mapId, {
+											zoomControl: false,
+											scrollWheelZoom: false,
+											dragging: false,
+											doubleClickZoom: false,
+											boxZoom: false,
+											keyboard: false,
+											tap: false,
+											touchZoom: false
+										}).setView([lat, lng], 13);
+										var tileConfig = window.WoLeafletMutedMapConfig || {
+											tileUrl: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+											tileOptions: {
+												attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+												subdomains: 'abcd',
+												maxZoom: 20
+											}
+										};
+										L.tileLayer(tileConfig.tileUrl, $.extend({
 											attribution: '',
 											maxZoom: 18
-										}).addTo(map);
-										L.marker([lat, lng]).addTo(map);
+										}, tileConfig.tileOptions || {})).addTo(mapInstance);
+										L.marker([lat, lng]).addTo(mapInstance);
 
 										setTimeout(function () {
-											map.invalidateSize();
+											mapInstance.invalidateSize();
 										}, 100);
-									}).catch(function () {
-										var mapContainer = document.getElementById(mapId);
-										if (mapContainer) {
-											mapContainer.style.display = 'none';
-										}
-									});
+									}
+									updatePageMapLink(initialLat, initialLng, currentAddress, currentPlaceId);
+
+									if (hasValidCoordinates(initialLat, initialLng)) {
+										renderMap(initialLat, initialLng);
+										return;
+									}
+
+									if (window.google && google.maps && typeof google.maps.Geocoder === 'function') {
+										var geocoder = new google.maps.Geocoder();
+										geocoder.geocode({ address: address }, function (results, status) {
+											if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+												var location = results[0].geometry.location;
+												var lat = location.lat();
+												var lng = location.lng();
+												currentAddress = results[0].formatted_address || currentAddress;
+												currentPlaceId = results[0].place_id || currentPlaceId;
+												updatePageMapLink(lat, lng, currentAddress, currentPlaceId);
+												renderMap(lat, lng);
+												return;
+											}
+
+											var mapContainer = document.getElementById(mapId);
+											if (mapContainer) {
+												mapContainer.style.display = 'none';
+											}
+										});
+										return;
+									}
+
+									var mapContainer = document.getElementById(mapId);
+									if (mapContainer) {
+										mapContainer.style.display = 'none';
+									}
 								})();
 							</script>
 						<?php } ?>
-						<a href="https://www.google.com/maps/dir/?api=1&destination=<?php echo urlencode($wo['page_profile']['address']); ?>" 
-						   target="_blank" 
-						   rel="noopener noreferrer"
-						   style="display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 8px 16px; background: linear-gradient(135deg, #34a853, #1e8e3e); color: #fff; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(52,168,83,0.3);"
-						   onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(52,168,83,0.4)';"
-						   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(52,168,83,0.3)';">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
-							Chỉ đường
 						</a>
 					</div>
 				</li>
@@ -580,7 +723,7 @@
 					</a>
 					<?php }  if(!empty($wo['page_profile']['instgram'])) {  ?>
 					<a class="social-btn" rel="publisher" href="https://instagram.com/<?php echo $wo['page_profile']['instgram']?>" target="_blank">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg>
 					</a>
 					<?php }  if(!empty($wo['page_profile']['facebook'])) {  ?>
 					<a class="social-btn" rel="publisher" href="https://www.facebook.com/<?php echo $wo['page_profile']['facebook']?>" target="_blank">
@@ -924,7 +1067,7 @@ $(document).ready(function() {
 	        },
 	        success: function(data) {
 	         if (data.status == 200) {
-	           $('.app-offer-alert').html("<div class='alert alert-success'><?php echo($wo['lang']['offer_successfully_created']) ?></div>");
+	           $('.app-offer-alert').html('<div class="alert alert-success">' + <?php echo json_encode($wo['lang']['offer_successfully_created']); ?> + '</div>');
 		       $('.app-offer-alert').find('.alert-success').fadeIn(300);
 		       setTimeout(function (argument) {
 		        $('.app-offer-alert').find('.alert-success').fadeOut(300);
@@ -950,7 +1093,9 @@ $(document).ready(function() {
 
 
 		$( ".date1" ).datepicker({ dateFormat: 'yy-mm-dd', minDate: '+1day',prevText: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z" /></svg>',nextText: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>'});
-      $( ".time1" ).timepicker();
+      if ($.fn.timepicker) {
+      	$( ".time1" ).timepicker();
+      }
 
 
 });
@@ -1276,11 +1421,15 @@ function Wo_LoadPageReviews(self = false){
 
 <script src="<?php echo $wo['config']['theme_url'];?>/javascript/bootstrap-tagsinput-latest/src/bootstrap-tagsinput.js"></script>
 
+<?php
+	$question_one_html = '<div id="question_one_block" class="wo_create_job_qstn_block"><label>' . $wo['lang']['question_one'] . '</label><button type="button" class="close" onclick="HideQuestion(\'one\')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><select class="form-control" name="question_one_type" id="question_one_type"><option value="free_text_question">' . $wo['lang']['free_text_question'] . '</option><option value="yes_no_question">' . $wo['lang']['yes_no_question'] . '</option><option value="multiple_choice_question">' . $wo['lang']['multiple_choice_question'] . '</option></select><br><textarea class="form-control" name="question_one" rows="3" id="question_one"></textarea><div id="question_one_answers_div" style="display: none;"><br><input class="form-control" type="text" name="question_one_answers" id="question_one_answers" placeholder="' . $wo['lang']['add_an_answers'] . '"></div></div>';
+	$question_two_html = '<div id="question_two_block" class="wo_create_job_qstn_block"><label>' . $wo['lang']['question_two'] . '</label><button type="button" class="close" onclick="HideQuestion(\'two\')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><select class="form-control" name="question_two_type" id="question_two_type"><option value="free_text_question">' . $wo['lang']['free_text_question'] . '</option><option value="yes_no_question">' . $wo['lang']['yes_no_question'] . '</option><option value="multiple_choice_question">' . $wo['lang']['multiple_choice_question'] . '</option></select><br><textarea class="form-control" name="question_two" rows="3" id="question_two"></textarea><div id="question_two_answers_div" style="display: none;"><br><input class="form-control" type="text" name="question_two_answers" id="question_two_answers" placeholder="' . $wo['lang']['add_an_answers'] . '"></div></div>';
+	$question_three_html = '<div id="question_three_block" class="wo_create_job_qstn_block"><label>' . $wo['lang']['question_three'] . '</label><button type="button" class="close" onclick="HideQuestion(\'three\')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><select class="form-control" name="question_three_type" id="question_three_type"><option value="free_text_question">' . $wo['lang']['free_text_question'] . '</option><option value="yes_no_question">' . $wo['lang']['yes_no_question'] . '</option><option value="multiple_choice_question">' . $wo['lang']['multiple_choice_question'] . '</option></select><br><textarea class="form-control" name="question_three" rows="3" id="question_three"></textarea><div id="question_three_answers_div" style="display: none;"><br><input class="form-control" type="text" name="question_three_answers" id="question_three_answers" placeholder="' . $wo['lang']['add_an_answers'] . '"></div></div>';
+?>
 <script type="text/javascript">
-	var question_one = '<div id="question_one_block" class="wo_create_job_qstn_block"><label><?php echo $wo['lang']['question_one'] ?></label><button type="button" class="close" onclick="HideQuestion(\'one\')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><select class="form-control" name="question_one_type" id="question_one_type"><option value="free_text_question"><?php echo $wo['lang']['free_text_question'] ?></option><option value="yes_no_question"><?php echo $wo['lang']['yes_no_question'] ?></option><option value="multiple_choice_question"><?php echo $wo['lang']['multiple_choice_question'] ?></option></select><br><textarea class="form-control" name="question_one" rows="3" id="question_one"></textarea><div id="question_one_answers_div" style="display: none;"><br><input class="form-control" type="text" name="question_one_answers" id="question_one_answers" placeholder="<?php echo $wo['lang']['add_an_answers'] ?>"></div></div>';
-	var question_two = '<div id="question_two_block" class="wo_create_job_qstn_block"><label><?php echo $wo['lang']['question_two'] ?></label><button type="button" class="close" onclick="HideQuestion(\'two\')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><select class="form-control" name="question_two_type" id="question_two_type"><option value="free_text_question"><?php echo $wo['lang']['free_text_question'] ?></option><option value="yes_no_question"><?php echo $wo['lang']['yes_no_question'] ?></option><option value="multiple_choice_question"><?php echo $wo['lang']['multiple_choice_question'] ?></option></select><br><textarea class="form-control" name="question_two" rows="3" id="question_two"></textarea><div id="question_two_answers_div" style="display: none;"><br><input class="form-control" type="text" name="question_two_answers" id="question_two_answers" placeholder="<?php echo $wo['lang']['add_an_answers'] ?>"></div></div>';
-
-	var question_three = '<div id="question_three_block" class="wo_create_job_qstn_block"><label><?php echo $wo['lang']['question_three'] ?></label><button type="button" class="close" onclick="HideQuestion(\'three\')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><select class="form-control" name="question_three_type" id="question_three_type"><option value="free_text_question"><?php echo $wo['lang']['free_text_question'] ?></option><option value="yes_no_question"><?php echo $wo['lang']['yes_no_question'] ?></option><option value="multiple_choice_question"><?php echo $wo['lang']['multiple_choice_question'] ?></option></select><br><textarea class="form-control" name="question_three" rows="3" id="question_three"></textarea><div id="question_three_answers_div" style="display: none;"><br><input class="form-control" type="text" name="question_three_answers" id="question_three_answers" placeholder="<?php echo $wo['lang']['add_an_answers'] ?>"></div></div>';
+	var question_one = <?php echo json_encode($question_one_html); ?>;
+	var question_two = <?php echo json_encode($question_two_html); ?>;
+	var question_three = <?php echo json_encode($question_three_html); ?>;
 
 
 	function HideQuestion(type) {
@@ -1381,7 +1530,7 @@ function Wo_LoadPageReviews(self = false){
 	    });
 
 	    $("#use_cover_photo").click(function(event) {
-	      $(".prv-img").html("<img src='<?php echo($wo['page_profile']['cover']) ?>' alt='Picture'>");
+	      $(".prv-img").html('<img src="' + <?php echo json_encode($wo['page_profile']['cover']); ?> + '" alt="Picture">');
 	      $('#image_type').val('cover');
 	    });
 
@@ -1406,7 +1555,7 @@ function Wo_LoadPageReviews(self = false){
 	        },
 	        success: function(data) {
 	         if (data.status == 200) {
-	         	$('.app-general-alert').html("<div class='alert alert-success'><?php echo($wo['lang']['job_successfully_created']) ?></div>");
+	         	$('.app-general-alert').html('<div class="alert alert-success">' + <?php echo json_encode($wo['lang']['job_successfully_created']); ?> + '</div>');
 		       $('.app-general-alert').find('.alert-success').fadeIn(300);
 		       setTimeout(function (argument) {
 		        $('.app-general-alert').find('.alert-success').fadeOut(300);
@@ -1432,38 +1581,72 @@ function Wo_LoadPageReviews(self = false){
 	});
 
 <?php if ($wo['config']['google_map'] == 1) { ?>
-var create_pac_input = document.getElementById('location');
-  (function pacSelectFirst(input) {
-    // store the original event binding function
-    var _addEventListenerProduct = (input.addEventListener) ? input.addEventListener : input.attachEvent;
-    function addEventListenerWrapper(type, listener) {
-      // Simulate a 'down arrow' keypress on hitting 'return' when no pac suggestion is selected,
-      // and then trigger the original listener.
-      if(type == "keydown") {
-        var orig_listener_product = listener;
-        listener = function (event) {
-          var suggestion_selected_product = $(".pac-item-selected").length > 0;
-          if(event.which == 13 && !suggestion_selected_product) {
-            var simulated_downarrow_product = $.Event("keydown", {
-              keyCode: 40,
-              which: 40
-            });
-            orig_listener_product.apply(input, [simulated_downarrow_product]);
-          }
-          orig_listener_product.apply(input, [event]);
-        };
-      }
-      // add the modified listener
-      _addEventListenerProduct.apply(input, [type, listener]);
+  async function Wo_InitRuntimePlaceAutocomplete(inputId, placeholderText) {
+    if (typeof google === 'undefined' || !google.maps || typeof google.maps.importLibrary !== 'function') {
+      return null;
     }
-    if(input.addEventListener)
-      input.addEventListener = addEventListenerWrapper;
-    else if(input.attachEvent)
-      input.attachEvent = addEventListenerWrapper;
-  })(create_pac_input);
+
+    var originalInput = document.getElementById(inputId);
+    if (!originalInput) {
+      return null;
+    }
+    if (originalInput.dataset.placeElementReady === '1') {
+      return originalInput._placeAutocompleteElement || null;
+    }
+
+    await google.maps.importLibrary('places');
+    if (!google.maps.places || typeof google.maps.places.PlaceAutocompleteElement !== 'function') {
+      return null;
+    }
+
+    originalInput.dataset.placeElementReady = '1';
+    originalInput.type = 'hidden';
+
+    var host = document.createElement('div');
+    host.className = 'wo-runtime-place-autocomplete-host';
+    host.style.width = '100%';
+    originalInput.parentNode.insertBefore(host, originalInput);
+
+    var autocompleteElement = new google.maps.places.PlaceAutocompleteElement({});
+    autocompleteElement.placeholder = placeholderText || originalInput.getAttribute('placeholder') || '';
+    autocompleteElement.style.display = 'block';
+    autocompleteElement.style.width = '100%';
+    if (typeof autocompleteElement.value !== 'undefined') {
+      autocompleteElement.value = originalInput.value || '';
+    }
+    host.appendChild(autocompleteElement);
+
+    function syncValue(value) {
+      originalInput.value = value || '';
+    }
+
+    autocompleteElement.addEventListener('input', function() {
+      syncValue(autocompleteElement.value || '');
+    });
+
+    autocompleteElement.addEventListener('change', function() {
+      syncValue(autocompleteElement.value || '');
+    });
+
+    autocompleteElement.addEventListener('gmp-select', async function(event) {
+      var placePrediction = event.placePrediction || (event.detail && event.detail.placePrediction) || null;
+      if (!placePrediction || typeof placePrediction.toPlace !== 'function') {
+        return;
+      }
+
+      var place = placePrediction.toPlace();
+      await place.fetchFields({
+        fields: ['formattedAddress', 'displayName']
+      });
+      syncValue(place.formattedAddress || (place.displayName && place.displayName.text) || place.displayName || '');
+    });
+
+    originalInput._placeAutocompleteElement = autocompleteElement;
+    return autocompleteElement;
+  }
 
   $(function () {
-     var autocompleteproduct = new google.maps.places.Autocomplete(create_pac_input);
+     Wo_InitRuntimePlaceAutocomplete('location', <?php echo json_encode($wo['lang']['location']); ?>);
   });
 <?php } ?>
 <?php if ($wo['config']['yandex_map'] == 1) { ?>
