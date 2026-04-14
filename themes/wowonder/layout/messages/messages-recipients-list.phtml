@@ -24,7 +24,7 @@ $uid   = (int)$wo['recipient']['user_id'];
 $tags  = $tagsByUser[$uid] ?? [];
 $recipient_display_name = !empty($wo['recipient']['first_name']) ? $wo['recipient']['first_name'] : $wo['recipient']['name'];
 
-$message = Wo_GetMessagesHeader(['user_id' => $uid], 1);
+$message = Wo_GetMessagesHeader(['user_id' => $uid], 'user');
 if (!empty($message['from_id'])) {
    if ($message['seen'] == 0 && $uid == $message['from_id']) {
      $unread_class = ' unread';

@@ -214,6 +214,7 @@ if ($livekitConfigured) {
         .lk-tile video{width:100%;height:100%;display:block;object-fit:cover;background:#020617}
         body:not(.lk-audio-mode) .lk-stage .lk-tile video{object-fit:contain!important;background:#020617}
         body:not(.lk-audio-mode) .lk-stage .lk-tile{position:absolute;inset:0;min-height:100vh;min-height:100dvh;height:100%;border:0;border-radius:0;box-shadow:none;background:#020617}
+        body:not(.lk-audio-mode) .lk-stage .lk-tile video{object-fit:contain!important;background:#020617}
         body:not(.lk-audio-mode) .lk-stage .lk-label{display:none}
         .lk-self{position:fixed;top:32px;right:32px;width:min(26vw,210px);height:min(34vw,286px);z-index:14;border-radius:34px;overflow:hidden;border:2px solid rgba(255,255,255,.26);background:rgba(15,23,42,.54);box-shadow:0 24px 40px rgba(2,6,23,.34);backdrop-filter:blur(12px);cursor:grab;touch-action:none;user-select:none}
         .lk-self.dragging{cursor:grabbing}
@@ -1049,15 +1050,15 @@ if ($livekitConfigured) {
                 currentAudioParticipantIdentity = participant.identity;
             }
             const display = !isSelf ? meta.name : (currentAudioParticipantIdentity ? audioName.textContent : meta.name);
-            const heroStatus = conferenceJoinedAt > 0 ? 'Dang trong cuoc goi' : (!isSelf ? 'Dang ket noi bao mat' : 'Dang cho nguoi kia tham gia');
+            const heroStatus = conferenceJoinedAt > 0 ? 'Đang Trong Cuộc Gọi ' : (!isSelf ? 'Đang Kết Nối Bảo Mật ' : 'Đang Chờ Người Kia Tham Gia ');
             if (audioName) {
-                audioName.textContent = display || 'Dang ket noi';
+                audioName.textContent = display || 'Đang Kết Nối';
             }
             if (audioStatus) {
                 audioStatus.textContent = heroStatus;
             }
             if (videoName) {
-                videoName.textContent = display || 'Dang ket noi';
+                videoName.textContent = display || 'Đang Kết Nối ';
             }
             if (videoStatus) {
                 videoStatus.textContent = heroStatus;
