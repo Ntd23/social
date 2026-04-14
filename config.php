@@ -18,7 +18,7 @@ $sql_db_pass = "";
 $sql_db_name = "vnseea";
 
 // Site URL
-$site_url = "https://social.test"; // e.g (http://example.com)
+$site_url = "https://social.local/social"; // e.g (http://example.com)
 
 $auto_redirect = true;
 

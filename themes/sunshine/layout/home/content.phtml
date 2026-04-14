@@ -1,5 +1,8 @@
 <?php
-$home_display_first_name = !empty($wo['user']['first_name']) ? $wo['user']['first_name'] : $wo['user']['name'];
+$home_display_first_name = '';
+if (!empty($wo['loggedin']) && !empty($wo['user']) && is_array($wo['user'])) {
+	$home_display_first_name = !empty($wo['user']['first_name']) ? $wo['user']['first_name'] : ($wo['user']['name'] ?? '');
+}
 ?>
 <div class="page-margin">
 	<div class="row">
@@ -60,7 +63,7 @@ $home_display_first_name = !empty($wo['user']['first_name']) ? $wo['user']['firs
 				}
 			?>
 
-			<?php if (Wo_IsMobile() == true) { ?>
+			<?php if (Wo_IsMobile() == true && $wo['loggedin'] == true) { ?>
 			<?php if ($wo['config']['order_posts_by'] == 0) { ?>
 				<div class="wow_content order-by">
 					<div class="dropdown">
@@ -187,7 +190,7 @@ $home_display_first_name = !empty($wo['user']['first_name']) ? $wo['user']['firs
 <!-- .page-margin -->
 
 <?php
-if ($wo['loggedin'] && $wo['user']['social_login'] == 1) {
+if ($wo['loggedin'] && !empty($wo['user']) && !empty($wo['user']['social_login'])) {
   echo Wo_LoadPage('modals/create-password');
 }
 ?>
@@ -257,7 +260,7 @@ function loadposts() {
 
 	});
 }
-  <?php if ($wo['loggedin'] && $wo['user']['social_login'] == 1) { ?>
+  <?php if ($wo['loggedin'] && !empty($wo['user']) && !empty($wo['user']['social_login'])) { ?>
   $(window).on("load", function (e) {
        $('#create-password').modal('show');
     });

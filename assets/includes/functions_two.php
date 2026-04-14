@@ -7617,34 +7617,34 @@ function Wo_IsUserBusy($user_id = 0) {
     }
     $time = time() - 40;
     
-    // Check Video Calls
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_VIDEOS_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' LIMIT 1");
+    // Check answered calls. Legacy rows can have active = 1 with empty status, so do not treat those as busy forever.
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_VIDEOS_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' AND `status` = 'answered' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
     
     // Check Audio Calls
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AUDIO_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AUDIO_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' AND `status` = 'answered' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
     
     // Check Agora Calls
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AGORA . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AGORA . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' AND `status` = 'answered' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
 
-    // Also check if user is currently RECEIVING a call and hasn't answered yet (within last 40 seconds)
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_VIDEOS_CALLES . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
+    // Also check ringing calls where the user is either caller or receiver.
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_VIDEOS_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AUDIO_CALLES . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AUDIO_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AGORA . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AGORA . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
