@@ -6745,6 +6745,14 @@ function Wo_GetGroupCallMessage($message = array()) {
             }
         }
     }
+    $duration = 0;
+    $duration_formatted = '';
+    if (!empty($group_call) && $group_call['status'] === 'ended' && !empty($group_call['started_at']) && !empty($group_call['ended_at'])) {
+        $duration = max(0, intval($group_call['ended_at']) - intval($group_call['started_at']));
+        if ($duration > 0) {
+            $duration_formatted = Wo_FormatCallDuration($duration);
+        }
+    }
     return array(
         'call_id' => $call_id,
         'group_id' => $group_id,
@@ -6753,6 +6761,8 @@ function Wo_GetGroupCallMessage($message = array()) {
         'actor_name' => $actor_name,
         'detail' => $detail,
         'is_active' => (!empty($group_call) && $group_call['status'] === 'active'),
+        'duration' => $duration,
+        'duration_formatted' => $duration_formatted,
         'participant_count' => !empty($group_call['participant_count']) ? intval($group_call['participant_count']) : 0,
         'payload' => $payload
     );
