@@ -4400,6 +4400,7 @@ function Wo_GetMessagesHeader($data = array(), $type = '')
             $fetched_data['messageUser'] = Wo_UserData($fetched_data['from_id']);
             $fetched_data['onwer'] = ($fetched_data['messageUser']['user_id'] == $logged_user_id) ? 1 : 0;
         }
+        $fetched_data['or_text'] = $fetched_data['text'];
         if (!empty($fetched_data['text'])) {
             $fetched_data['text'] = Wo_EditMarkup($fetched_data['text']);
         }
@@ -12362,5 +12363,4 @@ function Wo_PayPointOrSend($owner_id=null,$point=0,$to_user_id=null){
 //     }
 //     return $countriesData;
 // }
-
 
