@@ -117,10 +117,16 @@ if ($livekitConfigured) {
         .gcall-name{font-size:clamp(28px,4vw,44px);font-weight:600;line-height:1.05;letter-spacing:-.04em}
         .gcall-status{display:none}
         .gcall-timer{display:inline-flex;align-items:center;justify-content:center;min-width:112px;padding:12px 22px;border-radius:999px;background:rgba(111,126,255,.12);border:1px solid rgba(122,136,255,.3);backdrop-filter:blur(18px);color:#eef2ff;font-size:18px;font-weight:500;letter-spacing:.04em;box-shadow:0 18px 36px rgba(41,52,125,.18)}
-        .gcall-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;align-content:start;height:calc(100vh - var(--toolbar-height) - 140px);height:calc(100dvh - var(--toolbar-height) - 140px);overflow:auto;padding-bottom:12px}
-        .gcall-shell.audio-mode .gcall-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-        .gcall-tile{position:relative;min-height:220px;border-radius:30px;overflow:hidden;border:1px solid var(--border);background:linear-gradient(180deg,rgba(15,23,42,.88) 0%,rgba(17,24,39,.98) 100%);box-shadow:0 18px 40px rgba(2,6,23,.35)}
-        .gcall-shell.audio-mode .gcall-tile{min-height:260px}
+        .gcall-grid{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);gap:18px;align-content:stretch;justify-content:center;height:calc(100vh - var(--toolbar-height) - 140px);height:calc(100dvh - var(--toolbar-height) - 140px);overflow:hidden;padding-bottom:12px}
+        .gcall-grid-count-1{grid-template-columns:minmax(0,min(100%,980px));grid-template-rows:minmax(0,1fr)}
+        .gcall-grid-count-2{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
+        .gcall-grid-count-3{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+        .gcall-grid-count-3 .gcall-tile:first-child{grid-row:1 / span 2}
+        .gcall-grid-count-4{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+        .gcall-grid-count-5,.gcall-grid-count-6{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+        .gcall-grid-many{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(180px,1fr);align-content:start;overflow:auto}
+        .gcall-tile{position:relative;min-height:0;height:100%;border-radius:30px;overflow:hidden;border:1px solid var(--border);background:linear-gradient(180deg,rgba(15,23,42,.88) 0%,rgba(17,24,39,.98) 100%);box-shadow:0 18px 40px rgba(2,6,23,.35)}
+        .gcall-grid-many .gcall-tile{min-height:180px}
         .gcall-media{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#020617}
         .gcall-media video{width:100%;height:100%;display:block;object-fit:cover;background:#020617}
         .gcall-avatar-wrap{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
@@ -165,7 +171,7 @@ if ($livekitConfigured) {
         .gcall-action-btn{border:0;border-radius:999px;padding:12px 18px;font-size:14px;font-weight:600;cursor:pointer}
         .gcall-action-btn.secondary{background:#f2f4f7;color:#344054}
         .gcall-action-btn.primary{background:#4656d9;color:#fff}
-        @media (max-width:768px){:root{--toolbar-height:114px;--toolbar-gap:8px}.gcall-shell{padding:18px 14px calc(var(--toolbar-height) + 20px)}.gcall-grid{gap:12px;height:calc(100vh - var(--toolbar-height) - 120px);height:calc(100dvh - var(--toolbar-height) - 120px);grid-template-columns:repeat(2,minmax(0,1fr))}.gcall-shell.audio-mode .gcall-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gcall-tile{min-height:180px;border-radius:24px}.gcall-shell.audio-mode .gcall-tile{min-height:210px}.gcall-avatar{width:112px;height:112px}.gcall-avatar-fallback{font-size:38px}.gcall-corner-badges{top:10px;right:10px}.gcall-icon-badge{min-width:36px;height:36px;padding:0 10px;font-size:11px}.gcall-nameplate{left:10px;right:10px;bottom:10px}.gcall-nameplate-text{font-size:13px}#custom-toolbar{width:auto;max-width:calc(100% - 12px);justify-content:center;gap:6px;padding:8px 10px;background:rgba(9,14,26,.78);border:1px solid rgba(148,163,184,.14);box-shadow:0 18px 34px rgba(0,0,0,.3);backdrop-filter:blur(18px);border-radius:999px;bottom:max(10px,env(safe-area-inset-bottom))}.call-btn{flex:0 0 clamp(62px,18vw,76px);width:clamp(62px,18vw,76px);height:clamp(62px,18vw,76px);min-width:clamp(62px,18vw,76px);min-height:clamp(62px,18vw,76px)}.call-btn svg{width:28px;height:28px}#btn-add{display:none}#toolbar-more-wrap{position:relative;display:flex;align-items:center;justify-content:center}#btn-more{display:inline-flex}.toolbar-popover{display:flex}.toolbar-pop-btn{min-width:58px;width:58px;height:58px;min-height:58px}.toolbar-pop-btn svg{width:24px;height:24px}}
+        @media (max-width:768px){:root{--toolbar-height:114px;--toolbar-gap:8px}.gcall-shell{padding:18px 14px calc(var(--toolbar-height) + 20px)}.gcall-grid{gap:12px;height:calc(100vh - var(--toolbar-height) - 120px);height:calc(100dvh - var(--toolbar-height) - 120px)}.gcall-grid-count-1{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}.gcall-grid-count-2{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}.gcall-grid-count-3{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1.05fr) minmax(0,.95fr)}.gcall-grid-count-3 .gcall-tile:first-child{grid-column:1 / -1;grid-row:auto}.gcall-grid-count-4{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}.gcall-grid-count-5,.gcall-grid-count-6,.gcall-grid-many{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(160px,1fr);align-content:start;overflow:auto}.gcall-tile{border-radius:24px}.gcall-grid-many .gcall-tile,.gcall-grid-count-5 .gcall-tile,.gcall-grid-count-6 .gcall-tile{min-height:160px}.gcall-avatar{width:112px;height:112px}.gcall-avatar-fallback{font-size:38px}.gcall-corner-badges{top:10px;right:10px}.gcall-icon-badge{min-width:36px;height:36px;padding:0 10px;font-size:11px}.gcall-nameplate{left:10px;right:10px;bottom:10px}.gcall-nameplate-text{font-size:13px}#custom-toolbar{width:auto;max-width:calc(100% - 12px);justify-content:center;gap:6px;padding:8px 10px;background:rgba(9,14,26,.78);border:1px solid rgba(148,163,184,.14);box-shadow:0 18px 34px rgba(0,0,0,.3);backdrop-filter:blur(18px);border-radius:999px;bottom:max(10px,env(safe-area-inset-bottom))}.call-btn{flex:0 0 clamp(62px,18vw,76px);width:clamp(62px,18vw,76px);height:clamp(62px,18vw,76px);min-width:clamp(62px,18vw,76px);min-height:clamp(62px,18vw,76px)}.call-btn svg{width:28px;height:28px}#btn-add{display:none}#toolbar-more-wrap{position:relative;display:flex;align-items:center;justify-content:center}#btn-more{display:inline-flex}.toolbar-popover{display:flex}.toolbar-pop-btn{min-width:58px;width:58px;height:58px;min-height:58px}.toolbar-pop-btn svg{width:24px;height:24px}}
     </style>
 </head>
 <body class="<?php echo $isAudioCall ? 'audio-mode' : ''; ?>">
@@ -261,6 +267,7 @@ if ($livekitConfigured) {
         let isLeaving = false;
         let hasReportedLeave = false;
         let participantState = {};
+        const gridCountClasses = ['gcall-grid-count-1', 'gcall-grid-count-2', 'gcall-grid-count-3', 'gcall-grid-count-4', 'gcall-grid-count-5', 'gcall-grid-count-6', 'gcall-grid-many'];
 
         function setMenuOpen(isOpen) {
             if (!btnMore || !toolbarPopover) {
@@ -407,15 +414,28 @@ if ($livekitConfigured) {
             });
         }
 
+        function applyGridParticipantCount(count) {
+            gridCountClasses.forEach(function (className) {
+                grid.classList.remove(className);
+            });
+            grid.setAttribute('data-participant-count', String(count || 0));
+            if (count > 6) {
+                grid.classList.add('gcall-grid-many');
+            } else if (count > 0) {
+                grid.classList.add('gcall-grid-count-' + count);
+            }
+        }
+
         function renderParticipantGrid() {
             const participants = Object.keys(participantState).map(function (key) {
                 return participantState[key];
             }).sort(function (a, b) {
                 if (!!a.isLocal !== !!b.isLocal) {
-                    return a.isLocal ? -1 : 1;
+                    return a.isLocal ? 1 : -1;
                 }
                 return String(a.name || '').localeCompare(String(b.name || ''));
             });
+            applyGridParticipantCount(participants.length);
             if (participants.length === 0) {
                 grid.innerHTML = '<div class="gcall-empty">Waiting for participants...</div>';
                 return;
