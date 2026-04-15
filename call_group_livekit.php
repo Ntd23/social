@@ -128,7 +128,8 @@ if ($livekitConfigured) {
         .gcall-tile{position:relative;min-height:0;height:100%;border-radius:30px;overflow:hidden;border:1px solid var(--border);background:linear-gradient(180deg,rgba(15,23,42,.88) 0%,rgba(17,24,39,.98) 100%);box-shadow:0 18px 40px rgba(2,6,23,.35)}
         .gcall-grid-many .gcall-tile{min-height:220px}
         .gcall-media{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#020617}
-        .gcall-media video{width:100%;height:100%;display:block;object-fit:cover;background:#020617}
+        .gcall-media video{width:100%;height:100%;display:block;object-fit:cover;object-position:center center;background:#020617}
+        .gcall-media video.gcall-video-portrait,.gcall-media video.gcall-video-square{object-fit:contain}
         .gcall-avatar-wrap{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
         .gcall-avatar-glow{position:absolute;inset:16%;border-radius:999px;background:radial-gradient(circle,rgba(111,126,255,.25) 0%,rgba(111,126,255,.05) 48%,rgba(111,126,255,0) 72%);filter:blur(14px)}
         .gcall-avatar{position:relative;width:min(52vw,160px);height:min(52vw,160px);border-radius:999px;background:linear-gradient(180deg,#8da0ff 0%,#5f6fe4 100%);padding:8px;box-shadow:0 20px 50px rgba(72,88,214,.26)}
@@ -426,6 +427,35 @@ if ($livekitConfigured) {
             }
         }
 
+        function bindVideoAspect(videoElement) {
+            if (!videoElement) {
+                return;
+            }
+            if (videoElement.__gcallAspectUpdate) {
+                videoElement.removeEventListener('loadedmetadata', videoElement.__gcallAspectUpdate);
+                videoElement.removeEventListener('resize', videoElement.__gcallAspectUpdate);
+            }
+            const updateAspect = function () {
+                const width = videoElement.videoWidth || videoElement.clientWidth || 0;
+                const height = videoElement.videoHeight || videoElement.clientHeight || 0;
+                videoElement.classList.remove('gcall-video-portrait', 'gcall-video-landscape', 'gcall-video-square');
+                if (!width || !height) {
+                    return;
+                }
+                if (height > width * 1.1) {
+                    videoElement.classList.add('gcall-video-portrait');
+                } else if (width > height * 1.1) {
+                    videoElement.classList.add('gcall-video-landscape');
+                } else {
+                    videoElement.classList.add('gcall-video-square');
+                }
+            };
+            videoElement.__gcallAspectUpdate = updateAspect;
+            videoElement.addEventListener('loadedmetadata', updateAspect);
+            videoElement.addEventListener('resize', updateAspect);
+            requestAnimationFrame(updateAspect);
+        }
+
         function renderParticipantGrid() {
             const participants = Object.keys(participantState).map(function (key) {
                 return participantState[key];
@@ -452,6 +482,7 @@ if ($livekitConfigured) {
                         participant.videoElement = participant.videoTrack.attach();
                     }
                     if (participant.videoElement) {
+                        bindVideoAspect(participant.videoElement);
                         media.appendChild(participant.videoElement);
                     }
                 } else {
