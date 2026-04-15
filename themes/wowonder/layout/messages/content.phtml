@@ -645,6 +645,48 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
     cache: false
   });
 
+  function Wo_SetImportantMessageStyle(elements, property, value) {
+    elements.each(function() {
+      this.style.setProperty(property, value, 'important');
+    });
+  }
+
+  function Wo_ClearMessageStyle(elements, property) {
+    elements.each(function() {
+      this.style.removeProperty(property);
+    });
+  }
+
+  function Wo_GetActiveMessagesChatColor(color) {
+    return color || $('.send-button').css('background-color');
+  }
+
+  function Wo_ApplyMessagesChatColor(color) {
+    color = Wo_GetActiveMessagesChatColor(color);
+    if (!color) {
+      return;
+    }
+
+    var outgoingMessages = $(".messages-container .message-contnaier.outgoing .message-model > .message").not(".call-log-message, .wo_msg_prod_prnt");
+    var outgoingText = outgoingMessages.children("p.message-text").not(".call-log-message");
+
+    Wo_SetImportantMessageStyle($('.send-button'), 'background-color', color);
+    Wo_SetImportantMessageStyle($('.send-button'), 'border-color', color);
+    Wo_SetImportantMessageStyle($('#wo_msg_right_prt .message-option-btns .btn svg'), 'color', color);
+    Wo_SetImportantMessageStyle($(".text-sender-container .red-list"), 'background', color);
+    Wo_SetImportantMessageStyle(outgoingMessages, 'background', 'transparent');
+    Wo_SetImportantMessageStyle(outgoingMessages, 'background-color', 'transparent');
+    Wo_SetImportantMessageStyle(outgoingMessages, 'box-shadow', 'none');
+    Wo_ClearMessageStyle(outgoingMessages.children(".message-media"), 'background-color');
+    Wo_SetImportantMessageStyle(outgoingText, 'background', color);
+    Wo_SetImportantMessageStyle(outgoingText, 'background-color', color);
+    Wo_SetImportantMessageStyle(outgoingText, 'color', '#fff');
+    Wo_SetImportantMessageStyle(outgoingText, 'display', 'inline-block');
+    Wo_SetImportantMessageStyle(outgoingText, 'padding', '9px 14px');
+    Wo_SetImportantMessageStyle(outgoingText, 'border-radius', '18px');
+    Wo_SetImportantMessageStyle(outgoingText, 'margin', '0');
+  }
+
   function MarkAsReadAll(self) {
     $(self).html('<svg width="25px" height="25px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid"><rect x="0" y="0" width="25" height="25" fill="none" class="bk"></rect><circle cx="50" cy="50" r="40" stroke="currentColor" fill="none" stroke-width="6" stroke-linecap="round"><animate attributeName="stroke-dashoffset" dur="1.5s" repeatCount="indefinite" from="0" to="502"></animate><animate attributeName="stroke-dasharray" dur="1.5s" repeatCount="indefinite" values="150.6 100.4;1 250;150.6 100.4"></animate></circle></svg>');
     $.post(Wo_Ajax_Requests_File() + '?f=mark_as_read', function(data, textStatus, xhr) {
@@ -845,6 +887,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
                   $(".no-messages").hide();
                   $(".messages-container").append(data.message_page_html);
                 }
+                Wo_ApplyMessagesChatColor();
                 //   $('.message').last().append($('#message_text_reply_'+message_reply_id)[0].outerHTML);
                 // $('.message').last().append($('#message_media_reply_'+message_reply_id)[0].outerHTML);
                 var user_id_ = $('#user-id').val();
@@ -924,6 +967,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
                   $(".no-messages").hide();
                   $(".messages-container").append(data.message_page_html);
                 }
+                Wo_ApplyMessagesChatColor();
                 // $('.message').last().append($('#message_text_reply_'+message_reply_id)[0].outerHTML);
                 // $('.message').last().append($('#message_media_reply_'+message_reply_id)[0].outerHTML);
                 var user_id_ = $('#user-id').val();
@@ -1023,6 +1067,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
                   $(".no-messages").hide();
                   $(".messages-container").append(data.html);
                 }
+                Wo_ApplyMessagesChatColor();
                 var user_id_ = $('#user-id').val();
                 $('body').attr('sending-' + user_id_, false);
                 $('#sendMessasgeFile').val('');
@@ -1153,6 +1198,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
               $(".no-messages").hide();
               $(".messages-container").append(data.html);
             }
+            Wo_ApplyMessagesChatColor();
             var user_id_ = $('#user-id').val();
             $('body').attr('sending-' + user_id_, false);
             $('#sendMessasgeFile').val('');
@@ -1421,9 +1467,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
         $('.wo_msg_user_dtl').css('display', 'none');
 
         $('.wo_msg_dtl_most_bottom').css('display', 'block');
-        $('.send-button').css('background-color', data.color);
-        $('.send-button').css('border-color', data.color);
-        $('#wo_msg_right_prt .message-option-btns .btn svg').css('color', data.color);
+        Wo_ApplyMessagesChatColor(data.color);
         $('#user-chat-link').attr('href', data.url);
         $('#block-url').attr('href', data.block_url);
         $('#user-avatar-right img').attr('src', data.avatar).removeClass('hidden');
@@ -1453,6 +1497,7 @@ $('#group-delete-action,#group-edit-action,#group-history-action,#group-members-
           $('.messages-container').html('<div class="no-messages empty_state"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512.021 512.021" xml:space="preserve"> <path style="fill:#64B5F6;" d="M338.214,344.556l-64-64.107c-4.16-4.171-10.914-4.179-15.085-0.019 c-2.006,2.001-3.133,4.717-3.134,7.55v149.44c0.003,4.589,2.942,8.662,7.296,10.112c1.086,0.367,2.224,0.555,3.371,0.555 c3.357,0,6.519-1.581,8.533-4.267l64-85.333C342.376,354.244,341.958,348.31,338.214,344.556z"/> <path style="fill:#1976D2;" d="M291.366,320.641l-64-21.333c-5.587-1.868-11.631,1.147-13.499,6.734 c-0.732,2.19-0.734,4.558-0.005,6.749l42.667,128c1.453,4.362,5.536,7.302,10.133,7.296h0.661c4.819-0.3,8.836-3.8,9.792-8.533 l21.333-106.667C299.523,327.601,296.483,322.345,291.366,320.641z"/> <path style="fill:#2196F3;" d="M507.43,23.446c-3.399-2.377-7.867-2.568-11.456-0.491L90.641,257.622 c-5.096,2.955-6.832,9.482-3.877,14.578c1.306,2.253,3.391,3.95,5.861,4.771l191.573,63.872l148.907,63.829 c5.417,2.316,11.685-0.197,14.001-5.614c0.321-0.752,0.555-1.538,0.697-2.343l64-362.667 C512.531,29.965,510.825,25.829,507.43,23.446z"/> <g> <path style="fill:#1976D2;" d="M510.011,38.38c3.441-4.781,2.355-11.447-2.426-14.889c-4.259-3.065-10.115-2.578-13.808,1.15 L215.611,318.017l80.277,27.733L510.011,38.38z"/> <path style="fill:#1976D2;" d="M26.065,420.246c-2.679,0.003-5.26-1.003-7.232-2.816c-5.319-4.892-10.553-9.92-15.701-15.083 c-4.171-4.165-4.176-10.922-0.011-15.093c4.165-4.171,10.922-4.176,15.093-0.011c4.949,4.949,9.984,9.792,15.083,14.485 c4.336,3.988,4.618,10.736,0.63,15.072C31.904,418.999,29.052,420.249,26.065,420.246z"/> <path style="fill:#1976D2;" d="M171.387,490.54c-10.278-0.033-20.527-1.098-30.592-3.179c-5.814-0.95-9.757-6.434-8.806-12.248 c0.95-5.814,6.434-9.757,12.248-8.806c0.277,0.045,0.553,0.102,0.825,0.169c8.683,1.792,17.524,2.707,26.389,2.731h0.064h4.8 c5.559-0.531,10.497,3.545,11.028,9.104c0.037,0.385,0.051,0.771,0.044,1.157c0.216,5.884-4.377,10.831-10.261,11.051h-5.568 L171.387,490.54z M94.95,470.124c-1.708,0-3.39-0.409-4.907-1.195c-10.486-5.487-20.611-11.636-30.315-18.411 c-4.727-3.515-5.709-10.197-2.194-14.925c3.355-4.511,9.634-5.644,14.354-2.59c8.937,6.286,18.272,11.987,27.947,17.067 c5.231,2.709,7.276,9.146,4.567,14.377c-1.833,3.54-5.487,5.762-9.474,5.762L94.95,470.124z"/> <path style="fill:#1976D2;" d="M226.235,479.105c-5.891,0.048-10.705-4.688-10.753-10.579c-0.035-4.307,2.524-8.213,6.487-9.901 c6.141-2.627,12.105-5.648,17.856-9.045c5.146-2.867,11.642-1.019,14.509,4.127c2.767,4.967,1.152,11.231-3.672,14.241 c-6.542,3.867-13.325,7.309-20.309,10.304C229.05,478.806,227.651,479.097,226.235,479.105z"/> </g></svg><?php echo $wo["lang"]["no_more_message_to_show"]; ?> </div>');
         } else {
           $('.messages-container').html(data.html);
+          Wo_ApplyMessagesChatColor(data.color);
           view_more_wrapper.html('<a href="javascript:void(0);" title="' + data.view_more_text + '"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M13,15L15.5,17.5L16.92,16.08L12,11.16L7.08,16.08L8.5,17.5L11,15V21H13V15M3,3H21V5H3V3M3,7H13V9H3V7Z" /></svg></a>').show();
           view_more_wrapper.attr('onclick', 'Wo_getOldMessages(' + user_id + ');').removeClass('hidden');
           setTimeout(function() {
@@ -1553,9 +1598,7 @@ $('#user-name').text(data.group_name || group_name).removeClass('hidden');
 $('#user-name-right').html('<a target="_blank" href="javascript:void(0);">' + (data.group_name || group_name) + '</a>');
 $('#user-last-seen').html('');
 $('.wo_msg_user_dtl').css('display', 'none');
-$('.send-button').css('background-color', '#c45a5b');
-$('.send-button').css('border-color', '#c45a5b');
-$('#wo_msg_right_prt .message-option-btns .btn svg').css('color', '#c45a5b');
+Wo_ApplyMessagesChatColor('#c45a5b');
 
 var delete_action_html = '';
 var edit_action_html = '';
@@ -1613,6 +1656,7 @@ $('.delete-icon').empty();
           $('.messages-container').html('<div class="no-messages empty_state"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512.021 512.021" xml:space="preserve"> <path style="fill:#64B5F6;" d="M338.214,344.556l-64-64.107c-4.16-4.171-10.914-4.179-15.085-0.019 c-2.006,2.001-3.133,4.717-3.134,7.55v149.44c0.003,4.589,2.942,8.662,7.296,10.112c1.086,0.367,2.224,0.555,3.371,0.555 c3.357,0,6.519-1.581,8.533-4.267l64-85.333C342.376,354.244,341.958,348.31,338.214,344.556z"/> <path style="fill:#1976D2;" d="M291.366,320.641l-64-21.333c-5.587-1.868-11.631,1.147-13.499,6.734 c-0.732,2.19-0.734,4.558-0.005,6.749l42.667,128c1.453,4.362,5.536,7.302,10.133,7.296h0.661c4.819-0.3,8.836-3.8,9.792-8.533 l21.333-106.667C299.523,327.601,296.483,322.345,291.366,320.641z"/> <path style="fill:#2196F3;" d="M507.43,23.446c-3.399-2.377-7.867-2.568-11.456-0.491L90.641,257.622 c-5.096,2.955-6.832,9.482-3.877,14.578c1.306,2.253,3.391,3.95,5.861,4.771l191.573,63.872l148.907,63.829 c5.417,2.316,11.685-0.197,14.001-5.614c0.321-0.752,0.555-1.538,0.697-2.343l64-362.667 C512.531,29.965,510.825,25.829,507.43,23.446z"/> <g> <path style="fill:#1976D2;" d="M510.011,38.38c3.441-4.781,2.355-11.447-2.426-14.889c-4.259-3.065-10.115-2.578-13.808,1.15 L215.611,318.017l80.277,27.733L510.011,38.38z"/> <path style="fill:#1976D2;" d="M26.065,420.246c-2.679,0.003-5.26-1.003-7.232-2.816c-5.319-4.892-10.553-9.92-15.701-15.083 c-4.171-4.165-4.176-10.922-0.011-15.093c4.165-4.171,10.922-4.176,15.093-0.011c4.949,4.949,9.984,9.792,15.083,14.485 c4.336,3.988,4.618,10.736,0.63,15.072C31.904,418.999,29.052,420.249,26.065,420.246z"/> <path style="fill:#1976D2;" d="M171.387,490.54c-10.278-0.033-20.527-1.098-30.592-3.179c-5.814-0.95-9.757-6.434-8.806-12.248 c0.95-5.814,6.434-9.757,12.248-8.806c0.277,0.045,0.553,0.102,0.825,0.169c8.683,1.792,17.524,2.707,26.389,2.731h0.064h4.8 c5.559-0.531,10.497,3.545,11.028,9.104c0.037,0.385,0.051,0.771,0.044,1.157c0.216,5.884-4.377,10.831-10.261,11.051h-5.568 L171.387,490.54z M94.95,470.124c-1.708,0-3.39-0.409-4.907-1.195c-10.486-5.487-20.611-11.636-30.315-18.411 c-4.727-3.515-5.709-10.197-2.194-14.925c3.355-4.511,9.634-5.644,14.354-2.59c8.937,6.286,18.272,11.987,27.947,17.067 c5.231,2.709,7.276,9.146,4.567,14.377c-1.833,3.54-5.487,5.762-9.474,5.762L94.95,470.124z"/> <path style="fill:#1976D2;" d="M226.235,479.105c-5.891,0.048-10.705-4.688-10.753-10.579c-0.035-4.307,2.524-8.213,6.487-9.901 c6.141-2.627,12.105-5.648,17.856-9.045c5.146-2.867,11.642-1.019,14.509,4.127c2.767,4.967,1.152,11.231-3.672,14.241 c-6.542,3.867-13.325,7.309-20.309,10.304C229.05,478.806,227.651,479.097,226.235,479.105z"/> </g></svg><?php echo $wo["lang"]["no_more_message_to_show"]; ?> </div>');
         } else {
           $('.messages-container').html(data.html);
+          Wo_ApplyMessagesChatColor('#c45a5b');
           view_more_wrapper.html('<a href="javascript:void(0);" title="' + data.view_more_text + '"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M13,15L15.5,17.5L16.92,16.08L12,11.16L7.08,16.08L8.5,17.5L11,15V21H13V15M3,3H21V5H3V3M3,7H13V9H3V7Z" /></svg></a>').show();
           view_more_wrapper.attr('onclick', 'Wo_getOldGroupMessages(' + group_id + ');').removeClass('hidden');
           setTimeout(function() {
@@ -1828,9 +1872,7 @@ function Wo_AddGChatPart(group_id, user_id) {
     }, function(data) {
       if (data.status == 200) {
         Wo_ShowMobileMessagePane();
-        $('.send-button').css('background-color', '#2e7be5');
-        $('.send-button').css('border-color', '#2e7be5');
-        $('#wo_msg_right_prt .message-option-btns .btn svg').css('color', '#2e7be5');
+        Wo_ApplyMessagesChatColor('#2e7be5');
        $('#group-delete-action,#group-edit-action,#group-history-action,#group-members-action,#group-close-action').empty();
 $('.delete-icon').empty();
 
@@ -1844,6 +1886,7 @@ $('.delete-icon').empty();
           $('.messages-container').html('<div class="no-messages empty_state"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512.021 512.021" xml:space="preserve"> <path style="fill:#64B5F6;" d="M338.214,344.556l-64-64.107c-4.16-4.171-10.914-4.179-15.085-0.019 c-2.006,2.001-3.133,4.717-3.134,7.55v149.44c0.003,4.589,2.942,8.662,7.296,10.112c1.086,0.367,2.224,0.555,3.371,0.555 c3.357,0,6.519-1.581,8.533-4.267l64-85.333C342.376,354.244,341.958,348.31,338.214,344.556z"/> <path style="fill:#1976D2;" d="M291.366,320.641l-64-21.333c-5.587-1.868-11.631,1.147-13.499,6.734 c-0.732,2.19-0.734,4.558-0.005,6.749l42.667,128c1.453,4.362,5.536,7.302,10.133,7.296h0.661c4.819-0.3,8.836-3.8,9.792-8.533 l21.333-106.667C299.523,327.601,296.483,322.345,291.366,320.641z"/> <path style="fill:#2196F3;" d="M507.43,23.446c-3.399-2.377-7.867-2.568-11.456-0.491L90.641,257.622 c-5.096,2.955-6.832,9.482-3.877,14.578c1.306,2.253,3.391,3.95,5.861,4.771l191.573,63.872l148.907,63.829 c5.417,2.316,11.685-0.197,14.001-5.614c0.321-0.752,0.555-1.538,0.697-2.343l64-362.667 C512.531,29.965,510.825,25.829,507.43,23.446z"/> <g> <path style="fill:#1976D2;" d="M510.011,38.38c3.441-4.781,2.355-11.447-2.426-14.889c-4.259-3.065-10.115-2.578-13.808,1.15 L215.611,318.017l80.277,27.733L510.011,38.38z"/> <path style="fill:#1976D2;" d="M26.065,420.246c-2.679,0.003-5.26-1.003-7.232-2.816c-5.319-4.892-10.553-9.92-15.701-15.083 c-4.171-4.165-4.176-10.922-0.011-15.093c4.165-4.171,10.922-4.176,15.093-0.011c4.949,4.949,9.984,9.792,15.083,14.485 c4.336,3.988,4.618,10.736,0.63,15.072C31.904,418.999,29.052,420.249,26.065,420.246z"/> <path style="fill:#1976D2;" d="M171.387,490.54c-10.278-0.033-20.527-1.098-30.592-3.179c-5.814-0.95-9.757-6.434-8.806-12.248 c0.95-5.814,6.434-9.757,12.248-8.806c0.277,0.045,0.553,0.102,0.825,0.169c8.683,1.792,17.524,2.707,26.389,2.731h0.064h4.8 c5.559-0.531,10.497,3.545,11.028,9.104c0.037,0.385,0.051,0.771,0.044,1.157c0.216,5.884-4.377,10.831-10.261,11.051h-5.568 L171.387,490.54z M94.95,470.124c-1.708,0-3.39-0.409-4.907-1.195c-10.486-5.487-20.611-11.636-30.315-18.411 c-4.727-3.515-5.709-10.197-2.194-14.925c3.355-4.511,9.634-5.644,14.354-2.59c8.937,6.286,18.272,11.987,27.947,17.067 c5.231,2.709,7.276,9.146,4.567,14.377c-1.833,3.54-5.487,5.762-9.474,5.762L94.95,470.124z"/> <path style="fill:#1976D2;" d="M226.235,479.105c-5.891,0.048-10.705-4.688-10.753-10.579c-0.035-4.307,2.524-8.213,6.487-9.901 c6.141-2.627,12.105-5.648,17.856-9.045c5.146-2.867,11.642-1.019,14.509,4.127c2.767,4.967,1.152,11.231-3.672,14.241 c-6.542,3.867-13.325,7.309-20.309,10.304C229.05,478.806,227.651,479.097,226.235,479.105z"/> </g></svg><?php echo $wo["lang"]["no_more_message_to_show"]; ?> </div>');
         } else {
           $('.messages-container').html(data.html);
+          Wo_ApplyMessagesChatColor('#2e7be5');
           view_more_wrapper.html('<a href="javascript:void(0);" title="' + data.view_more_text + '"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M13,15L15.5,17.5L16.92,16.08L12,11.16L7.08,16.08L8.5,17.5L11,15V21H13V15M3,3H21V5H3V3M3,7H13V9H3V7Z" /></svg></a>').show();
           view_more_wrapper.attr('onclick', 'Wo_getOldPageMessages(' + page_id + ',' + page_user_id + ');').removeClass('hidden');
           setTimeout(function() {
@@ -1876,7 +1919,7 @@ $('.delete-icon').empty();
         from_id = $('#messages-from-id').val();
         to_id = $('#messages-to-id').val();
         if (data.color) {
-          $(".text-sender-container .red-list").css('background', data.color);
+          Wo_SetImportantMessageStyle($(".text-sender-container .red-list"), 'background', data.color);
         }
         isMedia = false;
         if (data.hasOwnProperty('isMedia')) {
@@ -1908,17 +1951,14 @@ $('.delete-icon').empty();
               }
               $('.message-contnaier:last').find('.message-typing').empty()
               $(".messages-container").append(data.message_page_html);
+              Wo_ApplyMessagesChatColor();
               setTimeout(function() {
                 $(".messages-container").animate({
                   scrollTop: $('.messages-container')[0].scrollHeight
                 }, 200);
               }, 100);
               if (data.sender == <?php echo $wo['user']['user_id']; ?>) {
-                $('.send-button').css('background-color', data.color);
-                $('.send-button').css('border-color', data.color);
-                $('#wo_msg_right_prt .message-option-btns .btn svg').css('color', data.color);
-                $(".messages-container").find(".pull-right").find(".message").not(".call-log-message").css('background-color', data.color);
-                $(".messages-container").find(".pull-right").find(".message-text").not(".call-log-message").css('background-color', data.color)
+                Wo_ApplyMessagesChatColor(data.color);
               }
             }
             if (data.sender != <?php echo $wo['user']['user_id']; ?>) {
@@ -1943,7 +1983,7 @@ $('.delete-icon').empty();
         from_id = $('#messages-from-id').val();
         to_id = $('#messages-to-id').val();
         if (data.color) {
-          $(".text-sender-container .red-list").css('background', data.color);
+          Wo_SetImportantMessageStyle($(".text-sender-container .red-list"), 'background', data.color);
         }
         if (data.status == 200) {
           if (!$(".messages-container").find(".no-messages").length) {
@@ -1955,17 +1995,14 @@ $('.delete-icon').empty();
               }
               $('.message-contnaier:last').find('.message-typing').empty()
               $(".messages-container").append(data.message_page_html);
+              Wo_ApplyMessagesChatColor();
               setTimeout(function() {
                 $(".messages-container").animate({
                   scrollTop: $('.messages-container')[0].scrollHeight
                 }, 200);
               }, 100);
               if (data.self) {
-                $('.send-button').css('background-color', data.color);
-                $('.send-button').css('border-color', data.color);
-                $('#wo_msg_right_prt .message-option-btns .btn svg').css('color', data.color);
-                $(".messages-container").find(".pull-right").find(".message").not(".call-log-message").css('background-color', data.color);
-                $(".messages-container").find(".pull-right").find(".message-text").not(".call-log-message").css('background-color', data.color)
+                Wo_ApplyMessagesChatColor(data.color);
               }
             }
             if (!data.self) {
@@ -2018,10 +2055,11 @@ $('.delete-icon').empty();
             }
           }
           if (data.color) {
-            $(".text-sender-container .red-list").css('background', data.color);
+            Wo_SetImportantMessageStyle($(".text-sender-container .red-list"), 'background', data.color);
           }
           if (data.status == 200) {
             $(".messages-container").append(data.html);
+            Wo_ApplyMessagesChatColor();
             setTimeout(function() {
               $(".messages-container").animate({
                 scrollTop: $('.messages-container')[0].scrollHeight
@@ -2159,6 +2197,7 @@ $('.delete-icon').empty();
             view_more_wrapper.delay(2000).slideUp(200);
           } else {
             $('.messages-container').prepend(data.html);
+            Wo_ApplyMessagesChatColor();
             var previous_height = 0;
             $current_top_element.prevAll().each(function() {
               previous_height += $(this).outerHeight();
@@ -2185,6 +2224,7 @@ $('.delete-icon').empty();
             view_more_wrapper.delay(2000).slideUp(200);
           } else {
             $('.messages-container').prepend(data.html);
+            Wo_ApplyMessagesChatColor();
             var previous_height = 0;
             $current_top_element.prevAll().each(function() {
               previous_height += $(this).outerHeight();
@@ -2231,6 +2271,7 @@ $('.delete-icon').empty();
               view_more_wrapper.delay(2000).slideUp(200);
             } else {
               $('.messages-container').prepend(data.html);
+              Wo_ApplyMessagesChatColor();
               var previous_height = 0;
               $current_top_element.prevAll().each(function() {
                 previous_height += $(this).outerHeight();
@@ -2256,6 +2297,7 @@ $('.delete-icon').empty();
               view_more_wrapper.delay(2000).slideUp(200);
             } else {
               $('.messages-container').prepend(data.html);
+              Wo_ApplyMessagesChatColor();
               var previous_height = 0;
               $current_top_element.prevAll().each(function() {
                 previous_height += $(this).outerHeight();
@@ -2293,6 +2335,7 @@ $('.delete-icon').empty();
           view_more_wrapper.delay(1000).slideUp(200);
         } else {
           $('.messages-container').prepend(data.html);
+          Wo_ApplyMessagesChatColor();
           var previous_height = 0;
           $current_top_element.prevAll().each(function() {
             previous_height += $(this).outerHeight();
@@ -2367,6 +2410,7 @@ $('.delete-icon').empty();
               $(".no-messages").hide();
               $(".messages-container").append(data.html);
             }
+            Wo_ApplyMessagesChatColor();
             var user_id_ = $('#user-id').val();
             $('body').attr('sending-' + user_id_, false);
             $('#sendMessasgeFile').val('');
@@ -4364,5 +4408,3 @@ $(function() {
 }
 
 </style>
-
-
