@@ -1021,7 +1021,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
                   $(".messages-container").html(data.html);
                 } else {
                   $(".no-messages").hide();
-                  $(".messages-container").append(data.html);
+                  Wo_AppendUniqueMessagesHtml(data.html);
                 }
                 var user_id_ = $('#user-id').val();
                 $('body').attr('sending-' + user_id_, false);
@@ -1151,7 +1151,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
               $(".messages-container").html(data.html);
             } else {
               $(".no-messages").hide();
-              $(".messages-container").append(data.html);
+              Wo_AppendUniqueMessagesHtml(data.html);
             }
             var user_id_ = $('#user-id').val();
             $('body').attr('sending-' + user_id_, false);
@@ -2021,16 +2021,17 @@ $('.delete-icon').empty();
             $(".text-sender-container .red-list").css('background', data.color);
           }
           if (data.status == 200) {
-            $(".messages-container").append(data.html);
-            setTimeout(function() {
-              $(".messages-container").animate({
-                scrollTop: $('.messages-container')[0].scrollHeight
-              }, 200);
-            }, 100);
-            if (data.sender == user_id) {
-              document.getElementById('message-sound').play();
-              if (!$('.sendMessage').is(':focus')) {
-                document.title = 'New Message ' + document_title;
+            if (Wo_AppendUniqueMessagesHtml(data.html) > 0) {
+              setTimeout(function() {
+                $(".messages-container").animate({
+                  scrollTop: $('.messages-container')[0].scrollHeight
+                }, 200);
+              }, 100);
+              if (data.sender == user_id) {
+                document.getElementById('message-sound').play();
+                if (!$('.sendMessage').is(':focus')) {
+                  document.title = 'New Message ' + document_title;
+                }
               }
             }
           }
@@ -2043,6 +2044,40 @@ $('.delete-icon').empty();
 
       setTimeout(Wo_getNewMessages, 5000);
     <?php } ?>
+  }
+
+  function Wo_AppendUniqueMessagesHtml(html) {
+    if (!html || !$('.messages-container').length) {
+      return 0;
+    }
+    var appended = 0;
+    var nodes = $($.parseHTML(String(html), document, true));
+    if (!nodes.length) {
+      return 0;
+    }
+    nodes.each(function() {
+      var $node = $(this);
+      if ($node.length === 0) {
+        return;
+      }
+      if ($node.is('.clear') || ($node[0] && $node[0].nodeType === 3 && !$.trim($node.text()))) {
+        $('.messages-container').append($node);
+        return;
+      }
+      var messageId = $node.attr('id');
+      if (!messageId) {
+        var innerMessage = $node.find('[id^="messageId_"]').first();
+        if (innerMessage.length) {
+          messageId = innerMessage.attr('id');
+        }
+      }
+      if (messageId && $('#' + messageId).length > 0) {
+        return;
+      }
+      $('.messages-container').append($node);
+      appended++;
+    });
+    return appended;
   }
 
   function Wo_getMessageSeen() {
@@ -2365,7 +2400,7 @@ $('.delete-icon').empty();
               $(".messages-container").html(data.html);
             } else {
               $(".no-messages").hide();
-              $(".messages-container").append(data.html);
+              Wo_AppendUniqueMessagesHtml(data.html);
             }
             var user_id_ = $('#user-id').val();
             $('body').attr('sending-' + user_id_, false);
