@@ -2784,7 +2784,7 @@ $('.delete-icon').empty();
     }
 
     // ==== mở modal từ nút gán ====
-    $(document).on('click', '.btn-open-tag-modal', function(e) {
+    $(document).off('click.woChatTags', '.btn-open-tag-modal').on('click.woChatTags', '.btn-open-tag-modal', function(e) {
       e.preventDefault();
       e.stopPropagation();
       TARGET.type = String($(this).data('target-type') || 'user');
@@ -2797,21 +2797,21 @@ $('.delete-icon').empty();
     });
 
     // mỗi lần modal mở → nạp tab đang active
-    $('#chatTagModal').on('shown.bs.modal', function() {
+    $('#chatTagModal').off('shown.bs.modal.woChatTags').on('shown.bs.modal.woChatTags', function() {
       const active = $('#chat-tag-tabs li.active a').attr('href');
       if (active === '#tab-assign') loadAssign();
       else loadManage();
     });
 
     // khi chuyển tab
-    $('#chat-tag-tabs a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+    $('#chat-tag-tabs a[data-toggle="tab"]').off('shown.bs.tab.woChatTags').on('shown.bs.tab.woChatTags', function(e) {
       const target = $(e.target).attr('href');
       if (target === '#tab-assign') loadAssign();
       else loadManage();
     });
 
     // click Gắn/Gỡ trong tab assign
-    $(document).on('click', '#assign-list .chat-assign-toggle', function(e) {
+    $(document).off('click.woChatTags', '#assign-list .chat-assign-toggle').on('click.woChatTags', '#assign-list .chat-assign-toggle', function(e) {
       e.preventDefault();
       if (!TARGET.id) return alert('Chưa chọn đối tượng.');
 
@@ -2831,12 +2831,12 @@ $('.delete-icon').empty();
 
     // tạo thẻ mới (tab manage)
     function bindColorSync() {
-      $('#chat-tag-new-color').on('input', function() {
+      $('#chat-tag-new-color').off('input.woChatTags').on('input.woChatTags', function() {
         const v = this.value;
         $('#chat-tag-new-color-hex').val(v);
         $('#chat-tag-color-swatch').css('background', v);
       });
-      $('#chat-tag-new-color-hex').on('input', function() {
+      $('#chat-tag-new-color-hex').off('input.woChatTags').on('input.woChatTags', function() {
         const v = this.value;
         if (hexOK(v)) {
           $('#chat-tag-new-color').val(v);
@@ -2845,7 +2845,7 @@ $('.delete-icon').empty();
       });
     }
     bindColorSync();
-   $('#chat-btn-create-tag').on('click', function() {
+   $('#chat-btn-create-tag').off('click.woChatTags').on('click.woChatTags', function() {
       const name = ($('#chat-tag-new-name').val() || '').trim();
       let color = ($('#chat-tag-new-color-hex').val() || '').trim();
       if (!name) return alert('Nhập tên thẻ.');
@@ -2865,7 +2865,8 @@ $('.delete-icon').empty();
 
 
     // xoá thẻ (tab manage)
-    $(document).on('click', '#manage-list .chat-tag-del', function(e) {
+    $(document).off('click.woChatTags', '#manage-list .chat-tag-del').on('click.woChatTags', '#manage-list .chat-tag-del', function(e) {
+      e.stopImmediatePropagation();
       e.preventDefault();
       const id = parseInt($(this).closest('[data-id]').data('id'), 10) || 0;
       if (!id) return;
@@ -2911,6 +2912,7 @@ $(function() {
   });
 });
 
+    if (false) {
     $('#chat-btn-create-tag').on('click', function() {
       const name = ($('#chat-tag-new-name').val() || '').trim();
       let color = ($('#chat-tag-new-color-hex').val() || '').trim();
@@ -2945,6 +2947,7 @@ $(function() {
       });
     });
 
+    }
     function getSelectUserId() {
       return $('#messages-multi-all .messages-multi-user-item:visible .messages-multi-ck:checked').map(function() {
         return {
