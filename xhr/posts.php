@@ -1032,7 +1032,7 @@ if ($f == 'posts') {
             }
             if ($deleted == true) {
                 if (!empty($wo['story'])) {
-                    $text          = $wo['story']['postText'];
+                    $text          = $wo['story']['postText'] ?? '';
                     $hashtag_regex = '/(#\[([0-9]+)\])/i';
                     preg_match_all($hashtag_regex, $text, $matches);
                     $match_i = 0;
@@ -1046,14 +1046,19 @@ if ($f == 'posts') {
                         $match_i++;
                     }
                 }
-                $wo['user_profile'] = Wo_UserData($wo['story']['user_id']);
-                $user_data          = Wo_UpdateUserDetails($wo['story']['user_id'], true, false, true, true);
+                if (!empty($wo['story']['user_id'])) {
+                    $wo['user_profile'] = Wo_UserData($wo['story']['user_id']);
+                    $user_data          = Wo_UpdateUserDetails($wo['story']['user_id'], true, false, true, true);
+                }
                 Wo_CleanCache();
                 $data = array(
                     'status' => 200,
-                    'post_count' => $user_data['details']['post_count']
+                    'post_count' => (!empty($user_data) && isset($user_data['details']['post_count'])) ? $user_data['details']['post_count'] : 0
                 );
             }
+        }
+        if (empty($data)) {
+            $data = array('status' => 400);
         }
         header("Content-type: application/json");
         echo json_encode($data);

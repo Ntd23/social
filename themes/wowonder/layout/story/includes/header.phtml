@@ -626,9 +626,9 @@ if (!empty($wo['story']['parent_id'])) {
 <div class="post-heading">
    <div class="<?php echo Wo_RightToLeft('pull-left');?> image">
       <?php if (!isset($anonymous)) { ?>
-      <a href="<?php echo $wo['story']['publisher']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['publisher']['username']?>" class="avatar wow_post_usr_ava <?php if($wo['story']['publisher']['verified'] == 1) { ?>wow_post_usr_ava_active<?php } ?>">
-         <img src="<?php echo $wo['story']['publisher']['avatar']; ?>" id="updateImage-<?php echo $wo['story']['publisher']['user_id']?>" alt="<?php echo $story_publisher_display_name; ?> profile picture">
-         <?php if($wo['story']['publisher']['verified'] == 1) { ?>
+      <a href="<?php echo $wo['story']['publisher']['url'] ?? ''; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['publisher']['username'] ?? '' ?>" class="avatar wow_post_usr_ava <?php if(!empty($wo['story']['publisher']['verified']) && $wo['story']['publisher']['verified'] == 1) { ?>wow_post_usr_ava_active<?php } ?>">
+         <img src="<?php echo $wo['story']['publisher']['avatar'] ?? ''; ?>" id="updateImage-<?php echo $wo['story']['publisher']['user_id'] ?? 0 ?>" alt="<?php echo $story_publisher_display_name ?? ''; ?> profile picture">
+         <?php if(!empty($wo['story']['publisher']['verified']) && $wo['story']['publisher']['verified'] == 1) { ?>
             <span class="verified-color">
                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="feather feather-check-circle" title="<?php echo ($wo['story']['page_id'] > 0 ? $wo['lang']['verified_page'] : $wo['lang']['verified_user']);?>" data-toggle="tooltip">
                   <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z" />
@@ -905,8 +905,8 @@ if (!empty($wo['story']['parent_id'])) {
    <div class="meta">
       <div class="title h5">
          <?php if (!isset($anonymous)) { ?>
-         <span class="user-popover" data-type="<?php echo $wo['story']['publisher']['type']; ?>" data-id="<?php echo $wo['story']['publisher']['id']; ?>">
-            <a href="<?php echo $wo['story']['publisher']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['publisher']['username']; ?>"><b><?php echo $story_publisher_display_name; ?></b></a>
+         <span class="user-popover" data-type="<?php echo $wo['story']['publisher']['type'] ?? ''; ?>" data-id="<?php echo $wo['story']['publisher']['id'] ?? 0; ?>">
+            <a href="<?php echo $wo['story']['publisher']['url'] ?? ''; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['publisher']['username'] ?? ''; ?>"><b><?php echo $story_publisher_display_name ?? ''; ?></b></a>
          </span>
 		 
 		 <?php if (!empty($wo['story']['publisher']['is_open_to_work']) && $wo['config']['website_mode'] == 'linkedin') { ?>
