@@ -1065,7 +1065,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
                   $(".messages-container").html(data.html);
                 } else {
                   $(".no-messages").hide();
-                  $(".messages-container").append(data.html);
+                  Wo_AppendUniqueMessagesHtml(data.html);
                 }
                 Wo_ApplyMessagesChatColor();
                 var user_id_ = $('#user-id').val();
@@ -1196,7 +1196,7 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
               $(".messages-container").html(data.html);
             } else {
               $(".no-messages").hide();
-              $(".messages-container").append(data.html);
+              Wo_AppendUniqueMessagesHtml(data.html);
             }
             Wo_ApplyMessagesChatColor();
             var user_id_ = $('#user-id').val();
@@ -2083,6 +2083,40 @@ $('.delete-icon').empty();
     <?php } ?>
   }
 
+  function Wo_AppendUniqueMessagesHtml(html) {
+    if (!html || !$('.messages-container').length) {
+      return 0;
+    }
+    var appended = 0;
+    var nodes = $($.parseHTML(String(html), document, true));
+    if (!nodes.length) {
+      return 0;
+    }
+    nodes.each(function() {
+      var $node = $(this);
+      if ($node.length === 0) {
+        return;
+      }
+      if ($node.is('.clear') || ($node[0] && $node[0].nodeType === 3 && !$.trim($node.text()))) {
+        $('.messages-container').append($node);
+        return;
+      }
+      var messageId = $node.attr('id');
+      if (!messageId) {
+        var innerMessage = $node.find('[id^="messageId_"]').first();
+        if (innerMessage.length) {
+          messageId = innerMessage.attr('id');
+        }
+      }
+      if (messageId && $('#' + messageId).length > 0) {
+        return;
+      }
+      $('.messages-container').append($node);
+      appended++;
+    });
+    return appended;
+  }
+
   function Wo_getMessageSeen() {
     var last_id = $('.messages-text:last').attr('data-message-id');
     if (!$('.messages-text:last').find('.message-seen').is(':empty')) {
@@ -2408,7 +2442,7 @@ $('.delete-icon').empty();
               $(".messages-container").html(data.html);
             } else {
               $(".no-messages").hide();
-              $(".messages-container").append(data.html);
+              Wo_AppendUniqueMessagesHtml(data.html);
             }
             Wo_ApplyMessagesChatColor();
             var user_id_ = $('#user-id').val();

@@ -1,0 +1,22 @@
+<div class="modal fade" id="re-group-calling-modal" role="dialog" data-backdrop="static" data-keyboard="false" data-call-id="<?php echo intval($wo['incall']['id']);?>" data-call-type="video">
+	<div class="modal-dialog wow_mat_mdl modal-md">
+		<div class="modal-content text-center wo_calling_modals video">
+			<img src="<?php echo !empty($wo['incall']['group_avatar']) ? $wo['incall']['group_avatar'] : (!empty($wo['incall']['caller_data']['avatar']) ? $wo['incall']['caller_data']['avatar'] : '');?>" alt="" class="hidden-mobile-image">
+			<div class="modal-header">
+				<div class="avatar">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z" /></svg>
+					<img src="<?php echo !empty($wo['incall']['group_avatar']) ? $wo['incall']['group_avatar'] : (!empty($wo['incall']['caller_data']['avatar']) ? $wo['incall']['caller_data']['avatar'] : '');?>" alt="">
+				</div>
+				<h4 class="modal-title"><?php echo !empty($wo['lang']['new_video_call']) ? $wo['lang']['new_video_call'] : 'New video call';?></h4>
+			</div>
+			<div class="modal-body">
+				<p><b><?php echo !empty($wo['incall']['caller_data']['name']) ? $wo['incall']['caller_data']['name'] : (!empty($wo['lang']['someone']) ? $wo['lang']['someone'] : 'Someone');?></b><br><?php echo !empty($wo['incall']['group_name']) ? $wo['incall']['group_name'] : 'Group call';?></p>
+				<div class="clear"></div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn answer-call btn-main btn-mat" onclick="Wo_AnswerGroupCallInvite('<?php echo intval($wo['incall']['id']);?>', <?php echo intval($wo['incall']['group_id']);?>, 'video');"><i class="fa fa-video-camera progress-icon" data-icon="video-camera"></i> <?php echo !empty($wo['lang']['accept_and_start']) ? $wo['lang']['accept_and_start'] : 'Accept';?></button>
+				<button type="button" class="btn decline-call btn-default btn-mat" onclick="Wo_DeclineGroupCallInvite('<?php echo intval($wo['incall']['id']);?>');"><i class="fa fa-times progress-icon" data-icon="times"></i> <?php echo !empty($wo['lang']['decline']) ? $wo['lang']['decline'] : 'Decline';?></button>
+			</div>
+		</div>
+	</div>
+</div>

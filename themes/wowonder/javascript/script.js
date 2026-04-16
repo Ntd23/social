@@ -3089,6 +3089,84 @@ function Wo_StartIncomingCallWatcher(callId, callType) {
   loop();
 }
 
+function Wo_CloseIncomingGroupCallModal() {
+  Wo_PlayAudioCall('stop');
+  $('#re-group-calling-modal').remove();
+  $('.modal-backdrop').remove();
+  $('body').removeClass('modal-open');
+  document.title = document_title;
+  clearTimeout(window.woIncomingGroupCallWatcher);
+  clearTimeout(window.woIncomingGroupCallTimeout);
+  window.woIncomingGroupCallWatcher = null;
+  window.woIncomingGroupCallTimeout = null;
+}
+
+function Wo_StartIncomingGroupCallWatcher(callId) {
+  clearTimeout(window.woIncomingGroupCallWatcher);
+  if (!callId) {
+    return;
+  }
+  var loop = function () {
+    if ($('#re-group-calling-modal').length === 0 || $('#re-talking-modal').length > 0 || $('#calling-modal').length > 0) {
+      clearTimeout(window.woIncomingGroupCallWatcher);
+      window.woIncomingGroupCallWatcher = null;
+      return;
+    }
+    $.get(Wo_Ajax_Requests_File(), {
+      f: 'check_incoming_group_call',
+      call_id: callId,
+      _t: (new Date()).getTime()
+    }, function (data) {
+      if (!data || data.status != 200 || String(data.call_id) !== String(callId)) {
+        Wo_CloseIncomingGroupCallModal();
+        return;
+      }
+      window.woIncomingGroupCallWatcher = setTimeout(loop, 1200);
+    }).fail(function () {
+      window.woIncomingGroupCallWatcher = setTimeout(loop, 1800);
+    });
+  };
+  loop();
+}
+
+function Wo_AnswerGroupCallInvite(callId, groupId, callType) {
+  callId = parseInt(callId || 0, 10);
+  groupId = parseInt(groupId || 0, 10);
+  callType = (callType === 'audio') ? 'audio' : 'video';
+  if (!callId || window.woGroupCallJoinPending === true) {
+    return;
+  }
+  window.woGroupCallJoinPending = true;
+  Wo_progressIconLoader($('#re-group-calling-modal').find('.answer-call'));
+  $.get(Wo_Ajax_Requests_File(), {f:'join_group_call', hash: Wo_GetMainRequestHash(), call_id: callId, group_id: groupId, call_type: callType}, function(data) {
+    if (data.status == 200) {
+      Wo_PlayAudioCall('stop');
+      clearTimeout(window.woIncomingGroupCallWatcher);
+      clearTimeout(window.woIncomingGroupCallTimeout);
+      window.woIncomingGroupCallWatcher = null;
+      window.woIncomingGroupCallTimeout = null;
+      window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(callId, callType));
+    }
+  }).always(function () {
+    window.woGroupCallJoinPending = false;
+    Wo_progressIconLoader($('#re-group-calling-modal').find('.answer-call'));
+  });
+}
+
+function Wo_DeclineGroupCallInvite(callId) {
+  callId = parseInt(callId || 0, 10);
+  if (!callId) {
+    Wo_CloseIncomingGroupCallModal();
+    return;
+  }
+  Wo_progressIconLoader($('#re-group-calling-modal').find('.decline-call'));
+  $.get(Wo_Ajax_Requests_File(), {f:'decline_group_call_invite', hash: Wo_GetMainRequestHash(), call_id: callId}, function () {
+    Wo_CloseIncomingGroupCallModal();
+  }).always(function () {
+    Wo_progressIconLoader($('#re-group-calling-modal').find('.decline-call'));
+  });
+}
+
 function Wo_RefreshCallViews(user_id) {
   if (!user_id) {
     return;
@@ -3335,12 +3413,19 @@ function Wo_GenerateGroupVideoCall(groupId) {
     return;
   }
   window.woGroupCallCreatePending = true;
+  window.woGroupCallLaunchPending = true;
   $.get(Wo_Ajax_Requests_File(), {f:'create_new_group_call', hash: requestHash, group_id: groupId, call_type:'video'}, function(data) {
     if (data.status == 200) {
       window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(data.id, 'video'));
+      return;
     }
   }).always(function () {
     window.woGroupCallCreatePending = false;
+    if (!document.hidden) {
+      setTimeout(function () {
+        window.woGroupCallLaunchPending = false;
+      }, 2500);
+    }
   });
 }
 
@@ -3351,12 +3436,19 @@ function Wo_GenerateGroupVoiceCall(groupId) {
     return;
   }
   window.woGroupCallCreatePending = true;
+  window.woGroupCallLaunchPending = true;
   $.get(Wo_Ajax_Requests_File(), {f:'create_new_group_call', hash: requestHash, group_id: groupId, call_type:'audio'}, function(data) {
     if (data.status == 200) {
       window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(data.id, 'audio'));
+      return;
     }
   }).always(function () {
     window.woGroupCallCreatePending = false;
+    if (!document.hidden) {
+      setTimeout(function () {
+        window.woGroupCallLaunchPending = false;
+      }, 2500);
+    }
   });
 }
 
@@ -3369,12 +3461,19 @@ function Wo_JoinGroupCall(callId, groupId, callType) {
     return;
   }
   window.woGroupCallJoinPending = true;
+  window.woGroupCallLaunchPending = true;
   $.get(Wo_Ajax_Requests_File(), {f:'join_group_call', hash: requestHash, call_id: callId, group_id: groupId, call_type: callType}, function(data) {
     if (data.status == 200) {
       window.location.href = Wo_PrepareCallUrl(data.url || Wo_BuildGroupCallUrl(callId, callType));
+      return;
     }
   }).always(function () {
     window.woGroupCallJoinPending = false;
+    if (!document.hidden) {
+      setTimeout(function () {
+        window.woGroupCallLaunchPending = false;
+      }, 2500);
+    }
   });
 }
 
