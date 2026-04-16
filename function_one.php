@@ -1150,7 +1150,7 @@ function Wo_DeleteUser($user_id)
             foreach ($raise as $key => $value) {
                 $raise_posts = $db->where('fund_raise_id', $value->id)->get(T_POSTS);
                 if (!empty($raise_posts)) {
-                    foreach ($posts as $key => $value1) {
+                    foreach ($raise_posts as $key => $value1) {
                         $db->where('parent_id', $value1->id)->delete(T_POSTS);
                     }
                 }
@@ -1207,8 +1207,8 @@ function Wo_DeleteUser($user_id)
     if ($query_two_delete_media) {
         if (mysqli_num_rows($query_two_delete_media) > 0) {
             while ($fetched_data = mysqli_fetch_assoc($query_two_delete_media)) {
-                $query_one_reports = mysqli_query($sqlConnect, "DELETE FROM " . T_REPORTS . " WHERE `post_id` = " . $fetched_data['id']);
-                $query_one_reports .= mysqli_query($sqlConnect, "DELETE FROM " . T_REPORTS . " WHERE `post_id` = " . $fetched_data['post_id']);
+                mysqli_query($sqlConnect, "DELETE FROM " . T_REPORTS . " WHERE `post_id` = " . $fetched_data['id']);
+                mysqli_query($sqlConnect, "DELETE FROM " . T_REPORTS . " WHERE `post_id` = " . $fetched_data['post_id']);
                 if (isset($fetched_data['postFile']) && !empty($fetched_data['postFile'])) {
                     @unlink($fetched_data['postFile']);
                 }
@@ -1335,6 +1335,7 @@ function Wo_DeleteUser($user_id)
             }
         }
     }
+    
     $delete_queries = array();
     $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_USERS . " WHERE `user_id` = {$user_id}");
     $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_RECENT_SEARCHES . " WHERE `user_id` = {$user_id} OR `search_id` = {$user_id}");
@@ -1356,6 +1357,26 @@ function Wo_DeleteUser($user_id)
     $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_WONDERS . " WHERE `user_id` = {$user_id}");
     $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_PAYMENTS . " WHERE `user_id` = {$user_id}");
 
+    $delete_queries = array();
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_USERS . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_RECENT_SEARCHES . " WHERE `user_id` = {$user_id} OR `search_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_GAMES_PLAYERS . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_USER_PROJECTS . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_USER_OPEN_TO . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_FOLLOWERS . " WHERE `follower_id` = {$user_id} OR `following_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_MESSAGES . " WHERE `from_id` = {$user_id} OR `to_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_VIDEOS_CALLES . " WHERE `from_id` = {$user_id} OR `to_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_AUDIO_CALLES . " WHERE `from_id` = {$user_id} OR `to_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_AGORA . " WHERE `from_id` = {$user_id} OR `to_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_NOTIFICATION . " WHERE `notifier_id` = {$user_id} OR `recipient_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_REPORTS . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_USERS_FIELDS . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_APP_SESSIONS . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_COMMENTS . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_ANNOUNCEMENT_VIEWS . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_LIKES . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_WONDERS . " WHERE `user_id` = {$user_id}");
+    $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_PAYMENTS . " WHERE `user_id` = {$user_id}");
     $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_COMMENT_REPLIES_LIKES . " WHERE `user_id` = {$user_id}");
     $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_COMMENT_REPLIES_WONDERS . " WHERE `user_id` = {$user_id}");
     $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_SAVED_POSTS . " WHERE `user_id` = {$user_id}");
@@ -1423,9 +1444,11 @@ function Wo_DeleteUser($user_id)
     $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_USER_ORDERS . " WHERE `user_id` = '{$user_id}' OR `product_owner_id` = '{$user_id}'");
     $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_PURCHAES . " WHERE `user_id` = '{$user_id}' OR `owner_id` = '{$user_id}'");
     $delete_queries[] = mysqli_query($sqlConnect, "DELETE FROM " . T_EMAILS . " WHERE `email_to` = '" . $user_data['email'] . "' OR `user_id` = '{$user_id}'");
-    $delete_success = !in_array(false, $delete_queries, true);
+    @mysqli_query($sqlConnect, "DELETE FROM " . T_USERS . " WHERE `user_id` = '{$user_id}' LIMIT 1");
+    cache($user_id, 'users', 'delete');
+    $delete_success = true;
+    
     if ($delete_success) {
-        cache($user_id, 'users', 'delete');
         $wo['deletedUserData'] = $user_data;
         $send_message_data = array(
             'from_email' => $wo['config']['siteEmail'],
@@ -7180,7 +7203,6 @@ function Wo_DeletePost($post_id = 0, $type = '')
     $query = mysqli_query($sqlConnect, "SELECT `id`, `user_id`, `recipient_id`, `page_id`, `postFile`, `postType`, `postText`, `postLinkImage`, `multi_image`, `album_name`,`parent_id`,`blog_id`,`job_id`,`postRecord`,`240p`,`360p`,`480p`,`720p`,`1080p`,`2048p`,`4096p` FROM " . T_POSTS . " WHERE `id` = {$post_id} AND (`user_id` = {$user_id} OR `recipient_id` = {$user_id} OR `page_id` IN (SELECT `page_id` FROM " . T_PAGES . " WHERE `user_id` = {$user_id}) OR `group_id` IN (SELECT `id` FROM " . T_GROUPS . " WHERE `user_id` = {$user_id}) OR `page_id` IN (SELECT `page_id` FROM " . T_PAGE_ADMINS . " WHERE `user_id` = {$user_id}))");
     $is_me = mysqli_num_rows($query);
     $post_info = mysqli_fetch_assoc($query);
-    $fetched_data = array();
     $row = mysqli_query($sqlConnect, "SELECT * FROM " . T_POSTS . " WHERE `id` = '{$post_id}'");
     if (mysqli_num_rows($row)) {
         $fetched_data = mysqli_fetch_assoc($row);
@@ -7361,7 +7383,7 @@ function Wo_DeletePost($post_id = 0, $type = '')
             }
         }
 
-        if (!empty($fetched_data) && isset($fetched_data['postPrivacy']) && $fetched_data['postPrivacy'] == '6' && !empty($fetched_data['blur_url'])) {
+        if ($fetched_data['postPrivacy'] == '6' && !empty($fetched_data['blur_url'])) {
             $new_target = $fetched_data['blur_url'];
             @unlink(trim($new_target));
         }
@@ -7458,7 +7480,7 @@ function Wo_DeletePost($post_id = 0, $type = '')
             mysqli_query($sqlConnect, "DELETE FROM " . T_PRODUCTS_MEDIA . " WHERE `product_id` = {$product_id}");
             mysqli_query($sqlConnect, "DELETE FROM " . T_PRODUCTS . " WHERE `id` = {$product_id}");
         }
-        if (($is_me > 0 || (Wo_IsAdmin() || Wo_IsModerator())) && !empty($fetched_data['user_id'])) {
+        if ($is_me > 0 || (Wo_IsAdmin() || Wo_IsModerator())) {
             Wo_RegisterPoint($post_id, "createpost", "-", $fetched_data['user_id']);
         }
         $query_delete = mysqli_query($sqlConnect, "DELETE FROM " . T_POSTS . " WHERE `id` = {$post_id}");
@@ -7837,7 +7859,7 @@ function Wo_RegisterActivity($data = array())
     @$user_id = Wo_Secure($data['user_id']);
     @$post_user_id = Wo_Secure($data['post_user_id']);
     @$activity_type = Wo_Secure($data['activity_type']);
-    @$follow_id = Wo_Secure($data['follow_id']);
+    // @$follow_id = Wo_Secure($data['follow_id']);
     $time = time();
     if ($comment_id > 0 || $replay_id > 0) {
     } else {
@@ -12274,7 +12296,6 @@ function Wo_GetUserIdsByTag($tag_id = null)
     return $labels;
 }
 
-
 //Gỡ nhãn
 function Wo_DeleteTagUser($owner_id=null,$target_user_id=null,$label_id=null){
     global $wo,$sqlConnect;
@@ -12369,3 +12390,5 @@ function Wo_PayPointOrSend($owner_id=null,$point=0,$to_user_id=null){
 //     }
 //     return $countriesData;
 // }
+
+

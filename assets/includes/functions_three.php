@@ -112,9 +112,9 @@ function Wo_RegisterPoint($post_id, $type, $action = '+', $user_id = 0)
 			return false;
 		}
 	} else if ($action == '-') {
-		$converted_points  = ($user_data['converted_points'] - $points);
-		$points_amount  = ($user_data['points'] - $points);
-		$daily_points   = ($user_data['daily_points'] - $points);
+		$converted_points  = max(($user_data['converted_points'] - $points), 0);
+		$points_amount  = max(($user_data['points'] - $points), 0);
+		$daily_points   = max(($user_data['daily_points'] - $points), 0);
 		$wallet_amount  = max(($user_data['wallet'] - $wallet), 0);
 		$balance_amount = max(($user_data['balance'] - $wallet), 0);
 	}
