@@ -520,6 +520,24 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
   </div>
 </div>
 
+<div id="chatTagDeleteConfirmModal" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Xác nhận xoá thẻ</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="×">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">Xoá thẻ này? Mọi gán của bạn với thẻ này sẽ bị gỡ.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Huỷ</button>
+        <button type="button" class="btn btn-danger" id="chat-confirm-delete-tag">Xoá</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
 <script type="text/javascript">
@@ -719,73 +737,6 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
     e.stopPropagation();
   });
 
-  if (typeof window.__woInstallAjaxFormPolyfill !== 'function') {
-    window.__woInstallAjaxFormPolyfill = function(jq) {
-      jq = jq || window.jQuery || window.$;
-      if (!jq || !jq.fn) {
-        return;
-      }
-
-      if (typeof jq.fn.ajaxSubmit !== 'function') {
-        jq.fn.ajaxSubmit = function(options) {
-          options = options || {};
-          var $form = this.first();
-          if ($form.length === 0 || !$form[0]) {
-            return jq.Deferred().reject().promise();
-          }
-
-          var formData = new FormData($form[0]);
-          if (options.data && typeof options.data === 'object') {
-            jq.each(options.data, function(key, value) {
-              formData.append(key, value);
-            });
-          }
-
-          var ajaxOptions = jq.extend(true, {
-            url: options.url || $form.attr('action') || window.location.href,
-            type: options.type || $form.attr('method') || 'POST',
-            data: formData,
-            processData: false,
-            contentType: false
-          }, options);
-
-          if (typeof options.uploadProgress === 'function') {
-            ajaxOptions.xhr = function() {
-              var xhr = jq.ajaxSettings.xhr();
-              if (xhr.upload) {
-                xhr.upload.addEventListener('progress', function(evt) {
-                  var position = evt.loaded || 0;
-                  var total = evt.total || 0;
-                  var percent = evt.lengthComputable && total > 0 ? Math.ceil(position / total * 100) : 0;
-                  options.uploadProgress(evt, position, total, percent);
-                }, false);
-              }
-              return xhr;
-            };
-          }
-
-          return jq.ajax(ajaxOptions);
-        };
-      }
-
-      if (typeof jq.fn.ajaxForm !== 'function') {
-        jq.fn.ajaxForm = function(options) {
-          options = options || {};
-          return this.each(function() {
-            var $form = jq(this);
-            $form.off('submit.woAjaxFormFallback').on('submit.woAjaxFormFallback', function(e) {
-              e.preventDefault();
-              $form.ajaxSubmit(options);
-              return false;
-            });
-          });
-        };
-      }
-    };
-  }
-
-  window.__woInstallAjaxFormPolyfill(window.jQuery || window.$);
-
   $(function() {
        <?php if (!empty($user['user_id'])) { ?>
       Wo_ShowMobileMessagePane();
@@ -813,7 +764,70 @@ if (!empty($_GET['user']) && empty($_GET['page'])) {
 
     var main_hash_id = $('.main_session').val();
 
-    window.__woInstallAjaxFormPolyfill(window.jQuery || window.$);
+      function Wo_EnsureAjaxFormPlugin($) {
+      if (!$ || !$.fn) {
+        return;
+      }
+
+      if (typeof $.fn.ajaxSubmit !== 'function') {
+        $.fn.ajaxSubmit = function(options) {
+          options = options || {};
+          var $form = this.first();
+          if ($form.length === 0 || !$form[0]) {
+            return $.Deferred().reject().promise();
+          }
+
+          var formData = new FormData($form[0]);
+          if (options.data && typeof options.data === 'object') {
+            $.each(options.data, function(key, value) {
+              formData.append(key, value);
+            });
+          }
+
+          var ajaxOptions = $.extend(true, {
+            url: options.url || $form.attr('action') || window.location.href,
+            type: options.type || $form.attr('method') || 'POST',
+            data: formData,
+            processData: false,
+            contentType: false
+          }, options);
+
+          if (typeof options.uploadProgress === 'function') {
+            ajaxOptions.xhr = function() {
+              var xhr = $.ajaxSettings.xhr();
+              if (xhr.upload) {
+                xhr.upload.addEventListener('progress', function(evt) {
+                  var position = evt.loaded || 0;
+                  var total = evt.total || 0;
+                  var percent = evt.lengthComputable && total > 0 ? Math.ceil(position / total * 100) : 0;
+                  options.uploadProgress(evt, position, total, percent);
+                }, false);
+              }
+              return xhr;
+            };
+          }
+
+          return $.ajax(ajaxOptions);
+        };
+      }
+
+      if (typeof $.fn.ajaxForm !== 'function') {
+        $.fn.ajaxForm = function(options) {
+          options = options || {};
+          return this.each(function() {
+            var $form = $(this);
+            $form.off('submit.woAjaxFormFallback').on('submit.woAjaxFormFallback', function(e) {
+              e.preventDefault();
+              $form.ajaxSubmit(options);
+              return false;
+            });
+          });
+        };
+      }
+    }
+
+    Wo_EnsureAjaxFormPlugin(window.jQuery || window.$);
+    
     var file_uploading = false;
 
     <?php if ($wo['config']['node_socket_flow'] == "1") { ?>
@@ -2058,7 +2072,7 @@ $('.delete-icon').empty();
             Wo_SetImportantMessageStyle($(".text-sender-container .red-list"), 'background', data.color);
           }
           if (data.status == 200) {
-            $(".messages-container").append(data.html);
+            if (Wo_AppendUniqueMessagesHtml(data.html) > 0) {
             Wo_ApplyMessagesChatColor();
             setTimeout(function() {
               $(".messages-container").animate({
@@ -2069,6 +2083,7 @@ $('.delete-icon').empty();
               document.getElementById('message-sound').play();
               if (!$('.sendMessage').is(':focus')) {
                 document.title = 'New Message ' + document_title;
+              }
               }
             }
           }
@@ -2081,6 +2096,39 @@ $('.delete-icon').empty();
 
       setTimeout(Wo_getNewMessages, 5000);
     <?php } ?>
+  }
+  function Wo_AppendUniqueMessagesHtml(html) {
+    if (!html || !$('.messages-container').length) {
+      return 0;
+    }
+    var appended = 0;
+    var nodes = $($.parseHTML(String(html), document, true));
+    if (!nodes.length) {
+      return 0;
+    }
+    nodes.each(function() {
+      var $node = $(this);
+      if ($node.length === 0) {
+        return;
+      }
+      if ($node.is('.clear') || ($node[0] && $node[0].nodeType === 3 && !$.trim($node.text()))) {
+        $('.messages-container').append($node);
+        return;
+      }
+      var messageId = $node.attr('id');
+      if (!messageId) {
+        var innerMessage = $node.find('[id^="messageId_"]').first();
+        if (innerMessage.length) {
+          messageId = innerMessage.attr('id');
+        }
+      }
+      if (messageId && $('#' + messageId).length > 0) {
+        return;
+      }
+      $('.messages-container').append($node);
+      appended++;
+    });
+    return appended;
   }
 
   function Wo_AppendUniqueMessagesHtml(html) {
@@ -2614,9 +2662,9 @@ $('.delete-icon').empty();
 
   jQuery(document).ready(function($) {
     $('#insert-caht-parts').ajaxForm({
-  url: Wo_Ajax_Requests_File() + '?f=chat&s=create_group',
-  type: 'POST',
-  dataType: 'json',
+      url: Wo_Ajax_Requests_File() + '?f=chat&s=create_group',
+      type: 'POST',
+      dataType: 'json',
 
       beforeSend: function() {
         Wo_progressIconLoader($('#insert-caht-parts').find('button'));
@@ -2665,6 +2713,9 @@ $('.delete-icon').empty();
       type: 'user',
       id: 0
     };
+    let pendingDeleteLabelId = 0;
+    let lastTagModalOpenAt = 0;
+    const TAG_MODAL_SELECTORS = '#chatTagModal, #chatTagDeleteConfirmModal';
 
     // ==== helpers ====
     function hexOK(v) {
@@ -2674,6 +2725,142 @@ $('.delete-icon').empty();
     function esc(s) {
       return $('<div>').text(s || '').html();
     }
+
+    function ensureModalAttachedToBody($modal) {
+      if (!$modal || !$modal.length) return $modal;
+      if (!$modal.parent().is('body')) {
+        $modal.appendTo(document.body);
+      }
+      return $modal;
+    }
+
+    function cleanupModalArtifacts() {
+      $('.modal-backdrop').not(':last').remove();
+      $('body').addClass('modal-open');
+    }
+
+    function restoreBodyFromModalState() {
+      if (!$('.modal.in:visible, .modal.show:visible').length) {
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open').css('padding-right', '');
+      }
+    }
+
+    function isTagModalOpen(selector) {
+      const $modal = $(selector);
+      return $modal.is(':visible') || $modal.hasClass('in') || $modal.hasClass('show');
+    }
+
+    function openSafeModal(selector) {
+      const $modal = ensureModalAttachedToBody($(selector));
+      if (!$modal.length) return;
+
+      cleanupModalArtifacts();
+
+      if ($.fn.modal) {
+        try {
+          $modal.modal({
+            backdrop: true,
+            keyboard: true,
+            show: true
+          });
+          return;
+        } catch (err) {}
+
+        try {
+          $modal.modal('show');
+          return;
+        } catch (err) {}
+      }
+
+      $modal
+        .show()
+        .addClass('in show')
+        .attr('aria-hidden', 'false')
+        .css('display', 'flex');
+    }
+
+    function closeSafeModal(selector) {
+      const $modal = $(selector);
+      if (!$modal.length) return;
+
+      if ($.fn.modal) {
+        try {
+          $modal.modal('hide');
+          return;
+        } catch (err) {}
+      }
+
+      $modal
+        .hide()
+        .removeClass('in show')
+        .attr('aria-hidden', 'true')
+        .css('display', '');
+      restoreBodyFromModalState();
+    }
+
+    function closeAllTagModals() {
+      closeSafeModal('#chatTagDeleteConfirmModal');
+      closeSafeModal('#chatTagModal');
+    }
+
+    function bindTagModalSafetyNet() {
+      $(document)
+        .off('click.woChatTagsDismiss', '#chatTagModal [data-dismiss="modal"], #chatTagDeleteConfirmModal [data-dismiss="modal"]')
+        .on('click.woChatTagsDismiss', '#chatTagModal [data-dismiss="modal"], #chatTagDeleteConfirmModal [data-dismiss="modal"]', function(e) {
+          e.preventDefault();
+          const $modal = $(this).closest('.modal');
+          if ($modal.is('#chatTagDeleteConfirmModal')) {
+            closeSafeModal('#chatTagDeleteConfirmModal');
+          } else {
+            closeSafeModal('#chatTagModal');
+          }
+        });
+
+      $(document)
+        .off('click.woChatTagsBackdrop', TAG_MODAL_SELECTORS)
+        .on('click.woChatTagsBackdrop', TAG_MODAL_SELECTORS, function(e) {
+          if (e.target !== this) return;
+          if (this.id === 'chatTagDeleteConfirmModal') {
+            closeSafeModal('#chatTagDeleteConfirmModal');
+          } else {
+            closeSafeModal('#chatTagModal');
+          }
+        });
+
+      $(document)
+        .off('keydown.woChatTagsEscape')
+        .on('keydown.woChatTagsEscape', function(e) {
+          if (e.key !== 'Escape' && e.keyCode !== 27) return;
+          if (isTagModalOpen('#chatTagDeleteConfirmModal')) {
+            closeSafeModal('#chatTagDeleteConfirmModal');
+            return;
+          }
+          if (isTagModalOpen('#chatTagModal')) {
+            closeSafeModal('#chatTagModal');
+          }
+        });
+
+      $(window)
+        .off('resize.woChatTags orientationchange.woChatTags')
+        .on('resize.woChatTags orientationchange.woChatTags', function() {
+          if (isTagModalOpen('#chatTagModal')) {
+            ensureModalAttachedToBody($('#chatTagModal'));
+            cleanupModalArtifacts();
+          }
+          if (isTagModalOpen('#chatTagDeleteConfirmModal')) {
+            ensureModalAttachedToBody($('#chatTagDeleteConfirmModal'));
+            cleanupModalArtifacts();
+          }
+        });
+
+      $('#chatTagModal, #chatTagDeleteConfirmModal')
+        .off('hidden.bs.modal.woChatTagsCleanup')
+        .on('hidden.bs.modal.woChatTagsCleanup', function() {
+          restoreBodyFromModalState();
+        });
+    }
+    bindTagModalSafetyNet();
 
     // API
     function apiListLabels() {
@@ -2776,15 +2963,24 @@ $('.delete-icon').empty();
             `<div class="list-group-item d-flex align-items-center" data-id="${l.id}">
              <span style="width:12px;height:12px;border-radius:50%;background:${l.color||'#999'};display:inline-block;margin-right:10px;"></span>
              <span class="flex-fill">${esc(l.name)}</span>
-             <button class="btn btn-sm btn-link text-danger chat-tag-del">Xoá</button>
+             <button type="button" class="btn btn-sm btn-link text-danger chat-tag-del">Xoá</button>
            </div>`
           );
         });
       });
     }
 
-    // ==== mở modal từ nút gán ====
-    $(document).off('click.woChatTags', '.btn-open-tag-modal').on('click.woChatTags', '.btn-open-tag-modal', function(e) {
+      // ==== mở modal từ nút gán ====
+    $(document).off('click.woChatTags touchend.woChatTags', '.btn-open-tag-modal').on('click.woChatTags touchend.woChatTags', '.btn-open-tag-modal', function(e) {
+      const now = Date.now();
+      if (e.type === 'touchend') {
+        lastTagModalOpenAt = now;
+      } else if (now - lastTagModalOpenAt < 500) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
       e.preventDefault();
       e.stopPropagation();
       TARGET.type = String($(this).data('target-type') || 'user');
@@ -2792,8 +2988,7 @@ $('.delete-icon').empty();
 
       // mở modal & mặc định tab "Gán thẻ"
       $('#chat-tag-tabs a[href="#tab-assign"]').tab('show');
-      if ($.fn.modal) $('#chatTagModal').modal('show');
-      else $('#chatTagModal').show();
+      openSafeModal('#chatTagModal');
     });
 
     // mỗi lần modal mở → nạp tab đang active
@@ -2868,19 +3063,56 @@ $('.delete-icon').empty();
     $(document).off('click.woChatTags', '#manage-list .chat-tag-del').on('click.woChatTags', '#manage-list .chat-tag-del', function(e) {
       e.stopImmediatePropagation();
       e.preventDefault();
-      const id = parseInt($(this).closest('[data-id]').data('id'), 10) || 0;
-      if (!id) return;
-      if (!confirm('Xoá thẻ này? Mọi gán của bạn với thẻ này sẽ bị gỡ.')) return;
+      pendingDeleteLabelId = parseInt($(this).closest('[data-id]').data('id'), 10) || 0;
+      if (!pendingDeleteLabelId) return;
 
+      if ($.fn.modal) {
+        openSafeModal('#chatTagDeleteConfirmModal');
+        return;
+      }
 
-      apiDelete(id).done(function(res) {
+      if (!confirm('Xoá thẻ này? Mọi gán của bạn với thẻ này sẽ bị gỡ.')) {
+        pendingDeleteLabelId = 0;
+        return;
+      }
+
+      apiDelete(pendingDeleteLabelId).done(function(res) {
         if (res && res.status === 200) {
           loadManage();
           loadAssign(); // cập nhật cả tab assign
         } else {
           alert((res && res.error) || 'Không xoá được.');
         }
+      }).always(function() {
+        pendingDeleteLabelId = 0;
       });
+    });
+
+    $(document).off('click.woChatTags', '#chat-confirm-delete-tag').on('click.woChatTags', '#chat-confirm-delete-tag', function(e) {
+      e.preventDefault();
+      if (!pendingDeleteLabelId) return;
+
+      const labelId = pendingDeleteLabelId;
+      const $btn = $(this);
+      $btn.prop('disabled', true);
+
+      apiDelete(labelId).done(function(res) {
+        if (res && res.status === 200) {
+          closeSafeModal('#chatTagDeleteConfirmModal');
+          loadManage();
+          loadAssign(); // cập nhật cả tab assign
+        } else {
+          alert((res && res.error) || 'Không xoá được.');
+        }
+      }).always(function() {
+        pendingDeleteLabelId = 0;
+        $btn.prop('disabled', false);
+      });
+    });
+
+    $('#chatTagDeleteConfirmModal').off('hidden.bs.modal.woChatTags').on('hidden.bs.modal.woChatTags', function() {
+      pendingDeleteLabelId = 0;
+      $('#chat-confirm-delete-tag').prop('disabled', false);
     });
 
 
@@ -2888,6 +3120,7 @@ $('.delete-icon').empty();
   $("#edit_group_chat_avatar_").change(function(event) {
   $("#wow_fcov_img_holder_edit").html("<img src='" + window.URL.createObjectURL(this.files[0]) + "' alt='Picture'>");
 });
+
 
 
 
@@ -3062,19 +3295,19 @@ $(function() {
               html += renderMultiUserItem(u);
             });
             $('#messages-multi-all').html(html);
-            
             // Auto-check all (matching Sidebar structure)
             setTimeout(function() {
               $('#messages-multi-all .messages-multi-ck').prop('checked', true);
               updateUI();
             }, 50);
-
+            
             const label = (tagId === '0') ? 'Tất cả người đã gắn thẻ' : 'Đang lọc theo thẻ "' + tagText + '"';
             $('#multi-status').text(label + ' — ' + users.length + ' user');
           } else {
             $('#messages-multi-all').html('');
             $('#multi-status').text('Không có user nào thuộc thẻ "' + tagText + '"');
-            updateUI();
+          
+          updateUI();
           }
         }
       });
@@ -3547,7 +3780,7 @@ $(function() {
     border: none;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
   /* Header */
@@ -3893,7 +4126,9 @@ $(function() {
 
 /* Khi mở (BS3 dùng .in, BS4+ dùng .show) → dùng flex để canh giữa */
 #chatTagModal.in,
-#chatTagModal.show {
+#chatTagModal.show,
+#chatTagDeleteConfirmModal.in,
+#chatTagDeleteConfirmModal.show {
   display: flex !important;
   align-items: center;    /* canh giữa theo chiều dọc */
   justify-content: center;/* canh giữa theo chiều ngang */
@@ -3906,6 +4141,28 @@ $(function() {
   max-width: 600px;       /* giống max-width bạn đang để */
 }
 
+#chatTagDeleteConfirmModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1060;
+  display: none;
+  overflow-y: auto;
+}
+
+#chatTagDeleteConfirmModal .modal-dialog {
+  margin: 1rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+#chatTagDeleteConfirmModal.fade .modal-dialog {
+  -webkit-transform: none;
+  transform: none;
+}
+
 /* Nếu có hiệu ứng .fade của Bootstrap 3 thì tắt transform đi để khỏi bị lệch */
 #chatTagModal.fade .modal-dialog {
   -webkit-transform: none;
@@ -3916,6 +4173,11 @@ $(function() {
 @media (max-width: 576px) {
   #chatTagModal .modal-dialog {
     margin: 0.75rem;
+  }
+
+  #chatTagDeleteConfirmModal .modal-dialog {
+    margin: 0.75rem;
+    max-width: none;
   }
 }
 .msg_usr_cht_opts_btns {
@@ -4123,7 +4385,7 @@ $(function() {
   padding: 16px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
