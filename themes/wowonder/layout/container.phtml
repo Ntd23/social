@@ -1070,6 +1070,82 @@
           setTimeout(Wo_StartIncomingAudioCallPoll, 1500);
         });
       </script>
+      <script>
+        window.woIncomingGroupCallPollStarted = window.woIncomingGroupCallPollStarted || false;
+        window.woIncomingGroupCallPollHandle = window.woIncomingGroupCallPollHandle || null;
+        window.woIncomingGroupCallTimeout = window.woIncomingGroupCallTimeout || null;
+
+        function Wo_ShowIncomingGroupCallModal(data) {
+          if (!data || data.status != 200 || !data.html) {
+            return;
+          }
+          if (window.woGroupCallLaunchPending === true || window.woGroupCallCreatePending === true || window.woGroupCallJoinPending === true) {
+            return;
+          }
+          if ($('#calling-modal').length > 0 || $('#re-calling-modal').length > 0 || $('#re-group-calling-modal').length > 0 || $('#re-talking-modal').length > 0) {
+            return;
+          }
+          $('body').append(data.html);
+          Wo_StartIncomingGroupCallWatcher(data.call_id);
+          $('#re-group-calling-modal').modal({
+            show: true
+          });
+          Wo_PlayAudioCall('play');
+          document.title = (data.call_type === 'video') ? 'New video call..' : 'New audio call..';
+          clearTimeout(window.woIncomingGroupCallTimeout);
+          window.woIncomingGroupCallTimeout = setTimeout(function () {
+            if ($('#re-group-calling-modal').length > 0 && $('#re-talking-modal').length == 0) {
+              var timedOutCallId = $('#re-group-calling-modal').attr('data-call-id');
+              if (timedOutCallId) {
+                $.get(Wo_Ajax_Requests_File(), {
+                  f: 'decline_group_call_invite',
+                  hash: (typeof Wo_GetMainRequestHash === 'function' ? Wo_GetMainRequestHash() : ''),
+                  call_id: timedOutCallId
+                });
+              }
+              Wo_CloseIncomingGroupCallModal();
+            }
+          }, 40000);
+        }
+
+        function Wo_StartIncomingGroupCallPoll() {
+          if (window.woIncomingGroupCallPollStarted === true) {
+            return;
+          }
+          window.woIncomingGroupCallPollStarted = true;
+          var loop = function () {
+            if (window.woGroupCallLaunchPending === true || window.woGroupCallCreatePending === true || window.woGroupCallJoinPending === true) {
+              window.woIncomingGroupCallPollHandle = setTimeout(loop, 2500);
+              return;
+            }
+            if ($('#calling-modal').length > 0 || $('#re-calling-modal').length > 0 || $('#re-group-calling-modal').length > 0 || $('#re-talking-modal').length > 0) {
+              window.woIncomingGroupCallPollHandle = setTimeout(loop, 2500);
+              return;
+            }
+            $.ajax({
+              url: Wo_Ajax_Requests_File(),
+              type: 'GET',
+              cache: false,
+              dataType: 'json',
+              data: {
+                f: 'check_incoming_group_call',
+                _t: (new Date()).getTime()
+              }
+            }).done(function (data) {
+              if (data && data.status == 200) {
+                Wo_ShowIncomingGroupCallModal(data);
+              }
+            }).always(function () {
+              window.woIncomingGroupCallPollHandle = setTimeout(loop, 2500);
+            });
+          };
+          loop();
+        }
+
+        $(function () {
+          setTimeout(Wo_StartIncomingGroupCallPoll, 1800);
+        });
+      </script>
       <?php } ?>
 
       <!-- End 'Audio FILES' -->

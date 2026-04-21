@@ -1,0 +1,22 @@
+<div class="modal fade" id="re-group-calling-modal" role="dialog" data-backdrop="static" data-keyboard="false" data-call-id="<?php echo intval($wo['incall']['id']);?>" data-call-type="audio">
+	<div class="modal-dialog wow_mat_mdl modal-md">
+		<div class="modal-content text-center wo_calling_modals">
+			<img src="<?php echo !empty($wo['incall']['group_avatar']) ? $wo['incall']['group_avatar'] : (!empty($wo['incall']['caller_data']['avatar']) ? $wo['incall']['caller_data']['avatar'] : '');?>" alt="">
+			<div class="modal-header">
+				<div class="avatar">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z" /></svg>
+					<img src="<?php echo !empty($wo['incall']['group_avatar']) ? $wo['incall']['group_avatar'] : (!empty($wo['incall']['caller_data']['avatar']) ? $wo['incall']['caller_data']['avatar'] : '');?>" alt="">
+				</div>
+				<h4 class="modal-title"><?php echo !empty($wo['lang']['new_audio_call']) ? $wo['lang']['new_audio_call'] : 'New audio call';?></h4>
+			</div>
+			<div class="modal-body">
+                <p><b><?php echo !empty($wo['incall']['caller_data']['name']) ? $wo['incall']['caller_data']['name'] : (!empty($wo['lang']['someone']) ? $wo['lang']['someone'] : 'Someone');?></b><br><?php echo !empty($wo['incall']['group_name']) ? $wo['incall']['group_name'] : 'Group call';?></p>
+				<div class="clear"></div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn answer-call btn-main btn-mat" onclick="Wo_AnswerGroupCallInvite('<?php echo intval($wo['incall']['id']);?>', <?php echo intval($wo['incall']['group_id']);?>, 'audio');"><i class="fa fa-phone progress-icon" data-icon="phone"></i> <?php echo !empty($wo['lang']['accept_and_start']) ? $wo['lang']['accept_and_start'] : 'Accept';?></button>
+				<button type="button" class="btn decline-call btn-default btn-mat" onclick="Wo_DeclineGroupCallInvite('<?php echo intval($wo['incall']['id']);?>');"><i class="fa fa-times progress-icon" data-icon="times"></i> <?php echo !empty($wo['lang']['decline']) ? $wo['lang']['decline'] : 'Decline';?></button>
+			</div>
+		</div>
+	</div>
+</div>

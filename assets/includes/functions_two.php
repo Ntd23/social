@@ -6346,6 +6346,35 @@ function Wo_GetGroupCallById($call_id = 0) {
     $row['url'] = Wo_BuildGroupCallJoinUrl($row['id'], $row['call_type']);
     return $row;
 }
+function Wo_GetPendingGroupCallInvite($user_id = 0, $call_id = 0) {
+    global $wo, $sqlConnect;
+    if ($user_id <= 0 && !empty($wo['user']['user_id'])) {
+        $user_id = intval($wo['user']['user_id']);
+    }
+    $call_id = intval($call_id);
+    if ($user_id <= 0 || !Wo_EnsureGroupCallTables()) {
+        return false;
+    }
+    $where_call = ($call_id > 0) ? " AND `call_id` = '{$call_id}'" : '';
+    $query = mysqli_query($sqlConnect, "SELECT `call_id` FROM " . T_GROUP_CALL_PARTICIPANTS . " WHERE `user_id` = '{$user_id}' AND `invite_status` = 'pending'{$where_call} ORDER BY `updated_at` DESC, `id` DESC LIMIT 1");
+    if (empty($query) || mysqli_num_rows($query) == 0) {
+        return false;
+    }
+    $row = mysqli_fetch_assoc($query);
+    if (empty($row['call_id'])) {
+        return false;
+    }
+    $group_call = Wo_GetGroupCallById(intval($row['call_id']));
+    if (empty($group_call) || $group_call['status'] !== 'active' || !Wo_IsGroupChatCallMember($group_call['group_id'], $user_id) || intval($group_call['created_by']) === intval($user_id)) {
+        return false;
+    }
+    $group = Wo_GroupTabData($group_call['group_id'], false);
+    $caller = Wo_UserData($group_call['created_by']);
+    $group_call['group_name'] = !empty($group['group_name']) ? $group['group_name'] : '';
+    $group_call['group_avatar'] = !empty($group['avatar']) ? Wo_GetMedia($group['avatar']) : '';
+    $group_call['caller_data'] = !empty($caller) ? $caller : array();
+    return $group_call;
+}
 function Wo_GetActiveGroupCallByGroupId($group_id = 0) {
     global $sqlConnect;
     $group_id = intval($group_id);
@@ -6494,10 +6523,31 @@ function Wo_GetGroupCallJoinedParticipants($call_id = 0) {
     }
     return $participants;
 }
+function Wo_GetExistingGroupCallMessageId($group_id = 0, $call_id = 0, $action = 'started') {
+    global $sqlConnect;
+    $group_id = intval($group_id);
+    $call_id = intval($call_id);
+    $action = Wo_Secure($action);
+    if ($group_id <= 0 || $call_id <= 0 || $action === '') {
+        return 0;
+    }
+    $callPattern = '%"call_id":' . $call_id . '%';
+    $actionPattern = '%"action":"' . $action . '"%';
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_MESSAGES . " WHERE `group_id` = '{$group_id}' AND `type_two` IN ('group_call_audio','group_call_video') AND `text` LIKE '{$callPattern}' AND `text` LIKE '{$actionPattern}' ORDER BY `id` DESC LIMIT 1");
+    if (empty($query) || mysqli_num_rows($query) == 0) {
+        return 0;
+    }
+    $row = mysqli_fetch_assoc($query);
+    return !empty($row['id']) ? intval($row['id']) : 0;
+}
 function Wo_RegisterGroupCallMessage($group_call = array(), $action = 'started', $extra = array()) {
     global $wo;
     if ($wo['loggedin'] == false || empty($group_call['id']) || empty($group_call['group_id']) || empty($group_call['created_by'])) {
         return false;
+    }
+    $existing_message_id = Wo_GetExistingGroupCallMessageId(intval($group_call['group_id']), intval($group_call['id']), $action);
+    if ($existing_message_id > 0 && $action === 'started') {
+        return $existing_message_id;
     }
     $payload = array(
         'call_id' => intval($group_call['id']),
@@ -6556,6 +6606,18 @@ function Wo_CreateNewGroupCall($group_id = 0, $call_type = 'video', $created_by 
         'left_at' => 0,
         'notified_at' => $now
     ));
+    foreach (Wo_GetGroupChatCallMemberIds($group_id) as $member_id) {
+        $member_id = intval($member_id);
+        if ($member_id <= 0 || $member_id === $created_by) {
+            continue;
+        }
+        Wo_SetGroupCallParticipantState($call_id, $member_id, 'pending', array(
+            'invited_by' => $created_by,
+            'joined_at' => 0,
+            'left_at' => 0,
+            'notified_at' => 0
+        ));
+    }
     $group_call = Wo_GetGroupCallById($call_id);
     if (!empty($group_call)) {
         Wo_RegisterGroupCallMessage($group_call, 'started', array(
@@ -6627,7 +6689,7 @@ function Wo_AddGroupCallMembers($call_id = 0, $user_ids = array(), $invited_by =
         $result = Wo_SetGroupCallParticipantState($call_id, $user_id, 'pending', array(
             'invited_by' => $invited_by,
             'left_at' => 0,
-            'notified_at' => time()
+            'notified_at' => 0
         ));
         if ($result) {
             $invited_user_ids[] = $user_id;
@@ -6642,6 +6704,28 @@ function Wo_AddGroupCallMembers($call_id = 0, $user_ids = array(), $invited_by =
         Wo_TouchGroupCall($call_id, 'active');
     }
     return $invited_user_ids;
+}
+function Wo_DeclineGroupCallInvite($call_id = 0, $user_id = 0) {
+    global $wo;
+    $call_id = intval($call_id);
+    if ($user_id <= 0 && !empty($wo['user']['user_id'])) {
+        $user_id = intval($wo['user']['user_id']);
+    }
+    $group_call = Wo_GetGroupCallById($call_id);
+    if (empty($group_call) || $user_id <= 0 || !Wo_IsGroupChatCallMember($group_call['group_id'], $user_id)) {
+        return false;
+    }
+    $participant = Wo_GetGroupCallParticipant($call_id, $user_id);
+    if (empty($participant) || $participant['invite_status'] !== 'pending') {
+        return false;
+    }
+    $result = Wo_SetGroupCallParticipantState($call_id, $user_id, 'declined', array(
+        'left_at' => time()
+    ));
+    if ($result) {
+        Wo_TouchGroupCall($call_id, $group_call['status']);
+    }
+    return $result;
 }
 function Wo_GetGroupCallCandidates($group_id = 0, $call_id = 0, $viewer_id = 0) {
     global $wo;
@@ -6713,6 +6797,7 @@ function Wo_GetGroupCallMessage($message = array()) {
     $group_id = intval(!empty($payload['group_id']) ? $payload['group_id'] : (!empty($message['group_id']) ? $message['group_id'] : 0));
     $call_type = Wo_NormalizeGroupCallType(!empty($payload['call_type']) ? $payload['call_type'] : 'video');
     $group_call = Wo_GetGroupCallById($call_id);
+    $latest_active_call = ($group_id > 0) ? Wo_GetActiveGroupCallByGroupId($group_id) : false;
     $action = !empty($payload['action']) ? $payload['action'] : 'started';
     $initiator_id = intval(!empty($payload['initiator_id']) ? $payload['initiator_id'] : (!empty($message['from_id']) ? $message['from_id'] : 0));
     $invited_by = intval(!empty($payload['invited_by']) ? $payload['invited_by'] : $initiator_id);
@@ -6760,7 +6845,7 @@ function Wo_GetGroupCallMessage($message = array()) {
         'title' => ($call_type == 'video') ? (!empty($wo['lang']['video_call']) ? $wo['lang']['video_call'] : 'Video call') : (!empty($wo['lang']['audio_call']) ? $wo['lang']['audio_call'] : 'Audio call'),
         'actor_name' => $actor_name,
         'detail' => $detail,
-        'is_active' => (!empty($group_call) && $group_call['status'] === 'active'),
+        'is_active' => (!empty($group_call) && $group_call['status'] === 'active' && !empty($latest_active_call) && intval($latest_active_call['id']) === $call_id),
         'duration' => $duration,
         'duration_formatted' => $duration_formatted,
         'participant_count' => !empty($group_call['participant_count']) ? intval($group_call['participant_count']) : 0,
