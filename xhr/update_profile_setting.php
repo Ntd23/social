@@ -56,6 +56,8 @@ if ($f == "update_profile_setting") {
                     'working' => $_POST['working'],
                     'working_link' => $_POST['working_link'],
                     'address' => $_POST['address'],
+                    'lat' => $_POST['lat'] ?? '',
+                    'lng' => $_POST['lng'] ?? '',
                     'school' => $_POST['school'],
                     'relationship_id' => $_POST['relationship']
                 );

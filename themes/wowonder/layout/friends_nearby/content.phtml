@@ -2,15 +2,60 @@
 	<div class="wow_main_float_head findfrnd">
 		<div class="container">
 			<h1><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5,12C18,12 20,14 20,16.5C20,17.38 19.75,18.21 19.31,18.9L22.39,22L21,23.39L17.88,20.32C17.19,20.75 16.37,21 15.5,21C13,21 11,19 11,16.5C11,14 13,12 15.5,12M15.5,14A2.5,2.5 0 0,0 13,16.5A2.5,2.5 0 0,0 15.5,19A2.5,2.5 0 0,0 18,16.5A2.5,2.5 0 0,0 15.5,14M10,4A4,4 0 0,1 14,8C14,8.91 13.69,9.75 13.18,10.43C12.32,10.75 11.55,11.26 10.91,11.9L10,12A4,4 0 0,1 6,8A4,4 0 0,1 10,4M2,20V18C2,15.88 5.31,14.14 9.5,14C9.18,14.78 9,15.62 9,16.5C9,17.79 9.38,19 10,20H2Z"></path></svg> <?php echo $wo['lang']['find_friends']; ?></h1>
-			<form action="#">
+			<form action="#" onsubmit="return false;">
 				<div class="search-blog">
 					<div class="wow_form_fields">
-						<input type="text" placeholder="<?php echo $wo['lang']['search_for_users']; ?>" id="nearby-username" onkeydown="Wo_LoadNearByUsers(this);">
+						<input type="text" placeholder="<?php echo $wo['lang']['search_for_users']; ?>" id="nearby-username">
+						<input type="hidden" id="nearby-lat" value="">
+						<input type="hidden" id="nearby-lng" value="">
 					</div>
 				</div>
 			</form>
 		</div>
 	</div>
+	
+<link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/leaflet.css?version=<?php echo $wo['config']['version']; ?>">
+<?php echo Wo_LoadPage('common_things/leaflet-muted-map-config'); ?>
+<style>
+#map {
+	position: relative;
+    height: 400px;
+    width: 100%;
+	margin-bottom: 22px;
+	overflow: hidden;
+	border: 1px solid #e5eaf1;
+	border-radius: 18px;
+	background: linear-gradient(135deg, #f7f4ed 0%, #f2f0ea 100%);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 10px 24px rgba(33, 37, 41, 0.06);
+}
+.wo_ui_map_state_loading::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.62) 50%, rgba(255,255,255,0) 100%);
+	transform: translateX(-100%);
+	animation: woNearbyMapShimmer 1.45s infinite;
+	z-index: 2;
+	pointer-events: none;
+}
+.wo_ui_map_state_loading::after {
+	content: "";
+	position: absolute;
+	left: 18px;
+	top: 18px;
+	width: 42px;
+	height: 8px;
+	z-index: 3;
+	border-radius: 999px;
+	background: rgba(132, 112, 67, 0.18);
+}
+@keyframes woNearbyMapShimmer {
+	100% {
+		transform: translateX(100%);
+	}
+}
+</style>
+
 	
 	<div class="wow_main_blogs_bg"></div>
 	
@@ -23,7 +68,7 @@
 	<?php endif; ?>
 	
 	<div class="wow_content">
-		<div id="map" class="wow_frnd_map"></div>
+		<div id="map" class="wow_frnd_map wo_ui_map_state_loading"></div>
 		<hr>
 		<div class="row">
 			<div class="col-md-6 wow_frnd_field">
@@ -127,25 +172,103 @@
 		$('.wow_main_blogs_bg').css('height', ($('.wow_main_float_head').height()) + 'px');
 
 		/*Map*/
-		var planes = [];
-		var markersArray = [];
-		<?php foreach ($nearby_users as $user) : ?>
-		planes.push(['<?php echo $user['user_data']['name']?>',<?php echo $user['user_data']['lat']?>, <?php echo $user['user_data']['lng']?>]);
-		<?php endforeach; ?>
-		var map = L.map('map').setView([<?php echo $wo['user']['lat']?>, <?php echo $wo['user']['lng']?>], 7);
+		window.nearbyMapPlanes = [];
+		window.nearbyMapMarkers = [];
+		window.nearbySearchCenterMarker = null;
 
-		L.tileLayer(
-			'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		var redIcon = new L.Icon({
+			iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+			shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+			iconSize: [25, 41],
+			iconAnchor: [12, 41],
+			popupAnchor: [1, -34],
+			shadowSize: [41, 41]
+		});
+
+		<?php foreach ($nearby_users as $user) : ?>
+		window.nearbyMapPlanes.push(['<?php echo addslashes($user['user_data']['name'] . (!empty($user['user_data']['address']) ? " (" . $user['user_data']['address'] . ")" : "")) ?>',<?php echo (float)$user['user_data']['lat']?>, <?php echo (float)$user['user_data']['lng']?>]);
+		<?php endforeach; ?>
+		
+		window.nearbyMap = L.map('map').setView([<?php echo (float)$wo['user']['lat'] ?: 21.0285 ?>, <?php echo (float)$wo['user']['lng'] ?: 105.8542 ?>], 7);
+
+		var tileConfig = window.WoLeafletMutedMapConfig || {};
+		var tileLayer = L.tileLayer(
+			tileConfig.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', $.extend({
 				attribution: '',
 				maxZoom: 18,
-			}).addTo(map);
+			}, tileConfig.tileOptions || {})).addTo(window.nearbyMap);
 
-		for (var i = 0; i < planes.length; i++) {
-			marker = new L.marker([planes[i][1],planes[i][2]])
-			.bindPopup(planes[i][0])
-			.addTo(map);
-			markersArray.push(marker);
+		var clearNearbyMapLoading = function() {
+			$('#map').removeClass('wo_ui_map_state_loading');
 		};
+		tileLayer.once('load', clearNearbyMapLoading);
+		tileLayer.once('tileerror', clearNearbyMapLoading);
+
+		Wo_UpdateNearbyMarkers(window.nearbyMapPlanes);
+	});
+
+	function Wo_UpdateNearbyMarkers(planes) {
+		if (!window.nearbyMap) return;
+		for (var i = 0; i < window.nearbyMapMarkers.length; i++) {
+			window.nearbyMap.removeLayer(window.nearbyMapMarkers[i]);
+		}
+		window.nearbyMapMarkers = [];
+
+		var bounds = [];
+		var coordinateCounts = {};
+		
+		for (var i = 0; i < planes.length; i++) {
+			var lat = parseFloat(planes[i][1]);
+			var lng = parseFloat(planes[i][2]);
+			
+			var coordKey = lat.toFixed(6) + "," + lng.toFixed(6);
+			var count = coordinateCounts[coordKey] || 0;
+			coordinateCounts[coordKey] = count + 1;
+			
+			var finalLat = lat;
+			var finalLng = lng;
+			
+			if (count > 0) {
+				var angle = count * (Math.PI / 3);
+				var radius = 0.00012 * (Math.floor(count / 6) + 1);
+				finalLat = lat + (Math.sin(angle) * radius);
+				finalLng = lng + (Math.cos(angle) * radius);
+			}
+
+			var marker = new L.marker([finalLat, finalLng])
+				.bindPopup(planes[i][0])
+				.addTo(window.nearbyMap);
+			window.nearbyMapMarkers.push(marker);
+			bounds.push([finalLat, finalLng]);
+		}
+		
+		if (bounds.length > 0) {
+			window.nearbyMap.fitBounds(bounds, {padding: [50, 50], maxZoom: 16});
+			if (window.nearbyMapMarkers.length === 1) {
+				window.nearbyMapMarkers[0].openPopup();
+			}
+		} else {
+			var lat = $('#nearby-lat').val();
+			var lng = $('#nearby-lng').val();
+			if (lat && lng) {
+				window.nearbyMap.setView([parseFloat(lat), parseFloat(lng)], 13);
+			}
+		}
+	}
+
+	$('#nearby-username').on('input', function() {
+		clearTimeout(window.nearbySearchTimer);
+		window.nearbySearchTimer = setTimeout(function() {
+			Wo_LoadNearByUsers();
+		}, 500);
+	});
+
+	$('#nearby-username').on('keypress', function (e) {
+		if (e.which == 13) {
+			e.preventDefault();
+			$(this).blur();
+			Wo_LoadNearByUsers();
+		}
 	});
 
 	function Wo_ShowUserLocationMap(user_geoData = false) {
@@ -174,7 +297,9 @@
 		var gender   = $(".nearby-users-gender-cont").find('.active').attr('data-gender');
 		var name     = $("#nearby-username").val();
 		var distance = $("#nearby-users-distance").val();
-		if (!gender && !name && !distance && !relship && !status) { return false;}
+		var lat      = $('#nearby-lat').val();
+		var lng      = $('#nearby-lng').val();
+
 		if (self) {
 			Wo_progressIconLoader($(self));
 		}
@@ -193,20 +318,29 @@
 				name:name,
 				distance:distance,
 				status:status,
-				relship:relship
+				relship:relship,
+				lat:lat,
+				lng:lng
 			},
 		})
 		.done(function(data) {
-
 	        if (data['status'] == 200){
 	        	$("#nearby_users_list").html(data.html);
 	        	$("[data-toggle]").tooltip();
 	        	$("#load_more_nearby_users").html('<i class="fa fa-arrow-down progress-icon" data-icon="arrow-down"></i> <?php echo $wo['lang']['load_more']; ?>');
-	        } 
-
-	        else{
+				if (data.users_info) {
+					var newPlanes = [];
+					data.users_info.forEach(function(u) {
+						var label = u.name;
+						if (u.address) label += ' (' + u.address + ')';
+						newPlanes.push([label, u.lat, u.lng]);
+					});
+					Wo_UpdateNearbyMarkers(newPlanes);
+				}
+	        } else{
 	        	scrollToTop();
 	        	$("#nearby_users_list").html('<h5 class="search-filter-center-text"> <?php echo $wo['lang']['no_users_found']; ?></h5>');
+				Wo_UpdateNearbyMarkers([]);
 	        } 
 	        if (self) {
 				Wo_progressIconLoader($(self));

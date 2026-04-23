@@ -31,9 +31,11 @@
 			<textarea id="about" name="about" rows="4"><?php echo $text;?></textarea>
 		</div>
 		<div class="wow_form_fields profile_location_field">
-			<label for="profile_location_input"><?php echo $wo['lang']['location']; ?></label>  
-			<input id="profile_location_input" name="profile_location_search" type="search" autocomplete="nope" autocorrect="off" autocapitalize="off" spellcheck="false" role="presentation" aria-autocomplete="list" value="<?php echo $wo['setting']['address'];?>">
-			<input id="profile_address_value" name="address" type="hidden" value="<?php echo $wo['setting']['address'];?>">
+			<label for="location"><?php echo $wo['lang']['location']; ?></label>
+			<div id="location-autocomplete-host" class="wo_place_autocomplete_host"></div>
+			<input id="location" name="address" type="hidden" value="<?php echo $wo['setting']['address'];?>">
+			<input type="hidden" name="lat" id="lat-profile" value="<?php echo htmlspecialchars($wo['setting']['lat']); ?>">
+			<input type="hidden" name="lng" id="lng-profile" value="<?php echo htmlspecialchars($wo['setting']['lng']); ?>">
 			<div class="product_location_suggestions profile_location_suggestions"></div>
 		</div>
 		<div class="wow_form_fields mb-0">
@@ -258,173 +260,295 @@ $(function() {
   });
 });
 
-// --- Profile Location Autocomplete (Nominatim) ---
-var woProfileLocationLocale = <?php echo json_encode(strtolower($wo['language'])); ?>;
+// --- Profile Location Autocomplete (Google Maps) ---
+function Wo_SetProfileCoordinates(lat, lng) {
+	$('#lat-profile').val(lat || '');
+	$('#lng-profile').val(lng || '');
+}
+var woProfilePlaceAutocompleteElement = null;
+function Wo_GetProfileLocationField() {
+	return document.getElementById('location');
+}
+function Wo_ReadProfileLocationValue() {
+	var locationField = Wo_GetProfileLocationField();
+	if (!locationField) return '';
+	if (woProfilePlaceAutocompleteElement && typeof woProfilePlaceAutocompleteElement.value === 'string') {
+		locationField.value = woProfilePlaceAutocompleteElement.value;
+	}
+	return (locationField.value || '').trim();
+}
+function Wo_WriteProfileLocationValue(value) {
+	var nv = (value || '');
+	var lf = Wo_GetProfileLocationField();
+	if (lf) lf.value = nv;
+	if (woProfilePlaceAutocompleteElement && typeof woProfilePlaceAutocompleteElement.value !== 'undefined') {
+		woProfilePlaceAutocompleteElement.value = nv;
+	}
+}
+function Wo_ClearProfileCoordinates() {
+	Wo_SetProfileCoordinates('', '');
+}
+var woProfileLocTimer = null;
+var woProfileLocRequest = 0;
+var woProfileGooglePredictionCache = {};
+var woProfileGoogleSessionToken = null;
+var woProfileLocLocale = <?php echo json_encode(strtolower($wo['language'])); ?>;
+
+function Wo_ShouldUseInlineProfileLocationInput() {
+	return window.matchMedia('(max-width: 768px)').matches || /Android|webOS|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent || '');
+}
 function Wo_GetProfileLocationLanguage() {
-	return (woProfileLocationLocale || document.documentElement.lang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
+	return (woProfileLocLocale || document.documentElement.lang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
 }
-function Wo_IsVietnameseProfileLocation() {
-	var language = Wo_GetProfileLocationLanguage();
-	return language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1;
+function Wo_ProfileGoogleAutocompleteAvailable() {
+	return (typeof google !== 'undefined' && google.maps && typeof google.maps.importLibrary === 'function');
 }
-function Wo_NormalizeProfileLocationPart(value) {
-	return (value || '')
-		.toLowerCase()
-		.normalize('NFD')
-		.replace(/[\u0300-\u036f]/g, '')
-		.replace(/[^a-z0-9]+/g, ' ')
-		.trim();
-}
-function Wo_GetProfileLocationCanonicalPart(value) {
-	return Wo_NormalizeProfileLocationPart(value)
-		.replace(/^(phuong|xa|quan|huyen|tinh|thanh pho|tp)\s+/i, '')
-		.replace(/\s+(ward|district|province|city)$/i, '')
-		.trim();
-}
-function Wo_LocalizeVietnameseProfileLocationPart(value) {
-	if (!value) return '';
-	var v = value.trim();
-	v = v.replace(/^(.+?)\s+Road$/i, 'Đường $1');
-	v = v.replace(/^(.+?)\s+Street$/i, '$1');
-	v = v.replace(/^(.+?)\s+Ward$/i, 'Phường $1');
-	v = v.replace(/^Ward\s+(.+)$/i, 'Phường $1');
-	v = v.replace(/^District\s+(.+)$/i, 'Quận $1');
-	v = v.replace(/^Province\s+(.+)$/i, 'Tỉnh $1');
-	v = v.replace(/^City\s+(.+)$/i, 'Thành phố $1');
-	v = v.replace(/^Vietnam$/i, 'Việt Nam');
-	v = v.replace(/^Ha Noi$/i, 'Hà Nội');
-	v = v.replace(/^Ho Chi Minh City$/i, 'TP Hồ Chí Minh');
-	return v;
-}
-function Wo_GetProfileLocationText(item, queryValue) {
-	if (!item || !item.address) {
-		return item && (item.display_name || item.name) ? (item.display_name || item.name) : '';
+
+function Wo_ApplyGoogleProfilePlace(place) {
+	if (!place) return false;
+	var locObj = place.location || (place.geometry && place.geometry.location ? place.geometry.location : null);
+	var addr = place.formattedAddress || place.formatted_address || place.displayName || place.name || Wo_ReadProfileLocationValue();
+	
+	var lat = ''; var lng = '';
+	if (locObj) {
+		lat = (typeof locObj.lat === 'function') ? locObj.lat() : locObj.lat;
+		lng = (typeof locObj.lng === 'function') ? locObj.lng() : locObj.lng;
 	}
-	var address = item.address;
-	var isVi = Wo_IsVietnameseProfileLocation();
-	var parts = [];
-	var firstLine = [];
-	var houseNumber = address.house_number || address.house_name || '';
-	var road = address.road || address.pedestrian || address.footway || address.cycleway || '';
-	var nq = Wo_NormalizeProfileLocationPart(queryValue || '');
-	var nr = Wo_NormalizeProfileLocationPart(road);
-	if (isVi && nq && nr) {
-		if (nq.indexOf(nr) !== -1 || nr.indexOf(nq) !== -1) road = queryValue;
+
+	Wo_WriteProfileLocationValue(addr);
+	var inlineInput = document.querySelector('.wo_product_location_inline_input');
+	if (inlineInput) inlineInput.value = addr;
+
+	Wo_SetProfileCoordinates(lat, lng);
+	return true;
+}
+
+function Wo_SearchProfileLocationSuggestions(val) {
+	var nval = (val || '').trim();
+	if (nval.length < 2) {
+		Wo_RenderProfileLocationSuggestions([]);
+		return;
 	}
-	if (houseNumber) firstLine.push(houseNumber);
-	if (road) firstLine.push(isVi ? Wo_LocalizeVietnameseProfileLocationPart(road) : road);
-	if (firstLine.length > 0) parts.push(firstLine.join(' '));
-	[
-		address.suburb, address.neighbourhood, address.quarter,
-		address.city_district, address.county, address.district,
-		address.city, address.town, address.municipality,
-		address.state_district, address.state, address.country
-	].forEach(function(val) {
-		if (!val) return;
-		var lv = isVi ? Wo_LocalizeVietnameseProfileLocationPart(val) : val;
-		var cv = Wo_GetProfileLocationCanonicalPart(lv);
-		var exists = parts.some(function(ev) { return Wo_GetProfileLocationCanonicalPart(ev) === cv; });
-		if (!exists) parts.push(lv);
-	});
-	return parts.join(', ');
+	woProfileLocRequest++;
+	var reqId = woProfileLocRequest;
+
+	if (Wo_ProfileGoogleAutocompleteAvailable()) {
+		google.maps.importLibrary('places').then(function() {
+			if (reqId !== woProfileLocRequest) return;
+			var places = google.maps.places;
+			if (!places.AutocompleteSuggestion || typeof places.AutocompleteSuggestion.fetchAutocompleteSuggestions !== 'function') return;
+
+			if (!woProfileGoogleSessionToken && typeof places.AutocompleteSessionToken === 'function') {
+				woProfileGoogleSessionToken = new places.AutocompleteSessionToken();
+			}
+
+			var req = { input: nval, sessionToken: woProfileGoogleSessionToken };
+			var lang = Wo_GetProfileLocationLanguage();
+			if (lang.indexOf('vi') === 0) req.language = 'vi';
+
+			places.AutocompleteSuggestion.fetchAutocompleteSuggestions(req).then(function(res) {
+				if (reqId !== woProfileLocRequest) return;
+				var sugs = (res && Array.isArray(res.suggestions)) ? res.suggestions : [];
+				var mapped = sugs.map(function(s) {
+					var p = s.placePrediction || s;
+					var pid = p.placeId || p.place_id || '';
+					if (pid) woProfileGooglePredictionCache[pid] = p;
+					return {
+						name: (p.text && typeof p.text.toString === 'function') ? p.text.toString() : (p.description || ''),
+						place_id: pid
+					};
+				});
+				Wo_RenderProfileLocationSuggestions(mapped);
+			});
+		});
+	}
 }
-function Wo_GetProfileLocationSearchUrl(locationValue, limit) {
-	var params = new URLSearchParams({
-		format: 'jsonv2',
-		addressdetails: '1',
-		limit: String(limit || 10),
-		'accept-language': Wo_GetProfileLocationLanguage(),
-		q: locationValue
-	});
-	if (Wo_IsVietnameseProfileLocation()) params.set('countrycodes', 'vn');
-	return 'https://nominatim.openstreetmap.org/search?' + params.toString();
-}
-function Wo_RenderProfileLocationSuggestions(items, queryValue) {
+
+function Wo_RenderProfileLocationSuggestions(items) {
 	var box = $('.profile_location_suggestions');
-	if (!Array.isArray(items) || items.length === 0) { box.empty().hide(); return; }
-	var seen = {};
+	if (!items || items.length === 0) {
+		box.empty().hide();
+		return;
+	}
 	var html = '';
 	items.forEach(function(item) {
-		var dn = Wo_GetProfileLocationText(item, queryValue);
-		var ndn = Wo_NormalizeProfileLocationPart(dn);
-		if (!dn || seen[ndn]) return;
-		seen[ndn] = true;
-		html += '<p class="pointer product_location_suggestion_item profile_location_suggestion_item" data-location="' + escapeHtml(dn) + '">' + escapeHtml(dn) + '</p>';
+		html += '<p class="pointer profile_loc_suggestion_item" data-place-id="'+item.place_id+'" data-name="'+escapeHtml(item.name)+'">'+escapeHtml(item.name)+'</p>';
 	});
-	if (!html) { box.empty().hide(); return; }
 	box.html(html).show();
 }
-function Wo_SearchProfileLocationSuggestions(locationValue) {
-	if (!locationValue || locationValue.length < 3) { Wo_RenderProfileLocationSuggestions([], locationValue); return; }
-	fetch(Wo_GetProfileLocationSearchUrl(locationValue, 10), {
-		headers: { 'Accept': 'application/json' }
-	}).then(function(r) {
-		if (!r.ok) throw new Error('Profile location suggestion request failed');
-		return r.json();
-	}).then(function(results) {
-		Wo_RenderProfileLocationSuggestions(results, locationValue);
-	}).catch(function() {
-		Wo_RenderProfileLocationSuggestions([], locationValue);
+
+async function Wo_GeocodeProfilePlaceId(pid) {
+	if (!pid) return;
+	var cached = woProfileGooglePredictionCache[pid];
+	if (cached && typeof cached.toPlace === 'function') {
+		var place = cached.toPlace();
+		await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'location'] });
+		Wo_ApplyGoogleProfilePlace(place);
+		return;
+	}
+	if (window.google && google.maps && typeof google.maps.Geocoder === 'function') {
+		var geocoder = new google.maps.Geocoder();
+		geocoder.geocode({ placeId: pid }, function(results, status) {
+			if (status === 'OK' && results[0]) Wo_ApplyGoogleProfilePlace(results[0]);
+		});
+	}
+}
+
+async function Wo_InitGoogleProfileAutocomplete() {
+	var input = Wo_GetProfileLocationField();
+	var host = document.getElementById('location-autocomplete-host');
+	if (!input || !host || host.dataset.profileGoogleAutocompleteReady === '1') return;
+
+	if (Wo_ShouldUseInlineProfileLocationInput()) {
+		if (Wo_ProfileGoogleAutocompleteAvailable()) {
+			try { await google.maps.importLibrary('places'); } catch (err) {}
+		}
+		host.dataset.profileGoogleAutocompleteReady = '1';
+		host.innerHTML = '';
+		var inlineInput = document.createElement('input');
+		inlineInput.type = 'text';
+		inlineInput.className = 'wo_product_location_inline_input'; // Reuse same class for consistency
+		inlineInput.autocomplete = 'off';
+		inlineInput.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
+		host.appendChild(inlineInput);
+		inlineInput.value = input.value || '';
+
+		inlineInput.addEventListener('input', function () {
+			var val = inlineInput.value || '';
+			Wo_WriteProfileLocationValue(val);
+			Wo_ClearProfileCoordinates();
+			clearTimeout(woProfileLocTimer);
+			woProfileLocTimer = setTimeout(function() {
+				Wo_SearchProfileLocationSuggestions(val);
+			}, 250);
+		});
+		inlineInput.addEventListener('blur', function() {
+			setTimeout(function() {
+				Wo_RenderProfileLocationSuggestions([]);
+			}, 200);
+		});
+		return;
+	}
+
+	if (!Wo_ProfileGoogleAutocompleteAvailable()) return;
+
+	await google.maps.importLibrary('places');
+	if (!google.maps.places || typeof google.maps.places.PlaceAutocompleteElement !== 'function') return;
+
+	host.dataset.profileGoogleAutocompleteReady = '1';
+	host.innerHTML = '';
+	woProfilePlaceAutocompleteElement = new google.maps.places.PlaceAutocompleteElement({});
+	woProfilePlaceAutocompleteElement.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
+	if (typeof woProfilePlaceAutocompleteElement.value !== 'undefined') {
+		woProfilePlaceAutocompleteElement.value = input.value || '';
+	}
+	host.appendChild(woProfilePlaceAutocompleteElement);
+
+	// Fix styling: gmp-place-autocomplete uses Shadow DOM.
+	// We read styles from a standard input to match the current theme (light or dark).
+	(function() {
+		try {
+			var ref = document.querySelector('input[name="first_name"]') || document.querySelector('input[type="text"]');
+			if (!ref) return;
+			var cs = window.getComputedStyle(ref);
+			var bg = cs.backgroundColor;
+			var fg = cs.color;
+			var border = cs.borderTopColor || cs.borderColor;
+			var el = woProfilePlaceAutocompleteElement;
+			
+			// If background is transparent (rgba(0,0,0,0)), default to white
+			if (bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') {
+				bg = '#ffffff';
+			}
+
+			el.style.backgroundColor = 'transparent';
+			el.style.setProperty('--gmp-mat-color-surface', 'transparent');
+			el.style.setProperty('--gmp-mat-color-on-surface', fg);
+			el.style.setProperty('--gmp-mat-color-outline', 'transparent');
+			el.style.setProperty('--gmp-mat-color-on-surface-variant', fg);
+			el.style.setProperty('--gmp-mat-color-primary', border);
+
+			if (el.shadowRoot) {
+				var styleEl = document.createElement('style');
+				styleEl.textContent = '.container { background-color: transparent !important; } input, .pac-target-input { background-color: transparent !important; color: ' + fg + ' !important; border: none !important; box-shadow: none !important; padding-left: 40px !important; }';
+				el.shadowRoot.appendChild(styleEl);
+			}
+		} catch (e) {}
+	})();
+
+	woProfilePlaceAutocompleteElement.addEventListener('gmp-select', async function (event) {
+		var pred = event.placePrediction || (event.detail && event.detail.placePrediction) || null;
+		if (!pred || typeof pred.toPlace !== 'function') return;
+		var place = pred.toPlace();
+		await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'location'] });
+		Wo_ApplyGoogleProfilePlace(place);
 	});
 }
+
 $(function() {
-	var woProfileLocTimer = null;
-	$('#profile_location_input').on('input', function() {
-		clearTimeout(woProfileLocTimer);
-		var val = $(this).val().trim();
-		$('#profile_address_value').val(val);
-		woProfileLocTimer = setTimeout(function() {
-			Wo_SearchProfileLocationSuggestions(val);
-		}, 250);
-	});
-	$('#profile_location_input').on('change blur', function() {
-		$('#profile_address_value').val($(this).val().trim());
-		setTimeout(function() { Wo_RenderProfileLocationSuggestions([]); }, 150);
-	});
-	$(document).on('mousedown', '.profile_location_suggestion_item', function(e) {
+	Wo_InitGoogleProfileAutocomplete();
+	$(document).on('mousedown ontouchstart', '.profile_loc_suggestion_item', function(e) {
 		e.preventDefault();
-		var loc = $(this).attr('data-location') || '';
-		$('#profile_location_input').val(loc);
-		$('#profile_address_value').val(loc);
+		var pid = $(this).attr('data-place-id');
+		var name = $(this).attr('data-name');
+		Wo_WriteProfileLocationValue(name);
+		var inlineInput = document.querySelector('.wo_product_location_inline_input');
+		if (inlineInput) inlineInput.value = name;
 		Wo_RenderProfileLocationSuggestions([]);
-	});
-	$('form.setting-profile-form').on('submit', function() {
-		$('#profile_address_value').val($('#profile_location_input').val().trim());
+		Wo_GeocodeProfilePlaceId(pid);
 	});
 });
 </script>
 <style>
-.profile_location_field {
-	position: relative;
+.profile_location_field { position: relative; }
+.wo_place_autocomplete_host { 
+	width: 100%; 
+	background-color: var(--wo-input-bg, #fff) !important;
+	border: 1px solid var(--wo-input-border, #e0e0e0);
+	border-radius: 8px;
+	transition: border-color 0.15s ease;
 }
-.profile_location_field .profile_location_suggestions {
+.wo_place_autocomplete_host:focus-within {
+	border-color: var(--wo-main-color, #4d91ea);
+}
+.wo_place_autocomplete_host gmp-place-autocomplete { 
+	display: block; 
+	width: 100%; 
+	background: transparent !important;
+	--gmp-mat-color-surface: transparent;
+}
+.wo_place_autocomplete_host .wo_product_location_inline_input {
+	width: 100%;
+	background: transparent !important;
+	color: var(--wo-input-color, #333);
+	border: none !important;
+	padding: 11px 14px;
+	outline: none !important;
+	font-size: 14px;
+}
+.profile_location_suggestions {
 	position: absolute;
+	top: 100%;
 	left: 0;
 	right: 0;
-	width: 100%;
-	top: 100%;
-	z-index: 999;
-	background: var(--wo-white-bg, #fff);
-	border: 1px solid var(--wo-border-color, #e0e0e0);
-	border-top: none;
+	background: var(--wo-input-bg, #fff);
+	border: 1px solid var(--wo-input-border, #e0e0e0);
 	border-radius: 0 0 8px 8px;
-	max-height: 220px;
+	z-index: 1000;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+	max-height: 250px;
 	overflow-y: auto;
-	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-	display: none;
 }
-.profile_location_field .profile_location_suggestions p {
+.profile_loc_suggestion_item {
+	padding: 12px 14px;
 	margin: 0;
-	padding: 10px 14px;
-	font-size: 13.5px;
-	border-bottom: 1px solid var(--wo-border-color, #eee);
-	transition: background 0.15s ease;
-	cursor: pointer;
+	border-bottom: 1px solid #f0f0f0;
+	font-size: 14px;
+	line-height: 1.4;
+	color: var(--wo-input-color, #333);
 }
-.profile_location_field .profile_location_suggestions p:last-child {
-	border-bottom: none;
-}
-.profile_location_field .profile_location_suggestions p:hover {
-	background: var(--wo-hover-bg, #f5f5f5);
+.profile_loc_suggestion_item:last-child { border-bottom: none; }
+.profile_loc_suggestion_item:hover, .profile_loc_suggestion_item:active {
+	background-color: #f7f8fa;
 }
 </style>
