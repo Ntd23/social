@@ -8,7 +8,9 @@ if ($f == 'nearby_users' && $wo['config']['find_friends'] == 1) {
         $relship  = (isset($_GET['relship'])) ? $_GET['relship'] : false;
         $status   = (isset($_GET['status'])) ? $_GET['status'] : false;
         $data     = array(
-            'status' => 404
+            'status' => 404,
+            'users_info' => array(),
+            'count' => 0
         );
         $html     = '';
         $filter   = array(
@@ -23,9 +25,21 @@ if ($f == 'nearby_users' && $wo['config']['find_friends'] == 1) {
         $users_info = array();
         if ($users && count($users) > 0) {
             foreach ($users as $wo['UsersList']) {
-                $user_info['name'] = $wo['UsersList']['user_data']['name'];
-                $user_info['lng'] = $wo['UsersList']['user_data']['lng'];
-                $user_info['lat'] = $wo['UsersList']['user_data']['lat'];
+                $user_location = '';
+                if (!empty($wo['UsersList']['user_data']['address'])) {
+                    $user_location = trim($wo['UsersList']['user_data']['address']);
+                }
+                elseif (!empty($wo['UsersList']['user_geoinfo'])) {
+                    $user_location = trim($wo['UsersList']['user_geoinfo']);
+                }
+                $user_info = array(
+                    'name'   => $wo['UsersList']['user_data']['name'],
+                    'lng'    => (float) $wo['UsersList']['user_data']['lng'],
+                    'lat'    => (float) $wo['UsersList']['user_data']['lat'],
+                    'avatar' => $wo['UsersList']['user_data']['avatar'],
+                    'url'    => $wo['UsersList']['user_data']['url'],
+                    'location' => $user_location
+                );
                 $users_info[] = $user_info;
 
                 $html .= Wo_LoadPage('friends_nearby/includes/user-list');

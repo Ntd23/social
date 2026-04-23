@@ -5,7 +5,7 @@ if ($f == 'save_user_location' && isset($_POST['lat']) && isset($_POST['lng'])) 
     $update_array = array(
         'lat' => (is_numeric($lat)) ? $lat : 0,
         'lng' => (is_numeric($lng)) ? $lng : 0,
-        'last_location_update' => (strtotime("+1 week"))
+        'last_location_update' => (strtotime("+6 hours"))
     );
     $data         = array(
         'status' => 304

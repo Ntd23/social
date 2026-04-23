@@ -4,7 +4,7 @@
 			<h2>&nbsp;<?php echo $wo['lang']['find_friends']; ?></h2>
 			<div class="search-blog">
 				<form action="#">
-					<input type="text" placeholder="<?php echo $wo['lang']['search_for_users']; ?>" id="nearby-username" onkeydown="Wo_LoadNearByUsers(this);">
+						<input type="text" placeholder="<?php echo $wo['lang']['search_for_users']; ?>" id="nearby-username" oninput="Wo_LoadNearByUsers();">
 					<svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="2"></circle><path d="M14.5 15.5L18.5 19.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
 				</form>
 			</div>
@@ -123,27 +123,806 @@
    </div>
 </div>
 <script>
-	jQuery(document).ready(function($) {
-		/*Map*/
-		var planes = [];
-		var markersArray = [];
-		<?php foreach ($nearby_users as $user) : ?>
-		planes.push(['<?php echo $user['user_data']['name']?>',<?php echo $user['user_data']['lat']?>, <?php echo $user['user_data']['lng']?>]);
-		<?php endforeach; ?>
-		var map = L.map('map').setView([<?php echo $wo['user']['lat']?>, <?php echo $wo['user']['lng']?>], 7);
+	var WoNearbyFriendsMapState = window.WoNearbyFriendsMapState || {
+		provider: null,
+		map: null,
+		leafletMarkersLayer: null,
+		googleMarkers: [],
+		googleInfoWindow: null,
+		renderedPoints: []
+	};
+	window.WoNearbyFriendsMapState = WoNearbyFriendsMapState;
+	var WoNearbyMapResolvedUrls = window.WoNearbyMapResolvedUrls || {};
+	window.WoNearbyMapResolvedUrls = WoNearbyMapResolvedUrls;
 
-		L.tileLayer(
-			'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-				attribution: '',
-				maxZoom: 18,
-			}).addTo(map);
+	var nearbyUsersMapPoints = <?php
+		$nearby_map_points = array();
+		if (!empty($nearby_users)) {
+			foreach ($nearby_users as $user) {
+				$user_location = '';
+				if (!empty($user['user_data']['address'])) {
+					$user_location = trim($user['user_data']['address']);
+				}
+				elseif (!empty($user['user_geoinfo'])) {
+					$user_location = trim($user['user_geoinfo']);
+				}
+				$nearby_map_points[] = array(
+					'name'   => $user['user_data']['name'],
+					'lat'    => (float) $user['user_data']['lat'],
+					'lng'    => (float) $user['user_data']['lng'],
+					'avatar' => $user['user_data']['avatar'],
+					'url'    => $user['user_data']['url'],
+					'location' => $user_location
+				);
+			}
+		}
+		echo json_encode($nearby_map_points);
+	?>;
+	var currentUserMapPoint = {
+		name: <?php echo json_encode($wo['user']['name']); ?>,
+		lat: <?php echo (float) $wo['user']['lat']; ?>,
+		lng: <?php echo (float) $wo['user']['lng']; ?>,
+		avatar: <?php echo json_encode($wo['user']['avatar']); ?>,
+		url: <?php echo json_encode($wo['user']['url']); ?>,
+		location: <?php echo json_encode((!empty($wo['user']['address']) ? trim($wo['user']['address']) : '')); ?>,
+		isSelf: true
+	};
+	var nearbyMapCenter = {
+		lat: <?php echo (float) $wo['user']['lat']; ?>,
+		lng: <?php echo (float) $wo['user']['lng']; ?>
+	};
 
-		for (var i = 0; i < planes.length; i++) {
-			marker = new L.marker([planes[i][1],planes[i][2]])
-			.bindPopup(planes[i][0])
-			.addTo(map);
-			markersArray.push(marker);
+	function Wo_EscapeNearbyMapHtml(text) {
+		return String(text || '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	function Wo_EscapeNearbyMapAttribute(text) {
+		return Wo_EscapeNearbyMapHtml(text);
+	}
+
+	function Wo_NormalizeNearbyMapPoints(points) {
+		var normalizedPoints = [];
+		if (!Array.isArray(points)) {
+			return normalizedPoints;
+		}
+
+		for (var i = 0; i < points.length; i++) {
+			var point = points[i] || {};
+			var lat = parseFloat(point.lat);
+			var lng = parseFloat(point.lng);
+			var pointLocation = '';
+			if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) {
+				continue;
+			}
+			if (typeof point.location === 'string') {
+				pointLocation = point.location.trim();
+			} else if (typeof point.location !== 'undefined' && point.location !== null) {
+				pointLocation = String(point.location).trim();
+			}
+			if (!pointLocation && point.name) {
+				pointLocation = String(point.name).trim();
+			}
+			if (!pointLocation) {
+				pointLocation = lat + ',' + lng;
+			}
+
+			normalizedPoints.push({
+				name: point.name || '',
+				lat: lat,
+				lng: lng,
+				avatar: point.avatar || '',
+				url: point.url || '',
+				location: pointLocation,
+				isSelf: point.isSelf === true || point.is_self === true || point.is_self === 1
+			});
+		}
+
+		return normalizedPoints;
+	}
+
+	function Wo_IsSameNearbyMapPoint(firstPoint, secondPoint) {
+		if (!firstPoint || !secondPoint) {
+			return false;
+		}
+
+		if (firstPoint.url && secondPoint.url) {
+			return firstPoint.url === secondPoint.url;
+		}
+
+		return parseFloat(firstPoint.lat) === parseFloat(secondPoint.lat) && parseFloat(firstPoint.lng) === parseFloat(secondPoint.lng);
+	}
+
+	function Wo_GetCombinedNearbyMapPoints(points) {
+		var normalizedPoints = Wo_NormalizeNearbyMapPoints(points);
+		var combinedPoints = [];
+		var normalizedCurrentUserPoint = Wo_NormalizeNearbyMapPoints([currentUserMapPoint]);
+
+		if (normalizedCurrentUserPoint.length > 0) {
+			combinedPoints.push(normalizedCurrentUserPoint[0]);
+		}
+
+		for (var i = 0; i < normalizedPoints.length; i++) {
+			var point = normalizedPoints[i];
+			var duplicatedPoint = false;
+
+			for (var j = 0; j < combinedPoints.length; j++) {
+				if (Wo_IsSameNearbyMapPoint(combinedPoints[j], point)) {
+					duplicatedPoint = true;
+					break;
+				}
+			}
+
+			if (!duplicatedPoint) {
+				combinedPoints.push(point);
+			}
+		}
+
+		return combinedPoints;
+	}
+
+	function Wo_GetNearbyMapDistanceKm(firstPoint, secondPoint) {
+		if (!firstPoint || !secondPoint) {
+			return 0;
+		}
+
+		var earthRadiusKm = 6371;
+		var latDistance = (secondPoint.lat - firstPoint.lat) * (Math.PI / 180);
+		var lngDistance = (secondPoint.lng - firstPoint.lng) * (Math.PI / 180);
+		var firstLatitude = firstPoint.lat * (Math.PI / 180);
+		var secondLatitude = secondPoint.lat * (Math.PI / 180);
+		var haversine = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
+			Math.cos(firstLatitude) * Math.cos(secondLatitude) *
+			Math.sin(lngDistance / 2) * Math.sin(lngDistance / 2);
+		var arc = 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+
+		return earthRadiusKm * arc;
+	}
+
+	function Wo_EncodeNearbyMapPlaceLabel(label) {
+		return encodeURIComponent(String(label || '').trim())
+			.replace(/%20/g, '+')
+			.replace(/%2C/g, ',');
+	}
+
+	function Wo_GetNearbyMapBoundsDiagonalKm(points) {
+		var normalizedPoints = Wo_NormalizeNearbyMapPoints(points);
+		if (normalizedPoints.length <= 1) {
+			return 0;
+		}
+
+		var minLat = normalizedPoints[0].lat;
+		var maxLat = normalizedPoints[0].lat;
+		var minLng = normalizedPoints[0].lng;
+		var maxLng = normalizedPoints[0].lng;
+
+		for (var i = 1; i < normalizedPoints.length; i++) {
+			minLat = Math.min(minLat, normalizedPoints[i].lat);
+			maxLat = Math.max(maxLat, normalizedPoints[i].lat);
+			minLng = Math.min(minLng, normalizedPoints[i].lng);
+			maxLng = Math.max(maxLng, normalizedPoints[i].lng);
+		}
+
+		return Wo_GetNearbyMapDistanceKm({
+			lat: minLat,
+			lng: minLng
+		}, {
+			lat: maxLat,
+			lng: maxLng
+		});
+	}
+
+	function Wo_GetNearbyMapZoomFloor(points) {
+		var normalizedPoints = Wo_NormalizeNearbyMapPoints(points);
+		if (!normalizedPoints.length) {
+			return 7;
+		}
+
+		if (normalizedPoints.length === 1) {
+			return 15;
+		}
+
+		var diagonalDistanceKm = Wo_GetNearbyMapBoundsDiagonalKm(normalizedPoints);
+		if (diagonalDistanceKm < 1) {
+			return 16;
+		}
+
+		if (diagonalDistanceKm <= 5) {
+			return 14;
+		}
+
+		return 4;
+	}
+
+	function Wo_ApplyNearbyGoogleViewport(points) {
+		var normalizedPoints = Wo_NormalizeNearbyMapPoints(points);
+		if (!WoNearbyFriendsMapState.map) {
+			return;
+		}
+
+		if (!normalizedPoints.length) {
+			WoNearbyFriendsMapState.map.setCenter(nearbyMapCenter);
+			WoNearbyFriendsMapState.map.setZoom(7);
+			return;
+		}
+
+		if (normalizedPoints.length === 1) {
+			WoNearbyFriendsMapState.map.setCenter({
+				lat: normalizedPoints[0].lat,
+				lng: normalizedPoints[0].lng
+			});
+			WoNearbyFriendsMapState.map.setZoom(15);
+			return;
+		}
+
+		var bounds = new google.maps.LatLngBounds();
+		for (var i = 0; i < normalizedPoints.length; i++) {
+			bounds.extend({
+				lat: normalizedPoints[i].lat,
+				lng: normalizedPoints[i].lng
+			});
+		}
+
+		WoNearbyFriendsMapState.map.fitBounds(bounds);
+		google.maps.event.addListenerOnce(WoNearbyFriendsMapState.map, 'idle', function() {
+			var currentZoom = WoNearbyFriendsMapState.map.getZoom() || 4;
+			var targetZoom = currentZoom;
+			var zoomFloor = Wo_GetNearbyMapZoomFloor(normalizedPoints);
+			if (targetZoom < 4) {
+				targetZoom = 4;
+			}
+			if (zoomFloor > 4 && targetZoom < zoomFloor) {
+				targetZoom = zoomFloor;
+			}
+			if (targetZoom !== currentZoom) {
+				WoNearbyFriendsMapState.map.setZoom(targetZoom);
+			}
+		});
+	}
+
+	function Wo_ApplyNearbyLeafletViewport(points) {
+		var normalizedPoints = Wo_NormalizeNearbyMapPoints(points);
+		if (!WoNearbyFriendsMapState.map) {
+			return;
+		}
+
+		if (!normalizedPoints.length) {
+			WoNearbyFriendsMapState.map.setView([nearbyMapCenter.lat, nearbyMapCenter.lng], 7);
+			return;
+		}
+
+		if (normalizedPoints.length === 1) {
+			WoNearbyFriendsMapState.map.setView([normalizedPoints[0].lat, normalizedPoints[0].lng], 15);
+			return;
+		}
+
+		var bounds = [];
+		for (var i = 0; i < normalizedPoints.length; i++) {
+			bounds.push([normalizedPoints[i].lat, normalizedPoints[i].lng]);
+		}
+
+		WoNearbyFriendsMapState.map.fitBounds(bounds, {
+			padding: [30, 30]
+		});
+		WoNearbyFriendsMapState.map.once('moveend', function() {
+			var currentZoom = WoNearbyFriendsMapState.map.getZoom() || 4;
+			var targetZoom = currentZoom;
+			var zoomFloor = Wo_GetNearbyMapZoomFloor(normalizedPoints);
+			if (targetZoom < 4) {
+				targetZoom = 4;
+			}
+			if (zoomFloor > 4 && targetZoom < zoomFloor) {
+				targetZoom = zoomFloor;
+			}
+			if (targetZoom !== currentZoom) {
+				WoNearbyFriendsMapState.map.setZoom(targetZoom);
+			}
+		});
+	}
+
+	function Wo_GetNearbyMapDirectionsUrl(point) {
+		var placeLabel = '';
+		if (point && typeof point.location === 'string') {
+			placeLabel = point.location.trim();
+		} else if (point && typeof point.location !== 'undefined' && point.location !== null) {
+			placeLabel = String(point.location).trim();
+		}
+		if (!placeLabel && point && point.name) {
+			placeLabel = String(point.name).trim();
+		}
+		if (!placeLabel && point) {
+			placeLabel = point.lat + ',' + point.lng;
+		}
+		return 'https://www.google.com/maps/place/' + Wo_EncodeNearbyMapPlaceLabel(placeLabel) + '/@' + point.lat + ',' + point.lng + ',17z/data=!3m1!4b1?entry=ttu';
+	}
+
+	function Wo_GetNearbyMapPointCacheKey(point) {
+		if (!point) {
+			return '';
+		}
+
+		return [point.lat, point.lng, point.location || '', point.name || ''].join('|');
+	}
+
+	function Wo_GetNearbyMapPointFromElement(element) {
+		if (!element || !element.getAttribute) {
+			return null;
+		}
+
+		return {
+			name: element.getAttribute('data-name') || '',
+			location: element.getAttribute('data-location') || '',
+			lat: parseFloat(element.getAttribute('data-lat') || 0),
+			lng: parseFloat(element.getAttribute('data-lng') || 0)
 		};
+	}
+
+	function Wo_BuildNearbyGoogleResolvedUrl(point, geocoderResult) {
+		var resolvedAddress = '';
+		if (geocoderResult && geocoderResult.formatted_address) {
+			resolvedAddress = geocoderResult.formatted_address;
+		} else if (point && point.location) {
+			resolvedAddress = point.location;
+		} else if (point && point.name) {
+			resolvedAddress = point.name;
+		}
+
+		if (geocoderResult && geocoderResult.place_id) {
+			return 'https://www.google.com/maps/search/?api=1&query=' + Wo_EncodeNearbyMapPlaceLabel(resolvedAddress) + '&query_place_id=' + encodeURIComponent(geocoderResult.place_id);
+		}
+
+		return Wo_GetNearbyMapDirectionsUrl(point);
+	}
+
+	function Wo_GetNearbyMapPreferredGeocoderResult(results) {
+		if (!Array.isArray(results) || !results.length) {
+			return null;
+		}
+
+		var preferredTypes = ['street_address', 'premise', 'subpremise', 'route', 'establishment', 'point_of_interest', 'neighborhood', 'sublocality', 'locality'];
+		var fallbackResult = null;
+
+		for (var i = 0; i < results.length; i++) {
+			var result = results[i];
+			var resultTypes = Array.isArray(result.types) ? result.types : [];
+			var formattedAddress = (result.formatted_address || '').trim();
+			var isCoordinateResult = /[0-9]+°/.test(formattedAddress);
+			var isPlusCodeOnly = resultTypes.indexOf('plus_code') > -1;
+
+			if (!fallbackResult && result.place_id) {
+				fallbackResult = result;
+			}
+
+			if (!result.place_id || isCoordinateResult || isPlusCodeOnly) {
+				continue;
+			}
+
+			for (var typeIndex = 0; typeIndex < preferredTypes.length; typeIndex++) {
+				if (resultTypes.indexOf(preferredTypes[typeIndex]) > -1) {
+					return result;
+				}
+			}
+		}
+
+		return fallbackResult || results[0];
+	}
+
+	function Wo_OpenNearbyMapDirections(event, element) {
+		var point = Wo_GetNearbyMapPointFromElement(element);
+		if (!point || isNaN(point.lat) || isNaN(point.lng)) {
+			return true;
+		}
+
+		var fallbackUrl = Wo_GetNearbyMapDirectionsUrl(point);
+		var cacheKey = Wo_GetNearbyMapPointCacheKey(point);
+		var openedWindow = window.open(fallbackUrl, '_blank');
+
+		if (!openedWindow) {
+			return true;
+		}
+
+		if (event) {
+			event.preventDefault();
+		}
+
+		try {
+			openedWindow.opener = null;
+		} catch (error) {
+		}
+
+		if (cacheKey && WoNearbyMapResolvedUrls[cacheKey]) {
+			openedWindow.location = WoNearbyMapResolvedUrls[cacheKey];
+			return false;
+		}
+
+		if (typeof google === 'undefined' || !google.maps || !google.maps.Geocoder) {
+			openedWindow.location = fallbackUrl;
+			return false;
+		}
+
+		var geocoder = new google.maps.Geocoder();
+		geocoder.geocode({
+			location: {
+				lat: point.lat,
+				lng: point.lng
+			}
+		}, function(results, status) {
+			var resolvedUrl = fallbackUrl;
+			var preferredResult = Wo_GetNearbyMapPreferredGeocoderResult(results);
+			if (status === 'OK' && preferredResult) {
+				resolvedUrl = Wo_BuildNearbyGoogleResolvedUrl(point, preferredResult);
+			}
+
+			if (cacheKey) {
+				WoNearbyMapResolvedUrls[cacheKey] = resolvedUrl;
+			}
+
+			openedWindow.location = resolvedUrl;
+		});
+
+		return false;
+	}
+
+	function Wo_GetNearbyMapInitial(point) {
+		var markerName = String((point && point.name) || '').trim();
+		return (markerName.charAt(0) || '?').toUpperCase();
+	}
+
+	function Wo_DrawNearbyMapImageCover(context, image, x, y, width, height) {
+		var imageWidth = image.naturalWidth || image.width || width;
+		var imageHeight = image.naturalHeight || image.height || height;
+		var drawRatio = Math.max(width / imageWidth, height / imageHeight);
+		var drawWidth = imageWidth * drawRatio;
+		var drawHeight = imageHeight * drawRatio;
+		var drawX = x + ((width - drawWidth) / 2);
+		var drawY = y + ((height - drawHeight) / 2);
+
+		context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+	}
+
+	function Wo_GetNearbyMapPopupHtml(point) {
+		var safeName = Wo_EscapeNearbyMapHtml(point.name || '');
+		var avatarHtml = '';
+		var linkOpen = '';
+		var linkClose = '';
+		var directionsHtml = '';
+
+		if (point.url) {
+			linkOpen = '<a href="' + Wo_EscapeNearbyMapAttribute(point.url) + '" style="color:#111827;text-decoration:none;">';
+			linkClose = '</a>';
+		}
+
+		if (point.avatar) {
+			avatarHtml = '<img src="' + Wo_EscapeNearbyMapAttribute(point.avatar) + '" alt="' + safeName + '" style="width:42px;height:42px;border-radius:50%;object-fit:cover;display:block;">';
+		} else {
+			avatarHtml = '<div style="width:42px;height:42px;border-radius:50%;background:#dbe4f0;color:#111827;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;">' + safeName.charAt(0) + '</div>';
+		}
+
+		if (!point.isSelf) {
+			directionsHtml = '<a href="' + Wo_EscapeNearbyMapAttribute(Wo_GetNearbyMapDirectionsUrl(point)) + '" onclick="return Wo_OpenNearbyMapDirections(event, this);" data-name="' + Wo_EscapeNearbyMapAttribute(point.name || '') + '" data-location="' + Wo_EscapeNearbyMapAttribute(point.location || '') + '" data-lat="' + Wo_EscapeNearbyMapAttribute(point.lat) + '" data-lng="' + Wo_EscapeNearbyMapAttribute(point.lng) + '" target="_blank" rel="noopener" title="Directions" style="width:34px;height:34px;border-radius:999px;background:#0d6efd;color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;text-decoration:none;box-shadow:0 6px 14px rgba(13,110,253,.28);">' +
+				'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.71 11.29l-9-9a.996.996 0 0 0-1.09-.21a1 1 0 0 0-.62.92V7H5a1 1 0 0 0 0 2h6v4.99a1 1 0 0 0 1.71.7l9-9a.997.997 0 0 0 0-1.4Z"/></svg>' +
+			'</a>';
+		}
+
+		return '<div style="display:flex;align-items:center;gap:10px;min-width:200px;">' +
+			'<div style="flex:0 0 auto;">' + avatarHtml + '</div>' +
+			'<div style="min-width:0;flex:1 1 auto;font-size:14px;font-weight:600;line-height:1.35;">' + linkOpen + safeName + linkClose + '</div>' +
+			directionsHtml +
+		'</div>';
+	}
+
+	function Wo_GetNearbyMapPinSvg(point) {
+		var isSelfPoint = !!(point && point.isSelf);
+		var fillColor = isSelfPoint ? '#0d6efd' : '#ef4444';
+		var strokeColor = isSelfPoint ? '#0b5ed7' : '#dc2626';
+		var centerFill = isSelfPoint ? '#f59e0b' : '#ffffff';
+		var haloHtml = '';
+
+		if (isSelfPoint) {
+			haloHtml = '<circle cx="12" cy="12" r="7.4" fill="#0d6efd" opacity="0.18"/>';
+		}
+
+		return '<svg xmlns="http://www.w3.org/2000/svg" width="46" height="62" viewBox="0 0 24 28" fill="none">' +
+			haloHtml +
+			'<path d="M12 26s8-8.35 8-14c0-4.42-3.58-8-8-8s-8 3.58-8 8c0 5.65 8 14 8 14Z" fill="' + fillColor + '" stroke="' + strokeColor + '" stroke-width="1.2" stroke-linejoin="round"/>' +
+			'<circle cx="12" cy="12" r="4.15" fill="#ffffff"/>' +
+			'<circle cx="12" cy="12" r="2.35" fill="' + centerFill + '"/>' +
+		'</svg>';
+	}
+
+	function Wo_GetNearbyMapPinMetrics(point) {
+		if (point && point.isSelf) {
+			return {
+				width: 46,
+				height: 62,
+				anchorX: 23,
+				anchorY: 57,
+				popupY: -49
+			};
+		}
+
+		return {
+			width: 38,
+			height: 50,
+			anchorX: 19,
+			anchorY: 46,
+			popupY: -40
+		};
+	}
+
+	function Wo_CreateNearbyGoogleMarkerIcon(point, avatarImage) {
+		var metrics = Wo_GetNearbyMapPinMetrics(point);
+
+		return {
+			url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(Wo_GetNearbyMapPinSvg(point)),
+			scaledSize: new google.maps.Size(metrics.width, metrics.height),
+			anchor: new google.maps.Point(metrics.anchorX, metrics.anchorY)
+		};
+	}
+
+	function Wo_GetNearbyGoogleMarkerIcon(point) {
+		return Wo_CreateNearbyGoogleMarkerIcon(point, null);
+	}
+
+	function Wo_ApplyNearbyGoogleMarkerAvatar(marker, point) {
+		return;
+	}
+
+	function Wo_CreateNearbyLeafletAvatarIcon(point) {
+		if (typeof L === 'undefined') {
+			return null;
+		}
+
+		var metrics = Wo_GetNearbyMapPinMetrics(point);
+		var shadow = (point && point.isSelf) ? 'drop-shadow(0 12px 22px rgba(13,110,253,0.34))' : 'drop-shadow(0 8px 16px rgba(15,23,42,0.24))';
+
+		return L.divIcon({
+			className: 'wo-nearby-user-map-marker',
+			html: '<div style="width:' + metrics.width + 'px;height:' + metrics.height + 'px;filter:' + shadow + ';">' + Wo_GetNearbyMapPinSvg(point) + '</div>',
+			iconSize: [metrics.width, metrics.height],
+			iconAnchor: [metrics.anchorX, metrics.anchorY],
+			popupAnchor: [0, metrics.popupY]
+		});
+	}
+
+	function Wo_ResetNearbyMapMarkers() {
+		if (WoNearbyFriendsMapState.provider === 'google') {
+			for (var i = 0; i < WoNearbyFriendsMapState.googleMarkers.length; i++) {
+				WoNearbyFriendsMapState.googleMarkers[i].setMap(null);
+			}
+			WoNearbyFriendsMapState.googleMarkers = [];
+			if (WoNearbyFriendsMapState.googleInfoWindow) {
+				WoNearbyFriendsMapState.googleInfoWindow.close();
+			}
+		}
+
+		if (WoNearbyFriendsMapState.provider === 'leaflet' && WoNearbyFriendsMapState.leafletMarkersLayer) {
+			WoNearbyFriendsMapState.leafletMarkersLayer.clearLayers();
+		}
+
+		WoNearbyFriendsMapState.renderedPoints = [];
+	}
+
+	function Wo_RenderNearbyGoogleMarkers(points, options) {
+		var resultPoints = Wo_NormalizeNearbyMapPoints(points);
+		var shouldReplace = !options || options.replace !== false;
+		var shouldFit = !options || options.fit !== false;
+		var shouldOpenSingle = !!(options && options.openSingle);
+		var existingPoints = shouldReplace ? [] : Wo_NormalizeNearbyMapPoints(WoNearbyFriendsMapState.renderedPoints);
+		var normalizedPoints = shouldReplace ? Wo_GetCombinedNearbyMapPoints(resultPoints) : Wo_GetCombinedNearbyMapPoints(existingPoints.concat(resultPoints));
+		var pointsToRender = shouldReplace ? normalizedPoints : [];
+
+		if (!WoNearbyFriendsMapState.map) {
+			return normalizedPoints;
+		}
+
+		if (shouldReplace) {
+			Wo_ResetNearbyMapMarkers();
+		} else {
+			for (var existingIndex = 0; existingIndex < resultPoints.length; existingIndex++) {
+				var shouldAddPoint = true;
+				for (var existingPointIndex = 0; existingPointIndex < existingPoints.length; existingPointIndex++) {
+					if (Wo_IsSameNearbyMapPoint(existingPoints[existingPointIndex], resultPoints[existingIndex])) {
+						shouldAddPoint = false;
+						break;
+					}
+				}
+				if (shouldAddPoint) {
+					pointsToRender.push(resultPoints[existingIndex]);
+				}
+			}
+		}
+
+		var singleMarker = null;
+		var singleResultPoint = (shouldOpenSingle && resultPoints.length === 1) ? resultPoints[0] : null;
+
+		for (var i = 0; i < pointsToRender.length; i++) {
+			var point = pointsToRender[i];
+			var markerPosition = {
+				lat: point.lat,
+				lng: point.lng
+			};
+			var markerOptions = {
+				position: markerPosition,
+				map: WoNearbyFriendsMapState.map,
+				title: point.name || '',
+				icon: Wo_GetNearbyGoogleMarkerIcon(point)
+			};
+
+			var marker = new google.maps.Marker(markerOptions);
+			marker.woNearbyPoint = point;
+			marker.addListener('click', function() {
+				if (!WoNearbyFriendsMapState.googleInfoWindow) {
+					WoNearbyFriendsMapState.googleInfoWindow = new google.maps.InfoWindow();
+				}
+				WoNearbyFriendsMapState.googleInfoWindow.setContent(Wo_GetNearbyMapPopupHtml(this.woNearbyPoint));
+				WoNearbyFriendsMapState.googleInfoWindow.open(WoNearbyFriendsMapState.map, this);
+			});
+
+			WoNearbyFriendsMapState.googleMarkers.push(marker);
+
+			if (singleResultPoint && Wo_IsSameNearbyMapPoint(singleResultPoint, point)) {
+				singleMarker = marker;
+			} else if (!singleResultPoint && normalizedPoints.length === 1) {
+				singleMarker = marker;
+			}
+		}
+
+		WoNearbyFriendsMapState.renderedPoints = normalizedPoints;
+
+		if (shouldFit) {
+			Wo_ApplyNearbyGoogleViewport(normalizedPoints);
+		}
+
+		if (shouldOpenSingle && singleMarker) {
+			if (!WoNearbyFriendsMapState.googleInfoWindow) {
+				WoNearbyFriendsMapState.googleInfoWindow = new google.maps.InfoWindow();
+			}
+			WoNearbyFriendsMapState.googleInfoWindow.setContent(Wo_GetNearbyMapPopupHtml(singleMarker.woNearbyPoint));
+			WoNearbyFriendsMapState.googleInfoWindow.open(WoNearbyFriendsMapState.map, singleMarker);
+		}
+
+		return normalizedPoints;
+	}
+
+	function Wo_RenderNearbyLeafletMarkers(points, options) {
+		var resultPoints = Wo_NormalizeNearbyMapPoints(points);
+		var shouldReplace = !options || options.replace !== false;
+		var shouldFit = !options || options.fit !== false;
+		var shouldOpenSingle = !!(options && options.openSingle);
+		var existingPoints = shouldReplace ? [] : Wo_NormalizeNearbyMapPoints(WoNearbyFriendsMapState.renderedPoints);
+		var normalizedPoints = shouldReplace ? Wo_GetCombinedNearbyMapPoints(resultPoints) : Wo_GetCombinedNearbyMapPoints(existingPoints.concat(resultPoints));
+		var pointsToRender = shouldReplace ? normalizedPoints : [];
+
+		if (!WoNearbyFriendsMapState.map || !WoNearbyFriendsMapState.leafletMarkersLayer) {
+			return normalizedPoints;
+		}
+
+		if (shouldReplace) {
+			Wo_ResetNearbyMapMarkers();
+		} else {
+			for (var existingIndex = 0; existingIndex < resultPoints.length; existingIndex++) {
+				var shouldAddPoint = true;
+				for (var existingPointIndex = 0; existingPointIndex < existingPoints.length; existingPointIndex++) {
+					if (Wo_IsSameNearbyMapPoint(existingPoints[existingPointIndex], resultPoints[existingIndex])) {
+						shouldAddPoint = false;
+						break;
+					}
+				}
+				if (shouldAddPoint) {
+					pointsToRender.push(resultPoints[existingIndex]);
+				}
+			}
+		}
+
+		var singleMarker = null;
+		var singleResultPoint = (shouldOpenSingle && resultPoints.length === 1) ? resultPoints[0] : null;
+
+		for (var i = 0; i < pointsToRender.length; i++) {
+			var point = pointsToRender[i];
+			var marker = L.marker([point.lat, point.lng], {
+				icon: Wo_CreateNearbyLeafletAvatarIcon(point)
+			}).bindPopup(Wo_GetNearbyMapPopupHtml(point), {
+				maxWidth: 260
+			});
+
+			marker.addTo(WoNearbyFriendsMapState.leafletMarkersLayer);
+
+			if (singleResultPoint && Wo_IsSameNearbyMapPoint(singleResultPoint, point)) {
+				singleMarker = marker;
+			} else if (!singleResultPoint && normalizedPoints.length === 1) {
+				singleMarker = marker;
+			}
+		}
+
+		WoNearbyFriendsMapState.renderedPoints = normalizedPoints;
+
+		if (shouldFit) {
+			Wo_ApplyNearbyLeafletViewport(normalizedPoints);
+		}
+
+		if (shouldOpenSingle && singleMarker) {
+			singleMarker.openPopup();
+		}
+
+		return normalizedPoints;
+	}
+
+	function Wo_RenderNearbyMapMarkers(points, options) {
+		if (WoNearbyFriendsMapState.provider === 'google') {
+			return Wo_RenderNearbyGoogleMarkers(points, options);
+		}
+
+		if (WoNearbyFriendsMapState.provider === 'leaflet') {
+			return Wo_RenderNearbyLeafletMarkers(points, options);
+		}
+
+		return [];
+	}
+
+	function Wo_CreateNearbyLeafletMap() {
+		if (typeof L === 'undefined' || !$('#map').length) {
+			return false;
+		}
+
+		WoNearbyFriendsMapState.provider = 'leaflet';
+		WoNearbyFriendsMapState.map = L.map('map').setView([nearbyMapCenter.lat, nearbyMapCenter.lng], 7);
+		WoNearbyFriendsMapState.leafletMarkersLayer = L.layerGroup().addTo(WoNearbyFriendsMapState.map);
+		WoNearbyFriendsMapState.googleMarkers = [];
+		WoNearbyFriendsMapState.googleInfoWindow = null;
+		WoNearbyFriendsMapState.renderedPoints = [];
+
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '',
+			maxZoom: 18
+		}).addTo(WoNearbyFriendsMapState.map);
+
+		Wo_RenderNearbyLeafletMarkers(nearbyUsersMapPoints, {
+			replace: true,
+			fit: true,
+			openSingle: Wo_NormalizeNearbyMapPoints(nearbyUsersMapPoints).length === 1
+		});
+
+		return true;
+	}
+
+	function Wo_CreateNearbyGoogleMap() {
+		if (typeof google === 'undefined' || !google.maps || !google.maps.Map || !$('#map').length) {
+			return false;
+		}
+
+		WoNearbyFriendsMapState.provider = 'google';
+		WoNearbyFriendsMapState.map = new google.maps.Map(document.getElementById('map'), {
+			center: nearbyMapCenter,
+			zoom: 7,
+			mapTypeId: google.maps.MapTypeId.ROADMAP
+		});
+		WoNearbyFriendsMapState.leafletMarkersLayer = null;
+		WoNearbyFriendsMapState.googleMarkers = [];
+		WoNearbyFriendsMapState.googleInfoWindow = new google.maps.InfoWindow();
+		WoNearbyFriendsMapState.renderedPoints = [];
+
+		Wo_RenderNearbyGoogleMarkers(nearbyUsersMapPoints, {
+			replace: true,
+			fit: true,
+			openSingle: Wo_NormalizeNearbyMapPoints(nearbyUsersMapPoints).length === 1
+		});
+
+		return true;
+	}
+
+	jQuery(document).ready(function($) {
+		<?php if ($wo['config']['google_map'] == 1) { ?>
+		if (!Wo_CreateNearbyGoogleMap()) {
+			Wo_CreateNearbyLeafletMap();
+		}
+		<?php } else { ?>
+		Wo_CreateNearbyLeafletMap();
+		<?php } ?>
 	});
 
 	function Wo_ShowUserLocationMap(user_geoData = false) {
@@ -198,12 +977,21 @@
 
 	        if (data['status'] == 200){
 	        	$("#nearby_users_list").html(data.html);
+	        	Wo_RenderNearbyMapMarkers(data.users_info || [], {
+	        		replace: true,
+	        		fit: true,
+	        		openSingle: true
+	        	});
 	        	$("[data-toggle]").tooltip();
 	        	$("#load_more_nearby_users").html('<i class="fa fa-arrow-down progress-icon" data-icon="arrow-down"></i> <?php echo $wo['lang']['load_more']; ?>');
 	        } 
 
 	        else{
 	        	scrollToTop();
+	        	Wo_RenderNearbyMapMarkers([], {
+	        		replace: true,
+	        		fit: true
+	        	});
 	        	$("#nearby_users_list").html('<h5 class="search-filter-center-text"> <?php echo $wo['lang']['no_users_found']; ?></h5>');
 	        } 
 	        if (self) {
@@ -223,7 +1011,7 @@
 	function Wo_LoadMoreNearByUsers(){
 		var relship  = $(".nearby-users-relationship-collapse").find('.active').attr('data-relation-ship');
 		var status   = $(".nearby-users-status-collapse").find('.active').attr('data-nearby-user-status');
-		var after_id = ($(".nearby_user_wrapper_prnt").length > 0) ? $(".nearby_user_wrapper_prnt").last().attr('id') : 0;
+		var after_id = ($("#nearby_users_list").children('[id]').length > 0) ? $("#nearby_users_list").children('[id]').last().attr('id') : 0;
 		var gender   = $(".nearby-users-gender-cont").find('.active').attr('data-gender');
 		var name     = $("#nearby-username").val();
 		var distance = $("#nearby-users-distance").val();
@@ -249,6 +1037,10 @@
 
 	        if (data['status'] == 200){
 	        	$("#nearby_users_list").append(data.html);
+	        	Wo_RenderNearbyMapMarkers(data.users_info || [], {
+	        		replace: false,
+	        		fit: true
+	        	});
 	        	$("[data-toggle]").tooltip();
 	        	$("#load_more_nearby_users").html('<?php echo $wo['lang']['load_more']; ?>');
 	        } 

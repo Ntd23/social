@@ -48,6 +48,8 @@ if ($f == "update_profile_setting") {
                 }
             }
             if (empty($errors)) {
+                $has_profile_coordinates = (isset($_POST['lat']) || isset($_POST['lng']));
+                $profile_address         = (isset($_POST['address'])) ? trim($_POST['address']) : '';
                 $Update_data = array(
                     'first_name' => $_POST['first_name'],
                     'last_name' => $_POST['last_name'],
@@ -55,10 +57,20 @@ if ($f == "update_profile_setting") {
                     'about' => $_POST['about'],
                     'working' => $_POST['working'],
                     'working_link' => $_POST['working_link'],
-                    'address' => $_POST['address'],
+                    'address' => $profile_address,
                     'school' => $_POST['school'],
                     'relationship_id' => $_POST['relationship']
                 );
+                if ($has_profile_coordinates) {
+                    $profile_lat = (isset($_POST['lat']) && is_numeric($_POST['lat'])) ? (float) $_POST['lat'] : 0;
+                    $profile_lng = (isset($_POST['lng']) && is_numeric($_POST['lng'])) ? (float) $_POST['lng'] : 0;
+                    if ($profile_address === '') {
+                        $profile_lat = 0;
+                        $profile_lng = 0;
+                    }
+                    $Update_data['lat'] = $profile_lat;
+                    $Update_data['lng'] = $profile_lng;
+                }
                 if ($wo['config']['website_mode'] == 'linkedin') {
                     if (!empty($_POST['skills'])) {
                         $pieces = explode(",", $_POST['skills']);

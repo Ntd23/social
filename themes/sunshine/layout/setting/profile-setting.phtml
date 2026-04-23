@@ -57,6 +57,8 @@
 		<div class="wow_form_fields">
 			<label for="address"><?php echo $wo['lang']['location']; ?></label>  
 			<input id="address" name="address" type="text" value="<?php echo $wo['setting']['address'];?>">
+			<input id="profile_lat_value" name="lat" type="hidden" value="<?php echo (!empty($wo['setting']['lat'])) ? htmlspecialchars($wo['setting']['lat']) : ''; ?>">
+			<input id="profile_lng_value" name="lng" type="hidden" value="<?php echo (!empty($wo['setting']['lng'])) ? htmlspecialchars($wo['setting']['lng']) : ''; ?>">
 			<?php if ($wo['config']['yandex_map'] == 1) { ?>
           <div class="yandex_search_user"></div>
         <?php } ?>
@@ -255,8 +257,11 @@ $(function() {
     $("#select_relationship_with").removeClass('open').find('ul').empty();
   });
 
-  $('form.setting-profile-form').ajaxForm({
+  var woSunshineProfileFormOptions = {
     url: Wo_Ajax_Requests_File() + '?f=update_profile_setting',
+    beforeSubmit: function(arr, $form) {
+      return Wo_PrepareSunshineProfileLocationForSubmit($form);
+    },
     beforeSend: function() {
       $('.wo_settings_page').find('.add_wow_loader').addClass('btn-loading');
     },
@@ -288,8 +293,106 @@ $(function() {
       }
       $('.wo_settings_page').find('.add_wow_loader').removeClass('btn-loading');
     }
+  };
+  window.woSunshineProfileFormOptions = woSunshineProfileFormOptions;
+  $('form.setting-profile-form').ajaxForm(woSunshineProfileFormOptions);
+});
+
+function Wo_SetSunshineProfileLocationCoordinates(lat, lng) {
+  $('#profile_lat_value').val(lat || '');
+  $('#profile_lng_value').val(lng || '');
+}
+
+function Wo_ClearSunshineProfileLocationCoordinates(resetToZero) {
+  Wo_SetSunshineProfileLocationCoordinates(resetToZero ? '0' : '', resetToZero ? '0' : '');
+}
+
+function Wo_GetSunshineProfileLocationCoordinateValues() {
+  return {
+    lat: $.trim($('#profile_lat_value').val()),
+    lng: $.trim($('#profile_lng_value').val())
+  };
+}
+
+function Wo_GetSunshineProfileLocationSearchUrl(locationValue) {
+  return 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(locationValue);
+}
+
+function Wo_GetSunshineProfileLocationFirstCoordinates(locationValue) {
+  return $.ajax({
+    url: Wo_GetSunshineProfileLocationSearchUrl(locationValue),
+    type: 'GET',
+    dataType: 'json'
+  }).then(function(results) {
+    if (Array.isArray(results) && results.length > 0) {
+      return {
+        lat: results[0].lat,
+        lng: results[0].lon
+      };
+    }
+
+    return null;
+  });
+}
+
+var woSunshineProfileLocationGeocodeInFlight = false;
+function Wo_PrepareSunshineProfileLocationForSubmit($form) {
+  var locationValue = $.trim($('#address').val());
+  var coordinates = Wo_GetSunshineProfileLocationCoordinateValues();
+
+  $('#address').val(locationValue);
+
+  if (!locationValue) {
+    Wo_ClearSunshineProfileLocationCoordinates(true);
+    return true;
+  }
+
+  if (coordinates.lat !== '' && coordinates.lng !== '') {
+    return true;
+  }
+
+  if (woSunshineProfileLocationGeocodeInFlight) {
+    return false;
+  }
+
+  woSunshineProfileLocationGeocodeInFlight = true;
+  Wo_GetSunshineProfileLocationFirstCoordinates(locationValue)
+    .done(function(result) {
+      if (result && typeof result.lat !== 'undefined' && typeof result.lng !== 'undefined') {
+        Wo_SetSunshineProfileLocationCoordinates(result.lat, result.lng);
+      } else {
+        Wo_ClearSunshineProfileLocationCoordinates(true);
+      }
+    })
+    .fail(function() {
+      Wo_ClearSunshineProfileLocationCoordinates(true);
+    })
+    .always(function() {
+      woSunshineProfileLocationGeocodeInFlight = false;
+      $form.ajaxSubmit(window.woSunshineProfileFormOptions);
+    });
+
+  return false;
+}
+
+$(function() {
+  $('#address').on('input', function() {
+    var locationValue = $.trim($(this).val());
+    if (!locationValue) {
+      Wo_ClearSunshineProfileLocationCoordinates(false);
+      return;
+    }
+
+    Wo_ClearSunshineProfileLocationCoordinates(false);
+  });
+
+  $('#address').on('change blur', function() {
+    if (!$.trim($(this).val())) {
+      Wo_ClearSunshineProfileLocationCoordinates(false);
+    }
   });
 });
+
   var pac_input = document.getElementById('address');
   (function pacSelectFirst(input) {
     // store the original event binding function
@@ -323,6 +426,12 @@ $(function() {
   <?php if ($wo['config']['google_map']) { ?>
   $(function () {
      var autocomplete = new google.maps.places.Autocomplete(pac_input);
+     autocomplete.addListener('place_changed', function() {
+      var place = autocomplete.getPlace();
+      if (place && place.geometry && place.geometry.location) {
+        Wo_SetSunshineProfileLocationCoordinates(place.geometry.location.lat(), place.geometry.location.lng());
+      }
+     });
   });
   <?php }?>
 <?php if ($wo['config']['yandex_map'] == 1) { ?>
