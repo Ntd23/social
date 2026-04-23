@@ -1265,11 +1265,11 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 		        							if (placeId && normalizedLabel) {
 		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel) + '&query_place_id=' + encodeURIComponent(placeId);
 		        							}
-		        							if (hasValidCoordinates(lat, lng)) {
-		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
-		        							}
 		        							if (normalizedLabel) {
 		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel);
+		        							}
+		        							if (hasValidCoordinates(lat, lng)) {
+		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
 		        							}
 		        							return 'https://www.google.com/maps';
 		        						}
@@ -1360,11 +1360,11 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 										if (placeId && normalizedLabel) {
 											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel) + '&query_place_id=' + encodeURIComponent(placeId);
 										}
-										if (hasValidCoordinates(lat, lng)) {
-											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
-										}
 										if (normalizedLabel) {
 											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel);
+										}
+										if (hasValidCoordinates(lat, lng)) {
+											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
 										}
 										return 'https://www.google.com/maps';
 									}
