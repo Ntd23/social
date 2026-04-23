@@ -58,15 +58,15 @@
 						<textarea name="page_description" id="page_description" rows="3"></textarea>
 						<span class="help-block"><?php echo $wo['lang']['page_description_info'];?></span>
 					</div>
-					<div class="wow_form_fields page_location_field">
+					<div class="wow_form_fields page_location_field page_location_field_wrapper">
 						<label for="page_location_input"><?php echo $wo['lang']['location']; ?></label>
 						<div id="page_location_autocomplete_host" class="wo_place_autocomplete_host"></div>
+						<div class="page_create_location_suggestions" style="display:none;"></div>
 						<input id="page_location_input" name="wo_page_location_search" type="hidden">
 						<input id="address_value" name="address" type="hidden">
 						<input id="page_lat_value" name="page_lat" type="hidden">
 						<input id="page_lng_value" name="page_lng" type="hidden">
 						<input id="page_place_id_value" name="page_place_id" type="hidden">
-						<div class="product_location_suggestions yandex_search_product"></div>
 					</div>
 					<?php $fields = Wo_GetCustomFields('page'); 
 					if (!empty($fields)) {
@@ -146,15 +146,37 @@
 .wo_place_autocomplete_host .wo_page_location_inline_input {
 	width: 100%;
 }
-.page_location_field {
-    position: relative;
+.page_create_location_suggestions {
+	position: absolute;
+	top: 100% !important;
+	left: 0;
+	right: 0;
+	margin-top: 2px;
+	background: var(--wo-input-bg, #fff);
+	border: 1px solid var(--wo-input-border, #e0e0e0);
+	border-radius: 4px;
+	z-index: 1051;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	max-height: 250px;
+	overflow-y: auto;
 }
-.page_location_field .yandex_search_product {
-    left: 0;
-    right: 0;
-    width: 100%;
-    top: calc(100% - 10px);
+.page_location_field_wrapper {
+	position: relative !important;
+	overflow: visible !important;
+	display: block;
 }
+.page_location_suggestion_item {
+	padding: 14px 16px;
+	margin: 0 !important;
+	border-bottom: 1px solid #f0f0f0;
+	font-size: 15px;
+	line-height: 1.4;
+	color: var(--wo-input-color, #333);
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+.page_location_suggestion_item:last-child { border-bottom: none; }
+.page_location_suggestion_item:active { background-color: #eee; }
 </style>	
 <!-- .page-margin -->
 <script type="text/javascript">
@@ -362,8 +384,13 @@ function Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToke
 		Wo_RenderPageLocationSuggestions([], normalizedLocationValue);
 	});
 }
+function escapeHtml(text) {
+	if (!text) return '';
+	var map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+	return String(text).replace(/[&<>"']/g, function (m) { return map[m]; });
+}
 function Wo_RenderPageLocationSuggestions(items, queryValue) {
-	var suggestionBox = $('.product_location_suggestions');
+	var suggestionBox = $('.page_create_location_suggestions');
 	if (!Array.isArray(items) || items.length === 0) {
 		suggestionBox.empty().hide();
 		return;
@@ -372,13 +399,14 @@ function Wo_RenderPageLocationSuggestions(items, queryValue) {
 	var seen = {};
 	var html = '';
 	items.forEach(function(item) {
-		var displayName = Wo_GetPageLocationText(item, queryValue);
+		var displayName = item.display_name || Wo_GetPageLocationText(item, queryValue);
 		var normalizedDisplayName = Wo_NormalizePageLocationPart(displayName);
 		if (!displayName || seen[normalizedDisplayName]) {
 			return;
 		}
 		seen[normalizedDisplayName] = true;
-		html += '<p class="pointer product_location_suggestion_item page_location_suggestion_item" data-location="' + escapeHtml(displayName) + '" data-lat="' + escapeHtml(String(item.lat || '')) + '" data-lng="' + escapeHtml(String(item.lon || item.lng || '')) + '" data-place-id="' + escapeHtml(String(item.place_id || '')) + '">' + escapeHtml(displayName) + '</p>';
+		var pid = item.place_id || '';
+		html += '<div class="pointer page_location_suggestion_item" data-place-id="' + escapeHtml(String(pid)) + '" data-name="' + escapeHtml(displayName) + '">' + escapeHtml(displayName) + '</div>';
 	});
 
 	if (!html) {
@@ -464,9 +492,12 @@ function Wo_ApplyGooglePagePlace(place) {
 async function Wo_InitGooglePageAutocomplete() {
 	var input = Wo_GetPageLocationField();
 	var host = document.getElementById('page_location_autocomplete_host');
-	if (!input || !host || host.dataset.pageGoogleAutocompleteReady === '1') {
+	if (!input || !host) {
 		return;
 	}
+	// Dọn dẹp để tránh chồng chéo các ô input cũ
+	host.innerHTML = '';
+	host.dataset.pageGoogleAutocompleteReady = '1';
 
 	if (Wo_ShouldUseInlinePageLocationInput()) {
 		if (Wo_PageGoogleAutocompleteAvailable()) {
@@ -486,6 +517,7 @@ async function Wo_InitGooglePageAutocomplete() {
 		inlineInput.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
 		host.appendChild(inlineInput);
 
+		// Thêm giá trị ban đầu nếu có
 		inlineInput.value = input.value || '';
 		inlineInput.addEventListener('input', function() {
 			var locationValue = inlineInput.value || '';
@@ -712,24 +744,16 @@ function Wo_ResolvePageLocation(callback) {
 }
    $(function() {
      Wo_InitGooglePageAutocomplete();
-     $(document).on('mousedown', '.page_location_suggestion_item, .product_location_suggestion_item', function(e) {
-    	e.preventDefault();
-     	var selectedLocation = $(this).attr('data-location') || '';
-     	var selectedLat = $(this).attr('data-lat') || '';
-     	var selectedLng = $(this).attr('data-lng') || '';
-     	var placeId = $(this).attr('data-place-id') || '';
-     	Wo_WritePageLocationValue(selectedLocation);
-     	$('#address_value').val(selectedLocation);
+     $(document).on('mousedown ontouchstart', '.page_create_location_suggestions .page_location_suggestion_item', function(e) {
+     	e.preventDefault();
+     	var pid = $(this).attr('data-place-id');
+     	var name = $(this).attr('data-name');
+     	Wo_WritePageLocationValue(name);
+     	$('#address_value').val(name);
+     	var inlineInput = document.querySelector('.wo_page_location_inline_input');
+     	if (inlineInput) inlineInput.value = name;
      	Wo_RenderPageLocationSuggestions([]);
-     	$('.wo_page_location_inline_input').val(selectedLocation);
-     	if (placeId) {
-     		Wo_SetPageCoordinates('', '');
-     		Wo_SetPagePlaceId(placeId);
-     		Wo_GeocodePagePlaceId(placeId);
-     		return;
-     	}
-     	Wo_SetPageCoordinates(selectedLat, selectedLng);
-     	Wo_SetPagePlaceId('');
+     	Wo_GeocodePagePlaceId(pid);
      });
      $('form.create-page-form').ajaxForm({
        url: Wo_Ajax_Requests_File() + '?f=pages&s=create_page',

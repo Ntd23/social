@@ -2,7 +2,7 @@
 	<div class="wow_main_float_head findfrnd">
 		<div class="container">
 			<h1> <?php echo $wo['lang']['nearby_shops']; ?></h1>
-			<form action="#">
+			<form action="#" onsubmit="return false;">
 				<div class="search-blog">
 					<div class="wow_form_fields">
 						<input type="text" placeholder="<?php echo $wo['lang']['keyword']; ?> / địa chỉ" id="nearby-username">
@@ -177,6 +177,14 @@ $.getScript('<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?vers
 		nearbyShopsSearchTimer = setTimeout(function () {
 			Wo_LoadNearByShops();
 		}, 300);
+	});
+
+	$('#nearby-username').on('keypress', function (e) {
+		if (e.which == 13) {
+			e.preventDefault();
+			$(this).blur();
+			Wo_LoadNearByShops();
+		}
 	});
 
 	function Wo_ShouldGeocodeNearbyShopResults(usersInfo) {

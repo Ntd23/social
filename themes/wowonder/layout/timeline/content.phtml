@@ -1,3 +1,4 @@
+<?php echo Wo_LoadPage('common_things/leaflet-muted-map-config'); ?>
 <?php
 $IsOwner       = Wo_IsOnwer($wo['user_profile']['user_id']);
 $IsOwnerUser   = Wo_IsOnwerUser($wo['user_profile']['user_id']);
@@ -1222,85 +1223,236 @@ if ($wo['loggedin'] && $IsOwnerUser) {
                 <?php echo $wo['countries_name'][$country];?>
             </li>
             <?php } ?>
-            <?php if(!empty($wo['user_profile']['address']) && $wo['user_profile']['share_my_location'] == 1) {  ?>
-            <li class="list-group-item" style="display: block;">
-                <div style="width: 100%;">
-                    <div style="display: flex; align-items: flex-start; width: 100%; margin-bottom: 10px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" style="margin-top: 3px; margin-right: 12px; flex-shrink: 0;"><path fill="currentColor" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z"></path></svg>
-                        <div style="width: 100%;"><?php echo $wo['lang']['located_in'];?> <?php echo $wo['user_profile']['address'];?></div>
-                    </div>
-                <?php if ($wo['config']['yandex_map'] == 1) { ?>
-		            <div id="place_<?php echo($wo['user_profile']['user_id']) ?>" <?php echo($wo['config']['yandex_map'] == 1 ? 'style="width: 100%; height: 300px; padding: 0; margin: 0;"' : '') ?>></div>
-		            <script type="text/javascript">
-		                  <?php if (!empty($wo['user_profile']['address'])) { ?>
-		                    setTimeout(function () {
-		                      var myMap;
-		                      ymaps.geocode("<?php echo($wo['user_profile']['address']); ?>").then(function (res) {
-		                          myMap = new ymaps.Map('place_<?php echo($wo['user_profile']['user_id']) ?>', {
-		                              center: res.geoObjects.get(0).geometry.getCoordinates(),
-		                              zoom : 10
-		                          });
-		                          myMap.geoObjects.add(new ymaps.Placemark(res.geoObjects.get(0).geometry.getCoordinates(), {
-		                              balloonContent: ''
-		                          }));
-		                      });
-		                    },1000);
-		                  <?php } ?>
-		                </script>
-		          <?php } else { ?>
-                    <div id="osm_place_<?php echo($wo['user_profile']['user_id']) ?>" class="user-location-frame" style="width: 100%; height: 300px; padding: 0; margin: 0;"></div>
-                    <script type="text/javascript">
-                        (function () {
-                            var mapId = 'osm_place_<?php echo($wo['user_profile']['user_id']) ?>';
-                            var address = <?php echo json_encode($wo['user_profile']['address']); ?>;
+            <?php if(!empty($wo['user_profile']['address']) && $wo['user_profile']['share_my_location'] == 1) {
+				$user_address_value = trim($wo['user_profile']['address']);
+				$user_lat_value = (isset($wo['user_profile']['lat']) && is_numeric($wo['user_profile']['lat'])) ? (float) $wo['user_profile']['lat'] : 0;
+				$user_lng_value = (isset($wo['user_profile']['lng']) && is_numeric($wo['user_profile']['lng'])) ? (float) $wo['user_profile']['lng'] : 0;
+				$user_has_coordinates = ($user_lat_value != 0 && $user_lng_value != 0);
+				$user_place_id_value = !empty($wo['user_profile']['place_id']) ? trim($wo['user_profile']['place_id']) : '';
+				$user_map_query_value = !empty($user_address_value) ? $user_address_value : ($user_has_coordinates ? ($user_lat_value . ',' . $user_lng_value) : '');
+				$user_maps_url = !empty($user_map_query_value) ? ('https://www.google.com/maps/search/?api=1&query=' . rawurlencode($user_map_query_value)) : 'https://www.google.com/maps';
+				if (!empty($user_place_id_value) && !empty($user_address_value)) {
+					$user_maps_url .= '&query_place_id=' . rawurlencode($user_place_id_value);
+				}
+			?>
+				<li class="list-group-item" style="display: block;">
+					<div style="width: 100%;">
+						<div style="display: flex; align-items: flex-start; width: 100%; margin-bottom: 10px;">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" style="margin-top: 3px; margin-right: 12px; flex-shrink: 0;"><path fill="currentColor" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z"></path></svg>
+							<div style="width: 100%;" class="pointer"><?php echo $wo['lang']['located_in']; ?> <?php echo $user_address_value; ?></div>
+						</div>
+						<a id="user_map_link_<?php echo($wo['user_profile']['user_id']) ?>" href="<?php echo $user_maps_url; ?>" target="_blank" rel="noopener noreferrer" style="display:block; text-decoration:none;">
+						<?php if ($wo['config']['yandex_map'] == 1) { ?>
+							<div id="user_place_<?php echo($wo['user_profile']['user_id']) ?>" <?php echo($wo['config']['yandex_map'] == 1 ? 'style="width: 100%; height: 300px; padding: 0; margin: 0; border-radius: 12px; overflow: hidden; cursor: pointer;"' : '') ?>></div>
+							<script type="text/javascript">
+		        				<?php if (!empty($user_address_value)) { ?>
+		        					(function () {
+		        						var mapId = 'user_place_<?php echo($wo['user_profile']['user_id']) ?>';
+		        						var mapLinkId = 'user_map_link_<?php echo($wo['user_profile']['user_id']) ?>';
+		        						var address = <?php echo json_encode($user_address_value); ?>;
+		        						var initialLat = <?php echo json_encode($user_has_coordinates ? $user_lat_value : null); ?>;
+		        						var initialLng = <?php echo json_encode($user_has_coordinates ? $user_lng_value : null); ?>;
+		        						var initialPlaceId = <?php echo json_encode($user_place_id_value); ?>;
+		        						var currentPlaceId = initialPlaceId;
+		        						var currentAddress = address;
 
-                            if (!address || typeof L === 'undefined') {
-                                return;
-                            }
+		        						function hasValidCoordinates(lat, lng) {
+		        							return typeof lat === 'number' && typeof lng === 'number' && isFinite(lat) && isFinite(lng);
+		        						}
 
-                            fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(address), {
-                                headers: {
-                                    'Accept': 'application/json'
-                                }
-                            }).then(function (response) {
-                                if (!response.ok) {
-                                    throw new Error('OSM geocoding failed');
-                                }
+		        						function buildGoogleUserLink(lat, lng, label, placeId) {
+		        							var normalizedLabel = (label || address || '').replace(/\s+/g, ' ').trim();
+		        							if (placeId && normalizedLabel) {
+		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel) + '&query_place_id=' + encodeURIComponent(placeId);
+		        							}
+		        							if (normalizedLabel) {
+		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel);
+		        							}
+		        							if (hasValidCoordinates(lat, lng)) {
+		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
+		        							}
+		        							return 'https://www.google.com/maps';
+		        						}
+		        						function updateUserMapLink(lat, lng, label, placeId) {
+		        							var userMapLink = document.getElementById(mapLinkId);
+		        							if (userMapLink) {
+		        								userMapLink.href = buildGoogleUserLink(lat, lng, label, placeId);
+		        							}
+		        						}
+		        						function renderYandexMap(lat, lng) {
+		        							if (!hasValidCoordinates(lat, lng)) {
+		        								return;
+		        							}
+		        							updateUserMapLink(lat, lng, currentAddress, currentPlaceId);
+		        							var coordinates = [lat, lng];
+		        							var myMap = new ymaps.Map(mapId, {
+		        								center: coordinates,
+		        								zoom: 10
+		        							});
+		        							myMap.geoObjects.add(new ymaps.Placemark(coordinates, {
+		        								balloonContent: ''
+		        							}));
+		        							myMap.behaviors.disable(['drag', 'scrollZoom', 'dblClickZoom', 'multiTouch']);
+		        						}
 
-                                return response.json();
-                            }).then(function (results) {
-                                if (!Array.isArray(results) || results.length === 0) {
-                                    return;
-                                }
+		        						updateUserMapLink(initialLat, initialLng, currentAddress, currentPlaceId);
 
-                                var lat = parseFloat(results[0].lat);
-                                var lng = parseFloat(results[0].lon);
-                                if (isNaN(lat) || isNaN(lng)) {
-                                    return;
-                                }
+		        						setTimeout(function () {
+		        							if (hasValidCoordinates(initialLat, initialLng)) {
+		        								renderYandexMap(initialLat, initialLng);
+		        								return;
+		        							}
 
-                                var map = L.map(mapId).setView([lat, lng], 13);
-                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                    attribution: '',
-                                    maxZoom: 18
-                                }).addTo(map);
-                                L.marker([lat, lng]).addTo(map);
+		        							if (window.google && google.maps && typeof google.maps.Geocoder === 'function') {
+		        								var geocoder = new google.maps.Geocoder();
+		        								geocoder.geocode({ address: address }, function (results, status) {
+		        									if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+		        										var location = results[0].geometry.location;
+		        										var lat = location.lat();
+		        										var lng = location.lng();
+		        										currentAddress = results[0].formatted_address || currentAddress;
+		        										currentPlaceId = results[0].place_id || currentPlaceId;
+		        										updateUserMapLink(lat, lng, currentAddress, currentPlaceId);
+		        										renderYandexMap(lat, lng);
+		        										return;
+		        									}
 
-                                setTimeout(function () {
-                                    map.invalidateSize();
-                                }, 100);
-                            }).catch(function () {
-                                var mapContainer = document.getElementById(mapId);
-                                if (mapContainer) {
-                                    mapContainer.style.display = 'none';
-                                }
-                            });
-                        })();
-                    </script>
-		          <?php } ?>
-                </div>
-            </li>
-            <?php } ?>
+		        									var mapNode = document.getElementById(mapId);
+		        									if (mapNode) {
+		        										mapNode.style.display = 'none';
+		        									}
+		        								});
+		        								return;
+		        							}
+
+		        							var mapNode = document.getElementById(mapId);
+		        							if (mapNode) {
+		        								mapNode.style.display = 'none';
+		        							}
+		        						}, 1000);
+		        					})();
+						        <?php } ?>
+			        		</script>
+						<?php } else { ?>
+							<div id="user_osm_place_<?php echo($wo['user_profile']['user_id']) ?>" class="user-location-frame" style="width: 100%; height: 300px; padding: 0; margin: 0; border-radius: 12px; overflow: hidden; cursor: pointer;"></div>
+							<script type="text/javascript">
+								(function () {
+									var mapId = 'user_osm_place_<?php echo($wo['user_profile']['user_id']) ?>';
+									var mapLinkId = 'user_map_link_<?php echo($wo['user_profile']['user_id']) ?>';
+									var address = <?php echo json_encode($user_address_value); ?>;
+									var initialLat = <?php echo json_encode($user_has_coordinates ? $user_lat_value : null); ?>;
+									var initialLng = <?php echo json_encode($user_has_coordinates ? $user_lng_value : null); ?>;
+									var initialPlaceId = <?php echo json_encode($user_place_id_value); ?>;
+									var currentPlaceId = initialPlaceId;
+									var currentAddress = address;
+									var mapInstance = null;
+
+									if (!address || typeof L === 'undefined') {
+										return;
+									}
+
+									function hasValidCoordinates(lat, lng) {
+										return typeof lat === 'number' && typeof lng === 'number' && isFinite(lat) && isFinite(lng);
+									}
+
+									function buildGoogleUserLink(lat, lng, label, placeId) {
+										var normalizedLabel = (label || address || '').replace(/\s+/g, ' ').trim();
+										if (placeId && normalizedLabel) {
+											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel) + '&query_place_id=' + encodeURIComponent(placeId);
+										}
+										if (normalizedLabel) {
+											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel);
+										}
+										if (hasValidCoordinates(lat, lng)) {
+											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
+										}
+										return 'https://www.google.com/maps';
+									}
+									function updateUserMapLink(lat, lng, label, placeId) {
+										var userMapLink = document.getElementById(mapLinkId);
+										if (!userMapLink) {
+											return;
+										}
+										userMapLink.href = buildGoogleUserLink(lat, lng, label, placeId);
+									}
+									function renderMap(lat, lng) {
+										if (!hasValidCoordinates(lat, lng)) {
+											return;
+										}
+										updateUserMapLink(lat, lng, currentAddress, currentPlaceId);
+
+										if (mapInstance) {
+											mapInstance.remove();
+										}
+
+										mapInstance = L.map(mapId, {
+											zoomControl: false,
+											scrollWheelZoom: false,
+											dragging: false,
+											doubleClickZoom: false,
+											boxZoom: false,
+											keyboard: false,
+											tap: false,
+											touchZoom: false
+										}).setView([lat, lng], 13);
+										var tileConfig = window.WoLeafletMutedMapConfig || {
+											tileUrl: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+											tileOptions: {
+												attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+												subdomains: 'abcd',
+												maxZoom: 20
+											}
+										};
+										L.tileLayer(tileConfig.tileUrl, $.extend({
+											attribution: '',
+											maxZoom: 18
+										}, tileConfig.tileOptions || {})).addTo(mapInstance);
+										L.marker([lat, lng]).addTo(mapInstance);
+
+										setTimeout(function () {
+											mapInstance.invalidateSize();
+										}, 100);
+									}
+									updateUserMapLink(initialLat, initialLng, currentAddress, currentPlaceId);
+
+									if (hasValidCoordinates(initialLat, initialLng)) {
+										renderMap(initialLat, initialLng);
+										return;
+									}
+
+									if (window.google && google.maps && typeof google.maps.Geocoder === 'function') {
+										var geocoder = new google.maps.Geocoder();
+										geocoder.geocode({ address: address }, function (results, status) {
+											if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+												var location = results[0].geometry.location;
+												var lat = location.lat();
+												var lng = location.lng();
+												currentAddress = results[0].formatted_address || currentAddress;
+												currentPlaceId = results[0].place_id || currentPlaceId;
+												updateUserMapLink(lat, lng, currentAddress, currentPlaceId);
+												renderMap(lat, lng);
+												return;
+											}
+
+											var mapContainer = document.getElementById(mapId);
+											if (mapContainer) {
+												mapContainer.style.display = 'none';
+											}
+										});
+										return;
+									}
+
+									var mapContainer = document.getElementById(mapId);
+									if (mapContainer) {
+										mapContainer.style.display = 'none';
+									}
+								})();
+							</script>
+						<?php } ?>
+						</a>
+					</div>
+				</li>
+			<?php } ?>
 
 			<?php if(!empty($wo['user_profile']['facebook']) || !empty($wo['user_profile']['twitter']) || !empty($wo['user_profile']['linkedin']) || !empty($wo['user_profile']['vk']) || !empty($wo['user_profile']['youtube'])) { ?>
 				<li class="list-group-item text-muted" contenteditable="false">
