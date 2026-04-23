@@ -396,6 +396,10 @@ function Wo_ToggleMobileHeaderSearch(event) {
     return;
   }
 
+  if (!$('#wo_home_search').is(':visible')) {
+    $('.dropdown.open').removeClass('open');
+  }
+
   $('#wo_home_search').toggle();
 
   if ($('#wo_home_search').is(':visible')) {
@@ -412,6 +416,10 @@ function Wo_BindHeaderSearchClose() {
     if ($(event.target).closest('#wo_home_search, .wow_new_search_bbtn').length === 0) {
       Wo_CloseMobileHeaderSearch();
     }
+  });
+
+  $(document).on('show.bs.dropdown', '.dropdown', function () {
+    Wo_CloseMobileHeaderSearch();
   });
 
   $(document).on('click.woHeaderSearch touchstart.woHeaderSearch', '#wo_home_search, #wo_home_search .search-container, #wo_home_search .dropdown-menu, #wo_home_search .search-input, #wo_home_search #navbar-searchbox, .wow_new_search_bbtn', function(event) {
