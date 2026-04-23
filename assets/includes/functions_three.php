@@ -6905,15 +6905,15 @@ function Wo_GetNearbyUsers($args = array())
 	$distance     = 25;
 	$data         = array();
 	$sub_sql      = "";
+	$follow_sql   = "";
+	$distance_sql = "";
+	$has_name_filter = false;
 	if ($loc_distance && is_numeric($loc_distance) && $loc_distance > 0) {
 		$distance = $loc_distance;
 	}
 	if ($name) {
-		$distance = 20000; // Increase range to "global" when searching by name
-	}
-	if ($name) {
-		$name = Wo_Secure($name);
-		$sub_sql .= " AND (`username` LIKE '%$name%' OR `first_name` LIKE '%$name%' OR `last_name` LIKE '%$name%' OR `address` LIKE '%$name%' OR CONCAT(`first_name`, ' ', `last_name`) LIKE '%$name%') ";
+		$has_name_filter = true;
+		$sub_sql .= Wo_GetNearbyUsersNameFilterSql($name);
 	}
 	if (isset($status) && $status != false) {
 		if ($status == 1) {
@@ -6933,13 +6933,20 @@ function Wo_GetNearbyUsers($args = array())
 	if ($gender && in_array($gender, array_keys($wo['genders']))) {
 		$sub_sql .= " AND `gender` = '$gender' ";
 	}
+	if (!$has_name_filter) {
+		$follow_sql = "
+    AND `user_id` NOT IN (SELECT `follower_id` FROM $t_followers WHERE `follower_id` <> {$user} AND `following_id` = {$user} AND `active` = '1')
+    AND `user_id` NOT IN (SELECT `following_id` FROM $t_followers WHERE `follower_id` = {$user} AND `following_id` <> {$user} AND `active` = '1')";
+		$distance_sql = " HAVING distance < '$distance'";
+	}
 	$sql   = "
     SELECT `user_id`, ( {$unit} * acos(cos(radians('$user_lat'))  *
     cos(radians(lat)) * cos(radians(lng) - radians('$user_lng')) +
     sin(radians('$user_lat')) * sin(radians(lat ))) ) AS distance
-    FROM $t_users WHERE `user_id` <> '$user' {$sub_sql}
+    FROM $t_users WHERE `user_id` <> '$user'   {$sub_sql}
     AND `lat` <> 0 AND `lng` <> 0
-    HAVING distance < '$distance' ORDER BY distance ASC LIMIT 0, $limit ";
+    {$follow_sql}
+    {$distance_sql} ORDER BY `user_id` DESC LIMIT 0, $limit ";
 	$query = mysqli_query($sqlConnect, $sql);
 	if (mysqli_num_rows($query)) {
 		while ($fetched_data = mysqli_fetch_assoc($query)) {
@@ -6952,6 +6959,27 @@ function Wo_GetNearbyUsers($args = array())
 		}
 	}
 	return $data;
+}
+function Wo_GetNearbyUsersNameFilterSql($name = '')
+{
+	$name = trim($name);
+	if ($name === '') {
+		return '';
+	}
+
+	$name = preg_replace('/\s+/', ' ', $name);
+	$name = Wo_Secure($name);
+	$name_without_spaces = Wo_Secure(str_replace(' ', '', $name));
+
+	return " AND (
+		`username` LIKE '%$name%' OR
+		`first_name` LIKE '%$name%' OR
+		`last_name` LIKE '%$name%' OR
+		CONCAT_WS(' ', TRIM(`first_name`), TRIM(`last_name`)) LIKE '%$name%' OR
+		CONCAT_WS(' ', TRIM(`last_name`), TRIM(`first_name`)) LIKE '%$name%' OR
+		REPLACE(CONCAT_WS('', TRIM(`first_name`), TRIM(`last_name`)), ' ', '') LIKE '%$name_without_spaces%' OR
+		REPLACE(CONCAT_WS('', TRIM(`last_name`), TRIM(`first_name`)), ' ', '') LIKE '%$name_without_spaces%'
+	) ";
 }
 function Wo_GetNearbyUsersCount($args = array())
 {
@@ -6985,19 +7013,15 @@ function Wo_GetNearbyUsersCount($args = array())
 	$distance     = 25;
 	$data         = array();
 	$sub_sql      = "";
+	$follow_sql   = "";
+	$distance_sql = "";
+	$has_name_filter = false;
 	if ($loc_distance && is_numeric($loc_distance) && $loc_distance > 0) {
 		$distance = $loc_distance;
 	}
 	if ($name) {
-		$name = Wo_Secure($name);
-		$sub_sql .= " AND (`username` LIKE '%$name%' OR `first_name` LIKE '%$name%' OR `last_name` LIKE '%$name%' OR `address` LIKE '%$name%' OR CONCAT(`first_name`, ' ', `last_name`) LIKE '%$name%') ";
-	}
-	$distance = 25;
-	if ($loc_distance && is_numeric($loc_distance) && $loc_distance > 0) {
-		$distance = $loc_distance;
-	}
-	if ($name) {
-		$distance = 20000;
+		$has_name_filter = true;
+		$sub_sql .= Wo_GetNearbyUsersNameFilterSql($name);
 	}
 	if (isset($status) && $status != false) {
 		if ($status == 1) {
@@ -7017,13 +7041,20 @@ function Wo_GetNearbyUsersCount($args = array())
 	if ($gender && in_array($gender, array_keys($wo['genders']))) {
 		$sub_sql .= " AND `gender` = '$gender' ";
 	}
+	if (!$has_name_filter) {
+		$follow_sql = "
+    AND `user_id` NOT IN (SELECT `follower_id` FROM $t_followers WHERE `follower_id` <> {$user} AND `following_id` = {$user} AND `active` = '1')
+    AND `user_id` NOT IN (SELECT `following_id` FROM $t_followers WHERE `follower_id` = {$user} AND `following_id` <> {$user} AND `active` = '1')";
+		$distance_sql = " HAVING distance < '$distance'";
+	}
 	$sql   = "
     SELECT COUNT(user_id), ( {$unit} * acos(cos(radians('$user_lat'))  *
     cos(radians(lat)) * cos(radians(lng) - radians('$user_lng')) +
     sin(radians('$user_lat')) * sin(radians(lat ))) ) AS distance
-    FROM $t_users WHERE `user_id` <> '$user' {$sub_sql}
+    FROM $t_users WHERE `user_id` <> '$user'   {$sub_sql}
     AND `lat` <> 0 AND `lng` <> 0
-    HAVING distance < '$distance' ORDER BY distance ASC ";
+    {$follow_sql} GROUP BY user_id
+    {$distance_sql} ORDER BY `user_id` DESC ";
 	$query = mysqli_query($sqlConnect, $sql);
 	return mysqli_num_rows($query);
 }

@@ -298,7 +298,7 @@
          var websiteUrl = "<?php echo $wo['config']['site_url'];?>";
          $(function() {
             <?php if ($wo['loggedin'] == true && $wo['config']['find_friends'] == 1) {?>
-              <?php if ($wo['user']['last_location_update'] < time()): ?>
+              <?php if ($wo['user']['last_location_update'] < time() || $wo['user']['last_location_update'] > strtotime('+6 hours')): ?>
                 if (navigator.geolocation) {
                   var location = navigator.geolocation.getCurrentPosition(Wo_UpdateLocation);
                 }

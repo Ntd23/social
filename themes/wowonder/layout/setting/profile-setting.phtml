@@ -31,11 +31,11 @@
 			<textarea id="about" name="about" rows="4"><?php echo $text;?></textarea>
 		</div>
 		<div class="wow_form_fields profile_location_field">
-			<label for="location"><?php echo $wo['lang']['location']; ?></label>
-			<div id="location-autocomplete-host" class="wo_place_autocomplete_host"></div>
-			<input id="location" name="address" type="hidden" value="<?php echo $wo['setting']['address'];?>">
-			<input type="hidden" name="lat" id="lat-profile" value="<?php echo htmlspecialchars($wo['setting']['lat']); ?>">
-			<input type="hidden" name="lng" id="lng-profile" value="<?php echo htmlspecialchars($wo['setting']['lng']); ?>">
+			<label for="profile_location_input"><?php echo $wo['lang']['location']; ?></label>  
+			<input id="profile_location_input" name="profile_location_search" type="search" autocomplete="nope" autocorrect="off" autocapitalize="off" spellcheck="false" role="presentation" aria-autocomplete="list" value="<?php echo $wo['setting']['address'];?>">
+			<input id="profile_address_value" name="address" type="hidden" value="<?php echo $wo['setting']['address'];?>">
+			<input id="profile_lat_value" name="lat" type="hidden" value="<?php echo (!empty($wo['setting']['lat'])) ? htmlspecialchars($wo['setting']['lat']) : ''; ?>">
+			<input id="profile_lng_value" name="lng" type="hidden" value="<?php echo (!empty($wo['setting']['lng'])) ? htmlspecialchars($wo['setting']['lng']) : ''; ?>">
 			<div class="product_location_suggestions profile_location_suggestions"></div>
 		</div>
 		<div class="wow_form_fields mb-0">
@@ -215,18 +215,11 @@ function Wo_RelationshipSearch(name = ''){
 }
 
 $(function() {
-  $(document).on('click', '.select_relationship_user', function(event) {
-    event.preventDefault();
-    var user_data     = relationship_users[$(this).attr('data-id')];
-    $("#relationship_user_id").val(user_data.user_id);
-    $(".choose_rel_ship_meta").find('h4').text(user_data.name);
-    $(".choose_rel_ship_meta").find('p').html(user_data.lastseen);
-    $(".choose_rel_ship_avatar").html('<img src="'+user_data.avatar+'" alt="Picture">');
-    $("#select_relationship_with").removeClass('open').find('ul').empty();
-  });
-
-  $('form.setting-profile-form').ajaxForm({
+  var woProfileFormOptions = {
     url: Wo_Ajax_Requests_File() + '?f=update_profile_setting',
+    beforeSubmit: function(arr, $form) {
+      return Wo_PrepareProfileLocationForSubmit($form);
+    },
     beforeSend: function() {
       $('.wo_settings_page').find('.add_wow_loader').addClass('btn-loading');
     },
@@ -257,7 +250,20 @@ $(function() {
       }
       $('.wo_settings_page').find('.add_wow_loader').removeClass('btn-loading');
     }
+  };
+
+  $(document).on('click', '.select_relationship_user', function(event) {
+    event.preventDefault();
+    var user_data     = relationship_users[$(this).attr('data-id')];
+    $("#relationship_user_id").val(user_data.user_id);
+    $(".choose_rel_ship_meta").find('h4').text(user_data.name);
+    $(".choose_rel_ship_meta").find('p').html(user_data.lastseen);
+    $(".choose_rel_ship_avatar").html('<img src="'+user_data.avatar+'" alt="Picture">');
+    $("#select_relationship_with").removeClass('open').find('ul').empty();
   });
+
+  window.woProfileFormOptions = woProfileFormOptions;
+  $('form.setting-profile-form').ajaxForm(woProfileFormOptions);
 });
 
 // --- Profile Location Autocomplete (Google Maps) ---
@@ -363,8 +369,82 @@ function Wo_SearchProfileLocationSuggestions(val) {
 		});
 	}
 }
+function Wo_SetProfileLocationCoordinates(lat, lng) {
+	$('#profile_lat_value').val(lat || '');
+	$('#profile_lng_value').val(lng || '');
+}
+function Wo_ClearProfileLocationCoordinates(resetToZero) {
+	Wo_SetProfileLocationCoordinates(resetToZero ? '0' : '', resetToZero ? '0' : '');
+}
+function Wo_GetProfileLocationCoordinateValues() {
+	return {
+		lat: $.trim($('#profile_lat_value').val()),
+		lng: $.trim($('#profile_lng_value').val())
+	};
+}
+function Wo_GetProfileLocationFirstCoordinates(locationValue) {
+	return fetch(Wo_GetProfileLocationSearchUrl(locationValue, 1), {
+		headers: { 'Accept': 'application/json' }
+	}).then(function(r) {
+		if (!r.ok) {
+			throw new Error('Profile location geocode request failed');
+		}
+		return r.json();
+	}).then(function(results) {
+		if (!Array.isArray(results) || results.length === 0) {
+			return null;
+		}
 
-function Wo_RenderProfileLocationSuggestions(items) {
+		var firstItem = results[0] || {};
+		var lat = parseFloat(firstItem.lat);
+		var lng = parseFloat(firstItem.lon || firstItem.lng);
+		if (isNaN(lat) || isNaN(lng)) {
+			return null;
+		}
+
+		return {
+			lat: String(lat),
+			lng: String(lng)
+		};
+	});
+}
+var woProfileLocationGeocodeInFlight = false;
+function Wo_PrepareProfileLocationForSubmit($form) {
+	var locationValue = $.trim($('#profile_location_input').val());
+	var coordinateValues = Wo_GetProfileLocationCoordinateValues();
+
+	$('#profile_address_value').val(locationValue);
+
+	if (!locationValue) {
+		Wo_ClearProfileLocationCoordinates(true);
+		return true;
+	}
+
+	if (coordinateValues.lat !== '' && coordinateValues.lng !== '') {
+		return true;
+	}
+
+	if (woProfileLocationGeocodeInFlight) {
+		return false;
+	}
+
+	woProfileLocationGeocodeInFlight = true;
+	Wo_GetProfileLocationFirstCoordinates(locationValue).then(function(coords) {
+		if (coords) {
+			Wo_SetProfileLocationCoordinates(coords.lat, coords.lng);
+		} else {
+			Wo_ClearProfileLocationCoordinates(true);
+		}
+	}).catch(function() {
+		Wo_ClearProfileLocationCoordinates(true);
+	}).then(function() {
+		woProfileLocationGeocodeInFlight = false;
+		$form.ajaxSubmit(window.woProfileFormOptions);
+	});
+
+	return false;
+}
+function Wo_RenderProfileLocationSuggestions(items, queryValue) {
 	var box = $('.profile_location_suggestions');
 	if (!items || items.length === 0) {
 		box.empty().hide();
@@ -372,7 +452,11 @@ function Wo_RenderProfileLocationSuggestions(items) {
 	}
 	var html = '';
 	items.forEach(function(item) {
-		html += '<p class="pointer profile_loc_suggestion_item" data-place-id="'+item.place_id+'" data-name="'+escapeHtml(item.name)+'">'+escapeHtml(item.name)+'</p>';
+		var dn = Wo_GetProfileLocationText(item, queryValue);
+		var ndn = Wo_NormalizeProfileLocationPart(dn);
+		if (!dn || seen[ndn]) return;
+		seen[ndn] = true;
+		html += '<p class="pointer product_location_suggestion_item profile_location_suggestion_item" data-location="' + escapeHtml(dn) + '" data-lat="' + escapeHtml(String(item.lat || '')) + '" data-lng="' + escapeHtml(String(item.lon || item.lng || '')) + '">' + escapeHtml(dn) + '</p>';
 	});
 	box.html(html).show();
 }
@@ -486,14 +570,32 @@ async function Wo_InitGoogleProfileAutocomplete() {
 }
 
 $(function() {
-	Wo_InitGoogleProfileAutocomplete();
-	$(document).on('mousedown ontouchstart', '.profile_loc_suggestion_item', function(e) {
+	var woProfileLocTimer = null;
+	$('#profile_location_input').on('input', function() {
+		clearTimeout(woProfileLocTimer);
+		var val = $(this).val().trim();
+		$('#profile_address_value').val(val);
+		Wo_ClearProfileLocationCoordinates(false);
+		woProfileLocTimer = setTimeout(function() {
+			Wo_SearchProfileLocationSuggestions(val);
+		}, 250);
+	});
+	$('#profile_location_input').on('change blur', function() {
+		var locationValue = $(this).val().trim();
+		$('#profile_address_value').val(locationValue);
+		if (!locationValue) {
+			Wo_ClearProfileLocationCoordinates(false);
+		}
+		setTimeout(function() { Wo_RenderProfileLocationSuggestions([]); }, 150);
+	});
+	$(document).on('mousedown', '.profile_location_suggestion_item', function(e) {
 		e.preventDefault();
-		var pid = $(this).attr('data-place-id');
-		var name = $(this).attr('data-name');
-		Wo_WriteProfileLocationValue(name);
-		var inlineInput = document.querySelector('.wo_product_location_inline_input');
-		if (inlineInput) inlineInput.value = name;
+		var loc = $(this).attr('data-location') || '';
+		var lat = $(this).attr('data-lat') || '';
+		var lng = $(this).attr('data-lng') || '';
+		$('#profile_location_input').val(loc);
+		$('#profile_address_value').val(loc);
+		Wo_SetProfileLocationCoordinates(lat, lng);
 		Wo_RenderProfileLocationSuggestions([]);
 		Wo_GeocodeProfilePlaceId(pid);
 	});
