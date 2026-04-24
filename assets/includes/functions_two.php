@@ -3725,6 +3725,7 @@ function Wo_IsNameExist($username, $active = 0) {
         "chart-ads",
         "manage-ads",
         "create-status",
+        "explore-nearby",
         "friends-nearby",
         "more-status"
     );

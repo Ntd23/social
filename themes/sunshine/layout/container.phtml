@@ -331,6 +331,7 @@
                window.post = 0;
                var url = $(this).attr('data-ajax');
                e.preventDefault();
+               var $clicked_link = $(this);
                if (!ISAPI) {
                  if (url == '?index.php?link1=home') {
                     $get_value = $('#json-data').val();
@@ -357,7 +358,21 @@
                  $.post(Wo_Ajax_Requests_Filee() + url, {url:url}, function (data) {
 
                      $('.user-details').remove();
-                     json_data = JSON.parse($(data).filter('#json-data').val());
+                     var $response_root = $(data);
+                     var $json_node = $response_root.filter('#json-data').first();
+                     if ($json_node.length === 0) {
+                         $json_node = $response_root.find('#json-data').first();
+                     }
+                     if ($json_node.length === 0 || !$json_node.val()) {
+                         window.location.href = $clicked_link.attr('href');
+                         return false;
+                     }
+                     try {
+                         json_data = JSON.parse($json_node.val());
+                     } catch (error) {
+                         window.location.href = $clicked_link.attr('href');
+                         return false;
+                     }
                      if (json_data.welcome_page == 1 || json_data.redirect == 1) {
                          window.location.href = websiteUrl;
                          return false;
