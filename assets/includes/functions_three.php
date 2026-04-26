@@ -6873,6 +6873,38 @@ function Wo_GetUserCountryName($user_data = array())
 	}
 	return $user_from;
 }
+function Wo_IsNearbyCoordinateValid($lat, $lng)
+{
+	return is_numeric($lat) && is_numeric($lng) &&
+		(float) $lat >= -90 && (float) $lat <= 90 &&
+		(float) $lng >= -180 && (float) $lng <= 180 &&
+		!((float) $lat == 0.0 && (float) $lng == 0.0);
+}
+function Wo_GetNearbySearchCenter($args = array())
+{
+	global $wo;
+	$center = array(
+		'lat' => isset($wo['user']['lat']) ? (float) $wo['user']['lat'] : 0,
+		'lng' => isset($wo['user']['lng']) ? (float) $wo['user']['lng'] : 0,
+		'is_override' => false
+	);
+
+	if (empty($args) || empty($args['search_mode']) || $args['search_mode'] !== 'location') {
+		return $center;
+	}
+
+	$override_lat = isset($args['center_lat']) ? (float) $args['center_lat'] : 0;
+	$override_lng = isset($args['center_lng']) ? (float) $args['center_lng'] : 0;
+	if (!Wo_IsNearbyCoordinateValid($override_lat, $override_lng)) {
+		return $center;
+	}
+
+	$center['lat'] = $override_lat;
+	$center['lng'] = $override_lng;
+	$center['is_override'] = true;
+
+	return $center;
+}
 function Wo_GetNearbyUsers($args = array())
 {
 	global $wo, $sqlConnect;
@@ -6886,19 +6918,23 @@ function Wo_GetNearbyUsers($args = array())
 		"distance" => false,
 		"relship" => false,
 		"status" => false,
+		"search_mode" => false,
+		"center_lat" => false,
+		"center_lng" => false,
 		"limit" => 20
 	);
 	$args         = array_merge($options, $args);
 	$offset       = Wo_Secure($args['offset']);
 	$gender       = Wo_Secure($args['gender']);
-	$name         = Wo_Secure($args['name']);
+	$name         = trim((string) $args['name']);
 	$loc_distance = Wo_Secure($args['distance']);
 	$status       = Wo_Secure($args['status']);
 	$relship      = Wo_Secure($args['relship']);
 	$limit        = Wo_Secure($args['limit']);
 	$unit         = 6371;
-	$user_lat     = $wo['user']['lat'];
-	$user_lng     = $wo['user']['lng'];
+	$search_center = Wo_GetNearbySearchCenter($args);
+	$user_lat     = $search_center['lat'];
+	$user_lng     = $search_center['lng'];
 	$user         = $wo['user']['id'];
 	$t_users      = T_USERS;
 	$t_followers  = T_FOLLOWERS;
@@ -6932,6 +6968,9 @@ function Wo_GetNearbyUsers($args = array())
 	}
 	if ($gender && in_array($gender, array_keys($wo['genders']))) {
 		$sub_sql .= " AND `gender` = '$gender' ";
+	}
+	if (!$has_name_filter && !Wo_IsNearbyCoordinateValid($user_lat, $user_lng)) {
+		return $data;
 	}
 	if (!$has_name_filter) {
 		$follow_sql = "
@@ -6968,18 +7007,55 @@ function Wo_GetNearbyUsersNameFilterSql($name = '')
 	}
 
 	$name = preg_replace('/\s+/', ' ', $name);
+	$search_terms = array_unique(array_filter(explode(' ', $name)));
 	$name = Wo_Secure($name);
 	$name_without_spaces = Wo_Secure(str_replace(' ', '', $name));
+	$fields = array(
+		'`username`',
+		'`first_name`',
+		'`last_name`',
+		'`address`'
+	);
+	$clauses = array();
 
-	return " AND (
-		`username` LIKE '%$name%' OR
-		`first_name` LIKE '%$name%' OR
-		`last_name` LIKE '%$name%' OR
-		CONCAT_WS(' ', TRIM(`first_name`), TRIM(`last_name`)) LIKE '%$name%' OR
-		CONCAT_WS(' ', TRIM(`last_name`), TRIM(`first_name`)) LIKE '%$name%' OR
-		REPLACE(CONCAT_WS('', TRIM(`first_name`), TRIM(`last_name`)), ' ', '') LIKE '%$name_without_spaces%' OR
-		REPLACE(CONCAT_WS('', TRIM(`last_name`), TRIM(`first_name`)), ' ', '') LIKE '%$name_without_spaces%'
-	) ";
+	foreach ($fields as $field) {
+		$clauses[] = Wo_GetNearbySearchLikeClause($field, $name);
+	}
+
+	$clauses[] = Wo_GetNearbySearchLikeClause("CONCAT_WS(' ', TRIM(`first_name`), TRIM(`last_name`))", $name);
+	$clauses[] = Wo_GetNearbySearchLikeClause("CONCAT_WS(' ', TRIM(`last_name`), TRIM(`first_name`))", $name);
+	$clauses[] = Wo_GetNearbySearchLikeClause("REPLACE(CONCAT_WS('', TRIM(`first_name`), TRIM(`last_name`)), ' ', '')", $name_without_spaces);
+	$clauses[] = Wo_GetNearbySearchLikeClause("REPLACE(CONCAT_WS('', TRIM(`last_name`), TRIM(`first_name`)), ' ', '')", $name_without_spaces);
+
+	if (count($search_terms) > 1) {
+		$term_groups = array();
+		foreach (array_slice($search_terms, 0, 6) as $term) {
+			$term = Wo_Secure($term);
+			$term_clauses = array();
+			foreach ($fields as $field) {
+				$term_clauses[] = Wo_GetNearbySearchLikeClause($field, $term);
+			}
+			$term_clauses[] = Wo_GetNearbySearchLikeClause("CONCAT_WS(' ', TRIM(`first_name`), TRIM(`last_name`))", $term);
+			$term_clauses[] = Wo_GetNearbySearchLikeClause("CONCAT_WS(' ', TRIM(`last_name`), TRIM(`first_name`))", $term);
+			$term_groups[] = '(' . implode(' OR ', $term_clauses) . ')';
+		}
+		if (!empty($term_groups)) {
+			$clauses[] = '(' . implode(' AND ', $term_groups) . ')';
+		}
+	}
+
+	return " AND (" . implode("\n\t\tOR ", $clauses) . "\n\t) ";
+}
+function Wo_GetNearbySearchLikeClause($field, $value = '')
+{
+	$value = trim((string) $value);
+	if ($value === '') {
+		return '1 = 0';
+	}
+
+	$value = Wo_Secure($value);
+
+	return "CONVERT($field USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE '%$value%'";
 }
 function Wo_GetNearbyUsersCount($args = array())
 {
@@ -6994,19 +7070,23 @@ function Wo_GetNearbyUsersCount($args = array())
 		"distance" => false,
 		"relship" => false,
 		"status" => false,
+		"search_mode" => false,
+		"center_lat" => false,
+		"center_lng" => false,
 		"limit" => 20
 	);
 	$args         = array_merge($options, $args);
 	$offset       = Wo_Secure($args['offset']);
 	$gender       = Wo_Secure($args['gender']);
-	$name         = Wo_Secure($args['name']);
+	$name         = trim((string) $args['name']);
 	$loc_distance = Wo_Secure($args['distance']);
 	$status       = Wo_Secure($args['status']);
 	$relship      = Wo_Secure($args['relship']);
 	$limit        = Wo_Secure($args['limit']);
 	$unit         = 6371;
-	$user_lat     = $wo['user']['lat'];
-	$user_lng     = $wo['user']['lng'];
+	$search_center = Wo_GetNearbySearchCenter($args);
+	$user_lat     = $search_center['lat'];
+	$user_lng     = $search_center['lng'];
 	$user         = $wo['user']['id'];
 	$t_users      = T_USERS;
 	$t_followers  = T_FOLLOWERS;
@@ -7040,6 +7120,9 @@ function Wo_GetNearbyUsersCount($args = array())
 	}
 	if ($gender && in_array($gender, array_keys($wo['genders']))) {
 		$sub_sql .= " AND `gender` = '$gender' ";
+	}
+	if (!$has_name_filter && !Wo_IsNearbyCoordinateValid($user_lat, $user_lng)) {
+		return 0;
 	}
 	if (!$has_name_filter) {
 		$follow_sql = "
@@ -8282,23 +8365,29 @@ function Wo_GetNearbyShops($args = array())
 		"distance" => false,
 		"relship" => false,
 		"status" => false,
+		"search_mode" => false,
+		"center_lat" => false,
+		"center_lng" => false,
 		"limit" => 20
 	);
 	$args         = array_merge($options, $args);
 	$offset       = Wo_Secure($args['offset']);
-	$name         = Wo_Secure($args['name']);
+	$name         = trim((string) $args['name']);
 	$loc_distance = Wo_Secure($args['distance']);
 	$limit        = Wo_Secure($args['limit']);
 	$unit         = 6371;
-	$user_lat     = $wo['user']['lat'];
-	$user_lng     = $wo['user']['lng'];
+	$search_center = Wo_GetNearbySearchCenter($args);
+	$user_lat     = $search_center['lat'];
+	$user_lng     = $search_center['lng'];
 	$distance     = 100;
 	$use_distance_filter = true;
 	$data         = array();
+	$pages_data   = array();
 	$search_sql   = "";
 	$offset_sql   = "";
+	$page_offset_sql = "";
 
-	if (!is_numeric($user_lat) || !is_numeric($user_lng)) {
+	if (empty($name) && !Wo_IsNearbyCoordinateValid($user_lat, $user_lng)) {
 		return $data;
 	}
 	if ($loc_distance && is_numeric($loc_distance) && $loc_distance > 0) {
@@ -8308,19 +8397,11 @@ function Wo_GetNearbyShops($args = array())
 		$use_distance_filter = false;
 	}
 	if ($name) {
-		$name     = Wo_Secure($name);
-		$search_sql = " AND (
-			prod.`name` LIKE '%$name%' OR
-			prod.`description` LIKE '%$name%' OR
-			prod.`location` LIKE '%$name%' OR
-			page.`page_name` LIKE '%$name%' OR
-			page.`page_title` LIKE '%$name%' OR
-			page.`page_description` LIKE '%$name%' OR
-			page.`address` LIKE '%$name%'
-		) ";
+		$search_sql = Wo_GetNearbyShopsSearchSql($name);
 	}
 	if ($offset && is_numeric($offset) && $offset > 0) {
 		$offset_sql = " AND post.`page_id` < '$offset' AND post.`page_id` <> '$offset' ";
+		$page_offset_sql = " AND page.`page_id` < '$offset' AND page.`page_id` <> '$offset' ";
 	}
 
 	$sql = "
@@ -8345,7 +8426,6 @@ function Wo_GetNearbyShops($args = array())
 	LIMIT 500";
 	$query = mysqli_query($sqlConnect, $sql);
 	if ($query && mysqli_num_rows($query)) {
-		$pages_data = array();
 		while ($fetched_data = mysqli_fetch_assoc($query)) {
 			$lat = (float) ($fetched_data['lat'] ?? 0);
 			$lng = (float) ($fetched_data['lng'] ?? 0);
@@ -8387,7 +8467,133 @@ function Wo_GetNearbyShops($args = array())
 			$data = array_slice($data, 0, $limit);
 		}
 	}
+
+	if (!empty($name)) {
+		$page_search_sql = Wo_GetNearbyShopPageSearchSql($name, 'page');
+		$page_search_query = "
+		SELECT
+			page.`page_id`
+		FROM " . T_PAGES . " AS page
+		WHERE page.`active` = '1'
+			{$page_offset_sql}
+			{$page_search_sql}
+		ORDER BY page.`page_id` DESC
+		LIMIT 200";
+		$page_search = mysqli_query($sqlConnect, $page_search_query);
+		if ($page_search && mysqli_num_rows($page_search)) {
+			while ($page_row = mysqli_fetch_assoc($page_search)) {
+				$page_id = (int) $page_row['page_id'];
+				if ($page_id < 1 || isset($pages_data[$page_id])) {
+					continue;
+				}
+				$page_data = Wo_PageData($page_id);
+				if (empty($page_data)) {
+					continue;
+				}
+				$pages_data[$page_id] = array(
+					'id' => 0,
+					'page_id' => $page_id,
+					'product_id' => 0,
+					'lat' => 0,
+					'lng' => 0,
+					'distance_value' => null,
+					'distance' => '',
+					'page_data' => $page_data,
+					'product' => array(
+						'lat' => 0,
+						'lng' => 0,
+						'location' => !empty($page_data['address']) ? $page_data['address'] : ''
+					)
+				);
+			}
+			$data = array_values($pages_data);
+			if (count($data) > $limit) {
+				$data = array_slice($data, 0, $limit);
+			}
+		}
+	}
 	return $data;
+}
+function Wo_GetNearbyShopsSearchSql($name = '')
+{
+	$name = trim($name);
+	if ($name === '') {
+		return '';
+	}
+
+	$name = preg_replace('/\s+/', ' ', $name);
+	$search_terms = array_unique(array_filter(explode(' ', $name)));
+	$name = Wo_Secure($name);
+	$fields = array(
+		"prod.`name`",
+		"prod.`location`",
+		"page.`page_name`",
+		"page.`page_title`",
+		"page.`address`"
+	);
+	$clauses = array();
+
+	foreach ($fields as $field) {
+		$clauses[] = Wo_GetNearbySearchLikeClause($field, $name);
+	}
+
+	if (count($search_terms) > 1) {
+		$term_groups = array();
+		foreach (array_slice($search_terms, 0, 6) as $term) {
+			$term = Wo_Secure($term);
+			$term_clauses = array();
+			foreach ($fields as $field) {
+				$term_clauses[] = Wo_GetNearbySearchLikeClause($field, $term);
+			}
+			$term_groups[] = '(' . implode(' OR ', $term_clauses) . ')';
+		}
+		if (!empty($term_groups)) {
+			$clauses[] = '(' . implode(' AND ', $term_groups) . ')';
+		}
+	}
+
+	return " AND (" . implode("\n\t\t\tOR ", $clauses) . "\n\t\t) ";
+}
+function Wo_GetNearbyShopPageSearchSql($name = '', $page_alias = 'page')
+{
+	$name = trim($name);
+	if ($name === '') {
+		return '';
+	}
+
+	$page_alias = preg_replace('/[^A-Za-z0-9_]/', '', $page_alias);
+	if ($page_alias === '') {
+		$page_alias = 'page';
+	}
+
+	$name = preg_replace('/\s+/', ' ', $name);
+	$search_terms = array_unique(array_filter(explode(' ', $name)));
+	$fields = array(
+		"`{$page_alias}`.`page_name`",
+		"`{$page_alias}`.`page_title`",
+		"`{$page_alias}`.`address`"
+	);
+	$clauses = array();
+
+	foreach ($fields as $field) {
+		$clauses[] = Wo_GetNearbySearchLikeClause($field, $name);
+	}
+
+	if (count($search_terms) > 1) {
+		$term_groups = array();
+		foreach (array_slice($search_terms, 0, 6) as $term) {
+			$term_clauses = array();
+			foreach ($fields as $field) {
+				$term_clauses[] = Wo_GetNearbySearchLikeClause($field, $term);
+			}
+			$term_groups[] = '(' . implode(' OR ', $term_clauses) . ')';
+		}
+		if (!empty($term_groups)) {
+			$clauses[] = '(' . implode(' AND ', $term_groups) . ')';
+		}
+	}
+
+	return " AND (" . implode("\n\t\t\tOR ", $clauses) . "\n\t\t) ";
 }
 function Wo_GetNearbyShopsCount($args = array())
 {
@@ -8397,48 +8603,39 @@ function Wo_GetNearbyShopsCount($args = array())
 	}
 	$options      = array(
 		"name" => false,
-		"distance" => false
+		"distance" => false,
+		"search_mode" => false,
+		"center_lat" => false,
+		"center_lng" => false
 	);
 	$args         = array_merge($options, $args);
-	$name         = Wo_Secure($args['name']);
+	$name         = trim((string) $args['name']);
 	$loc_distance = Wo_Secure($args['distance']);
 	$unit         = 6371;
-	$user_lat     = $wo['user']['lat'];
-	$user_lng     = $wo['user']['lng'];
+	$search_center = Wo_GetNearbySearchCenter($args);
+	$user_lat     = $search_center['lat'];
+	$user_lng     = $search_center['lng'];
 	$distance     = 100;
 	$search_sql   = "";
+	$distance_sql = "";
+	$use_distance_filter = true;
 
-	if (!is_numeric($user_lat) || !is_numeric($user_lng)) {
+	if (empty($name) && !Wo_IsNearbyCoordinateValid($user_lat, $user_lng)) {
 		return 0;
 	}
 	if ($loc_distance && is_numeric($loc_distance) && $loc_distance > 0) {
 		$distance = $loc_distance;
 	}
-	if ($name) {
-		$name     = Wo_Secure($name);
-		$search_sql = " AND (
-			prod.`name` LIKE '%$name%' OR
-			prod.`description` LIKE '%$name%' OR
-			prod.`location` LIKE '%$name%' OR
-			page.`page_name` LIKE '%$name%' OR
-			page.`page_title` LIKE '%$name%' OR
-			page.`page_description` LIKE '%$name%' OR
-			page.`address` LIKE '%$name%'
-		) ";
+	if ($distance >= 1000) {
+		$use_distance_filter = false;
 	}
-	$sql   = "
+	if ($name) {
+		$search_sql = Wo_GetNearbyShopsSearchSql($name);
+		$page_search_sql = Wo_GetNearbyShopPageSearchSql($name, 'page');
+		$sql   = "
 	SELECT COUNT(*) AS `count` FROM (
 		SELECT
-			post.`page_id`,
-			(
-				{$unit} * acos(
-					cos(radians('$user_lat')) *
-					cos(radians(prod.`lat`)) *
-					cos(radians(prod.`lng`) - radians('$user_lng')) +
-					sin(radians('$user_lat')) *
-					sin(radians(prod.`lat`))
-				)
-			) AS `distance_value`
+			post.`page_id`
 		FROM " . T_POSTS . " AS post
 		INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
 		INNER JOIN " . T_PAGES . " AS page ON post.`page_id` = page.`page_id`
@@ -8446,9 +8643,51 @@ function Wo_GetNearbyShopsCount($args = array())
 			AND post.`page_id` > '0'
 			AND prod.`lat` <> ''
 			AND prod.`lng` <> ''
+			AND prod.`lat` <> '0'
+			AND prod.`lng` <> '0'
 			{$search_sql}
-		HAVING `distance_value` < '$distance'
 		GROUP BY post.`page_id`
+		UNION
+		SELECT
+			page.`page_id`
+		FROM " . T_PAGES . " AS page
+		WHERE page.`active` = '1'
+			{$page_search_sql}
+	) AS nearby_pages";
+		$query = mysqli_query($sqlConnect, $sql);
+		if ($query && mysqli_num_rows($query)) {
+			$fetched_data = mysqli_fetch_assoc($query);
+			return (int) $fetched_data['count'];
+		}
+		return 0;
+	}
+	elseif ($use_distance_filter) {
+		$distance_sql = " HAVING MIN(
+			{$unit} * acos(
+				cos(radians('$user_lat')) *
+				cos(radians(prod.`lat`)) *
+				cos(radians(prod.`lng`) - radians('$user_lng')) +
+				sin(radians('$user_lat')) *
+				sin(radians(prod.`lat`))
+			)
+		) < {$distance} ";
+	}
+	$sql   = "
+	SELECT COUNT(*) AS `count` FROM (
+		SELECT
+			post.`page_id`
+		FROM " . T_POSTS . " AS post
+		INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
+		INNER JOIN " . T_PAGES . " AS page ON post.`page_id` = page.`page_id`
+		WHERE post.`product_id` > '0'
+			AND post.`page_id` > '0'
+			AND prod.`lat` <> ''
+			AND prod.`lng` <> ''
+			AND prod.`lat` <> '0'
+			AND prod.`lng` <> '0'
+			{$search_sql}
+		GROUP BY post.`page_id`
+		{$distance_sql}
 	) AS nearby_pages";
 	$query = mysqli_query($sqlConnect, $sql);
 	if ($query && mysqli_num_rows($query)) {

@@ -275,6 +275,7 @@ $wo["footer_pages"]       = array(
     "contact-us",
     "advertise",
     "jobs",
+    "explore_nearby",
     "friends_nearby",
     "common_things",
     "events",

@@ -157,6 +157,9 @@
     background: linear-gradient(135deg, #f7f4ed 0%, #f2f0ea 100%);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 6px 18px rgba(33, 37, 41, 0.05);
 }
+.search-page-map.search-page-map-google {
+    background: #eef2f7;
+}
 .wo_ui_map_state_loading::before {
     content: "";
     position: absolute;
@@ -209,6 +212,147 @@ var SearchResult = $('.search-dropdown-result');
 var Wo_HeaderSearchMapLoader = null;
 var Wo_HeaderSearchMapCssLoaded = false;
 var Wo_HeaderSearchMapCache = {};
+var Wo_HeaderSearchUseGoogleMaps = <?php echo (!empty($wo['config']['google_map']) && !empty($wo['config']['google_map_api'])) ? 'true' : 'false'; ?>;
+var Wo_HeaderSearchGoogleWaiter = null;
+var Wo_HeaderSearchGoogleGeocoder = null;
+
+function Wo_ResetHeaderSearchMapElement(element) {
+  if (!element) {
+    return;
+  }
+
+  if (element._leaflet_id && element._leaflet_map_ref) {
+    try {
+      element._leaflet_map_ref.remove();
+    } catch (err) {}
+  }
+
+  element._leaflet_map_ref = null;
+  if (element._google_marker_ref) {
+    try {
+      element._google_marker_ref.setMap(null);
+    } catch (err) {}
+  }
+
+  element._google_marker_ref = null;
+  element._google_map_ref = null;
+  element.innerHTML = '';
+  $(element).removeClass('search-page-map-google');
+}
+
+function Wo_HeaderSearchGoogleMapsAvailable() {
+  return Wo_HeaderSearchUseGoogleMaps &&
+    typeof google !== 'undefined' &&
+    google.maps &&
+    typeof google.maps.Map === 'function' &&
+    typeof google.maps.Geocoder === 'function';
+}
+
+function Wo_WaitHeaderSearchGoogleMaps() {
+  if (!Wo_HeaderSearchUseGoogleMaps) {
+    return Promise.reject(new Error('Google Maps is disabled'));
+  }
+
+  if (Wo_HeaderSearchGoogleMapsAvailable()) {
+    return Promise.resolve();
+  }
+
+  if (Wo_HeaderSearchGoogleWaiter) {
+    return Wo_HeaderSearchGoogleWaiter;
+  }
+
+  Wo_HeaderSearchGoogleWaiter = new Promise(function(resolve, reject) {
+    var attempts = 0;
+    var maxAttempts = 20;
+    var timer = setInterval(function() {
+      attempts++;
+      if (Wo_HeaderSearchGoogleMapsAvailable()) {
+        clearInterval(timer);
+        Wo_HeaderSearchGoogleWaiter = null;
+        resolve();
+        return;
+      }
+
+      if (attempts >= maxAttempts) {
+        clearInterval(timer);
+        Wo_HeaderSearchGoogleWaiter = null;
+        reject(new Error('Google Maps did not load'));
+      }
+    }, 100);
+  });
+
+  return Wo_HeaderSearchGoogleWaiter;
+}
+
+function Wo_GeocodeHeaderSearchGoogleAddress(address) {
+  var normalizedAddress = $.trim(address || '');
+  if (!normalizedAddress) {
+    return Promise.resolve(null);
+  }
+
+  var cacheKey = 'google|' + normalizedAddress;
+  if (Object.prototype.hasOwnProperty.call(Wo_HeaderSearchMapCache, cacheKey)) {
+    return Promise.resolve(Wo_HeaderSearchMapCache[cacheKey]);
+  }
+
+  return Wo_WaitHeaderSearchGoogleMaps().then(function() {
+    if (!Wo_HeaderSearchGoogleGeocoder) {
+      Wo_HeaderSearchGoogleGeocoder = new google.maps.Geocoder();
+    }
+
+    return new Promise(function(resolve) {
+      Wo_HeaderSearchGoogleGeocoder.geocode({address: normalizedAddress}, function(results, status) {
+        var coordinates = null;
+        if (status === 'OK' && results && results[0] && results[0].geometry && results[0].geometry.location) {
+          coordinates = {
+            lat: results[0].geometry.location.lat(),
+            lng: results[0].geometry.location.lng()
+          };
+        }
+
+        Wo_HeaderSearchMapCache[cacheKey] = coordinates;
+        resolve(coordinates);
+      });
+    });
+  });
+}
+
+function Wo_RenderHeaderSearchGoogleMap(element, coordinates, pageName, address) {
+  if (!coordinates || !Wo_HeaderSearchGoogleMapsAvailable() || !element || !document.body.contains(element)) {
+    return false;
+  }
+
+  Wo_ResetHeaderSearchMapElement(element);
+
+  var center = {lat: coordinates.lat, lng: coordinates.lng};
+  var map = new google.maps.Map(element, {
+    center: center,
+    zoom: 15,
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    disableDefaultUI: true,
+    clickableIcons: false,
+    draggable: false,
+    scrollwheel: false,
+    disableDoubleClickZoom: true,
+    keyboardShortcuts: false,
+    gestureHandling: 'none'
+  });
+
+  $(element).addClass('search-page-map-google');
+  element._google_map_ref = map;
+  element._google_marker_ref = new google.maps.Marker({
+    position: center,
+    map: map,
+    title: pageName || address || ''
+  });
+
+  var clearHeaderMapLoading = function() {
+    $(element).removeClass('search-page-map-loading wo_ui_map_state_loading');
+  };
+  google.maps.event.addListenerOnce(map, 'tilesloaded', clearHeaderMapLoading);
+  setTimeout(clearHeaderMapLoading, 1200);
+  return true;
+}
 
 function Wo_LoadHeaderSearchMaps() {
   if (typeof L !== 'undefined') {
@@ -246,8 +390,9 @@ function Wo_GeocodeHeaderSearchAddress(address) {
     return Promise.resolve(null);
   }
 
-  if (Object.prototype.hasOwnProperty.call(Wo_HeaderSearchMapCache, normalizedAddress)) {
-    return Promise.resolve(Wo_HeaderSearchMapCache[normalizedAddress]);
+  var cacheKey = 'leaflet|' + normalizedAddress;
+  if (Object.prototype.hasOwnProperty.call(Wo_HeaderSearchMapCache, cacheKey)) {
+    return Promise.resolve(Wo_HeaderSearchMapCache[cacheKey]);
   }
 
   return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(normalizedAddress), {
@@ -277,11 +422,11 @@ function Wo_GeocodeHeaderSearchAddress(address) {
         }
       }
 
-      Wo_HeaderSearchMapCache[normalizedAddress] = coordinates;
+      Wo_HeaderSearchMapCache[cacheKey] = coordinates;
       return coordinates;
     })
     .catch(function() {
-      Wo_HeaderSearchMapCache[normalizedAddress] = null;
+      Wo_HeaderSearchMapCache[cacheKey] = null;
       return null;
     });
 }
@@ -291,12 +436,7 @@ function Wo_RenderHeaderSearchMap(element, coordinates, pageName, address) {
     return;
   }
 
-  if (element._leaflet_id) {
-    try {
-      element._leaflet_map_ref.remove();
-    } catch (err) {}
-    element._leaflet_map_ref = null;
-  }
+  Wo_ResetHeaderSearchMapElement(element);
 
   var map = L.map(element, {
     attributionControl: false,
@@ -338,21 +478,30 @@ function Wo_InitHeaderSearchMaps() {
     return;
   }
 
-  Wo_LoadHeaderSearchMaps()
-    .then(function() {
-      mapElements.each(function() {
-        var element = this;
-        var $element = $(element);
-        var address = $element.data('address') || '';
-        var pageName = $element.data('page-name') || '';
+  mapElements.each(function() {
+    var element = this;
+    var $element = $(element);
+    var address = $element.data('address') || '';
+    var pageName = $element.data('page-name') || '';
 
-        if (!$.trim(address)) {
-          return;
-        }
+    if (!$.trim(address)) {
+      return;
+    }
 
-        $element.addClass('search-page-map-loading wo_ui_map_state_loading');
+    $element.show().addClass('search-page-map-loading wo_ui_map_state_loading');
 
-        Wo_GeocodeHeaderSearchAddress(address).then(function(coordinates) {
+    var fallbackStarted = false;
+    var renderLeafletFallback = function() {
+      if (fallbackStarted) {
+        return;
+      }
+
+      fallbackStarted = true;
+      Wo_LoadHeaderSearchMaps()
+        .then(function() {
+          return Wo_GeocodeHeaderSearchAddress(address);
+        })
+        .then(function(coordinates) {
           if (!document.body.contains(element)) {
             return;
           }
@@ -365,10 +514,34 @@ function Wo_InitHeaderSearchMaps() {
           }
 
           Wo_RenderHeaderSearchMap(element, coordinates, pageName, address);
+        })
+        .catch(function() {
+          $element.removeClass('search-page-map-loading wo_ui_map_state_loading').hide();
         });
-      });
-    })
-    .catch(function() {});
+    };
+
+    if (Wo_HeaderSearchUseGoogleMaps) {
+      Wo_GeocodeHeaderSearchGoogleAddress(address).then(function(coordinates) {
+        if (!document.body.contains(element)) {
+          return;
+        }
+
+        if (coordinates && Wo_RenderHeaderSearchGoogleMap(element, coordinates, pageName, address)) {
+          return;
+        }
+
+        if (!coordinates) {
+          $element.removeClass('search-page-map-loading wo_ui_map_state_loading').hide();
+          return;
+        }
+
+        renderLeafletFallback();
+      }).catch(renderLeafletFallback);
+      return;
+    }
+
+    renderLeafletFallback();
+  });
 }
 
 function Wo_IsMobileHeaderSearchMode() {

@@ -197,6 +197,7 @@ RewriteRule ^switch-account/(.*)$ index.php?link1=switch-account&session=$1 [NC,
 RewriteRule ^switch-account(/?|)$ index.php?link1=switch-account&session=$1 [NC,QSA]
 
 # *** FIND  NEARBY ***
+RewriteRule ^explore-nearby(/?|)$ index.php?link1=explore-nearby [NC,QSA]
 RewriteRule ^friends-nearby(/?|)$ index.php?link1=friends-nearby [NC,QSA]
 
 RewriteRule ^api(/?|)$ api-v2.php [NC,QSA]

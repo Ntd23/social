@@ -522,6 +522,9 @@ if ((!$wo['loggedin'] || ($wo['loggedin'] && $wo['user']['banned'] != 1))) {
                     case 'create-status':
                         include('sources/status/create.php');
                         break;
+                    case 'explore-nearby':
+                        include('sources/explore_nearby.php');
+                        break;
                     case 'friends-nearby':
                         include('sources/friends_nearby.php');
                         break;
@@ -1253,6 +1256,9 @@ if ((!$wo['loggedin'] || ($wo['loggedin'] && $wo['user']['banned'] != 1))) {
             case 'create-status':
                 include('sources/status/create.php');
                 break;
+            case 'explore-nearby':
+                include('sources/explore_nearby.php');
+                break;
             case 'friends-nearby':
                 include('sources/friends_nearby.php');
                 break;
@@ -1450,5 +1456,4 @@ echo Wo_Loadpage('container');
 mysqli_close($sqlConnect);
 unset($wo);
 ?>
-
 

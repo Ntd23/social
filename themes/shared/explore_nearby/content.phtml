@@ -1,0 +1,4999 @@
+<?php
+$explore_nearby = !empty($wo['explore_nearby']) ? $wo['explore_nearby'] : array();
+$users_enabled = !empty($explore_nearby['users_enabled']);
+$shops_enabled = !empty($explore_nearby['shops_enabled']);
+$default_distance = !empty($explore_nearby['default_distance']) ? (int) $explore_nearby['default_distance'] : 100;
+$nearby_users = !empty($explore_nearby['nearby_users']) ? $explore_nearby['nearby_users'] : array();
+$nearby_shops = !empty($explore_nearby['nearby_shops']) ? $explore_nearby['nearby_shops'] : array();
+$nearby_users_count = isset($explore_nearby['nearby_users_count']) ? (int) $explore_nearby['nearby_users_count'] : 0;
+$nearby_shops_count = isset($explore_nearby['nearby_shops_count']) ? (int) $explore_nearby['nearby_shops_count'] : 0;
+$current_user_id = !empty($wo['user']['user_id']) ? (int) $wo['user']['user_id'] : 0;
+$user_type_label = !empty($wo['lang']['user']) ? $wo['lang']['user'] : 'User';
+$shop_type_label = !empty($wo['lang']['shop']) ? $wo['lang']['shop'] : 'Shop';
+$place_type_label = !empty($wo['lang']['location']) ? $wo['lang']['location'] : 'Location';
+$json_flags = 0;
+
+if (defined('JSON_UNESCAPED_UNICODE')) {
+	$json_flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+}
+
+$format_distance = function($distance) {
+	if ($distance === '' || $distance === null || !is_numeric($distance) || (float) $distance <= 0) {
+		return '';
+	}
+
+	$distance = (float) $distance;
+	if ($distance < 10) {
+		$text = number_format($distance, 1, '.', '');
+		$text = rtrim(rtrim($text, '0'), '.');
+		return $text . ' km';
+	}
+
+	return number_format($distance, 0, '.', ',') . ' km';
+};
+
+$trim_text = function($text, $length = 120) {
+	$text = trim(strip_tags((string) $text));
+	if ($text === '') {
+		return '';
+	}
+
+	if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+		return (mb_strlen($text, 'UTF-8') > $length) ? mb_substr($text, 0, $length - 1, 'UTF-8') . '…' : $text;
+	}
+
+	return (strlen($text) > $length) ? substr($text, 0, $length - 1) . '…' : $text;
+};
+
+$trim_text = function($text, $length = 120) {
+	$text = trim(strip_tags((string) $text));
+	if ($text === '') {
+		return '';
+	}
+
+	if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+		return (mb_strlen($text, 'UTF-8') > $length) ? mb_substr($text, 0, $length - 1, 'UTF-8') . '...' : $text;
+	}
+
+	return (strlen($text) > $length) ? substr($text, 0, $length - 1) . '...' : $text;
+};
+
+$build_item_key = function($type, $primary, $fallback = '') {
+	$base = !empty($primary) ? (string) $primary : (string) $fallback;
+	if ($base === '') {
+		$base = uniqid($type . '_', true);
+	}
+
+	return $type . '|' . md5($base);
+};
+
+$sort_items = function(array &$items) {
+	usort($items, function($a, $b) {
+		$a_has_distance = isset($a['distance_value']) && is_numeric($a['distance_value']);
+		$b_has_distance = isset($b['distance_value']) && is_numeric($b['distance_value']);
+
+		if ($a_has_distance && $b_has_distance) {
+			$a_distance = (float) $a['distance_value'];
+			$b_distance = (float) $b['distance_value'];
+			if ($a_distance == $b_distance) {
+				return strnatcasecmp((string) $a['title'], (string) $b['title']);
+			}
+			return ($a_distance < $b_distance) ? -1 : 1;
+		}
+
+		if ($a_has_distance) {
+			return -1;
+		}
+
+		if ($b_has_distance) {
+			return 1;
+		}
+
+		return strnatcasecmp((string) $a['title'], (string) $b['title']);
+	});
+};
+
+$initial_user_items = array();
+$initial_shop_items = array();
+
+if (!empty($nearby_users)) {
+	foreach ($nearby_users as $user) {
+		$user_location = '';
+		if (!empty($user['user_data']['address'])) {
+			$user_location = trim($user['user_data']['address']);
+		}
+		elseif (!empty($user['user_geoinfo'])) {
+			$user_location = trim($user['user_geoinfo']);
+		}
+
+		$user_distance = (isset($user['distance']) && is_numeric($user['distance'])) ? round((float) $user['distance'], 2) : null;
+		$initial_user_items[] = array(
+			'item_key' => $build_item_key('user', (!empty($user['user_data']['url']) ? $user['user_data']['url'] : ''), (!empty($user['user_data']['user_id']) ? $user['user_data']['user_id'] : '')),
+			'offset_id' => !empty($user['user_data']['id']) ? (int) $user['user_data']['id'] : 0,
+			'type' => 'user',
+			'type_label' => $user_type_label,
+			'title' => !empty($user['user_data']['name']) ? $user['user_data']['name'] : '',
+			'subtitle' => (!empty($user['user_data']['username']) ? '@' . $user['user_data']['username'] : $user_type_label),
+			'description' => '',
+			'avatar' => !empty($user['user_data']['avatar']) ? $user['user_data']['avatar'] : '',
+			'url' => !empty($user['user_data']['url']) ? $user['user_data']['url'] : '',
+			'ajax_url' => (!empty($user['user_data']['username']) ? '?link1=timeline&u=' . $user['user_data']['username'] : ''),
+			'location' => $user_location,
+			'distance_value' => $user_distance,
+			'distance_text' => $format_distance($user_distance),
+			'lat' => !empty($user['user_data']['lat']) ? (float) $user['user_data']['lat'] : null,
+			'lng' => !empty($user['user_data']['lng']) ? (float) $user['user_data']['lng'] : null,
+			'is_self' => (!empty($user['user_data']['user_id']) && (int) $user['user_data']['user_id'] === $current_user_id)
+		);
+	}
+}
+
+if (!empty($nearby_shops)) {
+	foreach ($nearby_shops as $shop) {
+		$shop_location = (!empty($shop['product']['location'])) ? $shop['product']['location'] : (!empty($shop['page_data']['address']) ? $shop['page_data']['address'] : '');
+		$shop_distance = (isset($shop['distance']) && is_numeric($shop['distance'])) ? round((float) $shop['distance'], 2) : null;
+		$shop_subtitle = '';
+		if (!empty($shop['page_data']['category'])) {
+			$shop_subtitle = $shop['page_data']['category'];
+		}
+		elseif (!empty($shop['page_data']['page_sub_category'])) {
+			$shop_subtitle = $shop['page_data']['page_sub_category'];
+		}
+		else {
+			$shop_subtitle = $shop_type_label;
+		}
+
+		$initial_shop_items[] = array(
+			'item_key' => $build_item_key('shop', (!empty($shop['page_data']['url']) ? $shop['page_data']['url'] : ''), (!empty($shop['page_data']['page_id']) ? $shop['page_data']['page_id'] : '')),
+			'offset_id' => !empty($shop['page_data']['page_id']) ? (int) $shop['page_data']['page_id'] : 0,
+			'type' => 'shop',
+			'type_label' => $shop_type_label,
+			'title' => !empty($shop['page_data']['name']) ? $shop['page_data']['name'] : '',
+			'subtitle' => $shop_subtitle,
+			'description' => $trim_text(!empty($shop['page_data']['page_description']) ? $shop['page_data']['page_description'] : '', 130),
+			'avatar' => !empty($shop['page_data']['avatar']) ? $shop['page_data']['avatar'] : '',
+			'url' => !empty($shop['page_data']['url']) ? $shop['page_data']['url'] : '',
+			'ajax_url' => (!empty($shop['page_data']['username']) ? '?link1=timeline&u=' . $shop['page_data']['username'] : ''),
+			'location' => $shop_location,
+			'distance_value' => $shop_distance,
+			'distance_text' => $format_distance($shop_distance),
+			'lat' => !empty($shop['product']['lat']) ? (float) $shop['product']['lat'] : null,
+			'lng' => !empty($shop['product']['lng']) ? (float) $shop['product']['lng'] : null,
+			'is_self' => false
+		);
+	}
+}
+
+$initial_discovery_items = array_merge($initial_user_items, $initial_shop_items);
+$sort_items($initial_discovery_items);
+$initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enabled ? $nearby_shops_count : 0);
+?>
+<div class="page-margin wo_explore_discovery_page">
+	<link rel="stylesheet" href="<?php echo $wo['config']['theme_url']; ?>/stylesheet/leaflet.css?version=<?php echo $wo['config']['version']; ?>">
+	<?php echo Wo_LoadPage('common_things/leaflet-muted-map-config'); ?>
+	<style>
+	.wo_explore_discovery_page {
+		width: 100vw;
+		max-width: 100vw;
+		margin-left: calc(50% - 50vw) !important;
+		margin-right: calc(50% - 50vw) !important;
+		padding: 0 !important;
+		overflow: hidden;
+	}
+	.wo_explore_discovery {
+		--nearby-surface: rgba(255, 255, 255, 0.94);
+		--nearby-surface-soft: rgba(244, 247, 251, 0.94);
+		--nearby-border: rgba(214, 224, 240, 0.92);
+		--nearby-text: #142033;
+		--nearby-muted: #6a7489;
+		--nearby-accent: #2f6df6;
+		--nearby-accent-soft: rgba(47, 109, 246, 0.12);
+		--nearby-success: #17a673;
+		--wo-nearby-shell-height: calc(100vh - 84px);
+		padding: 0;
+	}
+	.wo_explore_discovery_stage {
+		position: relative;
+		height: var(--wo-nearby-shell-height);
+		min-height: 480px;
+		border-radius: 24px;
+		overflow: hidden;
+		background: linear-gradient(135deg, #dce9fb 0%, #bfd8f6 40%, #9bbef0 100%);
+		box-shadow: 0 30px 60px rgba(4, 10, 24, 0.24);
+	}
+	.wo_explore_discovery_stage::before,
+	.wo_explore_discovery_stage::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 1;
+	}
+	.wo_explore_discovery_stage::before {
+		background:
+			radial-gradient(circle at top right, rgba(255, 255, 255, 0.26), transparent 34%),
+			radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.18), transparent 30%);
+	}
+	.wo_explore_discovery_stage::after {
+		background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(15, 35, 66, 0.08) 100%);
+	}
+	.wo_explore_discovery_map_shell {
+		position: relative;
+		z-index: 0;
+		isolation: isolate;
+		height: 100%;
+	}
+	#map {
+		position: relative;
+		z-index: 0;
+		height: 100%;
+		width: 100%;
+		overflow: hidden;
+		border: 0;
+		border-radius: inherit;
+		background: linear-gradient(135deg, #f7f4ed 0%, #f2f0ea 100%);
+		box-shadow: none;
+		touch-action: pan-x pan-y pinch-zoom;
+	}
+	#map .gm-style,
+	#map .gm-style > div,
+	#map .leaflet-container,
+	#map .leaflet-pane,
+	#map canvas {
+		touch-action: pan-x pan-y pinch-zoom;
+	}
+	.wo_ui_map_state_loading::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.58) 50%, rgba(255,255,255,0) 100%);
+		transform: translateX(-100%);
+		animation: woNearbyMapShimmer 1.45s infinite;
+		z-index: 2;
+		pointer-events: none;
+	}
+	.wo_ui_map_state_loading::after {
+		content: "";
+		position: absolute;
+		left: 18px;
+		top: 18px;
+		width: 48px;
+		height: 8px;
+		z-index: 3;
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.4);
+	}
+	#map.is-awaiting-location {
+		pointer-events: none;
+	}
+	#map.is-awaiting-location .gm-style,
+	#map.is-awaiting-location .gm-style > div,
+	#map.is-awaiting-location .leaflet-container,
+	#map.is-awaiting-location .leaflet-pane,
+	#map.is-awaiting-location canvas {
+		filter: saturate(.62) blur(1.4px);
+		opacity: .52;
+	}
+	.wo_explore_nearby_hidden {
+		display: none !important;
+	}
+	.wo_explore_discovery_map_prompt {
+		position: absolute;
+		inset: 72px 12px 20px;
+		z-index: 3;
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		padding-top: 16px;
+		pointer-events: none;
+	}
+	.wo_explore_discovery_map_prompt_card {
+		width: min(360px, 100%);
+		padding: 18px 18px 16px;
+		border-radius: 22px;
+		background: rgba(255, 255, 255, 0.96);
+		border: 1px solid rgba(210, 222, 239, 0.94);
+		box-shadow: 0 18px 36px rgba(7, 18, 36, 0.18);
+		backdrop-filter: blur(16px);
+		pointer-events: auto;
+	}
+	.wo_explore_discovery_map_prompt_icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 42px;
+		height: 42px;
+		border-radius: 14px;
+		background: rgba(47, 109, 246, 0.12);
+		color: #2f6df6;
+	}
+	.wo_explore_discovery_map_prompt_title {
+		margin-top: 12px;
+		font-size: 16px;
+		font-weight: 800;
+		line-height: 1.35;
+		color: #11203b;
+	}
+	.wo_explore_discovery_map_prompt_text {
+		margin-top: 6px;
+		font-size: 13px;
+		line-height: 1.6;
+		color: #62718a;
+	}
+	.wo_explore_discovery_map_prompt_action {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		margin-top: 14px;
+		padding: 10px 14px;
+		border: 0;
+		border-radius: 999px;
+		background: #2f6df6;
+		color: #fff;
+		font-size: 13px;
+		font-weight: 800;
+		box-shadow: 0 10px 24px rgba(47, 109, 246, 0.24);
+		cursor: pointer;
+		transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+	}
+	.wo_explore_discovery_map_prompt_action:hover,
+	.wo_explore_discovery_map_prompt_action:focus {
+		background: #2359d0;
+		box-shadow: 0 12px 28px rgba(35, 89, 208, 0.28);
+		transform: translateY(-1px);
+		outline: none;
+	}
+	.wo_explore_discovery_topbar {
+		position: absolute;
+		top: 6px;
+		left: 50%;
+		z-index: 4;
+		width: min(420px, calc(100% - 12px));
+		transform: translateX(-50%);
+		pointer-events: auto;
+	}
+	.wo_explore_discovery_toppanel {
+		pointer-events: auto;
+		padding: 6px;
+		border-radius: 16px;
+		background: rgba(255, 255, 255, 0.76);
+		border: 1px solid rgba(255, 255, 255, 0.7);
+		backdrop-filter: blur(18px);
+		box-shadow: 0 8px 18px rgba(13, 29, 54, 0.08);
+	}
+	.wo_explore_discovery_topmeta {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 16px;
+		margin-bottom: 16px;
+	}
+	.wo_explore_discovery_toplabel,
+	.wo_explore_discovery_sheet_label {
+		display: inline-flex;
+		align-items: center;
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: .14em;
+		text-transform: uppercase;
+	}
+	.wo_explore_discovery_toplabel {
+		color: rgba(226, 234, 248, 0.78);
+	}
+	.wo_explore_discovery_topmeta h1 {
+		margin: 6px 0 0;
+		font-size: clamp(28px, 4vw, 42px);
+		line-height: 1.02;
+		font-weight: 800;
+		color: #fff;
+	}
+	.wo_explore_discovery_topmeta p {
+		margin: 8px 0 0;
+		max-width: 520px;
+		font-size: 14px;
+		line-height: 1.6;
+		color: rgba(233, 238, 249, 0.86);
+	}
+	.wo_explore_discovery_panel_pill {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 54px;
+		padding: 8px 13px;
+		border-radius: 999px;
+		font-size: 13px;
+		font-weight: 800;
+		color: #0c1730;
+		background: rgba(255, 255, 255, 0.92);
+		box-shadow: 0 8px 18px rgba(11, 17, 30, 0.12);
+	}
+	.wo_explore_discovery_search {
+		position: relative;
+		min-height: 40px;
+		pointer-events: auto;
+	}
+	.wo_explore_discovery_search_icon {
+		position: absolute;
+		left: 12px;
+		top: 50%;
+		width: 16px;
+		height: 16px;
+		transform: translateY(-50%);
+		color: #8190a8;
+		pointer-events: none;
+	}
+	.wo_explore_discovery_search input {
+		width: 100%;
+		min-height: 40px;
+		padding: 0 12px 0 36px;
+		border: 1px solid rgba(190, 208, 234, 0.82);
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.94);
+		color: var(--nearby-text);
+		font-size: 13px;
+		font-weight: 700;
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 6px 14px rgba(8, 14, 28, 0.06);
+	}
+	.wo_explore_discovery_search input::placeholder {
+		color: #74829b;
+	}
+	.wo_explore_discovery_search input:focus {
+		outline: none;
+		border-color: rgba(47, 109, 246, 0.44);
+		box-shadow: 0 0 0 4px rgba(47, 109, 246, 0.14), 0 10px 24px rgba(8, 14, 28, 0.16);
+	}
+	.wo_explore_discovery_search_suggestions {
+		position: absolute;
+		top: calc(100% + 8px);
+		left: 0;
+		right: 0;
+		z-index: 18;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		max-height: min(320px, 45vh);
+		padding: 8px;
+		overflow-y: auto;
+		pointer-events: auto;
+		border: 1px solid rgba(205, 218, 238, 0.94);
+		border-radius: 16px;
+		background: rgba(255, 255, 255, 0.98);
+		box-shadow: 0 18px 36px rgba(8, 14, 28, 0.16);
+	}
+	.wo_explore_discovery_search_suggestion {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 10px;
+		width: 100%;
+		padding: 10px;
+		border: 0;
+		border-radius: 12px;
+		background: transparent;
+		cursor: pointer;
+		pointer-events: auto;
+		text-align: left;
+		touch-action: manipulation;
+		transition: background-color .18s ease, transform .18s ease;
+	}
+	.wo_explore_discovery_search_suggestion:hover,
+	.wo_explore_discovery_search_suggestion.is-active {
+		background: rgba(47, 109, 246, 0.08);
+	}
+	.wo_explore_discovery_search_suggestion_media {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 38px;
+		height: 38px;
+		border-radius: 50%;
+		overflow: hidden;
+		background: rgba(47, 109, 246, 0.1);
+		color: #2f6df6;
+		font-size: 14px;
+		font-weight: 800;
+	}
+	.wo_explore_discovery_search_suggestion.type-page .wo_explore_discovery_search_suggestion_media {
+		border-radius: 12px;
+		background: rgba(23, 166, 115, 0.12);
+		color: #14815a;
+	}
+	.wo_explore_discovery_search_suggestion.type-place .wo_explore_discovery_search_suggestion_media {
+		border-radius: 12px;
+		background: rgba(245, 158, 11, 0.14);
+		color: #b45309;
+	}
+	.wo_explore_discovery_search_suggestion_media img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.wo_explore_discovery_search_suggestion_body {
+		min-width: 0;
+	}
+	.wo_explore_discovery_search_suggestion_title {
+		display: block;
+		overflow: hidden;
+		font-size: 13px;
+		font-weight: 800;
+		line-height: 1.35;
+		color: var(--nearby-text);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.wo_explore_discovery_search_suggestion_subtitle,
+	.wo_explore_discovery_search_suggestion_location {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.wo_explore_discovery_search_suggestion_subtitle {
+		margin-top: 2px;
+		font-size: 11px;
+		font-weight: 700;
+		color: #5b6b86;
+	}
+	.wo_explore_discovery_search_suggestion_location {
+		margin-top: 2px;
+		font-size: 11px;
+		color: #7a889f;
+	}
+	.wo_explore_discovery_search_suggestion_badge {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 6px 9px;
+		border-radius: 999px;
+		background: rgba(47, 109, 246, 0.1);
+		color: #2f6df6;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: .06em;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+	.wo_explore_discovery_search_suggestion.type-page .wo_explore_discovery_search_suggestion_badge {
+		background: rgba(23, 166, 115, 0.12);
+		color: #14815a;
+	}
+	.wo_explore_discovery_search_suggestion.type-place .wo_explore_discovery_search_suggestion_badge {
+		background: rgba(245, 158, 11, 0.14);
+		color: #b45309;
+	}
+	.wo_explore_discovery_sheet {
+		--wo-nearby-sheet-height: 360px;
+		position: absolute;
+		left: 50%;
+		bottom: 0;
+		z-index: 5;
+		display: flex;
+		flex-direction: column;
+		width: min(920px, calc(100% - 24px));
+		height: var(--wo-nearby-sheet-height);
+		max-height: calc(100% - 18px);
+		transform: translateX(-50%);
+		border-radius: 32px 32px 0 0;
+		overflow: hidden;
+		background: rgba(255, 255, 255, 0.94);
+		border: 1px solid rgba(255, 255, 255, 0.65);
+		backdrop-filter: blur(22px);
+		box-shadow: 0 -18px 42px rgba(8, 14, 28, 0.2);
+	}
+	.wo_explore_discovery_sheet.is-animating {
+		transition: height .24s cubic-bezier(.2, .8, .2, 1), box-shadow .24s ease;
+	}
+	.wo_explore_discovery_sheet_handle {
+		flex: 0 0 auto;
+		padding: 10px 0 6px;
+		cursor: grab;
+		touch-action: none;
+	}
+	.wo_explore_discovery_sheet_handle span {
+		display: block;
+		width: 58px;
+		height: 5px;
+		margin: 0 auto;
+		border-radius: 999px;
+		background: rgba(105, 120, 143, 0.46);
+	}
+	.wo_explore_discovery_sheet_head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: flex-start;
+		gap: 16px;
+		padding: 0 18px 2px;
+		cursor: grab;
+		touch-action: none;
+	}
+	.wo_explore_discovery_meta_hidden {
+		display: none !important;
+	}
+	.wo_explore_discovery_sheet_label {
+		color: #7d8aa3;
+	}
+	.wo_explore_discovery_sheet_head h2 {
+		margin: 6px 0 0;
+		font-size: 28px;
+		line-height: 1.04;
+		font-weight: 800;
+		color: var(--nearby-text);
+	}
+	.wo_explore_discovery_sheet_head p {
+		margin: 8px 0 0;
+		font-size: 14px;
+		line-height: 1.55;
+		color: var(--nearby-muted);
+	}
+	.wo_explore_discovery_sheet_body {
+		flex: 1 1 auto;
+		min-height: 0;
+		padding: 0 18px calc(18px + env(safe-area-inset-bottom));
+		overflow: hidden;
+	}
+	.wo_explore_discovery_sheet_body.is-scrollable {
+		overflow-y: auto;
+		overscroll-behavior: contain;
+	}
+	.wo_explore_discovery_sheet_body.is-scrollable::-webkit-scrollbar {
+		width: 8px;
+	}
+	.wo_explore_discovery_sheet_body.is-scrollable::-webkit-scrollbar-thumb {
+		border-radius: 999px;
+		background: rgba(129, 145, 170, 0.34);
+	}
+	.wo_explore_discovery_list {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		padding: 2px 0 8px;
+	}
+	.wo_explore_discovery_card {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		align-items: start;
+		gap: 14px;
+		padding: 16px;
+		border-radius: 26px;
+		background: rgba(255, 255, 255, 0.9);
+		border: 1px solid rgba(222, 231, 242, 0.92);
+		box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+		cursor: pointer;
+		transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+	}
+	.wo_explore_discovery_card:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 20px 36px rgba(15, 23, 42, 0.12);
+	}
+	.wo_explore_discovery_card.is-active {
+		border-color: rgba(47, 109, 246, 0.38);
+		box-shadow: 0 0 0 4px rgba(47, 109, 246, 0.12), 0 22px 42px rgba(47, 109, 246, 0.16);
+	}
+	.wo_explore_discovery_card_media {
+		width: 82px;
+		height: 82px;
+		border-radius: 24px;
+		overflow: hidden;
+		background: #edf2fb;
+	}
+	.wo_explore_discovery_card.is-user .wo_explore_discovery_card_media {
+		width: 68px;
+		height: 68px;
+		border-radius: 50%;
+	}
+	.wo_explore_discovery_card_media img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.wo_explore_discovery_card_fallback {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(135deg, #d8e3fb 0%, #eef3ff 100%);
+		color: #31548d;
+		font-size: 26px;
+		font-weight: 800;
+	}
+	.wo_explore_discovery_card_body {
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+	}
+	.wo_explore_discovery_card_head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-bottom: 8px;
+	}
+	.wo_explore_discovery_card_badge {
+		display: inline-flex;
+		align-items: center;
+		padding: 6px 10px;
+		border-radius: 999px;
+		background: rgba(47, 109, 246, 0.1);
+		color: #23479c;
+		font-size: 11px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: .06em;
+	}
+	.wo_explore_discovery_card.is-shop .wo_explore_discovery_card_badge {
+		background: rgba(23, 166, 115, 0.12);
+		color: #14815a;
+	}
+	.wo_explore_discovery_card.is-place .wo_explore_discovery_card_badge {
+		background: rgba(245, 158, 11, 0.14);
+		color: #b45309;
+	}
+	.wo_explore_discovery_card_distance {
+		display: inline-flex;
+		align-items: center;
+		padding: 6px 10px;
+		border-radius: 999px;
+		background: rgba(47, 109, 246, 0.08);
+		color: var(--nearby-accent);
+		font-size: 12px;
+		font-weight: 800;
+		white-space: nowrap;
+	}
+	.wo_explore_discovery_card_title {
+		margin: 0;
+		font-size: 22px;
+		line-height: 1.16;
+		font-weight: 800;
+		color: var(--nearby-text);
+	}
+	.wo_explore_discovery_card_title a {
+		color: inherit;
+		text-decoration: none;
+	}
+	.wo_explore_discovery_card_title a:hover {
+		color: var(--nearby-accent);
+	}
+	.wo_explore_discovery_card_subtitle {
+		margin: 6px 0 0;
+		font-size: 14px;
+		font-weight: 700;
+		color: var(--nearby-muted);
+	}
+	.wo_explore_discovery_card_location {
+		display: flex;
+		align-items: flex-start;
+		gap: 8px;
+		margin-top: 12px;
+		font-size: 14px;
+		line-height: 1.6;
+		color: #3a485f;
+	}
+	.wo_explore_discovery_card_location svg {
+		flex: 0 0 auto;
+		width: 18px;
+		height: 18px;
+		margin-top: 2px;
+		color: #7a8ba8;
+	}
+	.wo_explore_discovery_card_description {
+		margin: 12px 0 0;
+		font-size: 14px;
+		line-height: 1.7;
+		color: var(--nearby-muted);
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.wo_explore_discovery_card_actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 14px;
+	}
+	.wo_explore_discovery_directions,
+	.wo_explore_discovery_focus {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		min-height: 44px;
+		padding: 0 14px;
+		border: 0;
+		border-radius: 16px;
+		font-size: 13px;
+		font-weight: 800;
+		line-height: 1;
+		text-decoration: none;
+		white-space: nowrap;
+		transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+	}
+	.wo_explore_discovery_card_actions > * {
+		flex: 0 0 auto;
+	}
+	.wo_explore_discovery_directions svg,
+	.wo_explore_discovery_focus svg {
+		flex: 0 0 auto;
+	}
+	.wo_explore_discovery_directions {
+		background: linear-gradient(180deg, #2f6df6 0%, #1f57d5 100%);
+		color: #fff;
+		box-shadow: 0 10px 20px rgba(47, 109, 246, 0.26);
+	}
+	.wo_explore_discovery_directions:hover,
+	.wo_explore_discovery_directions:focus {
+		color: #fff;
+		text-decoration: none;
+		transform: translateY(-1px);
+	}
+	.wo_explore_discovery_focus {
+		background: #eaf1ff;
+		color: var(--nearby-accent);
+		box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+		cursor: pointer;
+	}
+	.wo_explore_discovery_card_head .wo_explore_discovery_focus {
+		min-height: 34px;
+		padding: 0 12px;
+		border-radius: 999px;
+		font-size: 11px;
+		box-shadow: none;
+	}
+	.wo_explore_discovery_card_head .wo_explore_discovery_focus svg {
+		width: 16px;
+		height: 16px;
+	}
+	.wo_explore_discovery_focus:hover {
+		background: #dde9ff;
+		transform: translateY(-1px);
+	}
+	.wo_explore_discovery_focus:disabled {
+		opacity: .55;
+		cursor: not-allowed;
+		transform: none;
+	}
+	.empty_state.wo_explore_discovery_empty {
+		margin: 0;
+		padding: 28px 22px;
+		border-radius: 24px;
+		background: rgba(255, 255, 255, 0.84);
+		border: 1px dashed rgba(125, 144, 173, 0.34);
+	}
+	.wo_explore_discovery_load_sentinel {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 56px;
+		color: #7f8ba0;
+		font-size: 13px;
+		font-weight: 700;
+	}
+	.wo_explore_discovery_load_sentinel.is-hidden {
+		display: none;
+	}
+	.wo_explore_discovery_load_sentinel.is-loading::before {
+		content: "";
+		width: 18px;
+		height: 18px;
+		margin-right: 10px;
+		border-radius: 50%;
+		border: 2px solid rgba(47, 109, 246, 0.18);
+		border-top-color: rgba(47, 109, 246, 0.84);
+		animation: woNearbySpin .65s linear infinite;
+	}
+	body.wo_explore_discovery_dragging,
+	body.wo_explore_discovery_dragging * {
+		user-select: none;
+		cursor: ns-resize !important;
+	}
+	@keyframes woNearbyMapShimmer {
+		100% {
+			transform: translateX(100%);
+		}
+	}
+	@keyframes woNearbySpin {
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+	@media (max-width: 991px) {
+		.wo_explore_discovery_topbar {
+			width: calc(100% - 8px);
+		}
+		.wo_explore_discovery_sheet {
+			width: calc(100% - 6px);
+			border-radius: 28px 28px 0 0;
+		}
+		.wo_explore_discovery_sheet_head h2 {
+			font-size: 24px;
+		}
+		.wo_explore_discovery_card_title {
+			font-size: 20px;
+		}
+	}
+	@media (max-width: 767px) {
+		.wo_explore_discovery {
+			padding: 0;
+		}
+		.wo_explore_discovery_stage {
+			min-height: 100vh;
+			border-radius: 0;
+		}
+		.wo_explore_discovery_topbar {
+			top: max(4px, env(safe-area-inset-top));
+			width: calc(100% - 4px);
+		}
+		.wo_explore_discovery_toppanel {
+			padding: 4px;
+			border-radius: 12px;
+		}
+		.wo_explore_discovery_topmeta {
+			align-items: stretch;
+			flex-direction: column;
+			margin-bottom: 14px;
+		}
+		.wo_explore_discovery_topmeta h1 {
+			font-size: 28px;
+		}
+		.wo_explore_discovery_search input {
+			min-height: 36px;
+			padding-left: 34px;
+			border-radius: 10px;
+			font-size: 13px;
+		}
+		.wo_explore_discovery_sheet {
+			width: 100%;
+			max-height: calc(100% - 2px);
+			border-radius: 28px 28px 0 0;
+		}
+		.wo_explore_discovery_sheet_head {
+			padding: 0 16px 14px;
+		}
+		.wo_explore_discovery_sheet_head h2 {
+			font-size: 22px;
+		}
+		.wo_explore_discovery_sheet_body {
+			padding: 0 12px calc(16px + env(safe-area-inset-bottom));
+		}
+		.wo_explore_discovery_card {
+			padding: 14px;
+			grid-template-columns: auto minmax(0, 1fr);
+			border-radius: 22px;
+		}
+		.wo_explore_discovery_card_media {
+			width: 74px;
+			height: 74px;
+			border-radius: 20px;
+		}
+		.wo_explore_discovery_card.is-user .wo_explore_discovery_card_media {
+			width: 62px;
+			height: 62px;
+		}
+		.wo_explore_discovery_card_actions {
+			margin-top: 12px;
+		}
+	}
+	@media (max-width: 520px) {
+		.wo_explore_discovery_topmeta h1 {
+			font-size: 24px;
+		}
+		.wo_explore_discovery_sheet_handle {
+			padding-top: 8px;
+		}
+		.wo_explore_discovery_card_head {
+			flex-wrap: wrap;
+		}
+		.wo_explore_discovery_card_title {
+			font-size: 18px;
+		}
+		.wo_explore_discovery_card_location,
+		.wo_explore_discovery_card_description {
+			font-size: 13px;
+		}
+		.wo_explore_discovery_directions,
+		.wo_explore_discovery_focus {
+			min-height: 40px;
+			padding: 0 12px;
+			border-radius: 14px;
+			font-size: 12px;
+		}
+		.wo_explore_discovery_card_actions > * {
+			flex: 1 1 calc(50% - 5px);
+		}
+		.wo_explore_discovery_map_prompt {
+			inset: 74px 10px 16px;
+			padding-top: 10px;
+		}
+		.wo_explore_discovery_map_prompt_card {
+			padding: 16px 15px 15px;
+			border-radius: 18px;
+		}
+	}
+	</style>
+
+	<?php if (Wo_IsAdmin() && strpos($wo['config']['site_url'], 'https') === false): ?>
+		<div class="text-center" style="margin-bottom: 16px;">
+			<div class="alert alert-warning">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg> SSL is required to able to use this feature. (Just admin can see this warning)
+			</div>
+		</div>
+	<?php endif; ?>
+
+	<div class="wo_explore_discovery">
+		<div class="wo_explore_discovery_stage wow_content" id="explore-nearby-stage">
+			<div class="wo_explore_discovery_map_shell" id="explore-nearby-map-shell">
+				<div id="map" class="wo_ui_map_state_loading"></div>
+				<div class="wo_explore_discovery_map_prompt wo_explore_nearby_hidden" id="explore-nearby-map-prompt" aria-live="polite"></div>
+
+				<div class="wo_explore_discovery_topbar">
+					<div class="wo_explore_discovery_toppanel">
+						<div class="wo_explore_discovery_search">
+							<svg class="wo_explore_discovery_search_icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.5 3a6.5 6.5 0 0 1 5.174 10.438l4.944 4.944l-1.414 1.414l-4.944-4.944A6.5 6.5 0 1 1 9.5 3m0 2a4.5 4.5 0 1 0 0 9a4.5 4.5 0 0 0 0-9"/></svg>
+							<input type="text" placeholder="<?php echo $wo['lang']['keyword']; ?> / address / users / pages" id="nearby-username" autocomplete="off">
+							<div class="wo_explore_discovery_search_suggestions wo_explore_nearby_hidden" id="explore-nearby-search-suggestions"></div>
+						</div>
+						<span id="explore-nearby-summary-text" class="wo_explore_discovery_meta_hidden"><?php echo $wo['lang']['location_dist']; ?> - <?php echo $default_distance; ?> km</span>
+						<span id="explore-nearby-results-count" class="wo_explore_discovery_meta_hidden"><?php echo $initial_total_count; ?></span>
+						<input type="hidden" id="nearby-users-distance" value="<?php echo $default_distance; ?>">
+					</div>
+				</div>
+
+				<section class="wo_explore_discovery_sheet is-animating" id="explore-nearby-sheet" data-snap="collapsed" aria-label="<?php echo $wo['lang']['find_nearby']; ?>">
+					<div class="wo_explore_discovery_sheet_handle" id="explore-nearby-sheet-handle" aria-hidden="true">
+						<span></span>
+					</div>
+					<div class="wo_explore_discovery_sheet_head" id="explore-nearby-sheet-header">
+						<span id="explore-nearby-list-note" class="wo_explore_discovery_meta_hidden"><?php echo $wo['lang']['location_dist']; ?> - <?php echo $default_distance; ?> km</span>
+						<span id="explore-nearby-loaded-count" class="wo_explore_discovery_meta_hidden"><?php echo count($initial_discovery_items); ?></span>
+					</div>
+
+					<div class="wo_explore_discovery_sheet_body" id="explore-nearby-sheet-body">
+						<div id="explore_nearby_discovery_list" class="wo_explore_discovery_list"></div>
+						<div id="explore_nearby_empty_state" class="empty_state wo_explore_discovery_empty wo_explore_nearby_hidden"></div>
+						<div class="wo_explore_discovery_load_sentinel is-hidden" id="explore-nearby-load-sentinel" aria-hidden="true"></div>
+					</div>
+				</section>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+var WoExploreNearbyState = {
+	usersEnabled: <?php echo $users_enabled ? 'true' : 'false'; ?>,
+	shopsEnabled: <?php echo $shops_enabled ? 'true' : 'false'; ?>,
+	usersCount: <?php echo (int) $nearby_users_count; ?>,
+	shopsCount: <?php echo (int) $nearby_shops_count; ?>,
+	usersItems: <?php echo json_encode($initial_user_items, $json_flags); ?>,
+	shopsItems: <?php echo json_encode($initial_shop_items, $json_flags); ?>,
+	usersRequest: null,
+	shopsRequest: null,
+	searchTimer: null,
+	searchSuggestionTimer: null,
+	searchSuggestionRequest: null,
+	searchSuggestionItems: [],
+	searchSuggestionToken: 0,
+	searchSuggestionActiveIndex: -1,
+	searchSelectionHintMode: '',
+	searchSelectionHintQuery: '',
+	searchSelectionHintPlaceId: '',
+	searchSelectionHintPlacePrediction: null,
+	lastSuggestionSelectionAt: 0,
+	isSuggestionInteraction: false,
+	loadToken: 0,
+	mapRenderToken: 0,
+	routeRenderToken: 0,
+	shopGeocodeCache: {},
+	searchPlaceCache: {},
+	searchPlacePending: {},
+	searchPlaceItem: null,
+	searchMode: 'text',
+	searchCenterLat: null,
+	searchCenterLng: null,
+	searchCenterLabel: '',
+	userReverseGeocodeCache: {},
+	userReverseGeocodePending: {},
+	routeCache: {},
+	activePointKey: null,
+	openPopupPointKey: null,
+	pendingFocusPointKey: null,
+	deviceHeading: null,
+	deviceHeadingSource: null,
+	deviceOrientationBound: false,
+	deviceOrientationPrompted: false,
+	screenOrientationBound: false,
+	dynamicLocationRefreshToken: 0,
+	userGoogleGeocoder: null,
+	userGooglePlacesAutocompleteService: null,
+	userGooglePlacesService: null,
+	userGooglePlacesServiceNode: null,
+	userGooglePlacesLibrary: null,
+	userGooglePlacesLibraryPromise: null,
+	liveLocationWatchId: null,
+	lastSavedLivePosition: null,
+	lastReloadLivePosition: null,
+	liveLocationReloadTimer: null,
+	hasLocationAnchor: <?php echo (!empty($wo['user']['lat']) && !empty($wo['user']['lng'])) ? 'true' : 'false'; ?>,
+	locationBootstrapState: <?php echo (!empty($wo['user']['lat']) && !empty($wo['user']['lng'])) ? "'ready'" : "'waiting'"; ?>,
+	appendInProgress: false,
+	hasMoreResults: false,
+	sheetSnap: 'collapsed',
+	sheetCurrentHeight: 0,
+	sheetSnapHeights: {},
+	sheetDragging: false,
+	sheetDragStartY: 0,
+	sheetDragStartHeight: 0,
+	sheetBindingsReady: false,
+	sheetObserver: null,
+	sheetObserverReady: false
+};
+var WoExploreNearbyMapState = window.WoExploreNearbyMapState || {
+	provider: null,
+	map: null,
+	leafletMarkersLayer: null,
+	googleMarkers: [],
+	googleInfoWindow: null,
+	googleDirectionsService: null,
+	leafletMarkerLookup: {},
+	googleMarkerLookup: {},
+	googleRouteLine: null,
+	googleRouteGlow: null,
+	leafletRouteLine: null,
+	renderedPoints: []
+};
+window.WoExploreNearbyMapState = WoExploreNearbyMapState;
+var defaultUserTypeLabel = <?php echo json_encode($user_type_label, $json_flags); ?>;
+var defaultShopTypeLabel = <?php echo json_encode($shop_type_label, $json_flags); ?>;
+var defaultPageTypeLabel = <?php echo json_encode((!empty($wo['lang']['page']) ? $wo['lang']['page'] : 'Page'), $json_flags); ?>;
+var defaultPlaceTypeLabel = <?php echo json_encode($place_type_label, $json_flags); ?>;
+var focusMapTitle = <?php echo json_encode($wo['lang']['show_location'], $json_flags); ?>;
+var mobileDirectionsLabel = <?php echo (!empty($wo['language']) && $wo['language'] === 'vietnamese') ? "'Ch\\u1ec9 \\u0111\\u01b0\\u1eddng'" : "'Directions'"; ?>;
+var mobileCloseLabel = 'Close';
+var defaultDistanceValue = <?php echo (int) $default_distance; ?>;
+var emptyUsersText = <?php echo json_encode($wo['lang']['no_users_found'], $json_flags); ?>;
+var emptyShopsText = <?php echo json_encode($wo['lang']['no_shops_found'], $json_flags); ?>;
+var locationEnablePromptText = <?php echo json_encode((!empty($wo['lang']['enable_location_for_nearby']) ? $wo['lang']['enable_location_for_nearby'] : 'Enable location to see nearby results'), $json_flags); ?>;
+var locationSearchHintText = <?php echo json_encode((!empty($wo['lang']['search_address_for_nearby']) ? $wo['lang']['search_address_for_nearby'] : 'Or search by address above'), $json_flags); ?>;
+var locationDeniedPromptText = <?php echo json_encode((!empty($wo['lang']['location_access_denied']) ? $wo['lang']['location_access_denied'] : 'Location access denied. You can allow it or search by address above.'), $json_flags); ?>;
+var useMyLocationLabel = <?php echo json_encode((!empty($wo['lang']['use_my_location']) ? $wo['lang']['use_my_location'] : 'Use my location'), $json_flags); ?>;
+var currentUserMapPoint = {
+	item_key: <?php echo json_encode($build_item_key('user', (!empty($wo['user']['url']) ? $wo['user']['url'] : ''), $current_user_id), $json_flags); ?>,
+	name: <?php echo json_encode($wo['user']['name'], $json_flags); ?>,
+	title: <?php echo json_encode($wo['user']['name'], $json_flags); ?>,
+	lat: <?php echo !empty($wo['user']['lat']) ? (float) $wo['user']['lat'] : 0; ?>,
+	lng: <?php echo !empty($wo['user']['lng']) ? (float) $wo['user']['lng'] : 0; ?>,
+	avatar: <?php echo json_encode($wo['user']['avatar'], $json_flags); ?>,
+	url: <?php echo json_encode($wo['user']['url'], $json_flags); ?>,
+	location: <?php echo json_encode((!empty($wo['user']['address']) ? trim($wo['user']['address']) : ''), $json_flags); ?>,
+	location_dynamic: '',
+	type: 'user',
+	type_label: defaultUserTypeLabel,
+	is_self: true,
+	isSelf: true,
+	heading: 0
+};
+var nearbyMapCenter = {
+	lat: <?php echo !empty($wo['user']['lat']) ? (float) $wo['user']['lat'] : 0; ?>,
+	lng: <?php echo !empty($wo['user']['lng']) ? (float) $wo['user']['lng'] : 0; ?>
+};
+
+function Wo_ExploreNearbyEscapeHtml(text) {
+	return String(text || '')
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#039;');
+}
+
+function Wo_ExploreNearbyDecodeHtmlEntities(text) {
+	var value = String(text || '');
+	var textarea = Wo_ExploreNearbyDecodeHtmlEntities.textarea;
+	if (!textarea) {
+		textarea = document.createElement('textarea');
+		Wo_ExploreNearbyDecodeHtmlEntities.textarea = textarea;
+	}
+
+	textarea.innerHTML = value;
+	return textarea.value;
+}
+
+function Wo_ExploreNearbyNormalizeTextValue(text) {
+	return $.trim(Wo_ExploreNearbyDecodeHtmlEntities(text));
+}
+
+function Wo_ExploreNearbyFormatDistance(distance) {
+	var numericDistance = parseFloat(distance);
+	if (isNaN(numericDistance) || numericDistance <= 0) {
+		return '';
+	}
+
+	if (numericDistance < 10) {
+		var precise = numericDistance.toFixed(1).replace(/\.0$/, '');
+		return precise + ' km';
+	}
+
+	return Math.round(numericDistance) + ' km';
+}
+
+function Wo_ExploreNearbyHasValidCoordinates(lat, lng) {
+	var numericLat = parseFloat(lat);
+	var numericLng = parseFloat(lng);
+
+	return !isNaN(numericLat) && !isNaN(numericLng) && (numericLat !== 0 || numericLng !== 0);
+}
+
+function Wo_ExploreNearbyBuildCoordinateText(lat, lng) {
+	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+		return '';
+	}
+
+	return parseFloat(lat).toFixed(6) + ', ' + parseFloat(lng).toFixed(6);
+}
+
+function Wo_ExploreNearbyGetItemKey(item) {
+	if (!item) {
+		return '';
+	}
+
+	if (item.item_key) {
+		return item.item_key;
+	}
+
+	return (item.type || 'item') + '|' + (item.url || item.location || item.title || item.name || '');
+}
+
+function Wo_ExploreNearbyIsPlacePointKey(pointKey) {
+	return String(pointKey || '').indexOf('place|') === 0;
+}
+
+function Wo_ExploreNearbyNormalizeDiscoveryItems(items) {
+	var normalizedItems = [];
+	if (!Array.isArray(items)) {
+		return normalizedItems;
+	}
+
+	for (var i = 0; i < items.length; i++) {
+		var item = items[i] || {};
+		var lat = item.lat;
+		var lng = item.lng;
+		var itemType = 'user';
+		if (item.type === 'shop') {
+			itemType = 'shop';
+		}
+		else if (item.type === 'place') {
+			itemType = 'place';
+		}
+		var parsedLat = (lat !== null && lat !== undefined && lat !== '') ? parseFloat(lat) : null;
+		var parsedLng = (lng !== null && lng !== undefined && lng !== '') ? parseFloat(lng) : null;
+		var hasCoordinates = Wo_ExploreNearbyHasValidCoordinates(parsedLat, parsedLng);
+		var dynamicLocation = Wo_ExploreNearbyNormalizeTextValue(item.location_dynamic || item.dynamic_location || '');
+		var itemLocation = Wo_ExploreNearbyNormalizeTextValue(item.location || '');
+		var distanceValue = null;
+
+		if (item.distance_value !== null && item.distance_value !== undefined && item.distance_value !== '' && !isNaN(parseFloat(item.distance_value))) {
+			distanceValue = parseFloat(item.distance_value);
+		}
+		else if (hasCoordinates) {
+			var hasCurrentUserLocation = Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng);
+			if (hasCurrentUserLocation) {
+				distanceValue = Wo_ExploreNearbyGetDistanceKm(
+					{lat: parseFloat(currentUserMapPoint.lat), lng: parseFloat(currentUserMapPoint.lng)},
+					{lat: parsedLat, lng: parsedLng}
+				);
+			}
+		}
+
+		if (itemType === 'user' && hasCoordinates) {
+			itemLocation = dynamicLocation || Wo_ExploreNearbyBuildCoordinateText(parsedLat, parsedLng);
+		}
+
+		normalizedItems.push({
+			item_key: Wo_ExploreNearbyGetItemKey(item),
+			offset_id: item.offset_id ? parseInt(item.offset_id, 10) : 0,
+			type: itemType,
+			type_label: Wo_ExploreNearbyNormalizeTextValue(item.type_label || (itemType === 'shop' ? defaultShopTypeLabel : (itemType === 'place' ? defaultPlaceTypeLabel : defaultUserTypeLabel))),
+			title: Wo_ExploreNearbyNormalizeTextValue(item.title || item.name || ''),
+			subtitle: Wo_ExploreNearbyNormalizeTextValue(item.subtitle || ''),
+			description: Wo_ExploreNearbyNormalizeTextValue(item.description || ''),
+			avatar: item.avatar || '',
+			url: item.url || '',
+			ajax_url: item.ajax_url || '',
+			location: itemLocation,
+			location_dynamic: dynamicLocation || (itemType === 'user' && hasCoordinates ? Wo_ExploreNearbyBuildCoordinateText(parsedLat, parsedLng) : ''),
+			distance_value: distanceValue,
+			distance_text: item.distance_text || Wo_ExploreNearbyFormatDistance(distanceValue),
+			lat: hasCoordinates ? parsedLat : null,
+			lng: hasCoordinates ? parsedLng : null,
+			is_self: !!(item.is_self || item.isSelf)
+		});
+	}
+
+	return normalizedItems;
+}
+
+function Wo_ExploreNearbyMergeUniqueItems(existingItems, incomingItems) {
+	var lookup = {};
+	var mergedItems = [];
+	var normalizedExisting = Wo_ExploreNearbyNormalizeDiscoveryItems(existingItems);
+	var normalizedIncoming = Wo_ExploreNearbyNormalizeDiscoveryItems(incomingItems);
+	var combinedItems = normalizedExisting.concat(normalizedIncoming);
+
+	for (var i = 0; i < combinedItems.length; i++) {
+		var item = combinedItems[i];
+		var itemKey = Wo_ExploreNearbyGetItemKey(item);
+		if (lookup[itemKey]) {
+			continue;
+		}
+
+		lookup[itemKey] = true;
+		mergedItems.push(item);
+	}
+
+	return mergedItems;
+}
+
+function Wo_ExploreNearbySortItems(items) {
+	return items.sort(function(firstItem, secondItem) {
+		var firstHasDistance = firstItem.distance_value !== null && firstItem.distance_value !== undefined && !isNaN(firstItem.distance_value);
+		var secondHasDistance = secondItem.distance_value !== null && secondItem.distance_value !== undefined && !isNaN(secondItem.distance_value);
+
+		if (firstHasDistance && secondHasDistance) {
+			if (firstItem.distance_value === secondItem.distance_value) {
+				return String(firstItem.title || '').localeCompare(String(secondItem.title || ''));
+			}
+
+			return firstItem.distance_value - secondItem.distance_value;
+		}
+
+		if (firstHasDistance) {
+			return -1;
+		}
+
+		if (secondHasDistance) {
+			return 1;
+		}
+
+		return String(firstItem.title || '').localeCompare(String(secondItem.title || ''));
+	});
+}
+
+function Wo_ExploreNearbyGetMergedItems() {
+	var mergedItems = [];
+
+	if (WoExploreNearbyState.usersEnabled) {
+		mergedItems = mergedItems.concat(Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.usersItems || []));
+	}
+	if (WoExploreNearbyState.shopsEnabled) {
+		mergedItems = mergedItems.concat(Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.shopsItems || []));
+	}
+
+	var dedupedLookup = {};
+	var dedupedItems = [];
+	for (var i = 0; i < mergedItems.length; i++) {
+		var itemKey = Wo_ExploreNearbyGetItemKey(mergedItems[i]);
+		if (dedupedLookup[itemKey]) {
+			continue;
+		}
+
+		dedupedLookup[itemKey] = true;
+		dedupedItems.push(mergedItems[i]);
+	}
+
+	dedupedItems = Wo_ExploreNearbySortItems(dedupedItems);
+
+	var searchPlaceItems = Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.searchPlaceItem ? [WoExploreNearbyState.searchPlaceItem] : []);
+	if (searchPlaceItems.length) {
+		var searchPlaceItem = searchPlaceItems[0];
+		var searchPlaceKey = Wo_ExploreNearbyGetItemKey(searchPlaceItem);
+		dedupedItems = dedupedItems.filter(function(item) {
+			return Wo_ExploreNearbyGetItemKey(item) !== searchPlaceKey;
+		});
+		dedupedItems.unshift(searchPlaceItem);
+	}
+
+	return dedupedItems;
+}
+
+function Wo_ExploreNearbyGetVisiblePoints() {
+	var items = Wo_ExploreNearbyGetMergedItems();
+	var points = [];
+
+	for (var i = 0; i < items.length; i++) {
+		points.push({
+			item_key: items[i].item_key,
+			name: items[i].title,
+			lat: items[i].lat,
+			lng: items[i].lng,
+			avatar: items[i].avatar,
+			url: items[i].url,
+			location: items[i].location,
+			type: items[i].type,
+			type_label: items[i].type_label,
+			is_self: items[i].is_self,
+			isSelf: items[i].is_self
+		});
+	}
+
+	return points;
+}
+
+function Wo_ExploreNearbyGetTotalResultsCount() {
+	return (WoExploreNearbyState.usersEnabled ? (WoExploreNearbyState.usersCount || 0) : 0) +
+		(WoExploreNearbyState.shopsEnabled ? (WoExploreNearbyState.shopsCount || 0) : 0);
+}
+
+function Wo_ExploreNearbyGetLoadedResultsCount() {
+	return Wo_ExploreNearbyGetMergedItems().length;
+}
+
+function Wo_ExploreNearbyGetDistanceValue() {
+	return parseInt($('#nearby-users-distance').val(), 10) || defaultDistanceValue;
+}
+
+function Wo_ExploreNearbyGetSearchValue() {
+	return $.trim($('#nearby-username').val() || '');
+}
+
+function Wo_ExploreNearbyGetNormalizedSearchValue() {
+	return Wo_ExploreNearbyGetSearchValue().toLowerCase();
+}
+
+function Wo_ExploreNearbyCanUseGooglePlacesAutocomplete() {
+	return typeof google !== 'undefined' &&
+		google.maps &&
+		google.maps.places &&
+		typeof google.maps.places.AutocompleteService === 'function';
+}
+
+function Wo_ExploreNearbyCanUseGooglePlacesImportLibrary() {
+	return typeof google !== 'undefined' &&
+		google.maps &&
+		typeof google.maps.importLibrary === 'function';
+}
+
+function Wo_ExploreNearbyEnsureGooglePlacesLibrary() {
+	if (!Wo_ExploreNearbyCanUseGooglePlacesImportLibrary()) {
+		return Promise.resolve(null);
+	}
+
+	if (WoExploreNearbyState.userGooglePlacesLibrary === false) {
+		return Promise.resolve(null);
+	}
+
+	if (WoExploreNearbyState.userGooglePlacesLibrary) {
+		return Promise.resolve(WoExploreNearbyState.userGooglePlacesLibrary);
+	}
+
+	if (WoExploreNearbyState.userGooglePlacesLibraryPromise) {
+		return WoExploreNearbyState.userGooglePlacesLibraryPromise;
+	}
+
+	WoExploreNearbyState.userGooglePlacesLibraryPromise = google.maps.importLibrary('places').then(function(placesLibrary) {
+		WoExploreNearbyState.userGooglePlacesLibrary = placesLibrary || {};
+		WoExploreNearbyState.userGooglePlacesLibraryPromise = null;
+		return WoExploreNearbyState.userGooglePlacesLibrary;
+	}).catch(function() {
+		WoExploreNearbyState.userGooglePlacesLibrary = false;
+		WoExploreNearbyState.userGooglePlacesLibraryPromise = null;
+		return null;
+	});
+
+	return WoExploreNearbyState.userGooglePlacesLibraryPromise;
+}
+
+function Wo_ExploreNearbyGetGooglePlaceText(textValue) {
+	if (!textValue) {
+		return '';
+	}
+
+	if (typeof textValue === 'string') {
+		return $.trim(textValue);
+	}
+
+	if (typeof textValue.text === 'string') {
+		return $.trim(textValue.text);
+	}
+
+	if (typeof textValue.toString === 'function') {
+		return $.trim(textValue.toString());
+	}
+
+	return '';
+}
+
+function Wo_ExploreNearbyGetSuggestionTypeLabel(item) {
+	if (item && item.type_label) {
+		return item.type_label;
+	}
+	if (item && item.type === 'page') {
+		return defaultPageTypeLabel;
+	}
+	if (item && item.type === 'place') {
+		return defaultPlaceTypeLabel;
+	}
+
+	return defaultUserTypeLabel;
+}
+
+function Wo_ExploreNearbyGetSearchPlaceCacheKey(query, placeId) {
+	var normalizedPlaceId = $.trim(placeId || '');
+	var normalizedQuery = $.trim(query || '').toLowerCase();
+
+	if (normalizedPlaceId) {
+		return 'place_id|' + normalizedPlaceId;
+	}
+
+	return 'query|' + normalizedQuery;
+}
+
+function Wo_ExploreNearbyResetSearchSelectionHint() {
+	WoExploreNearbyState.searchSelectionHintMode = '';
+	WoExploreNearbyState.searchSelectionHintQuery = '';
+	WoExploreNearbyState.searchSelectionHintPlaceId = '';
+	WoExploreNearbyState.searchSelectionHintPlacePrediction = null;
+}
+
+function Wo_ExploreNearbySyncSearchSelectionHint() {
+	if (!WoExploreNearbyState.searchSelectionHintQuery) {
+		return;
+	}
+	if (Wo_ExploreNearbyGetNormalizedSearchValue() !== WoExploreNearbyState.searchSelectionHintQuery) {
+		Wo_ExploreNearbyResetSearchSelectionHint();
+	}
+}
+
+function Wo_ExploreNearbyAbortSuggestionRequest() {
+	if (WoExploreNearbyState.searchSuggestionRequest && WoExploreNearbyState.searchSuggestionRequest.readyState !== 4) {
+		WoExploreNearbyState.searchSuggestionRequest.abort();
+	}
+
+	WoExploreNearbyState.searchSuggestionRequest = null;
+}
+
+function Wo_ExploreNearbyCloseSuggestions() {
+	WoExploreNearbyState.searchSuggestionToken++;
+	Wo_ExploreNearbyAbortSuggestionRequest();
+	WoExploreNearbyState.searchSuggestionItems = [];
+	WoExploreNearbyState.searchSuggestionActiveIndex = -1;
+	$('#explore-nearby-search-suggestions').empty().addClass('wo_explore_nearby_hidden');
+}
+
+function Wo_ExploreNearbyDeduplicateSuggestions(items) {
+	var uniqueItems = [];
+	var lookup = {};
+
+	for (var i = 0; i < items.length; i++) {
+		var item = items[i] || {};
+		var uniqueKey = [
+			item.type || '',
+			String(item.search_value || item.location || item.title || '').toLowerCase(),
+			String(item.subtitle || '').toLowerCase()
+		].join('|');
+
+		if (!uniqueKey || lookup[uniqueKey]) {
+			continue;
+		}
+
+		lookup[uniqueKey] = true;
+		uniqueItems.push(item);
+	}
+
+	return uniqueItems;
+}
+
+function Wo_ExploreNearbyRenderSuggestionHtml(item, index) {
+	var safeType = Wo_ExploreNearbyEscapeHtml(item.type || 'user');
+	var decodedTitle = Wo_ExploreNearbyNormalizeTextValue(item.title || '');
+	var decodedSubtitle = Wo_ExploreNearbyNormalizeTextValue(item.subtitle || '');
+	var decodedLocation = Wo_ExploreNearbyNormalizeTextValue(item.location || '');
+	var decodedTypeLabel = Wo_ExploreNearbyNormalizeTextValue(Wo_ExploreNearbyGetSuggestionTypeLabel(item));
+	var safeTitle = Wo_ExploreNearbyEscapeHtml(decodedTitle);
+	var safeSubtitle = Wo_ExploreNearbyEscapeHtml(decodedSubtitle);
+	var safeLocation = Wo_ExploreNearbyEscapeHtml(decodedLocation);
+	var safeTypeLabel = Wo_ExploreNearbyEscapeHtml(decodedTypeLabel);
+	var avatarHtml = '<span>' + Wo_ExploreNearbyEscapeHtml(Wo_ExploreNearbyGetInitials(decodedTitle || decodedTypeLabel)) + '</span>';
+	var activeClass = (index === WoExploreNearbyState.searchSuggestionActiveIndex) ? ' is-active' : '';
+
+	if (item.avatar) {
+		avatarHtml = '<img src="' + Wo_ExploreNearbyEscapeHtml(item.avatar) + '" alt="' + safeTitle + '">';
+	}
+	else if (item.type === 'place') {
+		avatarHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 1 7 7c0 4.97-5.06 11.13-6.25 12.52a1 1 0 0 1-1.5 0C10.06 20.13 5 13.97 5 9a7 7 0 0 1 7-7m0 9.5A2.5 2.5 0 1 0 12 6a2.5 2.5 0 0 0 0 5.5"/></svg>';
+	}
+
+	return '<button type="button" class="wo_explore_discovery_search_suggestion type-' + safeType + activeClass + '" data-index="' + index + '" onpointerdown="Wo_ExploreNearbyHandleSuggestionSelection(' + index + '); return false;" onmousedown="Wo_ExploreNearbyHandleSuggestionSelection(' + index + '); return false;" ontouchstart="Wo_ExploreNearbyHandleSuggestionSelection(' + index + '); return false;" onclick="return false;">' +
+		'<span class="wo_explore_discovery_search_suggestion_media">' + avatarHtml + '</span>' +
+		'<span class="wo_explore_discovery_search_suggestion_body">' +
+			'<span class="wo_explore_discovery_search_suggestion_title">' + safeTitle + '</span>' +
+			(safeSubtitle ? '<span class="wo_explore_discovery_search_suggestion_subtitle">' + safeSubtitle + '</span>' : '') +
+			(safeLocation ? '<span class="wo_explore_discovery_search_suggestion_location">' + safeLocation + '</span>' : '') +
+		'</span>' +
+		'<span class="wo_explore_discovery_search_suggestion_badge">' + safeTypeLabel + '</span>' +
+	'</button>';
+}
+
+function Wo_ExploreNearbyRenderSuggestions() {
+	var container = $('#explore-nearby-search-suggestions');
+	var items = WoExploreNearbyState.searchSuggestionItems || [];
+	var html = '';
+
+	if (!items.length) {
+		container.empty().addClass('wo_explore_nearby_hidden');
+		return;
+	}
+
+	for (var i = 0; i < items.length; i++) {
+		html += Wo_ExploreNearbyRenderSuggestionHtml(items[i], i);
+	}
+
+	container.html(html).removeClass('wo_explore_nearby_hidden');
+}
+
+function Wo_ExploreNearbySetSuggestionItems(items) {
+	var normalizedItems = Wo_ExploreNearbyDeduplicateSuggestions(items || []).slice(0, 8);
+
+	WoExploreNearbyState.searchSuggestionItems = normalizedItems;
+	WoExploreNearbyState.searchSuggestionActiveIndex = -1;
+	Wo_ExploreNearbyRenderSuggestions();
+}
+
+function Wo_ExploreNearbyEnsureSuggestionVisible(index) {
+	var container = $('#explore-nearby-search-suggestions');
+	var activeItem = container.find('.wo_explore_discovery_search_suggestion').eq(index);
+
+	if (!activeItem.length || typeof activeItem[0].scrollIntoView !== 'function') {
+		return;
+	}
+
+	activeItem[0].scrollIntoView({
+		block: 'nearest'
+	});
+}
+
+function Wo_ExploreNearbyMoveSuggestion(step) {
+	var items = WoExploreNearbyState.searchSuggestionItems || [];
+	var nextIndex = 0;
+
+	if (!items.length) {
+		return;
+	}
+
+	if (WoExploreNearbyState.searchSuggestionActiveIndex < 0) {
+		nextIndex = (step < 0) ? (items.length - 1) : 0;
+	}
+	else {
+		nextIndex = WoExploreNearbyState.searchSuggestionActiveIndex + step;
+		if (nextIndex < 0) {
+			nextIndex = items.length - 1;
+		}
+		if (nextIndex >= items.length) {
+			nextIndex = 0;
+		}
+	}
+
+	WoExploreNearbyState.searchSuggestionActiveIndex = nextIndex;
+	Wo_ExploreNearbyRenderSuggestions();
+	Wo_ExploreNearbyEnsureSuggestionVisible(nextIndex);
+}
+
+function Wo_ExploreNearbyFetchEntitySuggestions(query) {
+	var normalizedQuery = $.trim(query || '');
+
+	if (normalizedQuery.length < 1) {
+		return Promise.resolve([]);
+	}
+
+	Wo_ExploreNearbyAbortSuggestionRequest();
+	WoExploreNearbyState.searchSuggestionRequest = $.ajax({
+		url: Wo_Ajax_Requests_File(),
+		type: 'GET',
+		dataType: 'json',
+		data: {
+			f: 'explore_nearby_suggestions',
+			query: normalizedQuery,
+			limit: 4
+		}
+	});
+
+	return new Promise(function(resolve) {
+		WoExploreNearbyState.searchSuggestionRequest.done(function(data) {
+			resolve((data && data.status === 200 && Array.isArray(data.items)) ? data.items : []);
+		}).fail(function(xhr, status) {
+			if (status === 'abort') {
+				resolve([]);
+				return;
+			}
+
+			resolve([]);
+		});
+	});
+}
+
+function Wo_ExploreNearbyFetchLocationSuggestions(query) {
+	var normalizedQuery = $.trim(query || '');
+
+	if (normalizedQuery.length < 3) {
+		return Promise.resolve([]);
+	}
+
+	return Wo_ExploreNearbyEnsureGooglePlacesLibrary().then(function(placesLibrary) {
+		var request = {
+			input: normalizedQuery
+		};
+
+		if (Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng)) {
+			request.origin = {
+				lat: parseFloat(currentUserMapPoint.lat),
+				lng: parseFloat(currentUserMapPoint.lng)
+			};
+		}
+
+		if (!placesLibrary || !placesLibrary.AutocompleteSuggestion || typeof placesLibrary.AutocompleteSuggestion.fetchAutocompleteSuggestions !== 'function') {
+			return null;
+		}
+
+		return placesLibrary.AutocompleteSuggestion.fetchAutocompleteSuggestions(request).then(function(response) {
+			var items = [];
+			var suggestionList = (response && Array.isArray(response.suggestions)) ? response.suggestions : [];
+
+			if (!suggestionList.length) {
+				return items;
+			}
+
+			items = suggestionList.map(function(suggestion) {
+				var placePrediction = suggestion && suggestion.placePrediction ? suggestion.placePrediction : null;
+				var fullText = '';
+				var mainText = '';
+				var secondaryText = '';
+
+				if (!placePrediction) {
+					return null;
+				}
+
+				fullText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction.text);
+				mainText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction.mainText);
+				secondaryText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction.secondaryText);
+
+				return {
+					type: 'place',
+					type_label: defaultPlaceTypeLabel,
+					title: $.trim(mainText || fullText || normalizedQuery),
+					subtitle: $.trim(secondaryText || ''),
+					location: $.trim(fullText || normalizedQuery),
+					avatar: '',
+					search_value: $.trim(fullText || normalizedQuery),
+					place_id: placePrediction.placeId || '',
+					place_prediction: placePrediction
+				};
+			}).filter(function(item) {
+				return !!item;
+			}).slice(0, 4);
+
+			return items;
+		}).catch(function() {
+			return null;
+		});
+	}).then(function(items) {
+		if (items !== null) {
+			return items;
+		}
+
+		if (Wo_ExploreNearbyCanUseGooglePlacesAutocomplete()) {
+			if (!WoExploreNearbyState.userGooglePlacesAutocompleteService) {
+				WoExploreNearbyState.userGooglePlacesAutocompleteService = new google.maps.places.AutocompleteService();
+			}
+
+			return new Promise(function(resolve) {
+				WoExploreNearbyState.userGooglePlacesAutocompleteService.getPlacePredictions({
+					input: normalizedQuery
+				}, function(predictions, status) {
+					var legacyItems = [];
+					var predictionList = Array.isArray(predictions) ? predictions : [];
+
+					if (status === google.maps.places.PlacesServiceStatus.OK && predictionList.length > 0) {
+						legacyItems = predictionList.slice(0, 4).map(function(prediction) {
+							return {
+								type: 'place',
+								type_label: defaultPlaceTypeLabel,
+								title: $.trim((prediction.structured_formatting && prediction.structured_formatting.main_text) || prediction.description || normalizedQuery),
+								subtitle: '',
+								location: $.trim(prediction.description || normalizedQuery),
+								avatar: '',
+								search_value: $.trim(prediction.description || normalizedQuery),
+								place_id: prediction.place_id || ''
+							};
+						});
+					}
+
+					resolve(legacyItems);
+				});
+			});
+		}
+
+		if (Wo_ExploreNearbyCanUseGoogleGeocoder()) {
+			if (!WoExploreNearbyState.userGoogleGeocoder) {
+				WoExploreNearbyState.userGoogleGeocoder = new google.maps.Geocoder();
+			}
+
+			return new Promise(function(resolve) {
+				WoExploreNearbyState.userGoogleGeocoder.geocode({
+					address: normalizedQuery
+				}, function(results, status) {
+					var geocodeItems = [];
+					var geocodeResults = Array.isArray(results) ? results : [];
+
+					if (status === 'OK' && geocodeResults.length > 0) {
+						geocodeItems = geocodeResults.slice(0, 4).map(function(result) {
+							var placeItem = null;
+							if (result.geometry && result.geometry.location) {
+								placeItem = Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, {
+									lat: result.geometry.location.lat(),
+									lng: result.geometry.location.lng(),
+									title: $.trim((result.address_components && result.address_components[0] && result.address_components[0].long_name) || normalizedQuery),
+									location: $.trim(result.formatted_address || normalizedQuery)
+								});
+							}
+
+							return {
+								type: 'place',
+								type_label: defaultPlaceTypeLabel,
+								title: $.trim((result.address_components && result.address_components[0] && result.address_components[0].long_name) || normalizedQuery),
+								subtitle: '',
+								location: $.trim(result.formatted_address || normalizedQuery),
+								avatar: '',
+								search_value: $.trim(result.formatted_address || normalizedQuery),
+								place_item: placeItem
+							};
+						});
+					}
+
+					resolve(geocodeItems);
+				});
+			});
+		}
+
+		return [];
+	});
+}
+
+function Wo_ExploreNearbyRequestSuggestions() {
+	var query = Wo_ExploreNearbyGetSearchValue();
+	var requestToken = ++WoExploreNearbyState.searchSuggestionToken;
+
+	if (query.length < 1) {
+		Wo_ExploreNearbyCloseSuggestions();
+		return;
+	}
+
+	Promise.all([
+		Wo_ExploreNearbyFetchEntitySuggestions(query),
+		Wo_ExploreNearbyFetchLocationSuggestions(query)
+	]).then(function(results) {
+		var currentQuery = Wo_ExploreNearbyGetSearchValue();
+		var items = [];
+
+		if (requestToken !== WoExploreNearbyState.searchSuggestionToken || currentQuery !== query) {
+			return;
+		}
+
+		items = items.concat(results[0] || [], results[1] || []);
+		Wo_ExploreNearbySetSuggestionItems(items);
+	}).catch(function() {
+		if (requestToken !== WoExploreNearbyState.searchSuggestionToken) {
+			return;
+		}
+
+		Wo_ExploreNearbyCloseSuggestions();
+	});
+}
+
+function Wo_ExploreNearbySelectSuggestion(item) {
+	var nextValue = $.trim((item && (item.search_value || item.location || item.title)) || '');
+	var normalizedValue = nextValue.toLowerCase();
+
+	if (!item || !nextValue) {
+		return;
+	}
+
+	clearTimeout(WoExploreNearbyState.searchTimer);
+	clearTimeout(WoExploreNearbyState.searchSuggestionTimer);
+	$('#nearby-username').val(nextValue);
+
+	if (item.type === 'user' || item.type === 'page') {
+		WoExploreNearbyState.searchSelectionHintMode = 'text';
+		WoExploreNearbyState.searchSelectionHintQuery = normalizedValue;
+		WoExploreNearbyState.searchSelectionHintPlaceId = '';
+		WoExploreNearbyState.searchSelectionHintPlacePrediction = null;
+	}
+	else if (item.type === 'place') {
+		WoExploreNearbyState.searchSelectionHintMode = 'location';
+		WoExploreNearbyState.searchSelectionHintQuery = normalizedValue;
+		WoExploreNearbyState.searchSelectionHintPlaceId = $.trim(item.place_id || '');
+		WoExploreNearbyState.searchSelectionHintPlacePrediction = item.place_prediction || null;
+	}
+	else {
+		Wo_ExploreNearbyResetSearchSelectionHint();
+	}
+
+	if (item.type === 'place' && item.place_item) {
+		WoExploreNearbyState.searchPlaceCache[Wo_ExploreNearbyGetSearchPlaceCacheKey(normalizedValue, item.place_id || '')] = item.place_item;
+	}
+
+	Wo_ExploreNearbyCloseSuggestions();
+	Wo_ExploreNearbyLoad(false);
+}
+
+function Wo_ExploreNearbySelectSuggestionByIndex(index) {
+	var items = WoExploreNearbyState.searchSuggestionItems || [];
+
+	if (index < 0 || index >= items.length) {
+		return;
+	}
+
+	Wo_ExploreNearbySelectSuggestion(items[index]);
+}
+
+function Wo_ExploreNearbyHandleSuggestionSelection(index) {
+	if (isNaN(index)) {
+		return;
+	}
+
+	clearTimeout(WoExploreNearbyState.searchSuggestionTimer);
+	WoExploreNearbyState.isSuggestionInteraction = true;
+	setTimeout(function() {
+		WoExploreNearbyState.isSuggestionInteraction = false;
+	}, 260);
+	WoExploreNearbyState.lastSuggestionSelectionAt = Date.now();
+	Wo_ExploreNearbySelectSuggestionByIndex(index);
+}
+
+function Wo_ExploreNearbyQueryHasLocationHint(query) {
+	var normalizedQuery = $.trim((query || '').toLowerCase());
+	var compactQuery = '';
+	var locationTokens = [
+		' street ',
+		' road ',
+		' avenue ',
+		' boulevard ',
+		' lane ',
+		' route ',
+		' block ',
+		' building ',
+		' apartment ',
+		' floor ',
+		' tower ',
+		' highway ',
+		' thanh pho '
+	];
+	var i = 0;
+
+	if (normalizedQuery.length < 3 || normalizedQuery.charAt(0) === '@') {
+		return false;
+	}
+
+	if (/[,#]/.test(normalizedQuery) || /\/\d+/.test(normalizedQuery)) {
+		return true;
+	}
+
+	if (/(^|\s)\d+[A-Za-z0-9-]*(\s|$)/.test(normalizedQuery) || /\d+\s+[A-Za-z]/.test(normalizedQuery)) {
+		return true;
+	}
+
+	compactQuery = ' ' + normalizedQuery.replace(/\s+/g, ' ') + ' ';
+	for (i = 0; i < locationTokens.length; i++) {
+		if (compactQuery.indexOf(locationTokens[i]) !== -1) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function Wo_ExploreNearbyHasSearchCenter() {
+	return WoExploreNearbyState.searchMode === 'location' &&
+		Wo_ExploreNearbyHasValidCoordinates(WoExploreNearbyState.searchCenterLat, WoExploreNearbyState.searchCenterLng);
+}
+
+function Wo_ExploreNearbyHasLocationAnchor() {
+	return Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng) || Wo_ExploreNearbyHasSearchCenter();
+}
+
+function Wo_ExploreNearbySyncLocationAnchorState() {
+	var hasAnchor = Wo_ExploreNearbyHasLocationAnchor();
+	WoExploreNearbyState.hasLocationAnchor = hasAnchor;
+	if (hasAnchor) {
+		WoExploreNearbyState.locationBootstrapState = 'ready';
+	}
+	else if (WoExploreNearbyState.locationBootstrapState !== 'denied' && WoExploreNearbyState.locationBootstrapState !== 'waiting') {
+		WoExploreNearbyState.locationBootstrapState = 'waiting';
+	}
+
+	return hasAnchor;
+}
+
+function Wo_ExploreNearbyGetMapPromptTitle() {
+	if (WoExploreNearbyState.locationBootstrapState === 'denied') {
+		return locationDeniedPromptText;
+	}
+
+	return locationEnablePromptText;
+}
+
+function Wo_ExploreNearbyGetMapPromptHtml() {
+	return '<div class="wo_explore_discovery_map_prompt_card">' +
+		'<div class="wo_explore_discovery_map_prompt_icon">' +
+			'<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7m0 4.5A2.5 2.5 0 1 0 12 11.5A2.5 2.5 0 0 0 12 6.5"/></svg>' +
+		'</div>' +
+		'<div class="wo_explore_discovery_map_prompt_title">' + Wo_ExploreNearbyEscapeHtml(Wo_ExploreNearbyGetMapPromptTitle()) + '</div>' +
+		'<div class="wo_explore_discovery_map_prompt_text">' + Wo_ExploreNearbyEscapeHtml(locationSearchHintText) + '</div>' +
+		'<button type="button" class="wo_explore_discovery_map_prompt_action" id="explore-nearby-map-prompt-action">' +
+			'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 2v2.07A8.001 8.001 0 0 0 4.07 11H2v2h2.07A8.001 8.001 0 0 0 11 19.93V22h2v-2.07A8.001 8.001 0 0 0 19.93 13H22v-2h-2.07A8.001 8.001 0 0 0 13 4.07V2zm1 4a6 6 0 1 1 0 12a6 6 0 0 1 0-12m0 3a3 3 0 1 0 0 6a3 3 0 0 0 0-6"/></svg>' +
+			'<span>' + Wo_ExploreNearbyEscapeHtml(useMyLocationLabel) + '</span>' +
+		'</button>' +
+	'</div>';
+}
+
+function Wo_ExploreNearbyUpdateMapPrompt() {
+	var prompt = $('#explore-nearby-map-prompt');
+	var map = $('#map');
+	if (!prompt.length || !map.length) {
+		return;
+	}
+
+	if (Wo_ExploreNearbySyncLocationAnchorState()) {
+		map.removeClass('is-awaiting-location');
+		prompt.empty().addClass('wo_explore_nearby_hidden');
+		return;
+	}
+
+	map.addClass('is-awaiting-location');
+	prompt.html(Wo_ExploreNearbyGetMapPromptHtml()).removeClass('wo_explore_nearby_hidden');
+}
+
+function Wo_ExploreNearbyGetRequestSearchValue() {
+	return Wo_ExploreNearbyHasSearchCenter() ? '' : Wo_ExploreNearbyGetSearchValue();
+}
+
+function Wo_ExploreNearbyGetUiMetaText() {
+	var metaParts = [];
+	var searchValue = Wo_ExploreNearbyGetSearchValue();
+	var totalResults = Wo_ExploreNearbyGetTotalResultsCount();
+
+	if (searchValue) {
+		metaParts.push('"' + searchValue + '"');
+	}
+
+	metaParts.push(totalResults > 0 ? (totalResults + ' nearby') : 'Nearby people and shops');
+
+	return metaParts.join(' - ');
+}
+
+function Wo_ExploreNearbyIsCompactViewport() {
+	if (window.matchMedia) {
+		return window.matchMedia('(max-width: 767px)').matches;
+	}
+
+	return $(window).width() <= 767;
+}
+
+function Wo_ExploreNearbyGetStageAvailableHeight() {
+	return Math.max(460, window.innerHeight - Wo_ExploreNearbyGetStickyHeaderOffset() - 10);
+}
+
+function Wo_ExploreNearbyUpdateViewportHeight() {
+	var container = $('.wo_explore_discovery').get(0);
+	var shellHeight = Wo_ExploreNearbyGetStageAvailableHeight();
+
+	if (container) {
+		container.style.setProperty('--wo-nearby-shell-height', shellHeight + 'px');
+	}
+
+	return shellHeight;
+}
+
+function Wo_ExploreNearbyGetSheetSnapHeights() {
+	var stageHeight = $('#explore-nearby-stage').outerHeight() || Wo_ExploreNearbyGetStageAvailableHeight();
+	var ratios = Wo_ExploreNearbyIsCompactViewport() ?
+		{collapsed: 0.18, medium: 0.44, expanded: 0.78} :
+		{collapsed: 0.20, medium: 0.42, expanded: 0.70};
+	var heights = {
+		collapsed: Math.round(stageHeight * ratios.collapsed),
+		medium: Math.round(stageHeight * ratios.medium),
+		expanded: Math.round(stageHeight * ratios.expanded)
+	};
+
+	heights.expanded = Math.max(320, Math.min(stageHeight - 6, heights.expanded));
+	heights.medium = Math.max(240, Math.min(heights.expanded - 72, heights.medium));
+	heights.collapsed = Math.max(152, Math.min(heights.medium - 72, heights.collapsed));
+
+	return heights;
+}
+
+function Wo_ExploreNearbyGetSheetSnapIndex(mode) {
+	return ['collapsed', 'medium', 'expanded'].indexOf(mode);
+}
+
+function Wo_ExploreNearbyApplySheetHeight(height, animate) {
+	var sheet = $('#explore-nearby-sheet');
+	var nextHeight = Math.round(height || 0);
+
+	if (!sheet.length) {
+		return;
+	}
+
+	if (animate === false) {
+		sheet.removeClass('is-animating');
+	}
+	else {
+		sheet.addClass('is-animating');
+	}
+
+	sheet.get(0).style.setProperty('--wo-nearby-sheet-height', nextHeight + 'px');
+	WoExploreNearbyState.sheetCurrentHeight = nextHeight;
+}
+
+function Wo_ExploreNearbyUpdateSheetScrollableState() {
+	$('#explore-nearby-sheet-body').toggleClass('is-scrollable', WoExploreNearbyState.sheetSnap !== 'collapsed');
+}
+
+function Wo_ExploreNearbySetSheetSnap(mode, animate) {
+	var snapHeights = Wo_ExploreNearbyGetSheetSnapHeights();
+	var nextMode = snapHeights[mode] ? mode : 'medium';
+
+	WoExploreNearbyState.sheetSnapHeights = snapHeights;
+	WoExploreNearbyState.sheetSnap = nextMode;
+	$('#explore-nearby-sheet').attr('data-snap', nextMode);
+	Wo_ExploreNearbyApplySheetHeight(snapHeights[nextMode], animate);
+	Wo_ExploreNearbyUpdateSheetScrollableState();
+
+	if (nextMode === 'collapsed') {
+		$('#explore-nearby-sheet-body').scrollTop(0);
+	}
+}
+
+function Wo_ExploreNearbyEnsureSheetAtLeast(targetMode) {
+	if (Wo_ExploreNearbyGetSheetSnapIndex(WoExploreNearbyState.sheetSnap) < Wo_ExploreNearbyGetSheetSnapIndex(targetMode)) {
+		Wo_ExploreNearbySetSheetSnap(targetMode, true);
+	}
+}
+
+function Wo_ExploreNearbyClampSheetHeight(height) {
+	var snapHeights = Wo_ExploreNearbyGetSheetSnapHeights();
+
+	return Math.max(snapHeights.collapsed, Math.min(snapHeights.expanded, Math.round(height)));
+}
+
+function Wo_ExploreNearbySnapSheetToNearest(height) {
+	var snapHeights = Wo_ExploreNearbyGetSheetSnapHeights();
+	var nearestMode = 'collapsed';
+	var nearestDistance = Number.MAX_VALUE;
+
+	$.each(snapHeights, function(mode, snapHeight) {
+		var distance = Math.abs(snapHeight - height);
+		if (distance < nearestDistance) {
+			nearestDistance = distance;
+			nearestMode = mode;
+		}
+	});
+
+	Wo_ExploreNearbySetSheetSnap(nearestMode, true);
+}
+
+function Wo_ExploreNearbyGetPointerClientY(event) {
+	var originalEvent = event.originalEvent || event;
+
+	if (originalEvent.touches && originalEvent.touches[0]) {
+		return originalEvent.touches[0].clientY;
+	}
+	if (originalEvent.changedTouches && originalEvent.changedTouches[0]) {
+		return originalEvent.changedTouches[0].clientY;
+	}
+	if (typeof originalEvent.clientY === 'number') {
+		return originalEvent.clientY;
+	}
+
+	return null;
+}
+
+function Wo_ExploreNearbyStartSheetDrag(event) {
+	var pointerY = Wo_ExploreNearbyGetPointerClientY(event);
+
+	if ($(event.target).closest('input, textarea, button, a').length || pointerY === null) {
+		return;
+	}
+
+	WoExploreNearbyState.sheetDragging = true;
+	WoExploreNearbyState.sheetDragStartY = pointerY;
+	WoExploreNearbyState.sheetDragStartHeight = WoExploreNearbyState.sheetCurrentHeight || Wo_ExploreNearbyGetSheetSnapHeights()[WoExploreNearbyState.sheetSnap] || 0;
+	$('body').addClass('wo_explore_discovery_dragging');
+	event.preventDefault();
+}
+
+function Wo_ExploreNearbyMoveSheetDrag(event) {
+	var pointerY = Wo_ExploreNearbyGetPointerClientY(event);
+	var delta = 0;
+
+	if (!WoExploreNearbyState.sheetDragging || pointerY === null) {
+		return;
+	}
+
+	delta = WoExploreNearbyState.sheetDragStartY - pointerY;
+	Wo_ExploreNearbyApplySheetHeight(Wo_ExploreNearbyClampSheetHeight(WoExploreNearbyState.sheetDragStartHeight + delta), false);
+	event.preventDefault();
+}
+
+function Wo_ExploreNearbyEndSheetDrag() {
+	if (!WoExploreNearbyState.sheetDragging) {
+		return;
+	}
+
+	WoExploreNearbyState.sheetDragging = false;
+	$('body').removeClass('wo_explore_discovery_dragging');
+	Wo_ExploreNearbySnapSheetToNearest(WoExploreNearbyState.sheetCurrentHeight || Wo_ExploreNearbyGetSheetSnapHeights()[WoExploreNearbyState.sheetSnap] || 0);
+}
+
+function Wo_ExploreNearbyBindSheetInteractions() {
+	if (WoExploreNearbyState.sheetBindingsReady) {
+		return;
+	}
+
+	$(document).on('mousedown touchstart', '#explore-nearby-sheet-handle, #explore-nearby-sheet-header', Wo_ExploreNearbyStartSheetDrag);
+	$(document).on('mousemove touchmove', Wo_ExploreNearbyMoveSheetDrag);
+	$(document).on('mouseup touchend touchcancel', Wo_ExploreNearbyEndSheetDrag);
+	WoExploreNearbyState.sheetBindingsReady = true;
+}
+
+function Wo_ExploreNearbyHasMoreResults() {
+	return (WoExploreNearbyState.usersEnabled && (WoExploreNearbyState.usersItems || []).length < (WoExploreNearbyState.usersCount || 0)) ||
+		(WoExploreNearbyState.shopsEnabled && (WoExploreNearbyState.shopsItems || []).length < (WoExploreNearbyState.shopsCount || 0));
+}
+
+function Wo_ExploreNearbyUpdateInfiniteScrollState() {
+	var sentinel = $('#explore-nearby-load-sentinel');
+	var hasMore = Wo_ExploreNearbyHasMoreResults();
+
+	WoExploreNearbyState.hasMoreResults = hasMore;
+	sentinel.toggleClass('is-loading', !!WoExploreNearbyState.appendInProgress);
+	sentinel.toggleClass('is-hidden', !hasMore && !WoExploreNearbyState.appendInProgress);
+	sentinel.text(WoExploreNearbyState.appendInProgress ? 'Loading more nearby results' : (hasMore ? 'Drag up or scroll for more results' : ''));
+}
+
+function Wo_ExploreNearbyMaybeLoadMore() {
+	if (WoExploreNearbyState.sheetSnap === 'collapsed' || !WoExploreNearbyState.hasMoreResults || WoExploreNearbyState.appendInProgress) {
+		return;
+	}
+
+	Wo_ExploreNearbyLoadMore();
+}
+
+function Wo_ExploreNearbyBindInfiniteScroll() {
+	var body = document.getElementById('explore-nearby-sheet-body');
+	var sentinel = document.getElementById('explore-nearby-load-sentinel');
+
+	if (WoExploreNearbyState.sheetObserverReady || !body || !sentinel) {
+		return;
+	}
+
+	if ('IntersectionObserver' in window) {
+		WoExploreNearbyState.sheetObserver = new IntersectionObserver(function(entries) {
+			if (entries[0] && entries[0].isIntersecting) {
+				Wo_ExploreNearbyMaybeLoadMore();
+			}
+		}, {
+			root: body,
+			rootMargin: '160px 0px 220px 0px'
+		});
+		WoExploreNearbyState.sheetObserver.observe(sentinel);
+	}
+
+	$(body).on('scroll.exploreNearby', function() {
+		if ('IntersectionObserver' in window) {
+			return;
+		}
+
+		if (this.scrollTop + this.clientHeight >= this.scrollHeight - 160) {
+			Wo_ExploreNearbyMaybeLoadMore();
+		}
+	});
+
+	WoExploreNearbyState.sheetObserverReady = true;
+}
+
+function Wo_ExploreNearbyRefreshMapSize() {
+	if (WoExploreNearbyMapState.provider === 'leaflet' && WoExploreNearbyMapState.map && typeof WoExploreNearbyMapState.map.invalidateSize === 'function') {
+		WoExploreNearbyMapState.map.invalidateSize();
+		return;
+	}
+
+	if (WoExploreNearbyMapState.provider === 'google' && WoExploreNearbyMapState.map && typeof google !== 'undefined' && google.maps && google.maps.event) {
+		google.maps.event.trigger(WoExploreNearbyMapState.map, 'resize');
+	}
+}
+
+function Wo_ExploreNearbyGetInitials(title) {
+	var text = $.trim(title || '');
+	if (!text) {
+		return '?';
+	}
+
+	var parts = text.split(/\s+/);
+	if (parts.length === 1) {
+		return parts[0].slice(0, 1).toUpperCase();
+	}
+
+	return (parts[0].slice(0, 1) + parts[1].slice(0, 1)).toUpperCase();
+}
+
+function Wo_ExploreNearbyFormatCoordinateText(text) {
+	var value = $.trim(text || '');
+	var coordinateMatch = value.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)(?:\s*,.*)?$/);
+	if (!coordinateMatch) {
+		return value;
+	}
+
+	return coordinateMatch[1].slice(0, 10) + ',' + coordinateMatch[2].slice(0, 10) + '...';
+}
+
+function Wo_ExploreNearbyCanUseGoogleGeocoder() {
+	return typeof google !== 'undefined' &&
+		google.maps &&
+		typeof google.maps.Geocoder === 'function';
+}
+
+function Wo_ExploreNearbyGetGoogleGeocoder() {
+	if (!Wo_ExploreNearbyCanUseGoogleGeocoder()) {
+		return null;
+	}
+
+	if (!WoExploreNearbyState.userGoogleGeocoder) {
+		WoExploreNearbyState.userGoogleGeocoder = new google.maps.Geocoder();
+	}
+
+	return WoExploreNearbyState.userGoogleGeocoder;
+}
+
+function Wo_ExploreNearbyCanUseLegacyPlacesService() {
+	return typeof google !== 'undefined' &&
+		google.maps &&
+		google.maps.places &&
+		typeof google.maps.places.PlacesService === 'function';
+}
+
+function Wo_ExploreNearbyGetLegacyPlacesService() {
+	if (!Wo_ExploreNearbyCanUseLegacyPlacesService()) {
+		return null;
+	}
+
+	if (WoExploreNearbyState.userGooglePlacesService) {
+		return WoExploreNearbyState.userGooglePlacesService;
+	}
+
+	if (WoExploreNearbyMapState.provider === 'google' && WoExploreNearbyMapState.map) {
+		WoExploreNearbyState.userGooglePlacesService = new google.maps.places.PlacesService(WoExploreNearbyMapState.map);
+		return WoExploreNearbyState.userGooglePlacesService;
+	}
+
+	if (!WoExploreNearbyState.userGooglePlacesServiceNode) {
+		WoExploreNearbyState.userGooglePlacesServiceNode = document.createElement('div');
+	}
+
+	WoExploreNearbyState.userGooglePlacesService = new google.maps.places.PlacesService(WoExploreNearbyState.userGooglePlacesServiceNode);
+	return WoExploreNearbyState.userGooglePlacesService;
+}
+
+function Wo_ExploreNearbyGetGoogleLatLngValue(value, axis) {
+	if (!value) {
+		return null;
+	}
+
+	if (typeof value[axis] === 'function') {
+		return parseFloat(value[axis]());
+	}
+
+	if (value[axis] !== undefined && value[axis] !== null && value[axis] !== '') {
+		return parseFloat(value[axis]);
+	}
+
+	return null;
+}
+
+function Wo_ExploreNearbyResolvePlacePrediction(placePrediction, query, fallbackLocation) {
+	var normalizedQuery = $.trim(query || '');
+	var fallbackLabel = $.trim(fallbackLocation || normalizedQuery);
+	var predictionText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction && placePrediction.text);
+	var predictionMainText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction && placePrediction.mainText);
+
+	if (!placePrediction || typeof placePrediction.toPlace !== 'function') {
+		return Promise.resolve(null);
+	}
+
+	try {
+		var predictedPlace = placePrediction.toPlace();
+		if (!predictedPlace || typeof predictedPlace.fetchFields !== 'function') {
+			return Promise.resolve(null);
+		}
+
+		return predictedPlace.fetchFields({
+			fields: ['displayName', 'formattedAddress', 'location']
+		}).then(function() {
+			var lat = Wo_ExploreNearbyGetGoogleLatLngValue(predictedPlace.location, 'lat');
+			var lng = Wo_ExploreNearbyGetGoogleLatLngValue(predictedPlace.location, 'lng');
+
+			return Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, {
+				lat: lat,
+				lng: lng,
+				title: Wo_ExploreNearbyGetGooglePlaceText(predictedPlace.displayName) || predictionMainText || fallbackLabel || normalizedQuery,
+				location: $.trim(predictedPlace.formattedAddress || predictionText || fallbackLabel || normalizedQuery)
+			});
+		}).catch(function() {
+			return null;
+		});
+	}
+	catch (error) {
+		return Promise.resolve(null);
+	}
+}
+
+function Wo_ExploreNearbyResolvePlaceById(placeId, query, fallbackLocation, placePrediction) {
+	var normalizedPlaceId = $.trim(placeId || '');
+	var normalizedQuery = $.trim(query || '');
+	var fallbackLabel = $.trim(fallbackLocation || normalizedQuery);
+
+	if (!normalizedPlaceId) {
+		return Wo_ExploreNearbyResolvePlacePrediction(placePrediction, normalizedQuery, fallbackLabel);
+	}
+
+	return Wo_ExploreNearbyResolvePlacePrediction(placePrediction, normalizedQuery, fallbackLabel).then(function(placeItem) {
+		if (placeItem) {
+			return placeItem;
+		}
+
+		return Wo_ExploreNearbyEnsureGooglePlacesLibrary().then(function(placesLibrary) {
+		if (!placesLibrary || typeof placesLibrary.Place !== 'function') {
+			return null;
+		}
+
+		var modernPlace = null;
+
+		try {
+			modernPlace = new placesLibrary.Place({
+				id: normalizedPlaceId
+			});
+		}
+		catch (error) {
+			modernPlace = null;
+		}
+
+		if (!modernPlace || typeof modernPlace.fetchFields !== 'function') {
+			return null;
+		}
+
+		return modernPlace.fetchFields({
+			fields: ['displayName', 'formattedAddress', 'location']
+		}).then(function() {
+			var lat = Wo_ExploreNearbyGetGoogleLatLngValue(modernPlace.location, 'lat');
+			var lng = Wo_ExploreNearbyGetGoogleLatLngValue(modernPlace.location, 'lng');
+
+			return Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, {
+				lat: lat,
+				lng: lng,
+				title: Wo_ExploreNearbyGetGooglePlaceText(modernPlace.displayName) || fallbackLabel || normalizedQuery,
+				location: $.trim(modernPlace.formattedAddress || fallbackLabel || normalizedQuery)
+			});
+		}).catch(function() {
+			return null;
+		});
+		});
+	}).then(function(placeItem) {
+		if (placeItem) {
+			return placeItem;
+		}
+
+		var legacyPlacesService = Wo_ExploreNearbyGetLegacyPlacesService();
+		if (!legacyPlacesService) {
+			return null;
+		}
+
+		return new Promise(function(resolve) {
+			legacyPlacesService.getDetails({
+				placeId: normalizedPlaceId,
+				fields: ['name', 'formatted_address', 'geometry']
+			}, function(result, status) {
+				var geometryLocation = result && result.geometry ? result.geometry.location : null;
+				var lat = Wo_ExploreNearbyGetGoogleLatLngValue(geometryLocation, 'lat');
+				var lng = Wo_ExploreNearbyGetGoogleLatLngValue(geometryLocation, 'lng');
+
+				if (status !== google.maps.places.PlacesServiceStatus.OK || !result || !geometryLocation) {
+					resolve(null);
+					return;
+				}
+
+				resolve(Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, {
+					lat: lat,
+					lng: lng,
+					title: $.trim(result.name || fallbackLabel || normalizedQuery),
+					location: $.trim(result.formatted_address || fallbackLabel || normalizedQuery)
+				}));
+			});
+		});
+	}).catch(function() {
+		return null;
+	});
+}
+
+function Wo_ExploreNearbyReverseGeocodeCoordinates(lat, lng) {
+	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+		return Promise.resolve('');
+	}
+
+	var numericLat = parseFloat(lat);
+	var numericLng = parseFloat(lng);
+	var cacheKey = numericLat.toFixed(6) + ',' + numericLng.toFixed(6);
+	var fallbackText = Wo_ExploreNearbyBuildCoordinateText(numericLat, numericLng);
+
+	if (Object.prototype.hasOwnProperty.call(WoExploreNearbyState.userReverseGeocodeCache, cacheKey)) {
+		return Promise.resolve(WoExploreNearbyState.userReverseGeocodeCache[cacheKey] || fallbackText);
+	}
+
+	if (WoExploreNearbyState.userReverseGeocodePending[cacheKey]) {
+		return WoExploreNearbyState.userReverseGeocodePending[cacheKey];
+	}
+
+	var resolvePromise = null;
+	if (Wo_ExploreNearbyGetGoogleGeocoder()) {
+		resolvePromise = new Promise(function(resolve) {
+			Wo_ExploreNearbyGetGoogleGeocoder().geocode({
+				location: {
+					lat: numericLat,
+					lng: numericLng
+				}
+			}, function(results, status) {
+				var addressText = '';
+				if (status === 'OK' && Array.isArray(results) && results[0]) {
+					addressText = $.trim(results[0].formatted_address || '');
+				}
+				resolve(addressText);
+			});
+		});
+	}
+	else {
+		resolvePromise = Promise.resolve('');
+	}
+
+	WoExploreNearbyState.userReverseGeocodePending[cacheKey] = resolvePromise.then(function(addressText) {
+		var normalizedAddress = $.trim(addressText || '') || fallbackText;
+		WoExploreNearbyState.userReverseGeocodeCache[cacheKey] = normalizedAddress;
+		delete WoExploreNearbyState.userReverseGeocodePending[cacheKey];
+		return normalizedAddress;
+	}).catch(function() {
+		WoExploreNearbyState.userReverseGeocodeCache[cacheKey] = fallbackText;
+		delete WoExploreNearbyState.userReverseGeocodePending[cacheKey];
+		return fallbackText;
+	});
+
+	return WoExploreNearbyState.userReverseGeocodePending[cacheKey];
+}
+
+function Wo_ExploreNearbyBuildSearchPlaceItem(query, result) {
+	if (!result) {
+		return null;
+	}
+
+	var lat = parseFloat(result.lat);
+	var lng = parseFloat(result.lng);
+	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+		return null;
+	}
+
+	var title = $.trim(result.title || result.name || query || '');
+	var location = $.trim(result.location || result.formatted_address || query || '');
+	var distanceValue = null;
+
+	if (Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng)) {
+		distanceValue = Wo_ExploreNearbyGetDistanceKm(
+			{lat: parseFloat(currentUserMapPoint.lat), lng: parseFloat(currentUserMapPoint.lng)},
+			{lat: lat, lng: lng}
+		);
+	}
+
+	return {
+		item_key: 'place|' + encodeURIComponent((query || location || title).toLowerCase()) + '|' + lat.toFixed(5) + ',' + lng.toFixed(5),
+		offset_id: 0,
+		type: 'place',
+		type_label: defaultPlaceTypeLabel,
+		title: title || location || query || defaultPlaceTypeLabel,
+		subtitle: defaultPlaceTypeLabel,
+		description: '',
+		avatar: '',
+		url: '',
+		ajax_url: '',
+		location: location || title || query || '',
+		location_dynamic: '',
+		distance_value: distanceValue,
+		distance_text: Wo_ExploreNearbyFormatDistance(distanceValue),
+		lat: lat,
+		lng: lng,
+		is_self: false
+	};
+}
+
+function Wo_ExploreNearbyGeocodeSearchPlace(query, placeId, placePrediction) {
+	var normalizedQuery = $.trim(query || '');
+	var normalizedPlaceId = $.trim(placeId || '');
+	var cacheKey = Wo_ExploreNearbyGetSearchPlaceCacheKey(normalizedQuery, normalizedPlaceId);
+
+	if (normalizedQuery.length < 3) {
+		return Promise.resolve(null);
+	}
+
+	if (Object.prototype.hasOwnProperty.call(WoExploreNearbyState.searchPlaceCache, cacheKey)) {
+		return Promise.resolve(WoExploreNearbyState.searchPlaceCache[cacheKey]);
+	}
+
+	if (WoExploreNearbyState.searchPlacePending[cacheKey]) {
+		return WoExploreNearbyState.searchPlacePending[cacheKey];
+	}
+
+	var geocodePromise = null;
+	if (normalizedPlaceId) {
+		geocodePromise = Wo_ExploreNearbyResolvePlaceById(normalizedPlaceId, normalizedQuery, normalizedQuery, placePrediction).then(function(placeItem) {
+			if (placeItem) {
+				return placeItem;
+			}
+
+			if (!Wo_ExploreNearbyGetGoogleGeocoder()) {
+				return null;
+			}
+
+			return new Promise(function(resolve) {
+				Wo_ExploreNearbyGetGoogleGeocoder().geocode({
+					placeId: normalizedPlaceId
+				}, function(results, status) {
+					var geocodeResult = null;
+					if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+						geocodeResult = {
+							lat: results[0].geometry.location.lat(),
+							lng: results[0].geometry.location.lng(),
+							title: $.trim((results[0].address_components && results[0].address_components[0] && results[0].address_components[0].long_name) || normalizedQuery),
+							location: $.trim(results[0].formatted_address || normalizedQuery)
+						};
+					}
+					resolve(Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, geocodeResult));
+				});
+			});
+		});
+	}
+	else if (placePrediction) {
+		geocodePromise = Wo_ExploreNearbyResolvePlacePrediction(placePrediction, normalizedQuery, normalizedQuery).then(function(placeItem) {
+			if (placeItem) {
+				return placeItem;
+			}
+
+			if (!Wo_ExploreNearbyGetGoogleGeocoder()) {
+				return null;
+			}
+
+			return new Promise(function(resolve) {
+				Wo_ExploreNearbyGetGoogleGeocoder().geocode({
+					address: normalizedQuery
+				}, function(results, status) {
+					var geocodeResult = null;
+					if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+						geocodeResult = {
+							lat: results[0].geometry.location.lat(),
+							lng: results[0].geometry.location.lng(),
+							title: $.trim((results[0].address_components && results[0].address_components[0] && results[0].address_components[0].long_name) || normalizedQuery),
+							location: $.trim(results[0].formatted_address || normalizedQuery)
+						};
+					}
+					resolve(Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, geocodeResult));
+				});
+			});
+		});
+	}
+	else if (Wo_ExploreNearbyGetGoogleGeocoder()) {
+		geocodePromise = new Promise(function(resolve) {
+			Wo_ExploreNearbyGetGoogleGeocoder().geocode({
+				address: normalizedQuery
+			}, function(results, status) {
+				var geocodeResult = null;
+				if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+					geocodeResult = {
+						lat: results[0].geometry.location.lat(),
+						lng: results[0].geometry.location.lng(),
+						title: $.trim((results[0].address_components && results[0].address_components[0] && results[0].address_components[0].long_name) || normalizedQuery),
+						location: $.trim(results[0].formatted_address || normalizedQuery)
+					};
+				}
+				resolve(Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, geocodeResult));
+			});
+		});
+	}
+	else {
+		geocodePromise = Promise.resolve(null);
+	}
+
+	WoExploreNearbyState.searchPlacePending[cacheKey] = geocodePromise.then(function(placeItem) {
+		WoExploreNearbyState.searchPlaceCache[cacheKey] = placeItem;
+		delete WoExploreNearbyState.searchPlacePending[cacheKey];
+		return placeItem;
+	}).catch(function() {
+		WoExploreNearbyState.searchPlaceCache[cacheKey] = null;
+		delete WoExploreNearbyState.searchPlacePending[cacheKey];
+		return null;
+	});
+
+	return WoExploreNearbyState.searchPlacePending[cacheKey];
+}
+
+function Wo_ExploreNearbySetSearchPlaceItem(item) {
+	var currentKey = Wo_ExploreNearbyGetItemKey(WoExploreNearbyState.searchPlaceItem);
+	var nextKey = Wo_ExploreNearbyGetItemKey(item);
+	var currentLocation = Wo_ExploreNearbyNormalizeTextValue((WoExploreNearbyState.searchPlaceItem && WoExploreNearbyState.searchPlaceItem.location) || '');
+	var nextLocation = Wo_ExploreNearbyNormalizeTextValue((item && item.location) || '');
+	var hasChanged = currentKey !== nextKey || currentLocation !== nextLocation;
+
+	WoExploreNearbyState.searchPlaceItem = item || null;
+
+	return hasChanged;
+}
+
+function Wo_ExploreNearbySetSearchContext(mode, item) {
+	var nextMode = (mode === 'location') ? 'location' : 'text';
+	var nextItem = item || null;
+	var nextLat = null;
+	var nextLng = null;
+	var nextLabel = '';
+	var hasChanged = false;
+
+	if (nextMode === 'location' && nextItem && Wo_ExploreNearbyHasValidCoordinates(nextItem.lat, nextItem.lng)) {
+		nextLat = parseFloat(nextItem.lat);
+		nextLng = parseFloat(nextItem.lng);
+		nextLabel = Wo_ExploreNearbyNormalizeTextValue(nextItem.location || nextItem.title || '');
+	}
+	else {
+		nextMode = 'text';
+		nextItem = null;
+	}
+
+	hasChanged = Wo_ExploreNearbySetSearchPlaceItem(nextItem) || hasChanged;
+	if (WoExploreNearbyState.searchMode !== nextMode) {
+		hasChanged = true;
+	}
+	if (WoExploreNearbyState.searchCenterLat !== nextLat) {
+		hasChanged = true;
+	}
+	if (WoExploreNearbyState.searchCenterLng !== nextLng) {
+		hasChanged = true;
+	}
+	if ((WoExploreNearbyState.searchCenterLabel || '') !== nextLabel) {
+		hasChanged = true;
+	}
+
+	WoExploreNearbyState.searchMode = nextMode;
+	WoExploreNearbyState.searchCenterLat = nextLat;
+	WoExploreNearbyState.searchCenterLng = nextLng;
+	WoExploreNearbyState.searchCenterLabel = nextLabel;
+	if (nextMode === 'location' && Wo_ExploreNearbyHasValidCoordinates(nextLat, nextLng)) {
+		nearbyMapCenter.lat = parseFloat(nextLat);
+		nearbyMapCenter.lng = parseFloat(nextLng);
+	}
+	else if (!Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng) && WoExploreNearbyState.locationBootstrapState !== 'denied') {
+		WoExploreNearbyState.locationBootstrapState = 'waiting';
+	}
+	Wo_ExploreNearbySyncLocationAnchorState();
+
+	return hasChanged;
+}
+
+function Wo_ExploreNearbyClearSearchPlaceSelection() {
+	var hasChanged = Wo_ExploreNearbySetSearchContext('text', null);
+	if (WoExploreNearbyState.pendingFocusPointKey) {
+		hasChanged = true;
+	}
+	WoExploreNearbyState.pendingFocusPointKey = null;
+	if (Wo_ExploreNearbyIsPlacePointKey(WoExploreNearbyState.activePointKey)) {
+		WoExploreNearbyState.activePointKey = null;
+		hasChanged = true;
+	}
+	if (Wo_ExploreNearbyIsPlacePointKey(WoExploreNearbyState.openPopupPointKey)) {
+		WoExploreNearbyState.openPopupPointKey = null;
+		hasChanged = true;
+	}
+
+	return hasChanged;
+}
+
+function Wo_ExploreNearbyRenderResolvedSearchPlace() {
+	Wo_ExploreNearbyUpdateUi();
+	Wo_ExploreNearbyRenderCurrentMap(WoExploreNearbyState.openPopupPointKey || null);
+}
+
+function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
+	var query = Wo_ExploreNearbyGetSearchValue();
+	var normalizedQuery = $.trim(query).toLowerCase();
+	var selectedPlaceId = '';
+	var selectedPlacePrediction = null;
+
+	Wo_ExploreNearbySyncSearchSelectionHint();
+	selectedPlaceId = $.trim(WoExploreNearbyState.searchSelectionHintPlaceId || '');
+	selectedPlacePrediction = WoExploreNearbyState.searchSelectionHintPlacePrediction || null;
+
+	function resolveAndApplyPlace(placePromise) {
+		return placePromise.then(function(placeItem) {
+			if (loadToken !== WoExploreNearbyState.loadToken) {
+				return null;
+			}
+
+			if (placeItem) {
+				Wo_ExploreNearbySetSearchContext('location', placeItem);
+				WoExploreNearbyState.activePointKey = Wo_ExploreNearbyGetItemKey(placeItem);
+				WoExploreNearbyState.openPopupPointKey = null;
+				WoExploreNearbyState.pendingFocusPointKey = WoExploreNearbyState.activePointKey;
+				Wo_ExploreNearbyRenderResolvedSearchPlace();
+				return placeItem;
+			}
+
+			if (Wo_ExploreNearbyClearSearchPlaceSelection()) {
+				Wo_ExploreNearbyRenderResolvedSearchPlace();
+			}
+			return null;
+		}).catch(function() {
+			if (loadToken !== WoExploreNearbyState.loadToken) {
+				return null;
+			}
+
+			if (Wo_ExploreNearbyClearSearchPlaceSelection()) {
+				Wo_ExploreNearbyRenderResolvedSearchPlace();
+			}
+			return null;
+		});
+	}
+
+	if (normalizedQuery && normalizedQuery === WoExploreNearbyState.searchSelectionHintQuery && WoExploreNearbyState.searchSelectionHintMode === 'text') {
+		if (Wo_ExploreNearbyClearSearchPlaceSelection()) {
+			Wo_ExploreNearbyRenderResolvedSearchPlace();
+		}
+		return Promise.resolve(null);
+	}
+
+	if (normalizedQuery && normalizedQuery === WoExploreNearbyState.searchSelectionHintQuery && WoExploreNearbyState.searchSelectionHintMode === 'location') {
+		return resolveAndApplyPlace(Wo_ExploreNearbyGeocodeSearchPlace(query, selectedPlaceId, selectedPlacePrediction));
+	}
+
+	if ($.trim(query).length < 3 || !Wo_ExploreNearbyQueryHasLocationHint(query)) {
+		if (Wo_ExploreNearbyClearSearchPlaceSelection()) {
+			Wo_ExploreNearbyRenderResolvedSearchPlace();
+		}
+		return Promise.resolve(null);
+	}
+
+	return resolveAndApplyPlace(Wo_ExploreNearbyGeocodeSearchPlace(query));
+}
+
+function Wo_ExploreNearbyRefreshCurrentUserDynamicLocation() {
+	if (!Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng)) {
+		return;
+	}
+
+	Wo_ExploreNearbyReverseGeocodeCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng).then(function(addressText) {
+		if (!addressText) {
+			return;
+		}
+
+		currentUserMapPoint.location = addressText;
+		currentUserMapPoint.location_dynamic = addressText;
+	});
+}
+
+function Wo_ExploreNearbyRefreshDynamicUserLocations(shouldRefreshMap) {
+	var normalizedUsers = Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.usersItems || []);
+	var refreshToken = ++WoExploreNearbyState.dynamicLocationRefreshToken;
+	var requests = [];
+
+	for (var i = 0; i < normalizedUsers.length; i++) {
+		if (normalizedUsers[i].type !== 'user' || !Wo_ExploreNearbyHasValidCoordinates(normalizedUsers[i].lat, normalizedUsers[i].lng)) {
+			continue;
+		}
+
+		(function(itemKey, lat, lng) {
+			requests.push(Wo_ExploreNearbyReverseGeocodeCoordinates(lat, lng).then(function(addressText) {
+				return {
+					item_key: itemKey,
+					location: addressText
+				};
+			}));
+		})(normalizedUsers[i].item_key, normalizedUsers[i].lat, normalizedUsers[i].lng);
+	}
+
+	if (!requests.length) {
+		Wo_ExploreNearbyRefreshCurrentUserDynamicLocation();
+		return;
+	}
+
+	Promise.all(requests).then(function(results) {
+		if (refreshToken !== WoExploreNearbyState.dynamicLocationRefreshToken) {
+			return;
+		}
+
+		var locationLookup = {};
+		var hasChanged = false;
+		for (var resultIndex = 0; resultIndex < results.length; resultIndex++) {
+			if (results[resultIndex] && results[resultIndex].item_key && results[resultIndex].location) {
+				locationLookup[results[resultIndex].item_key] = results[resultIndex].location;
+			}
+		}
+
+		WoExploreNearbyState.usersItems = normalizedUsers.map(function(item) {
+			var nextLocation = locationLookup[item.item_key] || item.location;
+			if (nextLocation && item.location !== nextLocation) {
+				hasChanged = true;
+			}
+
+			return $.extend({}, item, {
+				location: nextLocation,
+				location_dynamic: nextLocation || item.location_dynamic || ''
+			});
+		});
+
+		Wo_ExploreNearbyRefreshCurrentUserDynamicLocation();
+		if (!hasChanged) {
+			return;
+		}
+
+		Wo_ExploreNearbyRenderList();
+		if (shouldRefreshMap !== false) {
+			Wo_ExploreNearbyRenderCurrentMap(WoExploreNearbyState.openPopupPointKey || null);
+		}
+	});
+}
+
+function Wo_ExploreNearbyGetDirectionsUrl(point) {
+	var location = $.trim((point && point.location) || '');
+	var lat = parseFloat(point && point.lat);
+	var lng = parseFloat(point && point.lng);
+
+	if (!isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0)) {
+		return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lng) + '&travelmode=driving';
+	}
+	if (location) {
+		return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(location) + '&travelmode=driving';
+	}
+
+	return 'https://www.google.com/maps/dir/?api=1';
+}
+
+function Wo_ExploreNearbyIsMobileSheetViewport() {
+	return Wo_ExploreNearbyIsCompactViewport();
+}
+
+function Wo_ExploreNearbyShouldUseMobileSheet(point) {
+	return false;
+}
+
+function Wo_ExploreNearbyShouldOpenMarkerPopup(point) {
+	return !Wo_ExploreNearbyIsCompactViewport() && point && !point.isSelf;
+}
+
+function Wo_ExploreNearbyNormalizeHeading(heading) {
+	var numericHeading = parseFloat(heading);
+	if (isNaN(numericHeading)) {
+		return null;
+	}
+
+	numericHeading = numericHeading % 360;
+	if (numericHeading < 0) {
+		numericHeading += 360;
+	}
+
+	return numericHeading;
+}
+
+function Wo_ExploreNearbyGetScreenRotationAngle() {
+	if (window.screen && window.screen.orientation && typeof window.screen.orientation.angle === 'number') {
+		return Wo_ExploreNearbyNormalizeHeading(window.screen.orientation.angle) || 0;
+	}
+
+	if (typeof window.orientation === 'number') {
+		return Wo_ExploreNearbyNormalizeHeading(window.orientation) || 0;
+	}
+
+	return 0;
+}
+
+function Wo_ExploreNearbyExtractDeviceHeading(event) {
+	if (!event) {
+		return null;
+	}
+
+	if (typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) {
+		return Wo_ExploreNearbyNormalizeHeading(event.webkitCompassHeading);
+	}
+
+	if (typeof event.alpha === 'number' && !isNaN(event.alpha)) {
+		return Wo_ExploreNearbyNormalizeHeading(360 - event.alpha);
+	}
+
+	return null;
+}
+
+function Wo_ExploreNearbyGetCurrentUserPoint() {
+	var normalizedPoints = Wo_ExploreNearbyNormalizePoints([currentUserMapPoint]);
+	return normalizedPoints.length ? normalizedPoints[0] : null;
+}
+
+function Wo_ExploreNearbyGetRenderedPointByKey(pointKey) {
+	var renderedPoints = WoExploreNearbyMapState.renderedPoints || [];
+	for (var i = 0; i < renderedPoints.length; i++) {
+		if (Wo_ExploreNearbyGetItemKey(renderedPoints[i]) === pointKey) {
+			return renderedPoints[i];
+		}
+	}
+
+	return null;
+}
+
+function Wo_ExploreNearbyRefreshSelfMarker() {
+	var selfPoint = Wo_ExploreNearbyGetCurrentUserPoint();
+	if (!selfPoint) {
+		return;
+	}
+
+	var selfPointKey = Wo_ExploreNearbyGetItemKey(selfPoint);
+	if (WoExploreNearbyMapState.provider === 'google') {
+		var googleMarker = WoExploreNearbyMapState.googleMarkerLookup[selfPointKey] || null;
+		if (googleMarker) {
+			googleMarker.woNearbyPoint = selfPoint;
+			googleMarker.setPosition({
+				lat: selfPoint.lat,
+				lng: selfPoint.lng
+			});
+			googleMarker.setIcon(Wo_ExploreNearbyCreateGoogleMarkerIcon(selfPoint));
+			return;
+		}
+	}
+
+	if (WoExploreNearbyMapState.provider === 'leaflet') {
+		var leafletMarker = WoExploreNearbyMapState.leafletMarkerLookup[selfPointKey] || null;
+		if (leafletMarker) {
+			leafletMarker.woNearbyPoint = selfPoint;
+			leafletMarker.setLatLng([selfPoint.lat, selfPoint.lng]);
+			leafletMarker.setIcon(Wo_ExploreNearbyCreateLeafletMarkerIcon(selfPoint));
+		}
+	}
+}
+
+function Wo_ExploreNearbySetDeviceHeading(heading, source) {
+	var normalizedHeading = Wo_ExploreNearbyNormalizeHeading(heading);
+	if (normalizedHeading === null) {
+		return;
+	}
+
+	if (source === 'screen' && WoExploreNearbyState.deviceHeadingSource === 'device') {
+		return;
+	}
+
+	if (WoExploreNearbyState.deviceHeadingSource === source && WoExploreNearbyState.deviceHeading !== null && Math.abs(WoExploreNearbyState.deviceHeading - normalizedHeading) < 1) {
+		return;
+	}
+
+	WoExploreNearbyState.deviceHeading = normalizedHeading;
+	WoExploreNearbyState.deviceHeadingSource = source || 'screen';
+	currentUserMapPoint.heading = normalizedHeading;
+	Wo_ExploreNearbyRefreshSelfMarker();
+}
+
+function Wo_ExploreNearbyBindDeviceOrientationTracking() {
+	if (WoExploreNearbyState.deviceOrientationBound || typeof window.DeviceOrientationEvent === 'undefined') {
+		return;
+	}
+
+	window.addEventListener('deviceorientation', function(event) {
+		var heading = Wo_ExploreNearbyExtractDeviceHeading(event);
+		if (heading !== null) {
+			Wo_ExploreNearbySetDeviceHeading(heading, 'device');
+		}
+	}, true);
+	WoExploreNearbyState.deviceOrientationBound = true;
+}
+
+function Wo_ExploreNearbyBindScreenOrientationTracking() {
+	if (WoExploreNearbyState.screenOrientationBound) {
+		return;
+	}
+
+	var handleScreenRotationChange = function() {
+		if (WoExploreNearbyState.deviceHeadingSource === 'device') {
+			Wo_ExploreNearbyRefreshSelfMarker();
+			return;
+		}
+
+		Wo_ExploreNearbySetDeviceHeading(Wo_ExploreNearbyGetScreenRotationAngle(), 'screen');
+	};
+
+	window.addEventListener('orientationchange', handleScreenRotationChange, true);
+	if (window.screen && window.screen.orientation && typeof window.screen.orientation.addEventListener === 'function') {
+		window.screen.orientation.addEventListener('change', handleScreenRotationChange);
+	}
+
+	WoExploreNearbyState.screenOrientationBound = true;
+	handleScreenRotationChange();
+}
+
+function Wo_ExploreNearbyEnsureOrientationPermissionPrompt() {
+	if (WoExploreNearbyState.deviceOrientationPrompted || typeof window.DeviceOrientationEvent === 'undefined' || typeof window.DeviceOrientationEvent.requestPermission !== 'function') {
+		return;
+	}
+
+	WoExploreNearbyState.deviceOrientationPrompted = true;
+	$(document).one('click touchstart', function() {
+		window.DeviceOrientationEvent.requestPermission().then(function(permissionState) {
+			if (permissionState === 'granted') {
+				Wo_ExploreNearbyBindDeviceOrientationTracking();
+			}
+		}).catch(function() {});
+	});
+}
+
+function Wo_ExploreNearbyInitOrientationTracking() {
+	Wo_ExploreNearbyBindScreenOrientationTracking();
+
+	if (typeof window.DeviceOrientationEvent === 'undefined') {
+		return;
+	}
+
+	if (typeof window.DeviceOrientationEvent.requestPermission === 'function') {
+		Wo_ExploreNearbyEnsureOrientationPermissionPrompt();
+		return;
+	}
+
+	Wo_ExploreNearbyBindDeviceOrientationTracking();
+}
+
+function Wo_ExploreNearbySetCurrentUserCoordinates(lat, lng) {
+	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+		return false;
+	}
+
+	var numericLat = parseFloat(lat);
+	var numericLng = parseFloat(lng);
+	var hadPreviousCoordinates = Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng);
+	var hasMeaningfulChange = !hadPreviousCoordinates;
+
+	if (hadPreviousCoordinates) {
+		hasMeaningfulChange = Wo_ExploreNearbyGetDistanceKm(
+			{lat: parseFloat(currentUserMapPoint.lat), lng: parseFloat(currentUserMapPoint.lng)},
+			{lat: numericLat, lng: numericLng}
+		) >= 0.005;
+	}
+
+	currentUserMapPoint.lat = numericLat;
+	currentUserMapPoint.lng = numericLng;
+	currentUserMapPoint.location_dynamic = Wo_ExploreNearbyBuildCoordinateText(numericLat, numericLng);
+	currentUserMapPoint.location = currentUserMapPoint.location_dynamic;
+	nearbyMapCenter.lat = numericLat;
+	nearbyMapCenter.lng = numericLng;
+	WoExploreNearbyState.locationBootstrapState = 'ready';
+	Wo_ExploreNearbySyncLocationAnchorState();
+	Wo_ExploreNearbyRefreshSelfMarker();
+
+	return hasMeaningfulChange;
+}
+
+function Wo_ExploreNearbyPersistCurrentUserLocation(lat, lng) {
+	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+		return;
+	}
+
+	var nextPosition = {
+		lat: parseFloat(lat),
+		lng: parseFloat(lng)
+	};
+	if (WoExploreNearbyState.lastSavedLivePosition && Wo_ExploreNearbyGetDistanceKm(WoExploreNearbyState.lastSavedLivePosition, nextPosition) < 0.02) {
+		return;
+	}
+
+	WoExploreNearbyState.lastSavedLivePosition = nextPosition;
+	$.post(Wo_Ajax_Requests_File(), {
+		f: 'save_user_location',
+		lat: nextPosition.lat,
+		lng: nextPosition.lng
+	});
+}
+
+function Wo_ExploreNearbyScheduleLiveReload() {
+	clearTimeout(WoExploreNearbyState.liveLocationReloadTimer);
+	WoExploreNearbyState.liveLocationReloadTimer = setTimeout(function() {
+		Wo_ExploreNearbyLoad(false);
+	}, 350);
+}
+
+function Wo_ExploreNearbyHandleLiveLocation(position) {
+	if (!position || !position.coords) {
+		return;
+	}
+
+	var lat = parseFloat(position.coords.latitude);
+	var lng = parseFloat(position.coords.longitude);
+	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+		return;
+	}
+
+	var locationChanged = Wo_ExploreNearbySetCurrentUserCoordinates(lat, lng);
+	var nextPosition = {
+		lat: lat,
+		lng: lng
+	};
+
+	Wo_ExploreNearbyPersistCurrentUserLocation(lat, lng);
+	Wo_ExploreNearbyRefreshCurrentUserDynamicLocation();
+	Wo_ExploreNearbyUpdateMapPrompt();
+
+	if (!WoExploreNearbyState.lastReloadLivePosition || Wo_ExploreNearbyGetDistanceKm(WoExploreNearbyState.lastReloadLivePosition, nextPosition) >= 0.08) {
+		WoExploreNearbyState.lastReloadLivePosition = nextPosition;
+		Wo_ExploreNearbyScheduleLiveReload();
+		return;
+	}
+
+	if (locationChanged) {
+		if (WoExploreNearbyState.activePointKey) {
+			Wo_ExploreNearbySyncRouteLine();
+		}
+		else {
+			Wo_ExploreNearbyRenderCurrentMap(WoExploreNearbyState.openPopupPointKey || null);
+		}
+	}
+}
+
+function Wo_ExploreNearbyHandleLocationError(error) {
+	if (!Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng) && !Wo_ExploreNearbyHasSearchCenter()) {
+		if (error && error.code === 1) {
+			WoExploreNearbyState.locationBootstrapState = 'denied';
+		}
+		else {
+			WoExploreNearbyState.locationBootstrapState = 'waiting';
+		}
+	}
+
+	Wo_ExploreNearbyUpdateMapPrompt();
+}
+
+function Wo_ExploreNearbyRequestCurrentUserLocation() {
+	if (!navigator.geolocation) {
+		if (!Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng) && !Wo_ExploreNearbyHasSearchCenter()) {
+			WoExploreNearbyState.locationBootstrapState = 'denied';
+		}
+		Wo_ExploreNearbyUpdateMapPrompt();
+		return;
+	}
+
+	navigator.geolocation.getCurrentPosition(Wo_ExploreNearbyHandleLiveLocation, Wo_ExploreNearbyHandleLocationError, {
+		enableHighAccuracy: true,
+		maximumAge: 30000,
+		timeout: 12000
+	});
+}
+
+function Wo_ExploreNearbyStartLiveLocationTracking() {
+	if (WoExploreNearbyState.liveLocationWatchId !== null || !navigator.geolocation) {
+		return;
+	}
+
+	var watchOptions = {
+		enableHighAccuracy: true,
+		maximumAge: 30000,
+		timeout: 12000
+	};
+
+	Wo_ExploreNearbyRequestCurrentUserLocation();
+	WoExploreNearbyState.liveLocationWatchId = navigator.geolocation.watchPosition(Wo_ExploreNearbyHandleLiveLocation, Wo_ExploreNearbyHandleLocationError, watchOptions);
+}
+
+function Wo_ExploreNearbyHasCurrentUserPoint() {
+	return Wo_ExploreNearbyNormalizePoints([currentUserMapPoint]).length > 0;
+}
+
+function Wo_ExploreNearbyGetDefaultOpenPointKey() {
+	return null;
+}
+
+function Wo_ExploreNearbyCanFocusItem(item) {
+	if (!item) {
+		return false;
+	}
+
+	var lat = parseFloat(item.lat);
+	var lng = parseFloat(item.lng);
+
+	return ($.trim(item.location || '') !== '') || (!isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0));
+}
+
+function Wo_ExploreNearbyRenderCardHtml(item) {
+	var safeKey = Wo_ExploreNearbyEscapeHtml(item.item_key);
+	var safeTitle = Wo_ExploreNearbyEscapeHtml(item.title);
+	var safeSubtitle = Wo_ExploreNearbyEscapeHtml(item.subtitle || '');
+	var safeDescription = Wo_ExploreNearbyEscapeHtml(item.description || '');
+	var safeLocation = Wo_ExploreNearbyEscapeHtml(Wo_ExploreNearbyFormatCoordinateText(item.location || ''));
+	var safeDistance = Wo_ExploreNearbyEscapeHtml(item.distance_text || '');
+	var ajaxAttr = item.ajax_url ? ' data-ajax="' + Wo_ExploreNearbyEscapeHtml(item.ajax_url) + '"' : '';
+	var titleHtml = safeTitle;
+	var mediaHtml = '';
+	var locationHtml = '';
+	var descriptionHtml = '';
+	var distanceHtml = '';
+	var focusActionHtml = '';
+	var focusDisabled = Wo_ExploreNearbyCanFocusItem(item) ? '' : ' disabled';
+
+	if (item.url) {
+		titleHtml = '<a href="' + Wo_ExploreNearbyEscapeHtml(item.url) + '"' + ajaxAttr + '>' + safeTitle + '</a>';
+	}
+
+	if (item.avatar) {
+		mediaHtml = '<img src="' + Wo_ExploreNearbyEscapeHtml(item.avatar) + '" alt="' + safeTitle + '">';
+	}
+	else {
+		mediaHtml = '<div class="wo_explore_discovery_card_fallback">' + Wo_ExploreNearbyEscapeHtml(Wo_ExploreNearbyGetInitials(item.title)) + '</div>';
+	}
+
+	if (safeLocation) {
+		locationHtml = '<div class="wo_explore_discovery_card_location">' +
+			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7m0 4.5A2.5 2.5 0 1 0 12 11.5A2.5 2.5 0 0 0 12 6.5"/></svg>' +
+			'<span>' + safeLocation + '</span>' +
+		'</div>';
+	}
+
+	if (safeDescription && item.type === 'shop') {
+		descriptionHtml = '<p class="wo_explore_discovery_card_description">' + safeDescription + '</p>';
+	}
+
+	if (safeDistance) {
+		distanceHtml = '<span class="wo_explore_discovery_card_distance">' + safeDistance + '</span>';
+	}
+
+	focusActionHtml = '<button type="button" class="wo_explore_discovery_focus" data-point-key="' + safeKey + '"' + focusDisabled + ' title="' + Wo_ExploreNearbyEscapeHtml(focusMapTitle) + '">' +
+		'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 2v2.07A8.001 8.001 0 0 0 4.07 11H2v2h2.07A8.001 8.001 0 0 0 11 19.93V22h2v-2.07A8.001 8.001 0 0 0 19.93 13H22v-2h-2.07A8.001 8.001 0 0 0 13 4.07V2zm1 4a6 6 0 1 1 0 12a6 6 0 0 1 0-12m0 3a3 3 0 1 0 0 6a3 3 0 0 0 0-6"/></svg>' +
+		'<span>' + Wo_ExploreNearbyEscapeHtml(focusMapTitle) + '</span>' +
+	'</button>';
+
+	return '<article class="wo_explore_discovery_card is-' + Wo_ExploreNearbyEscapeHtml(item.type) + '" data-point-key="' + safeKey + '">' +
+		'<div class="wo_explore_discovery_card_media">' + mediaHtml + '</div>' +
+		'<div class="wo_explore_discovery_card_body">' +
+			'<div class="wo_explore_discovery_card_head">' +
+				focusActionHtml +
+				distanceHtml +
+			'</div>' +
+			'<h3 class="wo_explore_discovery_card_title">' + titleHtml + '</h3>' +
+			(safeSubtitle ? '<p class="wo_explore_discovery_card_subtitle">' + safeSubtitle + '</p>' : '') +
+			locationHtml +
+			descriptionHtml +
+		'</div>' +
+	'</article>';
+}
+
+function Wo_ExploreNearbyGetEmptyHtml() {
+	var searchValue = Wo_ExploreNearbyGetSearchValue();
+	var description = emptyUsersText + ' / ' + emptyShopsText;
+	if (searchValue) {
+		description = '"' + Wo_ExploreNearbyEscapeHtml(searchValue) + '" - ' + description;
+	}
+
+	return '<div>' +
+		'<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 1 0 20a10 10 0 0 1 0-20m0 4a1 1 0 0 0-.993.883L11 7v6a1 1 0 0 0 1.993.117L13 13V7a1 1 0 0 0-1-1m0 10a1.25 1.25 0 1 0 0 2.5A1.25 1.25 0 0 0 12 16"/></svg>' +
+		'<div style="margin-top:12px;font-size:15px;color:#607086;line-height:1.7;">' + description + '</div>' +
+	'</div>';
+}
+
+function Wo_ExploreNearbyRenderList() {
+	var mergedItems = Wo_ExploreNearbyGetMergedItems();
+	var list = $('#explore_nearby_discovery_list');
+	var emptyState = $('#explore_nearby_empty_state');
+	var html = '';
+
+	for (var i = 0; i < mergedItems.length; i++) {
+		html += Wo_ExploreNearbyRenderCardHtml(mergedItems[i]);
+	}
+
+	if (!html) {
+		list.empty();
+		emptyState.html(Wo_ExploreNearbyGetEmptyHtml()).removeClass('wo_explore_nearby_hidden');
+	}
+	else {
+		list.html(html);
+		emptyState.addClass('wo_explore_nearby_hidden').empty();
+		Wo_ExploreNearbyHighlightCard(WoExploreNearbyState.activePointKey, false);
+	}
+}
+
+function Wo_ExploreNearbyGetDistanceKm(firstPoint, secondPoint) {
+	var earthRadiusKm = 6371;
+	var latDistance = (secondPoint.lat - firstPoint.lat) * (Math.PI / 180);
+	var lngDistance = (secondPoint.lng - firstPoint.lng) * (Math.PI / 180);
+	var firstLatitude = firstPoint.lat * (Math.PI / 180);
+	var secondLatitude = secondPoint.lat * (Math.PI / 180);
+	var haversine = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
+		Math.cos(firstLatitude) * Math.cos(secondLatitude) *
+		Math.sin(lngDistance / 2) * Math.sin(lngDistance / 2);
+
+	return earthRadiusKm * (2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine)));
+}
+
+function Wo_ExploreNearbyNormalizePoints(points) {
+	var normalizedPoints = [];
+	if (!Array.isArray(points)) {
+		return normalizedPoints;
+	}
+
+	for (var i = 0; i < points.length; i++) {
+		var point = points[i] || {};
+		var lat = parseFloat(point.lat);
+		var lng = parseFloat(point.lng);
+		if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) {
+			continue;
+		}
+
+		normalizedPoints.push({
+			item_key: Wo_ExploreNearbyGetItemKey(point),
+			name: Wo_ExploreNearbyNormalizeTextValue(point.name || point.title || ''),
+			lat: lat,
+			lng: lng,
+			avatar: point.avatar || '',
+			url: point.url || '',
+			location: Wo_ExploreNearbyNormalizeTextValue(point.location || ''),
+			type: point.type || 'user',
+			type_label: Wo_ExploreNearbyNormalizeTextValue(point.type_label || (point.type === 'shop' ? defaultShopTypeLabel : (point.type === 'place' ? defaultPlaceTypeLabel : defaultUserTypeLabel))),
+			isSelf: point.isSelf === true || point.is_self === true || point.is_self === 1,
+			heading: Wo_ExploreNearbyNormalizeHeading(point.heading) || 0
+		});
+	}
+
+	return normalizedPoints;
+}
+
+function Wo_ExploreNearbyIsSamePoint(firstPoint, secondPoint) {
+	if (!firstPoint || !secondPoint) {
+		return false;
+	}
+
+	if (Wo_ExploreNearbyGetItemKey(firstPoint) && Wo_ExploreNearbyGetItemKey(secondPoint)) {
+		return Wo_ExploreNearbyGetItemKey(firstPoint) === Wo_ExploreNearbyGetItemKey(secondPoint);
+	}
+
+	if (firstPoint.url && secondPoint.url) {
+		return firstPoint.url === secondPoint.url;
+	}
+
+	return parseFloat(firstPoint.lat) === parseFloat(secondPoint.lat) && parseFloat(firstPoint.lng) === parseFloat(secondPoint.lng);
+}
+
+function Wo_ExploreNearbyGetCombinedPoints(points) {
+	var normalizedPoints = Wo_ExploreNearbyNormalizePoints(points);
+	var combinedPoints = [];
+	var normalizedCurrentUserPoint = Wo_ExploreNearbyNormalizePoints([currentUserMapPoint]);
+
+	if (normalizedCurrentUserPoint.length > 0) {
+		combinedPoints.push(normalizedCurrentUserPoint[0]);
+	}
+
+	for (var i = 0; i < normalizedPoints.length; i++) {
+		var point = normalizedPoints[i];
+		var duplicatedPoint = false;
+
+		for (var j = 0; j < combinedPoints.length; j++) {
+			if (Wo_ExploreNearbyIsSamePoint(combinedPoints[j], point)) {
+				duplicatedPoint = true;
+				break;
+			}
+		}
+
+		if (!duplicatedPoint) {
+			combinedPoints.push(point);
+		}
+	}
+
+	return combinedPoints;
+}
+
+function Wo_ExploreNearbyGetBoundsDiagonalKm(points) {
+	var normalizedPoints = Wo_ExploreNearbyNormalizePoints(points);
+	if (normalizedPoints.length <= 1) {
+		return 0;
+	}
+
+	var minLat = normalizedPoints[0].lat;
+	var maxLat = normalizedPoints[0].lat;
+	var minLng = normalizedPoints[0].lng;
+	var maxLng = normalizedPoints[0].lng;
+
+	for (var i = 1; i < normalizedPoints.length; i++) {
+		minLat = Math.min(minLat, normalizedPoints[i].lat);
+		maxLat = Math.max(maxLat, normalizedPoints[i].lat);
+		minLng = Math.min(minLng, normalizedPoints[i].lng);
+		maxLng = Math.max(maxLng, normalizedPoints[i].lng);
+	}
+
+	return Wo_ExploreNearbyGetDistanceKm({lat: minLat, lng: minLng}, {lat: maxLat, lng: maxLng});
+}
+
+function Wo_ExploreNearbyGetZoomFloor(points) {
+	var normalizedPoints = Wo_ExploreNearbyNormalizePoints(points);
+	if (!normalizedPoints.length) {
+		return 7;
+	}
+
+	if (normalizedPoints.length === 1) {
+		return 15;
+	}
+
+	var diagonalDistanceKm = Wo_ExploreNearbyGetBoundsDiagonalKm(normalizedPoints);
+	if (diagonalDistanceKm < 1) {
+		return 16;
+	}
+	if (diagonalDistanceKm <= 5) {
+		return 14;
+	}
+
+	return 4;
+}
+
+function Wo_ExploreNearbyGetPopupHtml(point) {
+	var isSelfPoint = !!(point && point.isSelf);
+	var displayName = point.name || '';
+	var badgeLabel = point.type_label || (point.type === 'shop' ? defaultShopTypeLabel : (point.type === 'place' ? defaultPlaceTypeLabel : defaultUserTypeLabel));
+	var safeName = Wo_ExploreNearbyEscapeHtml(displayName);
+	var safeLocation = Wo_ExploreNearbyEscapeHtml(point.location || '');
+	var safeTypeLabel = Wo_ExploreNearbyEscapeHtml(badgeLabel);
+	var avatarHtml = '';
+	var linkOpen = '';
+	var linkClose = '';
+	var locationHtml = '';
+	var directionsHtml = '';
+	var badgeStyle = 'rgba(47,109,246,.12);color:#2f6df6;';
+
+	if (point.type === 'shop') {
+		badgeStyle = 'rgba(23,166,115,.12);color:#14815a;';
+	}
+	else if (point.type === 'place') {
+		badgeStyle = 'rgba(245,158,11,.14);color:#b45309;';
+	}
+
+	if (point.url && !isSelfPoint) {
+		linkOpen = '<a href="' + Wo_ExploreNearbyEscapeHtml(point.url) + '" style="color:#111827;text-decoration:none;font-weight:700;">';
+		linkClose = '</a>';
+	}
+
+	if (point.avatar) {
+		avatarHtml = '<img src="' + Wo_ExploreNearbyEscapeHtml(point.avatar) + '" alt="' + safeName + '" style="width:42px;height:42px;border-radius:' + (point.type === 'shop' ? '14px' : '50%') + ';object-fit:cover;display:block;">';
+	}
+	else {
+		avatarHtml = '<div style="width:42px;height:42px;border-radius:' + (point.type === 'shop' ? '14px' : '50%') + ';background:#dbe4f0;color:#111827;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;">' + Wo_ExploreNearbyEscapeHtml(Wo_ExploreNearbyGetInitials(point.name)) + '</div>';
+	}
+
+	if (safeLocation) {
+		locationHtml = '<div style="font-size:12px;color:#64748b;line-height:1.5;margin-top:4px;">' + safeLocation + '</div>';
+	}
+
+	if (!isSelfPoint) {
+		directionsHtml = '<a href="' + Wo_ExploreNearbyEscapeHtml(Wo_ExploreNearbyGetDirectionsUrl(point)) + '" target="_blank" rel="noopener" title="Directions" style="width:34px;height:34px;border-radius:999px;background:#0d6efd;color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;text-decoration:none;box-shadow:0 6px 14px rgba(13,110,253,.28);">' +
+			'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.71 11.29l-9-9a.996.996 0 0 0-1.09-.21a1 1 0 0 0-.62.92V7H5a1 1 0 0 0 0 2h6v4.99a1 1 0 0 0 1.71.7l9-9a.997.997 0 0 0 0-1.4Z"/></svg>' +
+		'</a>';
+	}
+
+	return '<div style="display:flex;align-items:center;gap:10px;min-width:240px;">' +
+		'<div style="flex:0 0 auto;">' + avatarHtml + '</div>' +
+		'<div style="min-width:0;flex:1 1 auto;">' +
+			'<div style="display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:' + badgeStyle + 'font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;">' + safeTypeLabel + '</div>' +
+			'<div style="margin-top:8px;font-size:14px;line-height:1.35;">' + linkOpen + safeName + linkClose + '</div>' +
+			locationHtml +
+		'</div>' +
+		directionsHtml +
+	'</div>';
+}
+
+function Wo_ExploreNearbyGetMobileSheetHtml(point) {
+	return '';
+}
+
+function Wo_ExploreNearbyShowMobileSheet(point) {
+	return true;
+}
+
+function Wo_ExploreNearbyHideMobileSheet() {
+	return;
+}
+
+function Wo_ExploreNearbyGetPinSvg(point) {
+	var isSelfPoint = !!(point && point.isSelf);
+	var isShopPoint = !!(point && point.type === 'shop');
+	var isPlacePoint = !!(point && point.type === 'place');
+	var fillColor = '#ef4444';
+	var strokeColor = '#dc2626';
+	var centerFill = '#ffffff';
+	var haloHtml = '';
+
+	if (isSelfPoint) {
+		var heading = Wo_ExploreNearbyNormalizeHeading(point.heading) || 0;
+		if (WoExploreNearbyState.deviceHeadingSource === 'device') {
+			heading = Wo_ExploreNearbyNormalizeHeading(heading + Wo_ExploreNearbyGetScreenRotationAngle()) || 0;
+		}
+		return '<svg xmlns="http://www.w3.org/2000/svg" width="62" height="62" viewBox="0 0 48 48" fill="none">' +
+			'<circle cx="24" cy="24" r="20" fill="#2563eb" opacity="0.14"/>' +
+			'<circle cx="24" cy="24" r="16.8" fill="#60a5fa" opacity="0.16"/>' +
+			'<circle cx="24" cy="24" r="13.8" fill="#0d6efd" stroke="#ffffff" stroke-width="2.4"/>' +
+			'<g transform="rotate(' + heading + ' 24 24)">' +
+				'<path d="M24 8.6L32.6 30L24 25.4L15.4 30L24 8.6Z" fill="#ffffff" stroke="#dbeafe" stroke-width="1.2" stroke-linejoin="round"/>' +
+			'</g>' +
+			'<circle cx="24" cy="24" r="3.05" fill="#f59e0b" stroke="#ffffff" stroke-width="1.4"/>' +
+		'</svg>';
+	}
+	else if (isShopPoint) {
+		fillColor = '#17a673';
+		strokeColor = '#13895f';
+		centerFill = '#ecfdf5';
+	}
+	else if (isPlacePoint) {
+		fillColor = '#f59e0b';
+		strokeColor = '#d97706';
+		centerFill = '#fffbeb';
+	}
+
+	return '<svg xmlns="http://www.w3.org/2000/svg" width="46" height="62" viewBox="0 0 24 28" fill="none">' +
+		haloHtml +
+		'<path d="M12 26s8-8.35 8-14c0-4.42-3.58-8-8-8s-8 3.58-8 8c0 5.65 8 14 8 14Z" fill="' + fillColor + '" stroke="' + strokeColor + '" stroke-width="1.2" stroke-linejoin="round"/>' +
+		'<circle cx="12" cy="12" r="4.15" fill="#ffffff"/>' +
+		'<circle cx="12" cy="12" r="2.35" fill="' + centerFill + '"/>' +
+	'</svg>';
+}
+
+function Wo_ExploreNearbyGetPinMetrics(point) {
+	if (point && point.isSelf) {
+		return {width: 62, height: 62, anchorX: 31, anchorY: 31, popupY: -28};
+	}
+
+	return {width: 38, height: 50, anchorX: 19, anchorY: 46, popupY: -40};
+}
+
+function Wo_ExploreNearbyCreateGoogleMarkerIcon(point) {
+	var metrics = Wo_ExploreNearbyGetPinMetrics(point);
+	return {
+		url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(Wo_ExploreNearbyGetPinSvg(point)),
+		scaledSize: new google.maps.Size(metrics.width, metrics.height),
+		anchor: new google.maps.Point(metrics.anchorX, metrics.anchorY)
+	};
+}
+
+function Wo_ExploreNearbyCreateLeafletMarkerIcon(point) {
+	if (typeof L === 'undefined') {
+		return null;
+	}
+
+	var metrics = Wo_ExploreNearbyGetPinMetrics(point);
+	var shadow = (point && point.isSelf) ? 'drop-shadow(0 10px 18px rgba(13,110,253,0.34)) drop-shadow(0 0 18px rgba(37,99,235,0.22))' : 'drop-shadow(0 8px 16px rgba(15,23,42,0.24))';
+	return L.divIcon({
+		className: 'wo-nearby-user-map-marker',
+		html: '<div style="width:' + metrics.width + 'px;height:' + metrics.height + 'px;filter:' + shadow + ';">' + Wo_ExploreNearbyGetPinSvg(point) + '</div>',
+		iconSize: [metrics.width, metrics.height],
+		iconAnchor: [metrics.anchorX, metrics.anchorY],
+		popupAnchor: [0, metrics.popupY]
+	});
+}
+
+function Wo_ExploreNearbyGetMarkerPosition(point, coordinateCounts) {
+	var lat = parseFloat(point.lat);
+	var lng = parseFloat(point.lng);
+	if (isNaN(lat) || isNaN(lng)) {
+		return null;
+	}
+
+	var key = lat.toFixed(6) + ',' + lng.toFixed(6);
+	var duplicateIndex = coordinateCounts[key] || 0;
+	coordinateCounts[key] = duplicateIndex + 1;
+
+	if (duplicateIndex === 0) {
+		return {lat: lat, lng: lng};
+	}
+
+	var angle = (duplicateIndex - 1) * (Math.PI / 3);
+	var radius = 0.00012 * (Math.floor((duplicateIndex - 1) / 6) + 1);
+
+	return {
+		lat: lat + (Math.sin(angle) * radius),
+		lng: lng + (Math.cos(angle) * radius)
+	};
+}
+
+function Wo_ExploreNearbyGetRouteColor(point) {
+	if (point && point.type === 'shop') {
+		return '#17a673';
+	}
+	if (point && point.type === 'place') {
+		return '#f59e0b';
+	}
+
+	return '#2f6df6';
+}
+
+function Wo_ExploreNearbyCloseInfoPopup() {
+	if (WoExploreNearbyMapState.googleInfoWindow) {
+		WoExploreNearbyMapState.googleInfoWindow.close();
+	}
+
+	if (WoExploreNearbyMapState.provider === 'leaflet' && WoExploreNearbyMapState.map && typeof WoExploreNearbyMapState.map.closePopup === 'function') {
+		WoExploreNearbyMapState.map.closePopup();
+	}
+
+	Wo_ExploreNearbyHideMobileSheet();
+}
+
+function Wo_ExploreNearbyClearRouteLine() {
+	if (WoExploreNearbyMapState.googleRouteLine) {
+		WoExploreNearbyMapState.googleRouteLine.setMap(null);
+		WoExploreNearbyMapState.googleRouteLine = null;
+	}
+
+	if (WoExploreNearbyMapState.googleRouteGlow) {
+		WoExploreNearbyMapState.googleRouteGlow.setMap(null);
+		WoExploreNearbyMapState.googleRouteGlow = null;
+	}
+
+	if (WoExploreNearbyMapState.leafletRouteLine) {
+		WoExploreNearbyMapState.leafletRouteLine.remove();
+		WoExploreNearbyMapState.leafletRouteLine = null;
+	}
+}
+
+function Wo_ExploreNearbyFitRouteViewport(path, fallbackPoints) {
+	var normalizedPath = [];
+	var points = Array.isArray(path) ? path : [];
+	for (var i = 0; i < points.length; i++) {
+		var lat = parseFloat(points[i].lat);
+		var lng = parseFloat(points[i].lng);
+		if (isNaN(lat) || isNaN(lng)) {
+			continue;
+		}
+
+		normalizedPath.push({lat: lat, lng: lng});
+	}
+
+	if (!normalizedPath.length && Array.isArray(fallbackPoints)) {
+		for (var j = 0; j < fallbackPoints.length; j++) {
+			var fallbackLat = parseFloat(fallbackPoints[j].lat);
+			var fallbackLng = parseFloat(fallbackPoints[j].lng);
+			if (isNaN(fallbackLat) || isNaN(fallbackLng)) {
+				continue;
+			}
+
+			normalizedPath.push({lat: fallbackLat, lng: fallbackLng});
+		}
+	}
+
+	if (!normalizedPath.length) {
+		return;
+	}
+
+	if (WoExploreNearbyMapState.provider === 'google' && WoExploreNearbyMapState.map) {
+		var googleBounds = new google.maps.LatLngBounds();
+		for (var g = 0; g < normalizedPath.length; g++) {
+			googleBounds.extend(normalizedPath[g]);
+		}
+		WoExploreNearbyMapState.map.fitBounds(googleBounds, 72);
+		google.maps.event.addListenerOnce(WoExploreNearbyMapState.map, 'idle', function() {
+			var currentZoom = WoExploreNearbyMapState.map.getZoom() || 7;
+			var minZoom = Wo_ExploreNearbyGetZoomFloor(normalizedPath);
+			var targetZoom = currentZoom;
+			if (targetZoom > 16) {
+				targetZoom = 16;
+			}
+			if (targetZoom < minZoom) {
+				targetZoom = minZoom;
+			}
+			if (targetZoom !== currentZoom) {
+				WoExploreNearbyMapState.map.setZoom(targetZoom);
+			}
+		});
+		return;
+	}
+
+	if (WoExploreNearbyMapState.provider === 'leaflet' && WoExploreNearbyMapState.map) {
+		var bounds = [];
+		for (var l = 0; l < normalizedPath.length; l++) {
+			bounds.push([normalizedPath[l].lat, normalizedPath[l].lng]);
+		}
+		WoExploreNearbyMapState.map.fitBounds(bounds, {
+			padding: [56, 56],
+			maxZoom: 16
+		});
+		var leafletZoom = WoExploreNearbyMapState.map.getZoom() || 7;
+		var leafletMinZoom = Wo_ExploreNearbyGetZoomFloor(normalizedPath);
+		if (leafletZoom < leafletMinZoom) {
+			WoExploreNearbyMapState.map.setZoom(leafletMinZoom);
+		}
+	}
+}
+
+function Wo_ExploreNearbyGetRouteCacheKey(provider, fromPoint, toPoint) {
+	return [
+		provider,
+		parseFloat(fromPoint.lat).toFixed(6),
+		parseFloat(fromPoint.lng).toFixed(6),
+		parseFloat(toPoint.lat).toFixed(6),
+		parseFloat(toPoint.lng).toFixed(6)
+	].join('|');
+}
+
+function Wo_ExploreNearbyRequestGoogleRoute(fromPoint, toPoint) {
+	if (!WoExploreNearbyMapState.map || typeof google === 'undefined' || !google.maps || typeof google.maps.DirectionsService === 'undefined') {
+		return Wo_ExploreNearbyRequestLeafletRoute(fromPoint, toPoint);
+	}
+
+	var cacheKey = Wo_ExploreNearbyGetRouteCacheKey('google', fromPoint, toPoint);
+	if (WoExploreNearbyState.routeCache.hasOwnProperty(cacheKey)) {
+		return Promise.resolve(WoExploreNearbyState.routeCache[cacheKey]);
+	}
+
+	if (!WoExploreNearbyMapState.googleDirectionsService) {
+		WoExploreNearbyMapState.googleDirectionsService = new google.maps.DirectionsService();
+	}
+
+	return new Promise(function(resolve) {
+		WoExploreNearbyMapState.googleDirectionsService.route({
+			origin: {lat: fromPoint.lat, lng: fromPoint.lng},
+			destination: {lat: toPoint.lat, lng: toPoint.lng},
+			travelMode: google.maps.TravelMode.DRIVING,
+			provideRouteAlternatives: false
+		}, function(result, status) {
+			if (status === 'OK' && result && result.routes && result.routes[0]) {
+				var overviewPath = result.routes[0].overview_path || [];
+				var normalizedPath = [];
+				for (var i = 0; i < overviewPath.length; i++) {
+					normalizedPath.push({
+						lat: overviewPath[i].lat(),
+						lng: overviewPath[i].lng()
+					});
+				}
+
+				if (normalizedPath.length > 1) {
+					var routeData = {path: normalizedPath};
+					WoExploreNearbyState.routeCache[cacheKey] = routeData;
+					resolve(routeData);
+					return;
+				}
+			}
+
+			Wo_ExploreNearbyRequestLeafletRoute(fromPoint, toPoint).then(resolve).catch(function() {
+				resolve(null);
+			});
+		});
+	});
+}
+
+function Wo_ExploreNearbyRequestLeafletRoute(fromPoint, toPoint) {
+	var cacheKey = Wo_ExploreNearbyGetRouteCacheKey('leaflet', fromPoint, toPoint);
+	if (WoExploreNearbyState.routeCache.hasOwnProperty(cacheKey)) {
+		return Promise.resolve(WoExploreNearbyState.routeCache[cacheKey]);
+	}
+
+	var routeUrl = 'https://router.project-osrm.org/route/v1/driving/' +
+		encodeURIComponent(fromPoint.lng + ',' + fromPoint.lat) + ';' +
+		encodeURIComponent(toPoint.lng + ',' + toPoint.lat) +
+		'?overview=full&geometries=geojson';
+
+	return fetch(routeUrl, {
+		headers: {
+			'Accept': 'application/json'
+		}
+	}).then(function(response) {
+		if (!response.ok) {
+			throw new Error('Routing request failed');
+		}
+		return response.json();
+	}).then(function(result) {
+		if (result && Array.isArray(result.routes) && result.routes[0] && result.routes[0].geometry && Array.isArray(result.routes[0].geometry.coordinates)) {
+			var coordinates = result.routes[0].geometry.coordinates;
+			var normalizedPath = [];
+			for (var i = 0; i < coordinates.length; i++) {
+				if (!Array.isArray(coordinates[i]) || coordinates[i].length < 2) {
+					continue;
+				}
+
+				normalizedPath.push({
+					lat: parseFloat(coordinates[i][1]),
+					lng: parseFloat(coordinates[i][0])
+				});
+			}
+
+			if (normalizedPath.length > 1) {
+				var routeData = {path: normalizedPath};
+				WoExploreNearbyState.routeCache[cacheKey] = routeData;
+				return routeData;
+			}
+		}
+
+		return null;
+	}).catch(function() {
+		return null;
+	});
+}
+
+function Wo_ExploreNearbyRequestRoute(fromPoint, toPoint) {
+	if (WoExploreNearbyMapState.provider === 'google') {
+		return Wo_ExploreNearbyRequestGoogleRoute(fromPoint, toPoint);
+	}
+
+	if (WoExploreNearbyMapState.provider === 'leaflet') {
+		return Wo_ExploreNearbyRequestLeafletRoute(fromPoint, toPoint);
+	}
+
+	return Promise.resolve(null);
+}
+
+function Wo_ExploreNearbyDrawGoogleRouteLine(path, toPoint) {
+	if (!WoExploreNearbyMapState.map) {
+		return;
+	}
+
+	var routeColor = Wo_ExploreNearbyGetRouteColor(toPoint);
+	var routePath = Array.isArray(path) ? path : [];
+
+	WoExploreNearbyMapState.googleRouteGlow = new google.maps.Polyline({
+		path: routePath,
+		geodesic: false,
+		strokeColor: routeColor,
+		strokeOpacity: 0.18,
+		strokeWeight: 12,
+		zIndex: 1
+	});
+	WoExploreNearbyMapState.googleRouteGlow.setMap(WoExploreNearbyMapState.map);
+
+	WoExploreNearbyMapState.googleRouteLine = new google.maps.Polyline({
+		path: routePath,
+		geodesic: false,
+		strokeColor: routeColor,
+		strokeOpacity: 0.94,
+		strokeWeight: 5,
+		zIndex: 2
+	});
+	WoExploreNearbyMapState.googleRouteLine.setMap(WoExploreNearbyMapState.map);
+}
+
+function Wo_ExploreNearbyDrawLeafletRouteLine(path, toPoint) {
+	if (!WoExploreNearbyMapState.map || typeof L === 'undefined') {
+		return;
+	}
+
+	var routeColor = Wo_ExploreNearbyGetRouteColor(toPoint);
+	var routePoints = [];
+	for (var i = 0; i < (path || []).length; i++) {
+		routePoints.push([path[i].lat, path[i].lng]);
+	}
+
+	WoExploreNearbyMapState.leafletRouteLine = L.polyline(routePoints, {
+		color: routeColor,
+		weight: 5,
+		opacity: 0.9,
+		lineCap: 'round',
+		lineJoin: 'round'
+	}).addTo(WoExploreNearbyMapState.map);
+
+	if (typeof WoExploreNearbyMapState.leafletRouteLine.bringToBack === 'function') {
+		WoExploreNearbyMapState.leafletRouteLine.bringToBack();
+	}
+}
+
+function Wo_ExploreNearbySyncRouteLine() {
+	var routeToken = ++WoExploreNearbyState.routeRenderToken;
+	Wo_ExploreNearbyClearRouteLine();
+
+	var selfPoint = Wo_ExploreNearbyGetCurrentUserPoint();
+	var activePointKey = WoExploreNearbyState.activePointKey;
+	if (!selfPoint || !activePointKey || activePointKey === Wo_ExploreNearbyGetItemKey(selfPoint)) {
+		return;
+	}
+
+	var targetPoint = Wo_ExploreNearbyGetRenderedPointByKey(activePointKey);
+	var normalizedTarget = Wo_ExploreNearbyNormalizePoints(targetPoint ? [targetPoint] : []);
+	if (!normalizedTarget.length || Wo_ExploreNearbyIsSamePoint(selfPoint, normalizedTarget[0])) {
+		return;
+	}
+
+	targetPoint = normalizedTarget[0];
+	Wo_ExploreNearbyRequestRoute(selfPoint, targetPoint).then(function(routeData) {
+		if (routeToken !== WoExploreNearbyState.routeRenderToken) {
+			return;
+		}
+
+		var routePath = (routeData && Array.isArray(routeData.path) && routeData.path.length > 1) ? routeData.path : [];
+		if (routePath.length > 1 && WoExploreNearbyMapState.provider === 'google') {
+			Wo_ExploreNearbyDrawGoogleRouteLine(routePath, targetPoint);
+		}
+		else if (routePath.length > 1 && WoExploreNearbyMapState.provider === 'leaflet') {
+			Wo_ExploreNearbyDrawLeafletRouteLine(routePath, targetPoint);
+		}
+
+		Wo_ExploreNearbyFitRouteViewport(routePath, [selfPoint, targetPoint]);
+	}).catch(function() {
+		if (routeToken !== WoExploreNearbyState.routeRenderToken) {
+			return;
+		}
+
+		Wo_ExploreNearbyFitRouteViewport([], [selfPoint, targetPoint]);
+	});
+}
+
+function Wo_ExploreNearbyApplyGoogleViewport(points) {
+	var normalizedPoints = Wo_ExploreNearbyNormalizePoints(points);
+	if (!WoExploreNearbyMapState.map) {
+		return;
+	}
+
+	if (!normalizedPoints.length) {
+		WoExploreNearbyMapState.map.setCenter(nearbyMapCenter);
+		WoExploreNearbyMapState.map.setZoom(7);
+		return;
+	}
+
+	if (normalizedPoints.length === 1) {
+		WoExploreNearbyMapState.map.setCenter({lat: normalizedPoints[0].lat, lng: normalizedPoints[0].lng});
+		WoExploreNearbyMapState.map.setZoom(15);
+		return;
+	}
+
+	var bounds = new google.maps.LatLngBounds();
+	for (var i = 0; i < normalizedPoints.length; i++) {
+		bounds.extend({lat: normalizedPoints[i].lat, lng: normalizedPoints[i].lng});
+	}
+
+	WoExploreNearbyMapState.map.fitBounds(bounds);
+	google.maps.event.addListenerOnce(WoExploreNearbyMapState.map, 'idle', function() {
+		var currentZoom = WoExploreNearbyMapState.map.getZoom() || 4;
+		var targetZoom = currentZoom;
+		var zoomFloor = Wo_ExploreNearbyGetZoomFloor(normalizedPoints);
+		if (targetZoom < 4) {
+			targetZoom = 4;
+		}
+		if (zoomFloor > 4 && targetZoom < zoomFloor) {
+			targetZoom = zoomFloor;
+		}
+		if (targetZoom !== currentZoom) {
+			WoExploreNearbyMapState.map.setZoom(targetZoom);
+		}
+	});
+}
+
+function Wo_ExploreNearbyApplyLeafletViewport(points) {
+	var normalizedPoints = Wo_ExploreNearbyNormalizePoints(points);
+	if (!WoExploreNearbyMapState.map) {
+		return;
+	}
+
+	if (!normalizedPoints.length) {
+		WoExploreNearbyMapState.map.setView([nearbyMapCenter.lat, nearbyMapCenter.lng], 7);
+		return;
+	}
+
+	if (normalizedPoints.length === 1) {
+		WoExploreNearbyMapState.map.setView([normalizedPoints[0].lat, normalizedPoints[0].lng], 15);
+		return;
+	}
+
+	var bounds = [];
+	for (var i = 0; i < normalizedPoints.length; i++) {
+		bounds.push([normalizedPoints[i].lat, normalizedPoints[i].lng]);
+	}
+
+	WoExploreNearbyMapState.map.fitBounds(bounds, {padding: [30, 30]});
+}
+
+function Wo_ExploreNearbyResetMapMarkers() {
+	Wo_ExploreNearbyClearRouteLine();
+	Wo_ExploreNearbyCloseInfoPopup();
+
+	if (WoExploreNearbyMapState.provider === 'google') {
+		for (var i = 0; i < WoExploreNearbyMapState.googleMarkers.length; i++) {
+			WoExploreNearbyMapState.googleMarkers[i].setMap(null);
+		}
+		WoExploreNearbyMapState.googleMarkers = [];
+		WoExploreNearbyMapState.googleMarkerLookup = {};
+		if (WoExploreNearbyMapState.googleInfoWindow) {
+			WoExploreNearbyMapState.googleInfoWindow.close();
+		}
+	}
+
+	if (WoExploreNearbyMapState.provider === 'leaflet' && WoExploreNearbyMapState.leafletMarkersLayer) {
+		WoExploreNearbyMapState.leafletMarkersLayer.clearLayers();
+		WoExploreNearbyMapState.leafletMarkerLookup = {};
+	}
+
+	WoExploreNearbyMapState.renderedPoints = [];
+}
+
+function Wo_ExploreNearbyHighlightCard(pointKey, scrollIntoView) {
+	$('.wo_explore_discovery_card').removeClass('is-active');
+	if (!pointKey) {
+		return;
+	}
+
+	WoExploreNearbyState.activePointKey = pointKey;
+	var card = $('.wo_explore_discovery_card[data-point-key="' + String(pointKey).replace(/"/g, '\\"') + '"]');
+	if (!card.length) {
+		return;
+	}
+
+	card.addClass('is-active');
+	if (scrollIntoView) {
+		card.get(0).scrollIntoView({
+			behavior: 'smooth',
+			block: 'nearest'
+		});
+	}
+}
+
+function Wo_ExploreNearbyGetStickyHeaderOffset() {
+	var offset = 12;
+	var header = $('.navbar-fixed-top:visible, .header-container:visible').first();
+	if (header.length) {
+		offset += header.outerHeight() || 0;
+	}
+
+	return offset;
+}
+
+function Wo_ExploreNearbyScrollToMap() {
+	var mapShell = $('#explore-nearby-map-shell');
+	if (!mapShell.length) {
+		return;
+	}
+
+	var targetTop = Math.max(0, mapShell.offset().top - Wo_ExploreNearbyGetStickyHeaderOffset());
+	$('html, body').stop(true).animate({
+		scrollTop: targetTop
+	}, 280);
+}
+
+function Wo_ExploreNearbyOpenGoogleMarker(marker, focusCard, openPopup) {
+	if (!marker) {
+		return;
+	}
+
+	if (!WoExploreNearbyMapState.googleInfoWindow) {
+		WoExploreNearbyMapState.googleInfoWindow = new google.maps.InfoWindow();
+	}
+
+	var point = marker.woNearbyPoint || null;
+	var pointKey = Wo_ExploreNearbyGetItemKey(point);
+	var shouldOpenPopup = openPopup !== false && Wo_ExploreNearbyShouldOpenMarkerPopup(point);
+
+	WoExploreNearbyMapState.map.panTo(marker.getPosition());
+	if (shouldOpenPopup) {
+		WoExploreNearbyMapState.googleInfoWindow.setContent(Wo_ExploreNearbyGetPopupHtml(point));
+		WoExploreNearbyMapState.googleInfoWindow.open(WoExploreNearbyMapState.map, marker);
+	}
+	else {
+		WoExploreNearbyMapState.googleInfoWindow.close();
+	}
+
+	if (focusCard) {
+		WoExploreNearbyState.pendingFocusPointKey = null;
+		WoExploreNearbyState.activePointKey = pointKey;
+		WoExploreNearbyState.openPopupPointKey = shouldOpenPopup ? pointKey : null;
+		Wo_ExploreNearbyEnsureSheetAtLeast('medium');
+		Wo_ExploreNearbySyncRouteLine();
+		Wo_ExploreNearbyHighlightCard(pointKey, true);
+	}
+}
+
+function Wo_ExploreNearbyRenderGoogleMarkers(points, options) {
+	var resultPoints = Wo_ExploreNearbyNormalizePoints(points);
+	var normalizedPoints = Wo_ExploreNearbyGetCombinedPoints(resultPoints);
+	var coordinateCounts = {};
+	var targetMarker = null;
+	var openPointKey = options && options.openPointKey ? options.openPointKey : null;
+
+	Wo_ExploreNearbyResetMapMarkers();
+
+	for (var i = 0; i < normalizedPoints.length; i++) {
+		var point = normalizedPoints[i];
+		var markerPosition = Wo_ExploreNearbyGetMarkerPosition(point, coordinateCounts);
+		if (!markerPosition) {
+			continue;
+		}
+
+		var marker = new google.maps.Marker({
+			position: markerPosition,
+			map: WoExploreNearbyMapState.map,
+			title: point.name || '',
+			icon: Wo_ExploreNearbyCreateGoogleMarkerIcon(point)
+		});
+		marker.woNearbyPoint = point;
+		marker.addListener('click', function() {
+			Wo_ExploreNearbyOpenGoogleMarker(this, true, true);
+		});
+		WoExploreNearbyMapState.googleMarkers.push(marker);
+		WoExploreNearbyMapState.googleMarkerLookup[Wo_ExploreNearbyGetItemKey(point)] = marker;
+
+		if (openPointKey && Wo_ExploreNearbyGetItemKey(point) === openPointKey) {
+			targetMarker = marker;
+		}
+	}
+
+	WoExploreNearbyMapState.renderedPoints = normalizedPoints;
+
+	if (!options || options.fit !== false) {
+		Wo_ExploreNearbyApplyGoogleViewport(normalizedPoints);
+	}
+
+	if (targetMarker) {
+		Wo_ExploreNearbyOpenGoogleMarker(targetMarker, false, true);
+	}
+}
+
+function Wo_ExploreNearbyRenderLeafletMarkers(points, options) {
+	var resultPoints = Wo_ExploreNearbyNormalizePoints(points);
+	var normalizedPoints = Wo_ExploreNearbyGetCombinedPoints(resultPoints);
+	var coordinateCounts = {};
+	var targetMarker = null;
+	var openPointKey = options && options.openPointKey ? options.openPointKey : null;
+
+	Wo_ExploreNearbyResetMapMarkers();
+
+	for (var i = 0; i < normalizedPoints.length; i++) {
+		var point = normalizedPoints[i];
+		var markerPosition = Wo_ExploreNearbyGetMarkerPosition(point, coordinateCounts);
+		if (!markerPosition) {
+			continue;
+		}
+
+		var marker = L.marker([markerPosition.lat, markerPosition.lng], {
+			icon: Wo_ExploreNearbyCreateLeafletMarkerIcon(point)
+		});
+		marker.woNearbyPoint = point;
+		if (Wo_ExploreNearbyShouldOpenMarkerPopup(point)) {
+			marker.bindPopup(Wo_ExploreNearbyGetPopupHtml(point), {
+				maxWidth: 280
+			});
+		}
+
+		marker.on('click', (function(point, pointKey, marker) {
+			return function() {
+				WoExploreNearbyState.pendingFocusPointKey = null;
+				WoExploreNearbyState.activePointKey = pointKey;
+				Wo_ExploreNearbyEnsureSheetAtLeast('medium');
+				WoExploreNearbyMapState.map.panTo(marker.getLatLng());
+				if (Wo_ExploreNearbyShouldOpenMarkerPopup(point)) {
+					WoExploreNearbyState.openPopupPointKey = pointKey;
+					marker.openPopup();
+				}
+				else {
+					WoExploreNearbyState.openPopupPointKey = null;
+					if (typeof marker.closePopup === 'function') {
+						marker.closePopup();
+					}
+				}
+				Wo_ExploreNearbySyncRouteLine();
+				Wo_ExploreNearbyHighlightCard(pointKey, true);
+			};
+		})(point, Wo_ExploreNearbyGetItemKey(point), marker));
+
+		marker.addTo(WoExploreNearbyMapState.leafletMarkersLayer);
+		WoExploreNearbyMapState.leafletMarkerLookup[Wo_ExploreNearbyGetItemKey(point)] = marker;
+
+		if (openPointKey && Wo_ExploreNearbyGetItemKey(point) === openPointKey) {
+			targetMarker = marker;
+		}
+	}
+
+	WoExploreNearbyMapState.renderedPoints = normalizedPoints;
+
+	if (!options || options.fit !== false) {
+		Wo_ExploreNearbyApplyLeafletViewport(normalizedPoints);
+	}
+
+	if (targetMarker) {
+		if (Wo_ExploreNearbyShouldOpenMarkerPopup(targetMarker.woNearbyPoint)) {
+			targetMarker.openPopup();
+			WoExploreNearbyState.openPopupPointKey = openPointKey;
+		}
+		else {
+			WoExploreNearbyState.openPopupPointKey = null;
+		}
+		Wo_ExploreNearbyHighlightCard(openPointKey, true);
+	}
+}
+
+function Wo_ExploreNearbyRenderMap(points, options) {
+	if (WoExploreNearbyMapState.provider === 'google') {
+		Wo_ExploreNearbyRenderGoogleMarkers(points, options || {});
+	}
+	else if (WoExploreNearbyMapState.provider === 'leaflet') {
+		Wo_ExploreNearbyRenderLeafletMarkers(points, options || {});
+	}
+
+	Wo_ExploreNearbySyncRouteLine();
+	$('#map').removeClass('wo_ui_map_state_loading');
+	Wo_ExploreNearbyUpdateMapPrompt();
+}
+
+function Wo_ExploreNearbyDestroyMap() {
+	Wo_ExploreNearbyResetMapMarkers();
+
+	if (WoExploreNearbyMapState.provider === 'leaflet' && WoExploreNearbyMapState.map) {
+		WoExploreNearbyMapState.map.remove();
+	}
+
+	WoExploreNearbyMapState.provider = null;
+	WoExploreNearbyMapState.map = null;
+	WoExploreNearbyMapState.leafletMarkersLayer = null;
+	WoExploreNearbyMapState.googleMarkers = [];
+	WoExploreNearbyMapState.googleInfoWindow = null;
+	WoExploreNearbyMapState.googleDirectionsService = null;
+	WoExploreNearbyMapState.leafletMarkerLookup = {};
+	WoExploreNearbyMapState.googleMarkerLookup = {};
+	WoExploreNearbyMapState.googleRouteLine = null;
+	WoExploreNearbyMapState.googleRouteGlow = null;
+	WoExploreNearbyMapState.leafletRouteLine = null;
+	WoExploreNearbyMapState.renderedPoints = [];
+	$('#map').html('').addClass('wo_ui_map_state_loading');
+}
+
+function Wo_ExploreNearbyCreateGoogleMap() {
+	if (typeof google === 'undefined' || !google.maps || !google.maps.Map || !$('#map').length) {
+		return false;
+	}
+
+	Wo_ExploreNearbyDestroyMap();
+	WoExploreNearbyMapState.provider = 'google';
+	WoExploreNearbyMapState.map = new google.maps.Map(document.getElementById('map'), {
+		center: nearbyMapCenter,
+		zoom: 7,
+		mapTypeId: google.maps.MapTypeId.ROADMAP,
+		gestureHandling: 'greedy'
+	});
+	WoExploreNearbyMapState.googleInfoWindow = new google.maps.InfoWindow();
+	WoExploreNearbyMapState.googleDirectionsService = (typeof google.maps.DirectionsService !== 'undefined') ? new google.maps.DirectionsService() : null;
+	Wo_ExploreNearbyUpdateMapPrompt();
+	return true;
+}
+
+function Wo_ExploreNearbyCreateLeafletMap() {
+	if (typeof L === 'undefined' || !$('#map').length) {
+		return false;
+	}
+
+	Wo_ExploreNearbyDestroyMap();
+	WoExploreNearbyMapState.provider = 'leaflet';
+	WoExploreNearbyMapState.map = L.map('map', {
+		dragging: true,
+		touchZoom: true,
+		doubleClickZoom: true,
+		boxZoom: false,
+		keyboard: false,
+		tap: true,
+		tapTolerance: 15
+	}).setView([nearbyMapCenter.lat, nearbyMapCenter.lng], 7);
+	WoExploreNearbyMapState.leafletMarkersLayer = L.layerGroup().addTo(WoExploreNearbyMapState.map);
+
+	var tileConfig = window.WoLeafletMutedMapConfig || {};
+	L.tileLayer(
+		tileConfig.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+		$.extend({
+			attribution: '',
+			maxZoom: 18
+		}, tileConfig.tileOptions || {})
+	).addTo(WoExploreNearbyMapState.map);
+
+	Wo_ExploreNearbyUpdateMapPrompt();
+	return true;
+}
+
+function Wo_ExploreNearbyEnsureLeaflet(callback) {
+	if (typeof L !== 'undefined') {
+		callback();
+		return;
+	}
+
+	$.getScript('<?php echo $wo['config']['theme_url']; ?>/javascript/leaflet.js?version=<?php echo $wo['config']['version']; ?>', callback);
+}
+
+function Wo_ExploreNearbyNeedsShopGeocode(point) {
+	if (!point || point.type !== 'shop' || !point.location) {
+		return false;
+	}
+
+	var lat = parseFloat(point.lat);
+	var lng = parseFloat(point.lng);
+
+	return isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0);
+}
+
+function Wo_ExploreNearbyGeocodeShopLocation(location) {
+	var normalizedLocation = $.trim(location || '');
+	if (!normalizedLocation) {
+		return Promise.resolve(null);
+	}
+
+	if (WoExploreNearbyState.shopGeocodeCache.hasOwnProperty(normalizedLocation)) {
+		return Promise.resolve(WoExploreNearbyState.shopGeocodeCache[normalizedLocation]);
+	}
+
+	if (!Wo_ExploreNearbyGetGoogleGeocoder()) {
+		WoExploreNearbyState.shopGeocodeCache[normalizedLocation] = null;
+		return Promise.resolve(null);
+	}
+
+	return new Promise(function(resolve) {
+		Wo_ExploreNearbyGetGoogleGeocoder().geocode({
+			address: normalizedLocation
+		}, function(results, status) {
+			var geocodedLocation = null;
+			if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+				geocodedLocation = {
+					lat: results[0].geometry.location.lat(),
+					lng: results[0].geometry.location.lng()
+				};
+			}
+
+			WoExploreNearbyState.shopGeocodeCache[normalizedLocation] = geocodedLocation;
+			resolve(geocodedLocation);
+		});
+	}).catch(function() {
+		WoExploreNearbyState.shopGeocodeCache[normalizedLocation] = null;
+		return null;
+	});
+}
+
+function Wo_ExploreNearbyResolveVisiblePoints(points) {
+	if (!Array.isArray(points) || points.length === 0) {
+		return Promise.resolve(points || []);
+	}
+
+	return Promise.all(points.map(function(point) {
+		if (!Wo_ExploreNearbyNeedsShopGeocode(point)) {
+			return Promise.resolve(point);
+		}
+
+		return Wo_ExploreNearbyGeocodeShopLocation(point.location).then(function(geocodedLocation) {
+			if (!geocodedLocation) {
+				return point;
+			}
+
+			return $.extend({}, point, {
+				lat: geocodedLocation.lat,
+				lng: geocodedLocation.lng
+			});
+		});
+	}));
+}
+
+function Wo_ExploreNearbyRenderCurrentMap(openPointKey) {
+	var visiblePoints = Wo_ExploreNearbyGetVisiblePoints();
+	var renderToken = ++WoExploreNearbyState.mapRenderToken;
+	var pendingFocusPointKey = WoExploreNearbyState.pendingFocusPointKey || null;
+	var targetOpenPointKey = openPointKey || WoExploreNearbyState.openPopupPointKey || Wo_ExploreNearbyGetDefaultOpenPointKey();
+	$('#map').addClass('wo_ui_map_state_loading');
+	if (!Wo_ExploreNearbySyncLocationAnchorState()) {
+		Wo_ExploreNearbyResetMapMarkers();
+		$('#map').removeClass('wo_ui_map_state_loading');
+		Wo_ExploreNearbyUpdateMapPrompt();
+		return;
+	}
+
+	Wo_ExploreNearbyResolveVisiblePoints(visiblePoints).then(function(resolvedPoints) {
+		if (renderToken !== WoExploreNearbyState.mapRenderToken) {
+			return;
+		}
+
+		Wo_ExploreNearbyRenderMap(resolvedPoints, {
+			fit: true,
+			openPointKey: targetOpenPointKey || null
+		});
+
+		if (pendingFocusPointKey) {
+			WoExploreNearbyState.pendingFocusPointKey = null;
+			Wo_ExploreNearbyFocusOnMapByKey(pendingFocusPointKey, true);
+		}
+
+		Wo_ExploreNearbyUpdateMapPrompt();
+	});
+}
+
+function Wo_ExploreNearbyFocusOnMapByKey(pointKey, shouldScrollMap) {
+	if (!pointKey) {
+		return;
+	}
+
+	WoExploreNearbyState.pendingFocusPointKey = null;
+	WoExploreNearbyState.activePointKey = pointKey;
+	WoExploreNearbyState.openPopupPointKey = null;
+	Wo_ExploreNearbyCloseInfoPopup();
+	var marker = null;
+	var targetPoint = null;
+
+	if (WoExploreNearbyMapState.provider === 'google') {
+		marker = WoExploreNearbyMapState.googleMarkerLookup[pointKey] || null;
+		if (marker) {
+			targetPoint = marker.woNearbyPoint || null;
+			WoExploreNearbyMapState.map.panTo(marker.getPosition());
+			if (Wo_ExploreNearbyShouldOpenMarkerPopup(targetPoint)) {
+				if (!WoExploreNearbyMapState.googleInfoWindow) {
+					WoExploreNearbyMapState.googleInfoWindow = new google.maps.InfoWindow();
+				}
+				WoExploreNearbyMapState.googleInfoWindow.setContent(Wo_ExploreNearbyGetPopupHtml(targetPoint));
+				WoExploreNearbyMapState.googleInfoWindow.open(WoExploreNearbyMapState.map, marker);
+				WoExploreNearbyState.openPopupPointKey = pointKey;
+			}
+			Wo_ExploreNearbySyncRouteLine();
+		}
+	}
+	else if (WoExploreNearbyMapState.provider === 'leaflet') {
+		marker = WoExploreNearbyMapState.leafletMarkerLookup[pointKey] || null;
+		if (marker && WoExploreNearbyMapState.map) {
+			targetPoint = marker.woNearbyPoint || null;
+			WoExploreNearbyMapState.map.panTo(marker.getLatLng());
+			if (Wo_ExploreNearbyShouldOpenMarkerPopup(targetPoint) && typeof marker.openPopup === 'function') {
+				marker.openPopup();
+				WoExploreNearbyState.openPopupPointKey = pointKey;
+			}
+			Wo_ExploreNearbySyncRouteLine();
+		}
+	}
+
+	if (!marker) {
+		Wo_ExploreNearbyRenderCurrentMap(null);
+	}
+
+	Wo_ExploreNearbyEnsureSheetAtLeast('medium');
+	Wo_ExploreNearbyHighlightCard(pointKey, true);
+	if (shouldScrollMap) {
+		Wo_ExploreNearbyScrollToMap();
+	}
+}
+
+function Wo_ExploreNearbyUpdateUi() {
+	var totalResults = Wo_ExploreNearbyGetTotalResultsCount();
+	var loadedResults = Wo_ExploreNearbyGetLoadedResultsCount();
+	var uiMetaText = Wo_ExploreNearbyGetUiMetaText();
+
+	$('#explore-nearby-results-count').text(totalResults);
+	$('#explore-nearby-loaded-count').text(loadedResults);
+	$('#explore-nearby-summary-text, #explore-nearby-list-note').text(uiMetaText);
+
+	Wo_ExploreNearbyRenderList();
+	Wo_ExploreNearbyUpdateInfiniteScrollState();
+}
+
+function Wo_ExploreNearbyBuildUsersRequestData(offset) {
+	var requestData = {
+		f: 'nearby_users',
+		s: 'load',
+		distance: Wo_ExploreNearbyGetDistanceValue()
+	};
+	var searchValue = Wo_ExploreNearbyGetRequestSearchValue();
+
+	if (searchValue) {
+		requestData.name = searchValue;
+	}
+
+	if (Wo_ExploreNearbyHasSearchCenter()) {
+		requestData.search_mode = 'location';
+		requestData.center_lat = WoExploreNearbyState.searchCenterLat;
+		requestData.center_lng = WoExploreNearbyState.searchCenterLng;
+	}
+
+	if (offset) {
+		requestData.offset = offset;
+	}
+
+	return requestData;
+}
+
+function Wo_ExploreNearbyBuildShopsRequestData(offset) {
+	var requestData = {
+		f: 'nearby_shops',
+		s: 'load',
+		distance: Wo_ExploreNearbyGetDistanceValue()
+	};
+	var searchValue = Wo_ExploreNearbyGetRequestSearchValue();
+
+	if (searchValue) {
+		requestData.name = searchValue;
+	}
+
+	if (Wo_ExploreNearbyHasSearchCenter()) {
+		requestData.search_mode = 'location';
+		requestData.center_lat = WoExploreNearbyState.searchCenterLat;
+		requestData.center_lng = WoExploreNearbyState.searchCenterLng;
+	}
+
+	if (offset) {
+		requestData.offset = offset;
+	}
+
+	return requestData;
+}
+
+function Wo_ExploreNearbyGetUsersOffset() {
+	var items = Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.usersItems || []);
+	if (!items.length) {
+		return 0;
+	}
+
+	return items[items.length - 1].offset_id || 0;
+}
+
+function Wo_ExploreNearbyGetShopsOffset() {
+	var items = Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.shopsItems || []);
+	if (!items.length) {
+		return 0;
+	}
+
+	return items[items.length - 1].offset_id || 0;
+}
+
+function Wo_ExploreNearbyApplyUsersResponse(data, append) {
+	var responseItems = [];
+
+	if (data && data.status == 200) {
+		responseItems = data.items_info || data.users_info || [];
+		WoExploreNearbyState.usersItems = append ? Wo_ExploreNearbyMergeUniqueItems(WoExploreNearbyState.usersItems || [], responseItems) : Wo_ExploreNearbyNormalizeDiscoveryItems(responseItems);
+		WoExploreNearbyState.usersCount = parseInt(data.count || 0, 10);
+	}
+	else if (!append) {
+		WoExploreNearbyState.usersItems = [];
+		WoExploreNearbyState.usersCount = 0;
+	}
+}
+
+function Wo_ExploreNearbyApplyShopsResponse(data, append) {
+	var responseItems = [];
+
+	if (data && data.status == 200) {
+		responseItems = data.items_info || data.users_info || [];
+		WoExploreNearbyState.shopsItems = append ? Wo_ExploreNearbyMergeUniqueItems(WoExploreNearbyState.shopsItems || [], responseItems) : Wo_ExploreNearbyNormalizeDiscoveryItems(responseItems);
+		WoExploreNearbyState.shopsCount = parseInt(data.count || 0, 10);
+	}
+	else if (!append) {
+		WoExploreNearbyState.shopsItems = [];
+		WoExploreNearbyState.shopsCount = 0;
+	}
+}
+
+function Wo_ExploreNearbyAbortPendingRequests() {
+	if (WoExploreNearbyState.usersRequest && WoExploreNearbyState.usersRequest.readyState !== 4) {
+		WoExploreNearbyState.usersRequest.abort();
+	}
+	if (WoExploreNearbyState.shopsRequest && WoExploreNearbyState.shopsRequest.readyState !== 4) {
+		WoExploreNearbyState.shopsRequest.abort();
+	}
+}
+
+function Wo_ExploreNearbyLoad(append, loaderTarget) {
+	var pending = 0;
+
+	if (append && WoExploreNearbyState.appendInProgress) {
+		return;
+	}
+
+	var loadToken = ++WoExploreNearbyState.loadToken;
+
+	if (!append) {
+		WoExploreNearbyState.appendInProgress = false;
+		Wo_ExploreNearbyAbortPendingRequests();
+		WoExploreNearbyState.openPopupPointKey = null;
+		Wo_ExploreNearbyCloseInfoPopup();
+		Wo_ExploreNearbyHideMobileSheet();
+	}
+	else {
+		WoExploreNearbyState.appendInProgress = true;
+		Wo_ExploreNearbyUpdateInfiniteScrollState();
+	}
+
+	if (loaderTarget) {
+		Wo_progressIconLoader($(loaderTarget));
+	}
+	else if (!append) {
+		Wo_StartBar();
+	}
+
+	function finishWithoutRequests() {
+		if (loadToken !== WoExploreNearbyState.loadToken) {
+			return;
+		}
+
+		WoExploreNearbyState.appendInProgress = false;
+		Wo_ExploreNearbyUpdateInfiniteScrollState();
+		Wo_ExploreNearbyUpdateUi();
+		Wo_ExploreNearbyRenderCurrentMap(WoExploreNearbyState.openPopupPointKey || null);
+		Wo_ExploreNearbyRefreshDynamicUserLocations(true);
+		if (loaderTarget) {
+			Wo_progressIconLoader($(loaderTarget));
+		}
+		else if (!append) {
+			Wo_FinishBar();
+		}
+	}
+
+	function finishOne() {
+		if (loadToken !== WoExploreNearbyState.loadToken) {
+			return;
+		}
+
+		pending--;
+		if (pending <= 0) {
+			WoExploreNearbyState.appendInProgress = false;
+			Wo_ExploreNearbyUpdateUi();
+			Wo_ExploreNearbyRenderCurrentMap(WoExploreNearbyState.openPopupPointKey || null);
+			Wo_ExploreNearbyRefreshDynamicUserLocations(true);
+			if (loaderTarget) {
+				Wo_progressIconLoader($(loaderTarget));
+			}
+			else if (!append) {
+				Wo_FinishBar();
+			}
+		}
+	}
+
+	function loadUsers() {
+		pending++;
+		WoExploreNearbyState.usersRequest = $.ajax({
+			url: Wo_Ajax_Requests_File(),
+			type: 'GET',
+			dataType: 'json',
+			data: Wo_ExploreNearbyBuildUsersRequestData(append ? Wo_ExploreNearbyGetUsersOffset() : 0)
+		}).done(function(data) {
+			if (loadToken !== WoExploreNearbyState.loadToken) {
+				return;
+			}
+			Wo_ExploreNearbyApplyUsersResponse(data, append);
+		}).fail(function(xhr, status) {
+			if (loadToken !== WoExploreNearbyState.loadToken) {
+				return;
+			}
+			if (status !== 'abort' && !append) {
+				Wo_ExploreNearbyApplyUsersResponse(null, false);
+			}
+		}).always(finishOne);
+	}
+
+	function loadShops() {
+		pending++;
+		WoExploreNearbyState.shopsRequest = $.ajax({
+			url: Wo_Ajax_Requests_File(),
+			type: 'GET',
+			dataType: 'json',
+			data: Wo_ExploreNearbyBuildShopsRequestData(append ? Wo_ExploreNearbyGetShopsOffset() : 0)
+		}).done(function(data) {
+			if (loadToken !== WoExploreNearbyState.loadToken) {
+				return;
+			}
+			Wo_ExploreNearbyApplyShopsResponse(data, append);
+		}).fail(function(xhr, status) {
+			if (loadToken !== WoExploreNearbyState.loadToken) {
+				return;
+			}
+			if (status !== 'abort' && !append) {
+				Wo_ExploreNearbyApplyShopsResponse(null, false);
+			}
+		}).always(finishOne);
+	}
+
+	function startRequests() {
+		if (loadToken !== WoExploreNearbyState.loadToken) {
+			return;
+		}
+
+		if (WoExploreNearbyState.usersEnabled) {
+			loadUsers();
+		}
+		if (WoExploreNearbyState.shopsEnabled) {
+			loadShops();
+		}
+
+		if (pending === 0) {
+			finishWithoutRequests();
+		}
+	}
+
+	if (!append) {
+		Wo_ExploreNearbyResolveSearchPlace(loadToken).then(function() {
+			startRequests();
+		});
+		return;
+	}
+
+	startRequests();
+}
+
+function Wo_ExploreNearbyLoadMore() {
+	Wo_ExploreNearbyLoad(true);
+}
+
+jQuery(document).ready(function($) {
+	function initMap() {
+		if (<?php echo ($wo['config']['google_map'] == 1) ? 'true' : 'false'; ?> && Wo_ExploreNearbyCreateGoogleMap()) {
+			Wo_ExploreNearbyRenderCurrentMap();
+			return;
+		}
+
+		Wo_ExploreNearbyEnsureLeaflet(function() {
+			if (Wo_ExploreNearbyCreateLeafletMap()) {
+				Wo_ExploreNearbyRenderCurrentMap();
+			}
+		});
+	}
+
+	Wo_ExploreNearbyUpdateViewportHeight();
+	Wo_ExploreNearbyBindSheetInteractions();
+	Wo_ExploreNearbyBindInfiniteScroll();
+	Wo_ExploreNearbyInitOrientationTracking();
+	initMap();
+	setTimeout(Wo_ExploreNearbyRefreshMapSize, 60);
+	Wo_ExploreNearbySetSheetSnap('collapsed', false);
+	Wo_ExploreNearbyUpdateUi();
+	Wo_ExploreNearbyRefreshDynamicUserLocations(true);
+	Wo_ExploreNearbyStartLiveLocationTracking();
+	Wo_ExploreNearbyUpdateMapPrompt();
+
+	$('#nearby-username').on('input', function() {
+		var query = Wo_ExploreNearbyGetSearchValue();
+
+		clearTimeout(WoExploreNearbyState.searchTimer);
+		clearTimeout(WoExploreNearbyState.searchSuggestionTimer);
+		Wo_ExploreNearbySyncSearchSelectionHint();
+
+		if (query.length > 0) {
+			WoExploreNearbyState.searchSuggestionTimer = setTimeout(function() {
+				Wo_ExploreNearbyRequestSuggestions();
+			}, 160);
+		}
+		else {
+			Wo_ExploreNearbyCloseSuggestions();
+		}
+
+		WoExploreNearbyState.searchTimer = setTimeout(function() {
+			Wo_ExploreNearbyLoad(false);
+		}, 300);
+	});
+
+	$('#nearby-username').on('keydown', function(e) {
+		var key = e.key || '';
+		var keyCode = e.which || e.keyCode || 0;
+		var isSuggestionsVisible = !$('#explore-nearby-search-suggestions').hasClass('wo_explore_nearby_hidden');
+
+		if (key === 'ArrowDown' || keyCode === 40) {
+			if (isSuggestionsVisible && (WoExploreNearbyState.searchSuggestionItems || []).length) {
+				e.preventDefault();
+				Wo_ExploreNearbyMoveSuggestion(1);
+			}
+			return;
+		}
+
+		if (key === 'ArrowUp' || keyCode === 38) {
+			if (isSuggestionsVisible && (WoExploreNearbyState.searchSuggestionItems || []).length) {
+				e.preventDefault();
+				Wo_ExploreNearbyMoveSuggestion(-1);
+			}
+			return;
+		}
+
+		if (key === 'Escape' || keyCode === 27) {
+			if (isSuggestionsVisible) {
+				e.preventDefault();
+				Wo_ExploreNearbyCloseSuggestions();
+			}
+			return;
+		}
+
+		if (key === 'Enter' || keyCode === 13) {
+			e.preventDefault();
+
+			if (isSuggestionsVisible && WoExploreNearbyState.searchSuggestionActiveIndex > -1) {
+				Wo_ExploreNearbySelectSuggestionByIndex(WoExploreNearbyState.searchSuggestionActiveIndex);
+				return;
+			}
+
+			Wo_ExploreNearbyCloseSuggestions();
+			Wo_ExploreNearbyLoad(false);
+		}
+	});
+
+	$('#nearby-username').on('focus', function() {
+		Wo_ExploreNearbyEnsureSheetAtLeast('medium');
+		clearTimeout(WoExploreNearbyState.searchSuggestionTimer);
+		WoExploreNearbyState.isSuggestionInteraction = false;
+		if (Wo_ExploreNearbyGetSearchValue().length > 0) {
+			WoExploreNearbyState.searchSuggestionTimer = setTimeout(function() {
+				Wo_ExploreNearbyRequestSuggestions();
+			}, 80);
+		}
+	}).on('blur', function() {
+		clearTimeout(WoExploreNearbyState.searchSuggestionTimer);
+		WoExploreNearbyState.searchSuggestionTimer = setTimeout(function() {
+			if (WoExploreNearbyState.isSuggestionInteraction) {
+				WoExploreNearbyState.isSuggestionInteraction = false;
+				return;
+			}
+			Wo_ExploreNearbyCloseSuggestions();
+		}, 160);
+	});
+
+	$(window).on('resize', function() {
+		Wo_ExploreNearbyUpdateViewportHeight();
+		Wo_ExploreNearbySetSheetSnap(WoExploreNearbyState.sheetSnap || 'collapsed', false);
+		if (!Wo_ExploreNearbyShouldOpenMarkerPopup(Wo_ExploreNearbyGetRenderedPointByKey(WoExploreNearbyState.openPopupPointKey || ''))) {
+			Wo_ExploreNearbyCloseInfoPopup();
+			WoExploreNearbyState.openPopupPointKey = null;
+		}
+		Wo_ExploreNearbyRefreshMapSize();
+	});
+
+	$(document).on('click', '.wo_explore_discovery_card', function(e) {
+		if ($(e.target).closest('a,button').length) {
+			return;
+		}
+
+		Wo_ExploreNearbyFocusOnMapByKey($(this).attr('data-point-key'), true);
+	});
+
+	$(document).on('pointerdown mousedown touchstart', '.wo_explore_discovery_search_suggestion', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		Wo_ExploreNearbyHandleSuggestionSelection(parseInt($(this).attr('data-index'), 10));
+	});
+
+	$(document).on('mouseenter', '.wo_explore_discovery_search_suggestion', function() {
+		var nextIndex = parseInt($(this).attr('data-index'), 10);
+		if (isNaN(nextIndex)) {
+			return;
+		}
+
+		WoExploreNearbyState.searchSuggestionActiveIndex = nextIndex;
+		Wo_ExploreNearbyRenderSuggestions();
+	});
+
+	$(document).on('pointerup mouseup touchend', '.wo_explore_discovery_search_suggestion', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		if ((Date.now() - (WoExploreNearbyState.lastSuggestionSelectionAt || 0)) < 400) {
+			return;
+		}
+		Wo_ExploreNearbyHandleSuggestionSelection(parseInt($(this).attr('data-index'), 10));
+	});
+
+	$(document).on('click', '.wo_explore_discovery_search_suggestion', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		if ((Date.now() - (WoExploreNearbyState.lastSuggestionSelectionAt || 0)) < 400) {
+			return;
+		}
+		Wo_ExploreNearbyHandleSuggestionSelection(parseInt($(this).attr('data-index'), 10));
+	});
+
+	$(document).on('click', function(e) {
+		if ($(e.target).closest('.wo_explore_discovery_search').length) {
+			return;
+		}
+
+		Wo_ExploreNearbyCloseSuggestions();
+	});
+
+	$(document).on('click', '.wo_explore_discovery_focus', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		if ($(this).is(':disabled')) {
+			return;
+		}
+		Wo_ExploreNearbyFocusOnMapByKey($(this).attr('data-point-key'), true);
+	});
+
+	$(document).on('click', '#explore-nearby-map-prompt-action', function(e) {
+		e.preventDefault();
+		WoExploreNearbyState.locationBootstrapState = 'waiting';
+		Wo_ExploreNearbyUpdateMapPrompt();
+		Wo_ExploreNearbyRequestCurrentUserLocation();
+	});
+});
+</script>

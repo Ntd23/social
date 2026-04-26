@@ -3725,6 +3725,7 @@ function Wo_IsNameExist($username, $active = 0) {
         "chart-ads",
         "manage-ads",
         "create-status",
+        "explore-nearby",
         "friends-nearby",
         "more-status"
     );
@@ -6177,6 +6178,8 @@ function Wo_CreateNewAudioCall($re_data) {
         return false;
     }
 }
+
+
 function Wo_NormalizeGroupCallType($call_type = 'video') {
     return ($call_type == 'audio') ? 'audio' : 'video';
 }
@@ -6803,11 +6806,13 @@ function Wo_GetGroupCallMessage($message = array()) {
     $invited_by = intval(!empty($payload['invited_by']) ? $payload['invited_by'] : $initiator_id);
     $initiator = ($initiator_id > 0) ? Wo_UserData($initiator_id) : array();
     $inviter = ($invited_by > 0) ? Wo_UserData($invited_by) : array();
-    $actor_name = !empty($initiator['first_name']) ? $initiator['first_name'] : (!empty($inviter['first_name']) ? $inviter['first_name'] : (!empty($wo['lang']['someone']) ? $wo['lang']['someone'] : 'Someone'));
-    $detail = ($call_type == 'video') ? 'Đã bắt đầu cuộc gọi video' : 'Đã bắt đầu cuộc gọi âm thanh';
+    $actor_name = !empty($initiator['name']) ? $initiator['name'] : (!empty($inviter['name']) ? $inviter['name'] : Wo_GetCallLogLabel('someone', 'Ai đó'));
+    $detail = ($call_type == 'video')
+        ? Wo_GetCallLogLabel('group_video_call_started', 'đã bắt đầu cuộc gọi video nhóm')
+        : Wo_GetCallLogLabel('group_audio_call_started', 'đã bắt đầu cuộc gọi âm thanh nhóm');
     if ($action === 'members_added') {
         $actor_name = !empty($inviter['name']) ? $inviter['name'] : $actor_name;
-        $detail = ($call_type == 'video')
+         $detail = ($call_type == 'video')
             ? Wo_GetCallLogLabel('group_video_call_members_added', 'đã mời thêm thành viên vào cuộc gọi video này')
             : Wo_GetCallLogLabel('group_audio_call_members_added', 'đã mời thêm thành viên vào cuộc gọi âm thanh này');
         if (!empty($payload['invited_user_ids']) && is_array($payload['invited_user_ids'])) {
@@ -6845,7 +6850,7 @@ function Wo_GetGroupCallMessage($message = array()) {
         'title' => ($call_type == 'video') ? (!empty($wo['lang']['video_call']) ? $wo['lang']['video_call'] : 'Video call') : (!empty($wo['lang']['audio_call']) ? $wo['lang']['audio_call'] : 'Audio call'),
         'actor_name' => $actor_name,
         'detail' => $detail,
-        'is_active' => (!empty($group_call) && $group_call['status'] === 'active' && !empty($latest_active_call) && intval($latest_active_call['id']) === $call_id),
+        'is_active' => (!empty($group_call) && $group_call['status'] === 'active'),
         'duration' => $duration,
         'duration_formatted' => $duration_formatted,
         'participant_count' => !empty($group_call['participant_count']) ? intval($group_call['participant_count']) : 0,
@@ -6872,6 +6877,7 @@ function Wo_GetGroupCallSyncData($call_id = 0, $user_id = 0) {
         'participants' => Wo_GetGroupCallJoinedParticipants($call_id)
     );
 }
+
 function Wo_LiveKitParseWsUrl($value = '') {
     if (empty($value) || !is_string($value)) {
         return '';
@@ -7233,7 +7239,7 @@ function Wo_GetCallLogNotificationId($call_id = 0, $call_type = 'audio', $provid
     $notification_id = 'call_' . $provider . '_' . $call_type . '_' . $call_id;
     if ($from_id > 0 && $to_id > 0) {
         $notification_id .= '_' . $from_id . '_' . $to_id;
-    }
+ }
     return $notification_id;
 }
 function Wo_GetCallLogPayload($call_id = 0, $call_type = 'audio', $provider = 'twilio', $from_id = 0, $to_id = 0) {
@@ -7320,24 +7326,24 @@ function Wo_GetCallLogMessage($message = array()) {
     $detail    = '';
     $tone      = 'neutral';
     if ($status == 'calling') {
-        $detail = $is_initiator ? ((!empty($wo['lang']['calling']) ? $wo['lang']['calling'] : 'Dang goi') . '...') : Wo_GetCallLogLabel('incoming_call', 'Cuoc goi den');
-    }
+            $detail = $is_initiator ? ((!empty($wo['lang']['calling']) ? $wo['lang']['calling'] : 'Dang goi') . '...') : Wo_GetCallLogLabel('incoming_call', 'Cuộc gọi đến');
+        }
     else if ($status == 'cancelled') {
         $tone = 'danger';
         if ($status_by > 0 && $status_by == $initiator_id) {
-            $detail = $is_initiator ? Wo_GetCallLogLabel('you_canceled_call', 'Bạn đã hủy cuộc gọi') : Wo_GetCallLogLabel('caller_canceled_call', 'Nguoi goi da huy cuoc goi');
+            $detail = $is_initiator ? Wo_GetCallLogLabel('you_canceled_call', 'Bạn đã hủy cuộc gọi') : Wo_GetCallLogLabel('caller_canceled_call', 'Người gọi đã hủy cuộc gọi');
         }
         else {
-            $detail = Wo_GetCallLogLabel('call_canceled', 'Cuoc goi da bi huy');
+            $detail = Wo_GetCallLogLabel('call_canceled', 'Cuộc gọi đã bị hủy');
         }
     }
     else if ($status == 'declined') {
         $tone = 'danger';
         if ($status_by > 0 && $status_by == $receiver_id) {
-            $detail = $is_receiver ? Wo_GetCallLogLabel('you_declined_call', 'Ban da tu choi') : Wo_GetCallLogLabel('receiver_declined_call', 'Nguoi nhan da tu choi');
+            $detail = $is_receiver ? Wo_GetCallLogLabel('you_declined_call', 'Bạn đã từ chối') : Wo_GetCallLogLabel('receiver_declined_call', 'Người nhận đã từ chối');
         }
         else if ($status_by > 0 && $status_by == $initiator_id) {
-            $detail = $is_initiator ? Wo_GetCallLogLabel('you_canceled_call', 'Bạn đã hủy cuộc gọi') : Wo_GetCallLogLabel('caller_canceled_call', 'Nguoi goi da huy cuoc goi');
+            $detail = $is_initiator ? Wo_GetCallLogLabel('you_canceled_call', 'Bạn đã hủy cuộc gọi') : Wo_GetCallLogLabel('caller_canceled_call', 'Người gọi đã hủy cuộc gọi');
         }
         else {
             $detail = $wo['lang']['call_declined'];
@@ -7402,7 +7408,6 @@ function Wo_RegisterCallLog($call_data = array()) {
         'duration' => !empty($call_data['duration']) ? intval($call_data['duration']) : 0
     );
     $notification_id = Wo_GetCallLogNotificationId($payload['call_id'], $call_type, $provider, $call_data['from_id'], $call_data['to_id']);
-    
     // Check for duplicates within last 3 seconds
     $check_time = time() - 3;
     $check_query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_MESSAGES . " WHERE `notification_id` = '" . Wo_Secure($notification_id) . "' AND `from_id` = '" . Wo_Secure($call_data['from_id']) . "' AND `time` > " . $check_time . " LIMIT 1");
@@ -7730,34 +7735,34 @@ function Wo_IsUserBusy($user_id = 0) {
     }
     $time = time() - 40;
     
-    // Check answered calls. Legacy rows can have active = 1 with empty status, so do not treat those as busy forever.
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_VIDEOS_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' AND `status` = 'answered' LIMIT 1");
+    // Check Video Calls
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_VIDEOS_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
     
     // Check Audio Calls
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AUDIO_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' AND `status` = 'answered' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AUDIO_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
     
     // Check Agora Calls
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AGORA . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' AND `status` = 'answered' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AGORA . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '1' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
 
-    // Also check ringing calls where the user is either caller or receiver.
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_VIDEOS_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
+    // Also check if user is currently RECEIVING a call and hasn't answered yet (within last 40 seconds)
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_VIDEOS_CALLES . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AUDIO_CALLES . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AUDIO_CALLES . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }
-    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AGORA . " WHERE (`from_id` = '{$user_id}' OR `to_id` = '{$user_id}') AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
+    $query = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_AGORA . " WHERE `to_id` = '{$user_id}' AND `active` = '0' AND `declined` = '0' AND (`status` = '' OR `status` = 'calling') AND `time` > '{$time}' LIMIT 1");
     if (mysqli_num_rows($query) > 0) {
         return true;
     }

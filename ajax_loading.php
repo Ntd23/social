@@ -429,8 +429,12 @@ if ((!$wo['loggedin'] || ($wo['loggedin'] && $wo['user']['banned'] != 1))) {
                     case 'create-status':
                         include('sources/status/create.php');
                         break;
+                    case 'explore-nearby':
+                        include('sources/explore_nearby.php');
+                        break;
                     case 'friends-nearby':
-                        include('sources/friends_nearby.php');
+                        $_GET['tab'] = 'users';
+                        include('sources/explore_nearby.php');
                         break;
                     case 'more-status':
                         include('sources/status/more-status.php');
@@ -475,7 +479,8 @@ if ((!$wo['loggedin'] || ($wo['loggedin'] && $wo['user']['banned'] != 1))) {
                         include('sources/offers.php');
                         break;
                     case 'nearby_shops':
-                        include('sources/nearby_shops.php');
+                        $_GET['tab'] = 'shops';
+                        include('sources/explore_nearby.php');
                         break;
                     case 'nearby_business':
                         include('sources/nearby_business.php');
@@ -1010,8 +1015,12 @@ if ((!$wo['loggedin'] || ($wo['loggedin'] && $wo['user']['banned'] != 1))) {
             case 'create-status':
                 include('sources/status/create.php');
                 break;
+            case 'explore-nearby':
+                include('sources/explore_nearby.php');
+                break;
             case 'friends-nearby':
-                include('sources/friends_nearby.php');
+                $_GET['tab'] = 'users';
+                include('sources/explore_nearby.php');
                 break;
             case 'more-status':
                 include('sources/status/more-status.php');
@@ -1056,7 +1065,8 @@ if ((!$wo['loggedin'] || ($wo['loggedin'] && $wo['user']['banned'] != 1))) {
                 include('sources/offers.php');
                 break;
             case 'nearby_shops':
-                include('sources/nearby_shops.php');
+                $_GET['tab'] = 'shops';
+                include('sources/explore_nearby.php');
                 break;
             case 'nearby_business':
                 include('sources/nearby_business.php');

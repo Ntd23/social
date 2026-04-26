@@ -96,7 +96,7 @@
 				</div>
 				<?php if ($wo['loggedin'] == true) { ?>
 				<?php if ($wo['config']['nearby_shop_system'] == 1) { ?>
-					<a href="<?php echo($wo['config']['site_url'].'/nearby_shops') ?>" data-ajax="?link1=nearby_shops" class="btn btn-danger btn-mat side_mkt_btn"><?php echo $wo['lang']['nearby_shops'] ?></a>
+					<a href="<?php echo Wo_SeoLink('index.php?link1=explore-nearby'); ?>" data-ajax="?link1=explore-nearby" class="btn btn-danger btn-mat side_mkt_btn"><?php echo $wo['lang']['nearby_shops'] ?></a>
 				<?php } ?>
 				<?php } ?>
 			</div>
