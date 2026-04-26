@@ -487,10 +487,20 @@
 				$page_lng_value = (isset($wo['page_profile']['lng']) && is_numeric($wo['page_profile']['lng'])) ? (float) $wo['page_profile']['lng'] : 0;
 				$page_has_coordinates = ($page_lat_value != 0 && $page_lng_value != 0);
 				$page_place_id_value = !empty($wo['page_profile']['place_id']) ? trim($wo['page_profile']['place_id']) : '';
-				$page_map_query_value = !empty($page_address_value) ? $page_address_value : ($page_has_coordinates ? ($page_lat_value . ',' . $page_lng_value) : '');
-				$page_maps_url = !empty($page_map_query_value) ? ('https://www.google.com/maps/search/?api=1&query=' . rawurlencode($page_map_query_value)) : 'https://www.google.com/maps';
-				if (!empty($page_place_id_value) && !empty($page_address_value)) {
-					$page_maps_url .= '&query_place_id=' . rawurlencode($page_place_id_value);
+				if (!empty($page_place_id_value) && $page_has_coordinates) {
+					$page_maps_url = 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($page_lat_value . ',' . $page_lng_value) . '&destination_place_id=' . rawurlencode($page_place_id_value) . '&travelmode=driving';
+				}
+				elseif ($page_has_coordinates) {
+					$page_maps_url = 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($page_lat_value . ',' . $page_lng_value) . '&travelmode=driving';
+				}
+				elseif (!empty($page_place_id_value) && !empty($page_address_value)) {
+					$page_maps_url = 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($page_address_value) . '&destination_place_id=' . rawurlencode($page_place_id_value) . '&travelmode=driving';
+				}
+				elseif (!empty($page_address_value)) {
+					$page_maps_url = 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($page_address_value) . '&travelmode=driving';
+				}
+				else {
+					$page_maps_url = 'https://www.google.com/maps/dir/?api=1';
 				}
 			?>
 				<li class="list-group-item" style="display: block;">
@@ -500,7 +510,139 @@
 							<div style="width: 100%;" class="pointer"><?php echo $wo['lang']['located_in']; ?> <?php echo $page_address_value; ?></div>
 						</div>
 						<a id="page_map_link_<?php echo($wo['page_profile']['page_id']) ?>" href="<?php echo $page_maps_url; ?>" target="_blank" rel="noopener noreferrer" style="display:block; text-decoration:none;">
-						<?php if ($wo['config']['yandex_map'] == 1) { ?>
+						<?php if (!empty($wo['config']['google_map_api']) && $wo['config']['google_map'] == 1) { ?>
+							<div id="page_google_place_<?php echo($wo['page_profile']['page_id']) ?>" class="user-location-frame" style="width: 100%; height: 300px; padding: 0; margin: 0; border-radius: 12px; overflow: hidden; cursor: pointer; background: #eef2f7; pointer-events: none;"></div>
+							<script type="text/javascript">
+								(function () {
+									var mapId = 'page_google_place_<?php echo($wo['page_profile']['page_id']) ?>';
+									var mapLinkId = 'page_map_link_<?php echo($wo['page_profile']['page_id']) ?>';
+									var address = <?php echo json_encode($page_address_value); ?>;
+									var initialLat = <?php echo json_encode($page_has_coordinates ? $page_lat_value : null); ?>;
+									var initialLng = <?php echo json_encode($page_has_coordinates ? $page_lng_value : null); ?>;
+									var initialPlaceId = <?php echo json_encode($page_place_id_value); ?>;
+									var currentPlaceId = initialPlaceId;
+									var currentAddress = address;
+									var googleWaitAttempts = 0;
+
+									function hasValidCoordinates(lat, lng) {
+										return typeof lat === 'number' && typeof lng === 'number' && isFinite(lat) && isFinite(lng);
+									}
+
+									function buildGooglePageLink(lat, lng, label, placeId) {
+										var normalizedLabel = (label || address || '').replace(/\s+/g, ' ').trim();
+										if (placeId && hasValidCoordinates(lat, lng)) {
+											return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lng) + '&destination_place_id=' + encodeURIComponent(placeId) + '&travelmode=driving';
+										}
+										if (hasValidCoordinates(lat, lng)) {
+											return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lng) + '&travelmode=driving';
+										}
+										if (placeId && normalizedLabel) {
+											return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(normalizedLabel) + '&destination_place_id=' + encodeURIComponent(placeId) + '&travelmode=driving';
+										}
+										if (normalizedLabel) {
+											return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(normalizedLabel) + '&travelmode=driving';
+										}
+										return 'https://www.google.com/maps/dir/?api=1';
+									}
+
+									function updatePageMapLink(lat, lng, label, placeId) {
+										var pageMapLink = document.getElementById(mapLinkId);
+										if (pageMapLink) {
+											pageMapLink.href = buildGooglePageLink(lat, lng, label, placeId);
+										}
+									}
+
+									function hidePageMap() {
+										var mapNode = document.getElementById(mapId);
+										if (mapNode) {
+											mapNode.style.display = 'none';
+										}
+									}
+
+									function googleMapsReady() {
+										return window.google && google.maps && typeof google.maps.Map === 'function' && typeof google.maps.Geocoder === 'function';
+									}
+
+									function waitForGoogleMaps(callback) {
+										if (googleMapsReady()) {
+											callback();
+											return;
+										}
+										if (googleWaitAttempts >= 50) {
+											hidePageMap();
+											return;
+										}
+										googleWaitAttempts++;
+										setTimeout(function () {
+											waitForGoogleMaps(callback);
+										}, 100);
+									}
+
+									function renderGoogleMap(lat, lng, label) {
+										var mapNode = document.getElementById(mapId);
+										if (!mapNode || !hasValidCoordinates(lat, lng)) {
+											hidePageMap();
+											return;
+										}
+
+										updatePageMapLink(lat, lng, currentAddress, currentPlaceId);
+										var center = { lat: lat, lng: lng };
+										var map = new google.maps.Map(mapNode, {
+											center: center,
+											zoom: 15,
+											mapTypeId: google.maps.MapTypeId.ROADMAP,
+											disableDefaultUI: true,
+											clickableIcons: false,
+											draggable: false,
+											scrollwheel: false,
+											disableDoubleClickZoom: true,
+											keyboardShortcuts: false,
+											gestureHandling: 'none'
+										});
+										new google.maps.Marker({
+											position: center,
+											map: map,
+											title: label || address || ''
+										});
+
+										setTimeout(function () {
+											if (google.maps.event && typeof google.maps.event.trigger === 'function') {
+												google.maps.event.trigger(map, 'resize');
+											}
+											map.setCenter(center);
+										}, 100);
+									}
+
+									if (!address) {
+										hidePageMap();
+										return;
+									}
+
+									updatePageMapLink(initialLat, initialLng, currentAddress, currentPlaceId);
+									waitForGoogleMaps(function () {
+										if (hasValidCoordinates(initialLat, initialLng)) {
+											renderGoogleMap(initialLat, initialLng, currentAddress);
+											return;
+										}
+
+										var geocoder = new google.maps.Geocoder();
+										geocoder.geocode({ address: address }, function (results, status) {
+											if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+												var location = results[0].geometry.location;
+												var lat = location.lat();
+												var lng = location.lng();
+												currentAddress = results[0].formatted_address || currentAddress;
+												currentPlaceId = results[0].place_id || currentPlaceId;
+												renderGoogleMap(lat, lng, currentAddress);
+												return;
+											}
+
+											hidePageMap();
+										});
+									});
+								})();
+							</script>
+						<?php } elseif ($wo['config']['yandex_map'] == 1) { ?>
 							<div id="page_place_<?php echo($wo['page_profile']['page_id']) ?>" <?php echo($wo['config']['yandex_map'] == 1 ? 'style="width: 100%; height: 300px; padding: 0; margin: 0; border-radius: 12px; overflow: hidden; cursor: pointer;"' : '') ?>></div>
 							<script type="text/javascript">
 		        				<?php if (!empty($page_address_value)) { ?>
@@ -520,16 +662,19 @@
 
 		        						function buildGooglePageLink(lat, lng, label, placeId) {
 		        							var normalizedLabel = (label || address || '').replace(/\s+/g, ' ').trim();
-		        							if (placeId && normalizedLabel) {
-		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel) + '&query_place_id=' + encodeURIComponent(placeId);
-		        							}
 		        							if (hasValidCoordinates(lat, lng)) {
-		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
+		        								if (placeId) {
+		        									return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lng) + '&destination_place_id=' + encodeURIComponent(placeId) + '&travelmode=driving';
+		        								}
+		        								return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lng) + '&travelmode=driving';
+		        							}
+		        							if (placeId && normalizedLabel) {
+		        								return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(normalizedLabel) + '&destination_place_id=' + encodeURIComponent(placeId) + '&travelmode=driving';
 		        							}
 		        							if (normalizedLabel) {
-		        								return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel);
+		        								return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(normalizedLabel) + '&travelmode=driving';
 		        							}
-		        							return 'https://www.google.com/maps';
+		        							return 'https://www.google.com/maps/dir/?api=1';
 		        						}
 		        						function updatePageMapLink(lat, lng, label, placeId) {
 		        							var pageMapLink = document.getElementById(mapLinkId);
@@ -615,16 +760,19 @@
 
 									function buildGooglePageLink(lat, lng, label, placeId) {
 										var normalizedLabel = (label || address || '').replace(/\s+/g, ' ').trim();
-										if (placeId && normalizedLabel) {
-											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel) + '&query_place_id=' + encodeURIComponent(placeId);
-										}
-										if (normalizedLabel) {
-											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(normalizedLabel);
+										if (placeId && hasValidCoordinates(lat, lng)) {
+											return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lng) + '&destination_place_id=' + encodeURIComponent(placeId) + '&travelmode=driving';
 										}
 										if (hasValidCoordinates(lat, lng)) {
-											return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng);
+											return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lng) + '&travelmode=driving';
 										}
-										return 'https://www.google.com/maps';
+										if (placeId && normalizedLabel) {
+											return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(normalizedLabel) + '&destination_place_id=' + encodeURIComponent(placeId) + '&travelmode=driving';
+										}
+										if (normalizedLabel) {
+											return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(normalizedLabel) + '&travelmode=driving';
+										}
+										return 'https://www.google.com/maps/dir/?api=1';
 									}
 									function updatePageMapLink(lat, lng, label, placeId) {
 										var pageMapLink = document.getElementById(mapLinkId);

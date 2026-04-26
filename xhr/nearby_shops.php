@@ -4,6 +4,9 @@ if ($f == 'nearby_shops') {
         $name       = (isset($_GET['name'])) ? $_GET['name'] : false;
         $offset     = (isset($_GET['offset'])) ? $_GET['offset'] : false;
         $distance   = (isset($_GET['distance'])) ? $_GET['distance'] : false;
+        $search_mode = (isset($_GET['search_mode'])) ? $_GET['search_mode'] : false;
+        $center_lat = (isset($_GET['center_lat'])) ? $_GET['center_lat'] : false;
+        $center_lng = (isset($_GET['center_lng'])) ? $_GET['center_lng'] : false;
         $data       = array(
             'status' => 404,
             'items_info' => array(),
@@ -14,7 +17,10 @@ if ($f == 'nearby_shops') {
         $filter     = array(
             'name' => $name,
             'distance' => $distance,
-            'offset' => $offset
+            'offset' => $offset,
+            'search_mode' => $search_mode,
+            'center_lat' => $center_lat,
+            'center_lng' => $center_lng
         );
         $users      = Wo_GetNearbyShops($filter);
         $users_info = array();

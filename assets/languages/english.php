@@ -1,5 +1,10 @@
 <?php
 $wo['lang'] = array(
+    'find_nearby' => 'Find Nearby',
+    'enable_location_for_nearby' => 'Enable location to see nearby results',
+    'search_address_for_nearby' => 'Or search by address above',
+    'location_access_denied' => 'Location access denied. You can allow it or search by address above.',
+    'use_my_location' => 'Use my location',
     // welcome page
     'login' => 'Login',
     'register' => 'Register',

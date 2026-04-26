@@ -316,7 +316,123 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 									<div style="width: 100%;" onclick="$('.user-location-frame').fadeToggle();" class="pointer"><?php echo $wo['lang']['located_in'];?> <?php echo $wo['user_profile']['address'];?></div>
 								</div>
 							</div>
-							<?php if ($wo['config']['yandex_map'] == 1) { ?>
+							<?php if (!empty($wo['config']['google_map_api']) && $wo['config']['google_map'] == 1) { ?>
+								<div id="google_place_<?php echo($wo['user_profile']['user_id']) ?>" class="user-location-frame" style="width: 100%; height: 300px; padding: 0; margin: 10px 0 0; background: #eef2f7;"></div>
+								<script type="text/javascript">
+									(function () {
+										var mapId = 'google_place_<?php echo($wo['user_profile']['user_id']) ?>';
+										var address = <?php echo json_encode($wo['user_profile']['address']); ?>;
+										var initialLat = <?php echo (isset($wo['user_profile']['lat']) && is_numeric($wo['user_profile']['lat']) && (float) $wo['user_profile']['lat'] != 0) ? (float) $wo['user_profile']['lat'] : 'null'; ?>;
+										var initialLng = <?php echo (isset($wo['user_profile']['lng']) && is_numeric($wo['user_profile']['lng']) && (float) $wo['user_profile']['lng'] != 0) ? (float) $wo['user_profile']['lng'] : 'null'; ?>;
+										var googleWaitAttempts = 0;
+
+										function hasValidCoordinates(lat, lng) {
+											return typeof lat === 'number' && typeof lng === 'number' && isFinite(lat) && isFinite(lng);
+										}
+
+										function buildDirectionsLink(lat, lng, label) {
+											var normalizedLabel = (label || address || '').replace(/\s+/g, ' ').trim();
+											if (hasValidCoordinates(lat, lng)) {
+												return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lng) + '&travelmode=driving';
+											}
+											if (normalizedLabel) {
+												return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(normalizedLabel) + '&travelmode=driving';
+											}
+
+											return 'https://www.google.com/maps/dir/?api=1';
+										}
+
+										function hideMap() {
+											var mapContainer = document.getElementById(mapId);
+											if (mapContainer) {
+												mapContainer.style.display = 'none';
+											}
+										}
+
+										function googleMapsReady() {
+											return window.google && google.maps && typeof google.maps.Map === 'function' && typeof google.maps.Geocoder === 'function';
+										}
+
+										function waitForGoogleMaps(callback) {
+											if (googleMapsReady()) {
+												callback();
+												return;
+											}
+											if (googleWaitAttempts >= 50) {
+												hideMap();
+												return;
+											}
+											googleWaitAttempts++;
+											setTimeout(function () {
+												waitForGoogleMaps(callback);
+											}, 100);
+										}
+
+										function renderMap(lat, lng, label) {
+											var mapContainer = document.getElementById(mapId);
+											if (!mapContainer || !hasValidCoordinates(lat, lng)) {
+												hideMap();
+												return;
+											}
+
+											var center = {lat: lat, lng: lng};
+											var map = new google.maps.Map(mapContainer, {
+												center: center,
+												zoom: 15,
+												mapTypeId: google.maps.MapTypeId.ROADMAP,
+												disableDefaultUI: true,
+												clickableIcons: false,
+												draggable: false,
+												scrollwheel: false,
+												disableDoubleClickZoom: true,
+												keyboardShortcuts: false,
+												gestureHandling: 'none'
+											});
+											var marker = new google.maps.Marker({
+												position: center,
+												map: map,
+												title: label || address || ''
+											});
+											var directionsUrl = buildDirectionsLink(lat, lng, label);
+											map.addListener('click', function () {
+												window.open(directionsUrl, '_blank', 'noopener');
+											});
+											marker.addListener('click', function () {
+												window.open(directionsUrl, '_blank', 'noopener');
+											});
+
+											setTimeout(function () {
+												if (google.maps.event && typeof google.maps.event.trigger === 'function') {
+													google.maps.event.trigger(map, 'resize');
+												}
+												map.setCenter(center);
+											}, 100);
+										}
+
+										if (!address) {
+											hideMap();
+											return;
+										}
+
+										waitForGoogleMaps(function () {
+											if (hasValidCoordinates(initialLat, initialLng)) {
+												renderMap(initialLat, initialLng, address);
+												return;
+											}
+
+											var geocoder = new google.maps.Geocoder();
+											geocoder.geocode({address: address}, function (results, status) {
+												if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
+													renderMap(results[0].geometry.location.lat(), results[0].geometry.location.lng(), results[0].formatted_address || address);
+													return;
+												}
+
+												hideMap();
+											});
+										});
+									})();
+								</script>
+							<?php } elseif ($wo['config']['yandex_map'] == 1) { ?>
 				            <div id="place_<?php echo($wo['user_profile']['user_id']) ?>" <?php echo($wo['config']['yandex_map'] == 1 ? 'style="width: 100%; height: 300px; padding: 0; margin: 0;"' : '') ?>></div>
 				            <script type="text/javascript">
 				                  <?php if (!empty($wo['user_profile']['address'])) { ?>

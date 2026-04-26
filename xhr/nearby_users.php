@@ -7,6 +7,9 @@ if ($f == 'nearby_users' && $wo['config']['find_friends'] == 1) {
         $distance = (isset($_GET['distance'])) ? $_GET['distance'] : false;
         $relship  = (isset($_GET['relship'])) ? $_GET['relship'] : false;
         $status   = (isset($_GET['status'])) ? $_GET['status'] : false;
+        $search_mode = (isset($_GET['search_mode'])) ? $_GET['search_mode'] : false;
+        $center_lat = (isset($_GET['center_lat'])) ? $_GET['center_lat'] : false;
+        $center_lng = (isset($_GET['center_lng'])) ? $_GET['center_lng'] : false;
         $data     = array(
             'status' => 404,
             'users_info' => array(),
@@ -20,7 +23,10 @@ if ($f == 'nearby_users' && $wo['config']['find_friends'] == 1) {
             'distance' => $distance,
             'offset' => $offset,
             'relship' => $relship,
-            'status' => $status
+            'status' => $status,
+            'search_mode' => $search_mode,
+            'center_lat' => $center_lat,
+            'center_lng' => $center_lng
         );
         $users    = Wo_GetNearbyUsers($filter);
         $users_info = array();

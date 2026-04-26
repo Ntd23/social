@@ -6873,6 +6873,38 @@ function Wo_GetUserCountryName($user_data = array())
 	}
 	return $user_from;
 }
+function Wo_IsNearbyCoordinateValid($lat, $lng)
+{
+	return is_numeric($lat) && is_numeric($lng) &&
+		(float) $lat >= -90 && (float) $lat <= 90 &&
+		(float) $lng >= -180 && (float) $lng <= 180 &&
+		!((float) $lat == 0.0 && (float) $lng == 0.0);
+}
+function Wo_GetNearbySearchCenter($args = array())
+{
+	global $wo;
+	$center = array(
+		'lat' => isset($wo['user']['lat']) ? (float) $wo['user']['lat'] : 0,
+		'lng' => isset($wo['user']['lng']) ? (float) $wo['user']['lng'] : 0,
+		'is_override' => false
+	);
+
+	if (empty($args) || empty($args['search_mode']) || $args['search_mode'] !== 'location') {
+		return $center;
+	}
+
+	$override_lat = isset($args['center_lat']) ? (float) $args['center_lat'] : 0;
+	$override_lng = isset($args['center_lng']) ? (float) $args['center_lng'] : 0;
+	if (!Wo_IsNearbyCoordinateValid($override_lat, $override_lng)) {
+		return $center;
+	}
+
+	$center['lat'] = $override_lat;
+	$center['lng'] = $override_lng;
+	$center['is_override'] = true;
+
+	return $center;
+}
 function Wo_GetNearbyUsers($args = array())
 {
 	global $wo, $sqlConnect;
@@ -6886,6 +6918,9 @@ function Wo_GetNearbyUsers($args = array())
 		"distance" => false,
 		"relship" => false,
 		"status" => false,
+		"search_mode" => false,
+		"center_lat" => false,
+		"center_lng" => false,
 		"limit" => 20
 	);
 	$args         = array_merge($options, $args);
@@ -6897,8 +6932,9 @@ function Wo_GetNearbyUsers($args = array())
 	$relship      = Wo_Secure($args['relship']);
 	$limit        = Wo_Secure($args['limit']);
 	$unit         = 6371;
-	$user_lat     = $wo['user']['lat'];
-	$user_lng     = $wo['user']['lng'];
+	$search_center = Wo_GetNearbySearchCenter($args);
+	$user_lat     = $search_center['lat'];
+	$user_lng     = $search_center['lng'];
 	$user         = $wo['user']['id'];
 	$t_users      = T_USERS;
 	$t_followers  = T_FOLLOWERS;
@@ -6932,6 +6968,9 @@ function Wo_GetNearbyUsers($args = array())
 	}
 	if ($gender && in_array($gender, array_keys($wo['genders']))) {
 		$sub_sql .= " AND `gender` = '$gender' ";
+	}
+	if (!$has_name_filter && !Wo_IsNearbyCoordinateValid($user_lat, $user_lng)) {
+		return $data;
 	}
 	if (!$has_name_filter) {
 		$follow_sql = "
@@ -6974,7 +7013,8 @@ function Wo_GetNearbyUsersNameFilterSql($name = '')
 	$fields = array(
 		'`username`',
 		'`first_name`',
-		'`last_name`'
+		'`last_name`',
+		'`address`'
 	);
 	$clauses = array();
 
@@ -7030,6 +7070,9 @@ function Wo_GetNearbyUsersCount($args = array())
 		"distance" => false,
 		"relship" => false,
 		"status" => false,
+		"search_mode" => false,
+		"center_lat" => false,
+		"center_lng" => false,
 		"limit" => 20
 	);
 	$args         = array_merge($options, $args);
@@ -7041,8 +7084,9 @@ function Wo_GetNearbyUsersCount($args = array())
 	$relship      = Wo_Secure($args['relship']);
 	$limit        = Wo_Secure($args['limit']);
 	$unit         = 6371;
-	$user_lat     = $wo['user']['lat'];
-	$user_lng     = $wo['user']['lng'];
+	$search_center = Wo_GetNearbySearchCenter($args);
+	$user_lat     = $search_center['lat'];
+	$user_lng     = $search_center['lng'];
 	$user         = $wo['user']['id'];
 	$t_users      = T_USERS;
 	$t_followers  = T_FOLLOWERS;
@@ -7076,6 +7120,9 @@ function Wo_GetNearbyUsersCount($args = array())
 	}
 	if ($gender && in_array($gender, array_keys($wo['genders']))) {
 		$sub_sql .= " AND `gender` = '$gender' ";
+	}
+	if (!$has_name_filter && !Wo_IsNearbyCoordinateValid($user_lat, $user_lng)) {
+		return 0;
 	}
 	if (!$has_name_filter) {
 		$follow_sql = "
@@ -8318,6 +8365,9 @@ function Wo_GetNearbyShops($args = array())
 		"distance" => false,
 		"relship" => false,
 		"status" => false,
+		"search_mode" => false,
+		"center_lat" => false,
+		"center_lng" => false,
 		"limit" => 20
 	);
 	$args         = array_merge($options, $args);
@@ -8326,8 +8376,9 @@ function Wo_GetNearbyShops($args = array())
 	$loc_distance = Wo_Secure($args['distance']);
 	$limit        = Wo_Secure($args['limit']);
 	$unit         = 6371;
-	$user_lat     = $wo['user']['lat'];
-	$user_lng     = $wo['user']['lng'];
+	$search_center = Wo_GetNearbySearchCenter($args);
+	$user_lat     = $search_center['lat'];
+	$user_lng     = $search_center['lng'];
 	$distance     = 100;
 	$use_distance_filter = true;
 	$data         = array();
@@ -8336,7 +8387,7 @@ function Wo_GetNearbyShops($args = array())
 	$offset_sql   = "";
 	$page_offset_sql = "";
 
-	if (!is_numeric($user_lat) || !is_numeric($user_lng)) {
+	if (empty($name) && !Wo_IsNearbyCoordinateValid($user_lat, $user_lng)) {
 		return $data;
 	}
 	if ($loc_distance && is_numeric($loc_distance) && $loc_distance > 0) {
@@ -8475,8 +8526,10 @@ function Wo_GetNearbyShopsSearchSql($name = '')
 	$name = Wo_Secure($name);
 	$fields = array(
 		"prod.`name`",
+		"prod.`location`",
 		"page.`page_name`",
-		"page.`page_title`"
+		"page.`page_title`",
+		"page.`address`"
 	);
 	$clauses = array();
 
@@ -8517,7 +8570,8 @@ function Wo_GetNearbyShopPageSearchSql($name = '', $page_alias = 'page')
 	$search_terms = array_unique(array_filter(explode(' ', $name)));
 	$fields = array(
 		"`{$page_alias}`.`page_name`",
-		"`{$page_alias}`.`page_title`"
+		"`{$page_alias}`.`page_title`",
+		"`{$page_alias}`.`address`"
 	);
 	$clauses = array();
 
@@ -8549,20 +8603,24 @@ function Wo_GetNearbyShopsCount($args = array())
 	}
 	$options      = array(
 		"name" => false,
-		"distance" => false
+		"distance" => false,
+		"search_mode" => false,
+		"center_lat" => false,
+		"center_lng" => false
 	);
 	$args         = array_merge($options, $args);
 	$name         = trim((string) $args['name']);
 	$loc_distance = Wo_Secure($args['distance']);
 	$unit         = 6371;
-	$user_lat     = $wo['user']['lat'];
-	$user_lng     = $wo['user']['lng'];
+	$search_center = Wo_GetNearbySearchCenter($args);
+	$user_lat     = $search_center['lat'];
+	$user_lng     = $search_center['lng'];
 	$distance     = 100;
 	$search_sql   = "";
 	$distance_sql = "";
 	$use_distance_filter = true;
 
-	if (!is_numeric($user_lat) || !is_numeric($user_lng)) {
+	if (empty($name) && !Wo_IsNearbyCoordinateValid($user_lat, $user_lng)) {
 		return 0;
 	}
 	if ($loc_distance && is_numeric($loc_distance) && $loc_distance > 0) {

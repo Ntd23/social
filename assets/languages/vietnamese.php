@@ -1,5 +1,10 @@
 <?php
 $wo['lang'] = array(
+    'enable_location_for_nearby' => 'Bật vị trí để xem kết quả quanh đây',
+    'search_address_for_nearby' => 'Hoặc tìm theo địa chỉ ở ô phía trên',
+    'location_access_denied' => 'Bạn đã từ chối quyền vị trí. Hãy bật lại hoặc tìm theo địa chỉ ở ô phía trên.',
+    'use_my_location' => 'Dùng vị trí của tôi',
+    'find_nearby' => 'Tìm kiếm quanh đây',
     'login' => 'Đăng nhập',
     'register' => 'Đăng ký',
     'guest' => 'Khách',
@@ -864,7 +869,7 @@ $wo['lang'] = array(
     'invalid_markup' => 'Định dạng không hợp lệ, vui lòng thử đặt lại mật khẩu của bạn một lần nữa',
     'go_back' => 'Quay lại',
     'terms_agreement' => 'Bằng cách tạo tài khoản, bạn đồng ý với',
-    'is_shop'=>'Bạn là cửa hàng đã có sẵn địa điểm?',
+    'is_shop' => 'Bạn là cửa hàng đã có sẵn địa điểm?',
     'please_choose_price' => 'Vui lòng chọn giá cho sản phẩm của bạn',
     'please_choose_c_price' => 'Vui lòng chọn một giá trị hợp lệ cho giá của bạn',
     'please_upload_image' => 'Vui lòng tải lên ít nhất 1 ảnh',
@@ -892,4 +897,5 @@ $wo['lang'] = array(
     'participants_in_call' => 'thành viên trong cuộc gọi',
     'join_call' => 'Tham gia cuộc gọi',
     'call_ended' => 'Cuộc gọi đã kết thúc',
+
 );
