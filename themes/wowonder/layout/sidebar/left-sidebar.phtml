@@ -1,5 +1,47 @@
+<?php // Desktop left navigation sidebar for the Wowonder theme. ?>
 <?php if (Wo_IsMobile() == false) { ?>
-<div class="left-sidebar">
+<style>
+.wo-wowonder-left-sidebar-anchor {
+	position: relative;
+	min-height: 1px;
+}
+
+.wo-wowonder-left-sidebar {
+	position: fixed;
+	top: 72px;
+	left: 0;
+	z-index: 12;
+	max-height: calc(100vh - 84px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.wo-wowonder-left-sidebar::-webkit-scrollbar {
+	width: 6px;
+}
+
+.wo-wowonder-left-sidebar::-webkit-scrollbar-thumb {
+	background: rgba(4, 124, 172, 0.24);
+	border-radius: 999px;
+}
+
+@media (max-width: 991px) {
+	.wo-wowonder-left-sidebar-anchor {
+		min-height: 0;
+	}
+
+	.wo-wowonder-left-sidebar {
+		position: static;
+		top: auto;
+		left: auto;
+		width: auto !important;
+		max-height: none;
+		overflow: visible;
+	}
+}
+</style>
+<div class="wo-wowonder-left-sidebar-anchor">
+<div class="left-sidebar wo-wowonder-left-sidebar" data-left-sidebar-fixed="1">
 	<ul>
 		<!--<li>
 			<a href="<?php echo $wo['user']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['user']['username'];?>">
@@ -235,6 +277,7 @@
 		<?php } ?>
 	</ul>
 </div>
+</div>
 <?php } ?>
 
 
@@ -258,5 +301,48 @@ function Wo_StorePosts(type) {
     }
   });
 }
+</script>
+<?php } ?>
+<?php if (Wo_IsMobile() == false) { ?>
+<script>
+(function() {
+  window.Wo_WowonderSyncLeftSidebar = function() {
+    var sidebar = document.querySelector('.wo-wowonder-left-sidebar[data-left-sidebar-fixed="1"]');
+    if (!sidebar) {
+      return;
+    }
+
+    var anchor = sidebar.parentNode;
+    if (!anchor || !anchor.classList.contains('wo-wowonder-left-sidebar-anchor')) {
+      return;
+    }
+
+    if (window.innerWidth <= 991) {
+      anchor.style.height = '';
+      sidebar.style.left = '';
+      sidebar.style.width = '';
+      return;
+    }
+
+    var anchorRect = anchor.getBoundingClientRect();
+    anchor.style.height = sidebar.offsetHeight + 'px';
+    sidebar.style.left = anchorRect.left + 'px';
+    sidebar.style.width = anchorRect.width + 'px';
+  };
+
+  if (!window.Wo_WowonderLeftSidebarEventsBound) {
+    var syncLeftSidebar = function() {
+      window.requestAnimationFrame(window.Wo_WowonderSyncLeftSidebar);
+    };
+
+    window.addEventListener('load', syncLeftSidebar);
+    window.addEventListener('resize', syncLeftSidebar);
+    window.addEventListener('scroll', syncLeftSidebar, { passive: true });
+    window.Wo_WowonderLeftSidebarEventsBound = true;
+  }
+
+  setTimeout(window.Wo_WowonderSyncLeftSidebar, 0);
+  setTimeout(window.Wo_WowonderSyncLeftSidebar, 250);
+})();
 </script>
 <?php } ?>

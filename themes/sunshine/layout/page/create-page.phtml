@@ -1,111 +1,736 @@
+<?php // Sunshine page creation form with authoritative Google-backed page location capture. ?>
 <div class="page-margin">
 	<div class="row">
 		<div class="col-md-2 leftcol"><?php echo Wo_LoadPage("sidebar/left-sidebar"); ?></div>
 		<div class="col-md-7 middlecol">
-			<form class="create-page-form form-horizontal" method="post">
+			<form class="create-page-form form-horizontal" method="post" autocomplete="off">
 				<div class="page-margin mt-0">
 					<div class="wow_content popular_posts_hdr flex">
-						<h2>&nbsp;<?php echo $wo['lang']['create_new_page'];?></h2>
+						<h2>&nbsp;<?php echo $wo['lang']['create_new_page']; ?></h2>
 						<div class="btnss">
-							<a class="btn btn-mat btn-default" data-ajax="?link1=pages" href="<?php echo Wo_SeoLink('index.php?link1=pages');?>"><?php echo $wo['lang']['cancel'];?></a>
+							<a class="btn btn-mat btn-default" data-ajax="?link1=pages" href="<?php echo Wo_SeoLink('index.php?link1=pages'); ?>"><?php echo $wo['lang']['cancel']; ?></a>
 							<button class="btn btn-main btn-mat add_wow_loader" type="submit"><?php echo $wo['lang']['create']; ?></button>
 						</div>
 					</div>
 				</div>
-			
+
 				<div class="page-margin wow_content wow_sett_content">
 					<div class="app-general-alert setting-update-alert"></div>
-					
+
 					<div class="wow_form_fields">
 						<label for="page_title"><?php echo $wo['lang']['page_name']; ?></label>
 						<input id="page_title" name="page_title" type="text">
-						<span class="help-block"><?php echo $wo['lang']['your_page_title'];?></span>
+						<span class="help-block"><?php echo $wo['lang']['your_page_title']; ?></span>
 					</div>
 					<div class="wow_form_fields">
-						<label for="page_name"><?php echo $wo['lang']['page'];?> URL</label>
+						<label for="page_name"><?php echo $wo['lang']['page']; ?> URL</label>
 						<div class="input-group">
-							<span class="input-group-addon"><?php echo $wo['config']['site_url'];?>/</span>
+							<span class="input-group-addon"><?php echo $wo['config']['site_url']; ?>/</span>
 							<input id="page_name" name="page_name" type="text">
 						</div>
 					</div>
 					<div class="wow_form_fields">
 						<label for="page_category"><?php echo $wo['lang']['page_category']; ?></label>
 						<select name="page_category" id="page_category" onchange="GetPageSubCategory(this)">
-							<?php foreach ($wo['page_categories'] as $category_id => $category_name) {?>
-								<option value="<?php echo $category_id?>"><?php echo $category_name; ?></option>
+							<?php foreach ($wo['page_categories'] as $category_id => $category_name) { ?>
+								<option value="<?php echo $category_id; ?>"><?php echo $category_name; ?></option>
 							<?php } ?>
 						</select>
 					</div>
 					<?php if (!empty($wo['page_sub_categories'])) { ?>
-					<div class="wow_form_fields">
-						<label for="page_sub_category"><?php echo $wo['lang']['sub_category']; ?></label>
-						<select name="page_sub_category" id="page_sub_category">
-							<?php
-							if (!empty($wo['page_sub_categories'][array_keys($wo['page_categories'])[0]])) {
-							foreach ($wo['page_sub_categories'][array_keys($wo['page_categories'])[0]] as $id => $sub_category) { ?>
-								<option value="<?php echo $sub_category['id']?>"><?php echo $sub_category['lang']; ?></option>
-							<?php } } ?>
-						</select>
-					</div>
-				    <?php } ?>
+						<div class="wow_form_fields">
+							<label for="page_sub_category"><?php echo $wo['lang']['sub_category']; ?></label>
+							<select name="page_sub_category" id="page_sub_category">
+								<?php
+								if (!empty($wo['page_sub_categories'][array_keys($wo['page_categories'])[0]])) {
+									foreach ($wo['page_sub_categories'][array_keys($wo['page_categories'])[0]] as $id => $sub_category) {
+								?>
+									<option value="<?php echo $sub_category['id']; ?>"><?php echo $sub_category['lang']; ?></option>
+								<?php
+									}
+								}
+								?>
+							</select>
+						</div>
+					<?php } ?>
 					<div class="wow_form_fields">
 						<label for="page_description"><?php echo $wo['lang']['page_description']; ?></label>
 						<textarea name="page_description" id="page_description" rows="3"></textarea>
-						<span class="help-block"><?php echo $wo['lang']['page_description_info'];?></span>
+						<span class="help-block"><?php echo $wo['lang']['page_description_info']; ?></span>
 					</div>
-					<?php $fields = Wo_GetCustomFields('page'); 
+					<div class="wow_form_fields page_location_field">
+						<label for="page_location_visible_input"><?php echo $wo['lang']['location']; ?></label>
+						<div id="page_location_autocomplete_host" class="wo_place_autocomplete_host">
+							<input id="page_location_visible_input" class="wo_page_location_input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+						</div>
+						<div class="page_location_suggestions" style="display:none;"></div>
+						<input id="page_location_input" name="wo_page_location_search" type="hidden">
+						<input id="address_value" name="address" type="hidden">
+						<input id="page_lat_value" name="page_lat" type="hidden">
+						<input id="page_lng_value" name="page_lng" type="hidden">
+						<input id="page_place_id_value" name="page_place_id" type="hidden">
+					</div>
+					<?php
+					$fields = Wo_GetCustomFields('page');
 					if (!empty($fields)) {
 						foreach ($fields as $key => $wo['field']) {
 							echo Wo_LoadPage('page/fields');
 						}
 					}
 					?>
-				  	
-					<input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+
+					<input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession(); ?>">
 				</div>
 			</form>
 		</div>
-		<!-- .col-md-8 -->
-		<?php echo Wo_LoadPage('sidebar/content');?>
+		<?php echo Wo_LoadPage('sidebar/content'); ?>
 	</div>
-   <!-- .row -->
 </div>
-<!-- .page-margin -->
+<style>
+.page_location_field {
+	position: relative;
+}
+
+.wo_place_autocomplete_host {
+	width: 100%;
+}
+
+.wo_page_location_input {
+	width: 100%;
+}
+
+.page_location_suggestions {
+	position: absolute;
+	top: calc(100% - 2px);
+	left: 0;
+	right: 0;
+	background: #fff;
+	border: 1px solid #e4e9f2;
+	border-radius: 0 0 8px 8px;
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+	max-height: 260px;
+	overflow-y: auto;
+	z-index: 1051;
+}
+
+.page_location_suggestion_item {
+	padding: 12px 14px;
+	border-bottom: 1px solid #eef2f7;
+	cursor: pointer;
+	line-height: 1.45;
+}
+
+.page_location_suggestion_item:last-child {
+	border-bottom: none;
+}
+
+.page_location_suggestion_item:hover,
+.page_location_suggestion_item:focus,
+.page_location_suggestion_item:active {
+	background: #f8fafc;
+}
+</style>
 <script type="text/javascript">
-	<?php 
+<?php
 $js_array = json_encode($wo['page_sub_categories']);
-echo "var sub_categories_array = ". $js_array . ";\n";
+echo "var sub_categories_array = " . $js_array . ";\n";
 ?>
-	function GetPageSubCategory(self) {
-		id = $(self).val();
-		var text = "";
-		if (typeof(sub_categories_array[id]) == 'undefined') {
-		    $('#page_sub_category').html('');
-		}
-		else{
-		   	sub_categories_array[id].forEach(function(entry) {
-				text = text + "<option value='"+entry.id+"'>"+entry.lang+"</option>";
-			});
-		    $('#page_sub_category').html(text);
-		}
+function GetPageSubCategory(self) {
+	id = $(self).val();
+	var text = "";
+	if (typeof(sub_categories_array[id]) == 'undefined') {
+		$('#page_sub_category').html('');
 	}
-   $(function() {
-     $('form.create-page-form').ajaxForm({
-       url: Wo_Ajax_Requests_File() + '?f=pages&s=create_page',
-       beforeSend: function() {
-         $('.create-page-form').find('.add_wow_loader').addClass('btn-loading');
-       },
-       success: function(data) {
-         scrollToTop();
-         if (data.status == 200) {
-           window.location.href = data.location;
-         } else {
-             var errors = data.errors.join("<br>");
-             $('.app-general-alert').html('<div class="alert alert-danger">' + errors + '</div>');
-             $('.alert-danger').fadeIn(300);
-         }
-         $('.create-page-form').find('.add_wow_loader').removeClass('btn-loading');
-       }
-     });
-   });
+	else {
+		sub_categories_array[id].forEach(function(entry) {
+			text = text + "<option value='" + entry.id + "'>" + entry.lang + "</option>";
+		});
+		$('#page_sub_category').html(text);
+	}
+}
+
+var woPageDesktopAutocomplete = null;
+var woPagePlacesLibraryPromise = null;
+var woPageLocationSuggestionTimer = null;
+var woPageLocationSuggestionRequest = 0;
+var woPageGooglePredictionCache = {};
+var woPageGoogleSessionToken = null;
+var woPageLocationLocale = <?php echo json_encode(strtolower($wo['language'])); ?>;
+
+function Wo_GetPageLocationVisibleInput() {
+	return document.getElementById('page_location_visible_input');
+}
+
+function Wo_GetPageLocationSearchField() {
+	return document.getElementById('page_location_input');
+}
+
+function Wo_ReadPageLocationValue() {
+	var visibleInput = Wo_GetPageLocationVisibleInput();
+	var hiddenInput = Wo_GetPageLocationSearchField();
+
+	if (visibleInput && $.trim(visibleInput.value || '') !== '') {
+		return $.trim(visibleInput.value || '');
+	}
+
+	return $.trim(hiddenInput ? hiddenInput.value || '' : '');
+}
+
+function Wo_WritePageLocationValue(value) {
+	var normalizedValue = value || '';
+	var visibleInput = Wo_GetPageLocationVisibleInput();
+	var hiddenInput = Wo_GetPageLocationSearchField();
+
+	if (visibleInput) {
+		visibleInput.value = normalizedValue;
+	}
+	if (hiddenInput) {
+		hiddenInput.value = normalizedValue;
+	}
+
+	$('#address_value').val(normalizedValue);
+}
+
+function Wo_SetPageCoordinates(lat, lng) {
+	$('#page_lat_value').val((lat !== undefined && lat !== null) ? lat : '');
+	$('#page_lng_value').val((lng !== undefined && lng !== null) ? lng : '');
+}
+
+function Wo_SetPagePlaceId(placeId) {
+	$('#page_place_id_value').val(placeId || '');
+}
+
+function Wo_ClearPageLocationMeta() {
+	Wo_SetPageCoordinates('', '');
+	Wo_SetPagePlaceId('');
+}
+
+function Wo_PageHasCoordinates() {
+	return $.trim($('#page_lat_value').val()) !== '' && $.trim($('#page_lng_value').val()) !== '';
+}
+
+function Wo_PageLocationShouldUseInlineSuggestions() {
+	return (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) ||
+		/Android|webOS|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent || '');
+}
+
+function Wo_PageGoogleAutocompleteAvailable() {
+	return typeof google !== 'undefined' && google.maps && typeof google.maps.importLibrary === 'function';
+}
+
+function Wo_EnsurePagePlacesLibrary() {
+	if (!Wo_PageGoogleAutocompleteAvailable()) {
+		return Promise.resolve(false);
+	}
+
+	if (woPagePlacesLibraryPromise) {
+		return woPagePlacesLibraryPromise;
+	}
+
+	woPagePlacesLibraryPromise = google.maps.importLibrary('places').then(function() {
+		return true;
+	}).catch(function() {
+		return false;
+	});
+
+	return woPagePlacesLibraryPromise;
+}
+
+function Wo_GetPageLocationLanguage() {
+	return (woPageLocationLocale || document.documentElement.lang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
+}
+
+function Wo_GetPageLocationGoogleLanguage() {
+	var language = Wo_GetPageLocationLanguage();
+	if (!language) {
+		return 'en';
+	}
+
+	return language.split(/[_-]/)[0] || 'en';
+}
+
+function Wo_GetPageLocationSearchUrl(locationValue, limit) {
+	var params = new URLSearchParams({
+		format: 'jsonv2',
+		addressdetails: '1',
+		limit: String(limit || 5),
+		'accept-language': Wo_GetPageLocationLanguage(),
+		q: locationValue
+	});
+
+	return 'https://nominatim.openstreetmap.org/search?' + params.toString();
+}
+
+function Wo_EscapePageLocationHtml(text) {
+	return String(text || '')
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#039;');
+}
+
+function Wo_GetGooglePagePredictionLabel(prediction) {
+	if (!prediction) {
+		return '';
+	}
+	if (prediction.text && typeof prediction.text.toString === 'function') {
+		return prediction.text.toString();
+	}
+
+	var mainText = '';
+	var secondaryText = '';
+	if (prediction.mainText && typeof prediction.mainText.toString === 'function') {
+		mainText = prediction.mainText.toString();
+	}
+	if (prediction.secondaryText && typeof prediction.secondaryText.toString === 'function') {
+		secondaryText = prediction.secondaryText.toString();
+	}
+
+	if (mainText && secondaryText) {
+		return mainText + ', ' + secondaryText;
+	}
+
+	return mainText || secondaryText || prediction.description || '';
+}
+
+function Wo_ReadGoogleCoordinateValue(locationObject, axis) {
+	if (!locationObject) {
+		return '';
+	}
+	if (typeof locationObject[axis] === 'function') {
+		return locationObject[axis]();
+	}
+	if (locationObject[axis] !== undefined && locationObject[axis] !== null) {
+		return locationObject[axis];
+	}
+
+	return '';
+}
+
+function Wo_ApplyGooglePagePlace(place) {
+	if (!place) {
+		return false;
+	}
+
+	var locationObject = (place.geometry && place.geometry.location) ? place.geometry.location : (place.location || null);
+	var formattedAddress = $.trim(place.formatted_address || place.formattedAddress || place.name || Wo_ReadPageLocationValue());
+	var lat = Wo_ReadGoogleCoordinateValue(locationObject, 'lat');
+	var lng = Wo_ReadGoogleCoordinateValue(locationObject, 'lng');
+	var placeId = $.trim(place.place_id || place.id || '');
+
+	Wo_WritePageLocationValue(formattedAddress);
+	Wo_SetPageCoordinates(lat, lng);
+	Wo_SetPagePlaceId(placeId);
+
+	return true;
+}
+
+function Wo_ApplyFallbackPageLocation(item) {
+	if (!item) {
+		return false;
+	}
+
+	var label = $.trim(item.display_name || item.name || Wo_ReadPageLocationValue());
+	if (!label) {
+		return false;
+	}
+
+	Wo_WritePageLocationValue(label);
+	Wo_SetPageCoordinates(item.lat || '', item.lon || item.lng || '');
+	Wo_SetPagePlaceId('');
+
+	return true;
+}
+
+function Wo_ClearPageLocationSuggestions() {
+	$('.page_location_suggestions').empty().hide();
+}
+
+function Wo_RenderPageLocationSuggestions(items) {
+	var suggestionBox = $('.page_location_suggestions');
+	var html = '';
+	var seen = {};
+
+	if (!Array.isArray(items) || !items.length) {
+		Wo_ClearPageLocationSuggestions();
+		return;
+	}
+
+	items.forEach(function(item) {
+		var displayName = $.trim(item.display_name || item.name || '');
+		var signature = displayName.toLowerCase();
+
+		if (!displayName || seen[signature]) {
+			return;
+		}
+
+		seen[signature] = true;
+		html += '<div class="page_location_suggestion_item"'
+			+ ' data-source="' + Wo_EscapePageLocationHtml(item.source || 'fallback') + '"'
+			+ ' data-name="' + Wo_EscapePageLocationHtml(displayName) + '"'
+			+ ' data-place-id="' + Wo_EscapePageLocationHtml(item.google_place_id || '') + '"'
+			+ ' data-lat="' + Wo_EscapePageLocationHtml(item.lat || '') + '"'
+			+ ' data-lng="' + Wo_EscapePageLocationHtml(item.lon || item.lng || '') + '">'
+			+ Wo_EscapePageLocationHtml(displayName)
+			+ '</div>';
+	});
+
+	if (!html) {
+		Wo_ClearPageLocationSuggestions();
+		return;
+	}
+
+	suggestionBox.html(html).show();
+}
+
+function Wo_FallbackPageLocationSuggestions(locationValue, requestToken) {
+	fetch(Wo_GetPageLocationSearchUrl(locationValue, 5), {
+		headers: {
+			'Accept': 'application/json'
+		}
+	}).then(function(response) {
+		if (!response.ok) {
+			throw new Error('Location suggestions failed');
+		}
+		return response.json();
+	}).then(function(results) {
+		if (requestToken !== woPageLocationSuggestionRequest) {
+			return;
+		}
+
+		results = Array.isArray(results) ? results : [];
+		results = results.map(function(item) {
+			item.source = 'fallback';
+			return item;
+		});
+		Wo_RenderPageLocationSuggestions(results);
+	}).catch(function() {
+		if (requestToken === woPageLocationSuggestionRequest) {
+			Wo_ClearPageLocationSuggestions();
+		}
+	});
+}
+
+function Wo_SearchPageLocationSuggestions(locationValue) {
+	var normalizedLocationValue = $.trim(locationValue || '');
+	var requestToken = ++woPageLocationSuggestionRequest;
+
+	if (normalizedLocationValue.length < 2) {
+		Wo_ClearPageLocationSuggestions();
+		return;
+	}
+
+	if (!Wo_PageGoogleAutocompleteAvailable()) {
+		Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+		return;
+	}
+
+	Wo_EnsurePagePlacesLibrary().then(function(isReady) {
+		if (!isReady || requestToken !== woPageLocationSuggestionRequest) {
+			if (requestToken === woPageLocationSuggestionRequest) {
+				Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+			}
+			return;
+		}
+
+		if (!google.maps.places || !google.maps.places.AutocompleteSuggestion || typeof google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions !== 'function') {
+			Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+			return;
+		}
+
+		if (!woPageGoogleSessionToken && typeof google.maps.places.AutocompleteSessionToken === 'function') {
+			woPageGoogleSessionToken = new google.maps.places.AutocompleteSessionToken();
+		}
+
+		var request = {
+			input: normalizedLocationValue,
+			language: Wo_GetPageLocationGoogleLanguage()
+		};
+		if (woPageGoogleSessionToken) {
+			request.sessionToken = woPageGoogleSessionToken;
+		}
+
+		google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(request).then(function(response) {
+			if (requestToken !== woPageLocationSuggestionRequest) {
+				return;
+			}
+
+			var suggestions = (response && Array.isArray(response.suggestions)) ? response.suggestions : [];
+			if (!suggestions.length) {
+				Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+				return;
+			}
+
+			var mappedSuggestions = suggestions.map(function(suggestion) {
+				var prediction = suggestion.placePrediction || suggestion;
+				var placeId = $.trim(prediction.placeId || prediction.place_id || '');
+
+				if (placeId) {
+					woPageGooglePredictionCache[placeId] = prediction;
+				}
+
+				return {
+					source: 'google',
+					display_name: Wo_GetGooglePagePredictionLabel(prediction),
+					google_place_id: placeId
+				};
+			});
+
+			Wo_RenderPageLocationSuggestions(mappedSuggestions);
+		}).catch(function() {
+			if (requestToken === woPageLocationSuggestionRequest) {
+				Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+			}
+		});
+	}).catch(function() {
+		if (requestToken === woPageLocationSuggestionRequest) {
+			Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+		}
+	});
+}
+
+function Wo_FallbackPageLocationGeocode(locationValue) {
+	return fetch(Wo_GetPageLocationSearchUrl(locationValue, 1), {
+		headers: {
+			'Accept': 'application/json'
+		}
+	}).then(function(response) {
+		if (!response.ok) {
+			throw new Error('Location geocode failed');
+		}
+		return response.json();
+	}).then(function(results) {
+		if (!Array.isArray(results) || !results.length) {
+			return false;
+		}
+
+		results[0].source = 'fallback';
+		return Wo_ApplyFallbackPageLocation(results[0]);
+	}).catch(function() {
+		return false;
+	});
+}
+
+function Wo_GeocodePageLocation(locationValue) {
+	var normalizedLocationValue = $.trim(locationValue || '');
+
+	if (!normalizedLocationValue) {
+		Wo_ClearPageLocationMeta();
+		return Promise.resolve(false);
+	}
+
+	if (typeof google !== 'undefined' && google.maps && typeof google.maps.Geocoder === 'function') {
+		return new Promise(function(resolve) {
+			var geocoder = new google.maps.Geocoder();
+			geocoder.geocode({
+				address: normalizedLocationValue
+			}, function(results, status) {
+				if (status === 'OK' && Array.isArray(results) && results[0]) {
+					resolve(Wo_ApplyGooglePagePlace(results[0]));
+					return;
+				}
+
+				Wo_FallbackPageLocationGeocode(normalizedLocationValue).then(resolve);
+			});
+		});
+	}
+
+	return Wo_FallbackPageLocationGeocode(normalizedLocationValue);
+}
+
+function Wo_GeocodePagePlaceId(placeId) {
+	var normalizedPlaceId = $.trim(placeId || '');
+	var cachedPrediction = normalizedPlaceId ? woPageGooglePredictionCache[normalizedPlaceId] : null;
+
+	if (!normalizedPlaceId) {
+		return Promise.resolve(false);
+	}
+
+	if (cachedPrediction && typeof cachedPrediction.toPlace === 'function') {
+		return new Promise(function(resolve) {
+			var place = cachedPrediction.toPlace();
+			place.fetchFields({
+				fields: ['displayName', 'formattedAddress', 'location', 'id']
+			}).then(function() {
+				resolve(Wo_ApplyGooglePagePlace(place));
+			}).catch(function() {
+				resolve(false);
+			});
+		});
+	}
+
+	if (typeof google !== 'undefined' && google.maps && typeof google.maps.Geocoder === 'function') {
+		return new Promise(function(resolve) {
+			var geocoder = new google.maps.Geocoder();
+			geocoder.geocode({
+				placeId: normalizedPlaceId
+			}, function(results, status) {
+				if (status === 'OK' && Array.isArray(results) && results[0]) {
+					resolve(Wo_ApplyGooglePagePlace(results[0]));
+					return;
+				}
+
+				resolve(false);
+			});
+		});
+	}
+
+	return Promise.resolve(false);
+}
+
+function Wo_InitPageLocationAutocomplete() {
+	var visibleInput = Wo_GetPageLocationVisibleInput();
+
+	if (!visibleInput) {
+		return;
+	}
+
+	visibleInput.addEventListener('input', function() {
+		Wo_WritePageLocationValue(this.value || '');
+		Wo_ClearPageLocationMeta();
+		clearTimeout(woPageLocationSuggestionTimer);
+
+		if (Wo_PageLocationShouldUseInlineSuggestions() || !woPageDesktopAutocomplete) {
+			woPageLocationSuggestionTimer = setTimeout(function() {
+				Wo_SearchPageLocationSuggestions(Wo_ReadPageLocationValue());
+			}, 220);
+			return;
+		}
+
+		Wo_ClearPageLocationSuggestions();
+	});
+
+	visibleInput.addEventListener('change', function() {
+		Wo_WritePageLocationValue(this.value || '');
+	});
+
+	visibleInput.addEventListener('blur', function() {
+		setTimeout(function() {
+			Wo_ClearPageLocationSuggestions();
+		}, 150);
+	});
+
+	if (Wo_PageLocationShouldUseInlineSuggestions() || !Wo_PageGoogleAutocompleteAvailable()) {
+		return;
+	}
+
+	Wo_EnsurePagePlacesLibrary().then(function(isReady) {
+		if (!isReady || !google.maps.places || typeof google.maps.places.Autocomplete !== 'function') {
+			return;
+		}
+
+		woPageDesktopAutocomplete = new google.maps.places.Autocomplete(visibleInput, {
+			fields: ['formatted_address', 'geometry', 'name', 'place_id']
+		});
+		woPageDesktopAutocomplete.addListener('place_changed', function() {
+			var place = woPageDesktopAutocomplete.getPlace();
+			Wo_ApplyGooglePagePlace(place);
+			Wo_ClearPageLocationSuggestions();
+		});
+	});
+}
+
+function Wo_ResolvePageLocation(callback) {
+	var locationValue = Wo_ReadPageLocationValue();
+	var placeId = $.trim($('#page_place_id_value').val() || '');
+
+	$('#address_value').val(locationValue);
+
+	if (!locationValue) {
+		Wo_ClearPageLocationMeta();
+		callback();
+		return;
+	}
+
+	if (placeId && !Wo_PageHasCoordinates()) {
+		Wo_GeocodePagePlaceId(placeId).then(function(resolved) {
+			if (!resolved) {
+				Wo_ClearPageLocationMeta();
+				$('#address_value').val(locationValue);
+			}
+
+			callback();
+		});
+		return;
+	}
+
+	if (Wo_PageHasCoordinates()) {
+		callback();
+		return;
+	}
+
+	Wo_GeocodePageLocation(locationValue).then(function(resolved) {
+		if (!resolved) {
+			Wo_ClearPageLocationMeta();
+			$('#address_value').val(locationValue);
+		}
+
+		callback();
+	});
+}
+
+$(function() {
+	Wo_InitPageLocationAutocomplete();
+
+	$(document).on('mousedown touchstart', '.page_location_suggestions .page_location_suggestion_item', function(event) {
+		var source = $(this).attr('data-source') || 'fallback';
+		var name = $(this).attr('data-name') || '';
+		var placeId = $(this).attr('data-place-id') || '';
+		var lat = $(this).attr('data-lat') || '';
+		var lng = $(this).attr('data-lng') || '';
+
+		event.preventDefault();
+		Wo_WritePageLocationValue(name);
+		Wo_ClearPageLocationSuggestions();
+
+		if (source === 'google' && placeId) {
+			Wo_ClearPageLocationMeta();
+			Wo_SetPagePlaceId(placeId);
+			Wo_GeocodePagePlaceId(placeId).then(function(resolved) {
+				if (!resolved) {
+					$('#address_value').val(name);
+				}
+			});
+			return;
+		}
+
+		Wo_ApplyFallbackPageLocation({
+			display_name: name,
+			lat: lat,
+			lng: lng
+		});
+	});
+
+	$('form.create-page-form').ajaxForm({
+		url: Wo_Ajax_Requests_File() + '?f=pages&s=create_page',
+		beforeSend: function() {
+			$('.create-page-form').find('.add_wow_loader').addClass('btn-loading');
+		},
+		beforeSubmit: function(arr, form, options) {
+			if ($(form).data('page-create-geocode-ready') === true) {
+				$(form).removeData('page-create-geocode-ready');
+				return true;
+			}
+
+			Wo_ResolvePageLocation(function() {
+				$(form).data('page-create-geocode-ready', true);
+				$(form).ajaxSubmit(options);
+			});
+
+			return false;
+		},
+		success: function(data) {
+			scrollToTop();
+			if (data.status == 200) {
+				window.location.href = data.location;
+			} else {
+				var errors = data.errors.join("<br>");
+				$('.app-general-alert').html('<div class="alert alert-danger">' + errors + '</div>');
+				$('.alert-danger').fadeIn(300);
+			}
+			$('.create-page-form').find('.add_wow_loader').removeClass('btn-loading');
+		}
+	});
+});
 </script>

@@ -6905,6 +6905,231 @@ function Wo_GetNearbySearchCenter($args = array())
 
 	return $center;
 }
+function Wo_GetNearbyDistanceValue($from_lat, $from_lng, $to_lat, $to_lng)
+{
+	$from_lat = (float) $from_lat;
+	$from_lng = (float) $from_lng;
+	$to_lat   = (float) $to_lat;
+	$to_lng   = (float) $to_lng;
+	if (!Wo_IsNearbyCoordinateValid($from_lat, $from_lng) || !Wo_IsNearbyCoordinateValid($to_lat, $to_lng)) {
+		return null;
+	}
+
+	$acos_base = (cos(deg2rad($from_lat)) * cos(deg2rad($to_lat)) * cos(deg2rad($to_lng) - deg2rad($from_lng))) +
+		(sin(deg2rad($from_lat)) * sin(deg2rad($to_lat)));
+	$acos_base = min(1, max(-1, $acos_base));
+
+	return 6371 * acos($acos_base);
+}
+function Wo_GetNearbyPinnedPageNames($value = null)
+{
+	global $wo;
+	if ($value === null) {
+		$value = !empty($wo['config']['nearby_pinned_pages']) ? $wo['config']['nearby_pinned_pages'] : '';
+	}
+
+	if (is_array($value)) {
+		$value = implode(',', $value);
+	}
+
+	$page_names = array();
+	$lookup     = array();
+	foreach (explode(',', (string) $value) as $page_name) {
+		$page_name = trim($page_name);
+		if ($page_name === '') {
+			continue;
+		}
+
+		$page_key = strtolower($page_name);
+		if (isset($lookup[$page_key])) {
+			continue;
+		}
+
+		$lookup[$page_key] = true;
+		$page_names[]      = $page_name;
+	}
+
+	return $page_names;
+}
+function Wo_GetNearbyPinnedPages($args = array())
+{
+	global $sqlConnect;
+
+	$options      = array(
+		'page_names' => array(),
+		'search_mode' => false,
+		'center_lat' => false,
+		'center_lng' => false
+	);
+	$args         = array_merge($options, (array) $args);
+	$page_names   = !empty($args['page_names']) ? $args['page_names'] : Wo_GetNearbyPinnedPageNames();
+	$search_center = Wo_GetNearbySearchCenter($args);
+	$user_lat     = $search_center['lat'];
+	$user_lng     = $search_center['lng'];
+	$measure_distance = Wo_IsNearbyCoordinateValid($user_lat, $user_lng);
+	$data         = array();
+
+	if (empty($page_names)) {
+		return $data;
+	}
+
+	foreach ($page_names as $page_name) {
+		$page_name = trim($page_name);
+		if ($page_name === '') {
+			continue;
+		}
+
+		$page_id = Wo_PageIdFromPagename($page_name);
+		if (empty($page_id) || !is_numeric($page_id) || $page_id < 1) {
+			continue;
+		}
+
+		$page_id   = (int) $page_id;
+		$page_data = Wo_PageData($page_id);
+		if (empty($page_data) || !is_array($page_data) || empty($page_data['active']) || $page_data['active'] != '1') {
+			continue;
+		}
+
+		$best_match = null;
+		$query = mysqli_query($sqlConnect, "
+			SELECT
+				post.`id`,
+				post.`page_id`,
+				post.`product_id`,
+				prod.`lat`,
+				prod.`lng`,
+				prod.`location`
+			FROM " . T_POSTS . " AS post
+			INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
+			WHERE post.`page_id` = {$page_id}
+				AND post.`product_id` > '0'
+				AND prod.`lat` <> ''
+				AND prod.`lng` <> ''
+				AND prod.`lat` <> '0'
+				AND prod.`lng` <> '0'
+			ORDER BY post.`id` DESC
+			LIMIT 200
+		");
+
+		if ($query && mysqli_num_rows($query)) {
+			while ($fetched_data = mysqli_fetch_assoc($query)) {
+				$lat = isset($fetched_data['lat']) ? (float) $fetched_data['lat'] : 0;
+				$lng = isset($fetched_data['lng']) ? (float) $fetched_data['lng'] : 0;
+				if (!Wo_IsNearbyCoordinateValid($lat, $lng)) {
+					continue;
+				}
+
+				$distance_value = $measure_distance ? Wo_GetNearbyDistanceValue($user_lat, $user_lng, $lat, $lng) : null;
+				$fetched_data['distance_value'] = $distance_value;
+				if (empty($best_match)) {
+					$best_match = $fetched_data;
+					continue;
+				}
+
+				if ($measure_distance && $distance_value !== null && ($best_match['distance_value'] === null || $distance_value < $best_match['distance_value'])) {
+					$best_match = $fetched_data;
+				}
+			}
+		}
+
+		if (empty($best_match)) {
+			$page_lat = !empty($page_data['lat']) ? (float) $page_data['lat'] : 0;
+			$page_lng = !empty($page_data['lng']) ? (float) $page_data['lng'] : 0;
+			if (!Wo_IsNearbyCoordinateValid($page_lat, $page_lng)) {
+				continue;
+			}
+
+			$distance_value = $measure_distance ? Wo_GetNearbyDistanceValue($user_lat, $user_lng, $page_lat, $page_lng) : null;
+			$page_location = !empty($page_data['address']) ? $page_data['address'] : '';
+			$data[$page_id] = array(
+				'id' => 0,
+				'page_id' => $page_id,
+				'product_id' => 0,
+				'lat' => $page_lat,
+				'lng' => $page_lng,
+				'distance_value' => $distance_value,
+				'distance' => ($distance_value !== null) ? round((float) $distance_value, 2) : '',
+				'page_data' => $page_data,
+				'product' => array(
+					'lat' => $page_lat,
+					'lng' => $page_lng,
+					'location' => $page_location
+				),
+				'is_pinned' => 1,
+				'is_pinned_only' => 1
+			);
+			continue;
+		}
+
+		$product_id = !empty($best_match['product_id']) ? (int) $best_match['product_id'] : 0;
+		$product    = ($product_id > 0) ? Wo_GetProduct($product_id) : array();
+		if (empty($product) || !is_array($product)) {
+			$product = array();
+		}
+
+		if (empty($product['lat'])) {
+			$product['lat'] = (float) $best_match['lat'];
+		}
+		if (empty($product['lng'])) {
+			$product['lng'] = (float) $best_match['lng'];
+		}
+		if (empty($product['location'])) {
+			$product['location'] = !empty($best_match['location']) ? $best_match['location'] : (!empty($page_data['address']) ? $page_data['address'] : '');
+		}
+
+		$data[$page_id] = array(
+			'id' => !empty($best_match['id']) ? (int) $best_match['id'] : 0,
+			'page_id' => $page_id,
+			'product_id' => $product_id,
+			'lat' => (float) $best_match['lat'],
+			'lng' => (float) $best_match['lng'],
+			'distance_value' => $best_match['distance_value'],
+			'distance' => ($best_match['distance_value'] !== null) ? round((float) $best_match['distance_value'], 2) : '',
+			'page_data' => $page_data,
+			'product' => $product,
+			'is_pinned' => 1,
+			'is_pinned_only' => 1
+		);
+	}
+
+	return $data;
+}
+function Wo_NormalizeNearbyPinnedPagesConfigValue($value = '')
+{
+	$page_names = Wo_GetNearbyPinnedPageNames($value);
+	if (empty($page_names)) {
+		return '';
+	}
+
+	$normalized_names = array();
+	$normalized_lookup = array();
+	foreach ($page_names as $page_name) {
+		$page_name = trim((string) $page_name);
+		if ($page_name === '') {
+			continue;
+		}
+
+		$page_id = Wo_PageIdFromPagename($page_name);
+		if (!empty($page_id) && is_numeric($page_id) && $page_id > 0) {
+			$page_data = Wo_PageData((int) $page_id);
+			if (!empty($page_data['page_name'])) {
+				$page_name = trim((string) $page_data['page_name']);
+			}
+		}
+
+		if ($page_name === '') {
+			continue;
+		}
+
+		$page_key = strtolower($page_name);
+		if (!isset($normalized_lookup[$page_key])) {
+			$normalized_lookup[$page_key] = true;
+			$normalized_names[] = $page_name;
+		}
+	}
+
+	return implode(',', $normalized_names);
+}
 function Wo_GetNearbyUsers($args = array())
 {
 	global $wo, $sqlConnect;
@@ -7013,8 +7238,7 @@ function Wo_GetNearbyUsersNameFilterSql($name = '')
 	$fields = array(
 		'`username`',
 		'`first_name`',
-		'`last_name`',
-		'`address`'
+		'`last_name`'
 	);
 	$clauses = array();
 
@@ -8375,7 +8599,6 @@ function Wo_GetNearbyShops($args = array())
 	$name         = trim((string) $args['name']);
 	$loc_distance = Wo_Secure($args['distance']);
 	$limit        = Wo_Secure($args['limit']);
-	$unit         = 6371;
 	$search_center = Wo_GetNearbySearchCenter($args);
 	$user_lat     = $search_center['lat'];
 	$user_lng     = $search_center['lng'];
@@ -8383,6 +8606,7 @@ function Wo_GetNearbyShops($args = array())
 	$use_distance_filter = true;
 	$data         = array();
 	$pages_data   = array();
+	$pinned_pages = array();
 	$search_sql   = "";
 	$offset_sql   = "";
 	$page_offset_sql = "";
@@ -8403,6 +8627,7 @@ function Wo_GetNearbyShops($args = array())
 		$offset_sql = " AND post.`page_id` < '$offset' AND post.`page_id` <> '$offset' ";
 		$page_offset_sql = " AND page.`page_id` < '$offset' AND page.`page_id` <> '$offset' ";
 	}
+	$pinned_pages = Wo_GetNearbyPinnedPages($args);
 
 	$sql = "
 	SELECT
@@ -8432,20 +8657,16 @@ function Wo_GetNearbyShops($args = array())
 			if (empty($lat) || empty($lng)) {
 				continue;
 			}
-			$distance_value = $unit * acos(
-				cos(deg2rad($user_lat)) *
-				cos(deg2rad($lat)) *
-				cos(deg2rad($lng) - deg2rad($user_lng)) +
-				sin(deg2rad($user_lat)) *
-				sin(deg2rad($lat))
-			);
+			$distance_value = Wo_GetNearbyDistanceValue($user_lat, $user_lng, $lat, $lng);
 			$fetched_data['distance_value'] = $distance_value;
 			if (empty($name) && $use_distance_filter && $distance_value > $distance) {
 				continue;
 			}
 			$fetched_data['page_data'] = Wo_PageData($fetched_data['page_id']);
 			$fetched_data['product']   = Wo_GetProduct($fetched_data['product_id']);
-			$fetched_data['distance']  = round($fetched_data['distance_value'], 2);
+			$fetched_data['distance']  = ($fetched_data['distance_value'] !== null) ? round((float) $fetched_data['distance_value'], 2) : '';
+			$fetched_data['is_pinned'] = 0;
+			$fetched_data['is_pinned_only'] = 0;
 			if (!isset($pages_data[$fetched_data['page_id']])) {
 				$pages_data[$fetched_data['page_id']] = $fetched_data;
 				continue;
@@ -8503,15 +8724,93 @@ function Wo_GetNearbyShops($args = array())
 						'lat' => 0,
 						'lng' => 0,
 						'location' => !empty($page_data['address']) ? $page_data['address'] : ''
-					)
+					),
+					'is_pinned' => 0,
+					'is_pinned_only' => 0
 				);
-			}
-			$data = array_values($pages_data);
-			if (count($data) > $limit) {
-				$data = array_slice($data, 0, $limit);
 			}
 		}
 	}
+
+	foreach ($pages_data as $page_id => &$page_entry) {
+		if (!isset($pinned_pages[$page_id])) {
+			$page_entry['is_pinned'] = 0;
+			$page_entry['is_pinned_only'] = 0;
+			continue;
+		}
+
+		$pinned_entry = $pinned_pages[$page_id];
+		$page_entry['is_pinned'] = 1;
+		$page_entry['is_pinned_only'] = 0;
+		if ((empty($page_entry['product_id']) || empty($page_entry['product']) || !is_array($page_entry['product'])) && !empty($pinned_entry['product'])) {
+			$page_entry['product_id'] = !empty($pinned_entry['product_id']) ? (int) $pinned_entry['product_id'] : 0;
+			$page_entry['product']    = $pinned_entry['product'];
+		}
+		if ((!Wo_IsNearbyCoordinateValid((!empty($page_entry['product']['lat']) ? $page_entry['product']['lat'] : 0), (!empty($page_entry['product']['lng']) ? $page_entry['product']['lng'] : 0))) && !empty($pinned_entry['product'])) {
+			$page_entry['lat']            = $pinned_entry['lat'];
+			$page_entry['lng']            = $pinned_entry['lng'];
+			$page_entry['distance_value'] = $pinned_entry['distance_value'];
+			$page_entry['distance']       = $pinned_entry['distance'];
+			$page_entry['product']        = $pinned_entry['product'];
+		}
+	}
+	unset($page_entry);
+
+	$data = array_values($pages_data);
+	if (empty($name)) {
+		usort($data, function($a, $b) {
+			$first_distance  = isset($a['distance_value']) ? $a['distance_value'] : null;
+			$second_distance = isset($b['distance_value']) ? $b['distance_value'] : null;
+			if ($first_distance == $second_distance) {
+				return 0;
+			}
+			if ($first_distance === null) {
+				return 1;
+			}
+			if ($second_distance === null) {
+				return -1;
+			}
+			return ($first_distance < $second_distance) ? -1 : 1;
+		});
+	}
+	if (count($data) > $limit) {
+		$data = array_slice($data, 0, $limit);
+	}
+
+	if (empty($offset) && !empty($pinned_pages)) {
+		$pinned_only = array();
+		foreach ($pinned_pages as $page_id => $pinned_entry) {
+			if (isset($pages_data[$page_id])) {
+				continue;
+			}
+
+			$pinned_only[] = $pinned_entry;
+		}
+
+		if (!empty($pinned_only)) {
+			usort($pinned_only, function($a, $b) {
+				$first_distance  = isset($a['distance_value']) ? $a['distance_value'] : null;
+				$second_distance = isset($b['distance_value']) ? $b['distance_value'] : null;
+				if ($first_distance !== null && $second_distance !== null && $first_distance != $second_distance) {
+					return ($first_distance < $second_distance) ? -1 : 1;
+				}
+
+				if ($first_distance !== null && $second_distance === null) {
+					return -1;
+				}
+				if ($first_distance === null && $second_distance !== null) {
+					return 1;
+				}
+
+				$first_title  = !empty($a['page_data']['name']) ? $a['page_data']['name'] : '';
+				$second_title = !empty($b['page_data']['name']) ? $b['page_data']['name'] : '';
+				return strcmp($first_title, $second_title);
+			});
+
+			$data = array_merge($data, $pinned_only);
+		}
+	}
+
 	return $data;
 }
 function Wo_GetNearbyShopsSearchSql($name = '')
@@ -8611,7 +8910,6 @@ function Wo_GetNearbyShopsCount($args = array())
 	$args         = array_merge($options, $args);
 	$name         = trim((string) $args['name']);
 	$loc_distance = Wo_Secure($args['distance']);
-	$unit         = 6371;
 	$search_center = Wo_GetNearbySearchCenter($args);
 	$user_lat     = $search_center['lat'];
 	$user_lng     = $search_center['lng'];
@@ -8619,6 +8917,7 @@ function Wo_GetNearbyShopsCount($args = array())
 	$search_sql   = "";
 	$distance_sql = "";
 	$use_distance_filter = true;
+	$page_ids     = array();
 
 	if (empty($name) && !Wo_IsNearbyCoordinateValid($user_lat, $user_lng)) {
 		return 0;
@@ -8633,37 +8932,39 @@ function Wo_GetNearbyShopsCount($args = array())
 		$search_sql = Wo_GetNearbyShopsSearchSql($name);
 		$page_search_sql = Wo_GetNearbyShopPageSearchSql($name, 'page');
 		$sql   = "
-	SELECT COUNT(*) AS `count` FROM (
-		SELECT
-			post.`page_id`
-		FROM " . T_POSTS . " AS post
-		INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
-		INNER JOIN " . T_PAGES . " AS page ON post.`page_id` = page.`page_id`
-		WHERE post.`product_id` > '0'
-			AND post.`page_id` > '0'
-			AND prod.`lat` <> ''
-			AND prod.`lng` <> ''
-			AND prod.`lat` <> '0'
-			AND prod.`lng` <> '0'
-			{$search_sql}
-		GROUP BY post.`page_id`
-		UNION
-		SELECT
-			page.`page_id`
-		FROM " . T_PAGES . " AS page
-		WHERE page.`active` = '1'
-			{$page_search_sql}
-	) AS nearby_pages";
+	SELECT
+		post.`page_id`
+	FROM " . T_POSTS . " AS post
+	INNER JOIN " . T_PRODUCTS . " AS prod ON post.`product_id` = prod.`id`
+	INNER JOIN " . T_PAGES . " AS page ON post.`page_id` = page.`page_id`
+	WHERE post.`product_id` > '0'
+		AND post.`page_id` > '0'
+		AND prod.`lat` <> ''
+		AND prod.`lng` <> ''
+		AND prod.`lat` <> '0'
+		AND prod.`lng` <> '0'
+		{$search_sql}
+	GROUP BY post.`page_id`
+	UNION
+	SELECT
+		page.`page_id`
+	FROM " . T_PAGES . " AS page
+	WHERE page.`active` = '1'
+		{$page_search_sql}";
 		$query = mysqli_query($sqlConnect, $sql);
 		if ($query && mysqli_num_rows($query)) {
-			$fetched_data = mysqli_fetch_assoc($query);
-			return (int) $fetched_data['count'];
+			while ($fetched_data = mysqli_fetch_assoc($query)) {
+				$page_id = !empty($fetched_data['page_id']) ? (int) $fetched_data['page_id'] : 0;
+				if ($page_id > 0) {
+					$page_ids[$page_id] = true;
+				}
+			}
 		}
-		return 0;
 	}
-	elseif ($use_distance_filter) {
+	else {
+		if ($use_distance_filter) {
 		$distance_sql = " HAVING MIN(
-			{$unit} * acos(
+			6371 * acos(
 				cos(radians('$user_lat')) *
 				cos(radians(prod.`lat`)) *
 				cos(radians(prod.`lng`) - radians('$user_lng')) +
@@ -8671,9 +8972,8 @@ function Wo_GetNearbyShopsCount($args = array())
 				sin(radians(prod.`lat`))
 			)
 		) < {$distance} ";
-	}
-	$sql   = "
-	SELECT COUNT(*) AS `count` FROM (
+		}
+		$sql   = "
 		SELECT
 			post.`page_id`
 		FROM " . T_POSTS . " AS post
@@ -8687,14 +8987,26 @@ function Wo_GetNearbyShopsCount($args = array())
 			AND prod.`lng` <> '0'
 			{$search_sql}
 		GROUP BY post.`page_id`
-		{$distance_sql}
-	) AS nearby_pages";
-	$query = mysqli_query($sqlConnect, $sql);
-	if ($query && mysqli_num_rows($query)) {
-		$fetched_data = mysqli_fetch_assoc($query);
-		return (int) $fetched_data['count'];
+		{$distance_sql}";
+		$query = mysqli_query($sqlConnect, $sql);
+		if ($query && mysqli_num_rows($query)) {
+			while ($fetched_data = mysqli_fetch_assoc($query)) {
+				$page_id = !empty($fetched_data['page_id']) ? (int) $fetched_data['page_id'] : 0;
+				if ($page_id > 0) {
+					$page_ids[$page_id] = true;
+				}
+			}
+		}
 	}
-	return 0;
+
+	$pinned_pages = Wo_GetNearbyPinnedPages($args);
+	if (!empty($pinned_pages)) {
+		foreach ($pinned_pages as $page_id => $pinned_page) {
+			$page_ids[(int) $page_id] = true;
+		}
+	}
+
+	return count($page_ids);
 }
 function Wo_GetNearbyBusiness($args = array())
 {

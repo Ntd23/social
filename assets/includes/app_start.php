@@ -47,7 +47,8 @@ $required_config_defaults = array(
     'livekit_video_chat' => '0',
     'livekit_host' => '',
     'livekit_api_key' => '',
-    'livekit_api_secret' => ''
+    'livekit_api_secret' => '',
+    'nearby_pinned_pages' => ''
 );
 foreach ($required_config_defaults as $config_name => $config_value) {
     if (!array_key_exists($config_name, $config)) {

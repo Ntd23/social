@@ -3544,6 +3544,9 @@ if ($f == 'admin_setting' AND (Wo_IsAdmin() || Wo_IsModerator())) {
                 if ($key == 'pro_day_limit' && (!is_numeric($value) || $value < 1)) {
                     $value = 10000;
                 }
+                if ($key == 'nearby_pinned_pages') {
+                    $value = Wo_NormalizeNearbyPinnedPagesConfigValue($value);
+                }
                 if ($key == 'smtp_password') {
                     $value = openssl_encrypt($value, "AES-128-ECB", 'mysecretkey1234');
                 }

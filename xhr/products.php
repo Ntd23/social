@@ -1,4 +1,4 @@
-<?php 
+<?php // Product AJAX handlers for market creation, editing, and order workflows.
 if (!function_exists('Wo_ProductColumnExists')) {
     function Wo_ProductColumnExists($column_name = '') {
         global $sqlConnect;
@@ -109,6 +109,16 @@ if ($f == 'products') {
             $location = Wo_Secure($_POST['location']);
             if (!empty($page_data['address'])) {
                 $location = Wo_Secure($page_data['address'], 1);
+            }
+            $has_manual_product_location = (
+                (isset($_POST['lat-product']) && $_POST['lat-product'] !== '') ||
+                (isset($_POST['lng-product']) && $_POST['lng-product'] !== '') ||
+                (isset($_POST['place-id-product']) && $_POST['place-id-product'] !== '')
+            );
+            if ($page_id > 0 && !empty($page_data) && !$has_manual_product_location) {
+                $lat = (!empty($page_data['lat']) && is_numeric($page_data['lat'])) ? Wo_Secure($page_data['lat']) : '';
+                $lng = (!empty($page_data['lng']) && is_numeric($page_data['lng'])) ? Wo_Secure($page_data['lng']) : '';
+                $place_id = !empty($page_data['place_id']) ? Wo_Secure($page_data['place_id']) : '';
             }
             $price              = Wo_Secure($parsed_price);
             $product_data_array = array(
@@ -278,6 +288,16 @@ if ($f == 'products') {
             $location = $_POST['location'];
             if (!empty($page_data['address'])) {
                 $location = Wo_Secure($page_data['address'], 1);
+            }
+            $has_manual_product_location = (
+                (isset($_POST['lat-product']) && $_POST['lat-product'] !== '') ||
+                (isset($_POST['lng-product']) && $_POST['lng-product'] !== '') ||
+                (isset($_POST['place-id-product']) && $_POST['place-id-product'] !== '')
+            );
+            if ($page_id > 0 && !empty($page_data) && !$has_manual_product_location) {
+                $lat = (!empty($page_data['lat']) && is_numeric($page_data['lat'])) ? Wo_Secure($page_data['lat']) : '';
+                $lng = (!empty($page_data['lng']) && is_numeric($page_data['lng'])) ? Wo_Secure($page_data['lng']) : '';
+                $place_id = !empty($page_data['place_id']) ? Wo_Secure($page_data['place_id']) : '';
             }
             $price              = Wo_Secure($parsed_price);
             $product_data_array = array(
