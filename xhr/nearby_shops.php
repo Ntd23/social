@@ -1,4 +1,5 @@
 <?php
+// Return nearby shop discovery items for the explore nearby experience.
 if ($f == 'nearby_shops') {
     if ($s == 'load') {
         $name       = (isset($_GET['name'])) ? $_GET['name'] : false;
@@ -31,6 +32,7 @@ if ($f == 'nearby_shops') {
                 $shop_lat = (!empty($wo['UsersList']['product']['lat'])) ? (float) $wo['UsersList']['product']['lat'] : 0;
                 $shop_lng = (!empty($wo['UsersList']['product']['lng'])) ? (float) $wo['UsersList']['product']['lng'] : 0;
                 $shop_location = (!empty($wo['UsersList']['product']['location']) ? $wo['UsersList']['product']['location'] : $wo['UsersList']['page_data']['address']);
+                $shop_place_id = !empty($wo['UsersList']['page_data']['place_id']) ? trim($wo['UsersList']['page_data']['place_id']) : (!empty($wo['UsersList']['product']['place_id']) ? trim($wo['UsersList']['product']['place_id']) : '');
                 $distance_value = (isset($wo['UsersList']['distance']) && is_numeric($wo['UsersList']['distance'])) ? round((float) $wo['UsersList']['distance'], 2) : null;
                 $distance_text = '';
                 if ($distance_value !== null && $distance_value > 0) {
@@ -51,12 +53,15 @@ if ($f == 'nearby_shops') {
                 $user_info['avatar'] = $wo['UsersList']['page_data']['avatar'];
                 $user_info['url'] = $wo['UsersList']['page_data']['url'];
                 $user_info['ajax_url'] = (!empty($wo['UsersList']['page_data']['username']) ? '?link1=timeline&u=' . $wo['UsersList']['page_data']['username'] : '');
+                $user_info['place_id'] = $shop_place_id;
                 $user_info['subtitle'] = (!empty($wo['UsersList']['page_data']['category']) ? $wo['UsersList']['page_data']['category'] : $shop_type_label);
                 $user_info['description'] = (!empty($wo['UsersList']['page_data']['page_description']) ? trim($wo['UsersList']['page_data']['page_description']) : '');
                 $user_info['type'] = 'shop';
                 $user_info['type_label'] = $shop_type_label;
                 $user_info['distance_value'] = $distance_value;
                 $user_info['distance_text'] = $distance_text;
+                $user_info['is_pinned'] = !empty($wo['UsersList']['is_pinned']) ? 1 : 0;
+                $user_info['is_pinned_only'] = !empty($wo['UsersList']['is_pinned_only']) ? 1 : 0;
                 if (empty($shop_lat) || empty($shop_lng)) {
                     $user_info['lat'] = null;
                     $user_info['lng'] = null;

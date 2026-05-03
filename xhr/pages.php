@@ -1,4 +1,4 @@
-<?php
+<?php // Page AJAX handlers for page creation, settings, and admin actions.
 if ($f == 'pages') {
     if (!function_exists('Wo_PageColumnExists')) {
         function Wo_PageColumnExists($column_name = '')
@@ -22,6 +22,30 @@ if ($f == 'pages') {
             }
 
             return !empty($page_columns[$column_name]);
+        }
+    }
+    if (!function_exists('Wo_ProductColumnExists')) {
+        function Wo_ProductColumnExists($column_name = '')
+        {
+            global $sqlConnect;
+            static $product_columns = null;
+
+            if (empty($column_name)) {
+                return false;
+            }
+            if ($product_columns === null) {
+                $product_columns = array();
+                $columns_query = mysqli_query($sqlConnect, "SHOW COLUMNS FROM " . T_PRODUCTS);
+                if ($columns_query) {
+                    while ($column = mysqli_fetch_assoc($columns_query)) {
+                        if (!empty($column['Field'])) {
+                            $product_columns[$column['Field']] = true;
+                        }
+                    }
+                }
+            }
+
+            return !empty($product_columns[$column_name]);
         }
     }
     if ($s == 'create_page') {
@@ -121,34 +145,51 @@ if ($f == 'pages') {
             }
             if ($PageData['user_id'] == $wo['user']['id'] || Wo_IsCanPageUpdate($_POST['page_id'], 'info')) {
                 if (empty($errors)) {
+                    $new_address_raw = isset($_POST['address']) ? trim((string) $_POST['address']) : '';
+                    $new_page_lat_raw = (isset($_POST['page_lat']) && $_POST['page_lat'] !== '' && is_numeric($_POST['page_lat'])) ? (string) ((float) $_POST['page_lat']) : '';
+                    $new_page_lng_raw = (isset($_POST['page_lng']) && $_POST['page_lng'] !== '' && is_numeric($_POST['page_lng'])) ? (string) ((float) $_POST['page_lng']) : '';
+                    $new_page_place_id_raw = isset($_POST['page_place_id']) ? trim((string) $_POST['page_place_id']) : '';
+                    $old_address_raw = !empty($PageData['address']) ? trim((string) $PageData['address']) : '';
+                    $old_page_lat_raw = (!empty($PageData['lat']) && is_numeric($PageData['lat'])) ? (string) ((float) $PageData['lat']) : '';
+                    $old_page_lng_raw = (!empty($PageData['lng']) && is_numeric($PageData['lng'])) ? (string) ((float) $PageData['lng']) : '';
+                    $old_page_place_id_raw = !empty($PageData['place_id']) ? trim((string) $PageData['place_id']) : '';
+                    $location_changed = ($old_address_raw !== $new_address_raw) ||
+                        ($old_page_lat_raw !== $new_page_lat_raw) ||
+                        ($old_page_lng_raw !== $new_page_lng_raw) ||
+                        ($old_page_place_id_raw !== $new_page_place_id_raw);
                     $Update_data = array(
                         'website' => $_POST['website'],
                         'page_description' => $_POST['page_description'],
                         'company' => $_POST['company'],
-                        'address' => $_POST['address'],
+                        'address' => Wo_Secure($new_address_raw, 1),
                         'phone' => $_POST['phone']
                     );
                     if (Wo_PageColumnExists('lat')) {
-                        $Update_data['lat'] = (isset($_POST['page_lat']) && is_numeric($_POST['page_lat'])) ? Wo_Secure($_POST['page_lat']) : '0';
+                        $Update_data['lat'] = ($new_page_lat_raw !== '') ? Wo_Secure($new_page_lat_raw) : '0';
                     }
                     if (Wo_PageColumnExists('lng')) {
-                        $Update_data['lng'] = (isset($_POST['page_lng']) && is_numeric($_POST['page_lng'])) ? Wo_Secure($_POST['page_lng']) : '0';
+                        $Update_data['lng'] = ($new_page_lng_raw !== '') ? Wo_Secure($new_page_lng_raw) : '0';
                     }
                     if (Wo_PageColumnExists('place_id')) {
-                        $Update_data['place_id'] = !empty($_POST['page_place_id']) ? Wo_Secure($_POST['page_place_id']) : '';
+                        $Update_data['place_id'] = ($new_page_place_id_raw !== '') ? Wo_Secure($new_page_place_id_raw) : '';
                     }
                     if (Wo_UpdatePageData($_POST['page_id'], $Update_data)) {
-                        $old_address = (!empty($PageData['address'])) ? $PageData['address'] : '';
-                        $new_address = (!empty($_POST['address'])) ? $_POST['address'] : '';
-                        $product_update_data = array(
-                            'location' => $new_address
-                        );
-                        if (isset($_POST['page_lat']) && isset($_POST['page_lng']) && is_numeric($_POST['page_lat']) && is_numeric($_POST['page_lng'])) {
-                            $product_update_data['lat'] = Wo_Secure($_POST['page_lat']);
-                            $product_update_data['lng'] = Wo_Secure($_POST['page_lng']);
-                        }
-                        if ($old_address !== $new_address) {
-                            $db->where('page_id', $_POST['page_id'])->update(T_PRODUCTS, $product_update_data);
+                        if ($location_changed) {
+                            $product_update_data = array(
+                                'location' => Wo_Secure($new_address_raw, 1)
+                            );
+
+                            if (Wo_ProductColumnExists('lat')) {
+                                $product_update_data['lat'] = ($new_page_lat_raw !== '') ? Wo_Secure($new_page_lat_raw) : '0';
+                            }
+                            if (Wo_ProductColumnExists('lng')) {
+                                $product_update_data['lng'] = ($new_page_lng_raw !== '') ? Wo_Secure($new_page_lng_raw) : '0';
+                            }
+                            if (Wo_ProductColumnExists('place_id')) {
+                                $product_update_data['place_id'] = ($new_page_place_id_raw !== '') ? Wo_Secure($new_page_place_id_raw) : '';
+                            }
+
+                            $db->where('page_id', (int) $_POST['page_id'])->update(T_PRODUCTS, $product_update_data);
                         }
                         $data = array(
                             'status' => 200,
