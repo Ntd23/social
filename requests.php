@@ -50,6 +50,7 @@ $allow_array = array(
     'pay_with_bitcoin',
     'tags',
     'sepay',
+    'family',
     'qrcode'
 );
 if ($f == 'certification' && $s == 'download_user_certification' && !empty($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {

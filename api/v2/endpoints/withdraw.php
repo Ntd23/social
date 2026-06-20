@@ -1,4 +1,8 @@
 <?php
+// VNSEEA points are internal-only. Cash withdrawal requests are disabled.
+$error_code    = 4;
+$error_message = 'Chức năng rút tiền đang tạm tắt. VNSEEA chỉ dùng để chuyển VNSEEA và thanh toán nội bộ.';
+return;
 // +------------------------------------------------------------------------+
 // | @author Deen Doughouz (DoughouzForest)
 // | @author_url 1: http://www.hisotechgroup.com

@@ -4,23 +4,23 @@
 			<div class="wow_pops_head">
 				<svg height="100px" preserveAspectRatio="none" version="1.1" viewBox="0 0 300 100" width="300px" xmlns="http://www.w3.org/2000/svg"><path d="M30.913,43.944c0,0,42.911-34.464,87.51-14.191c77.31,35.14,113.304-1.952,146.638-4.729 c48.654-4.056,69.94,16.218,69.94,16.218v54.396H30.913V43.944z" fill="currentColor" opacity="0.6"></path> <path d="M-35.667,44.628c0,0,42.91-34.463,87.51-14.191c77.31,35.141,113.304-1.952,146.639-4.729 c48.653-4.055,69.939,16.218,69.939,16.218v54.396H-35.667V44.628z" fill="currentColor" opacity="0.6"></path> <path d="M-34.667,62.998c0,0,56-45.667,120.316-27.839C167.484,57.842,197,41.332,232.286,30.428 c53.07-16.399,104.047,36.903,104.047,36.903l1.333,36.667l-372-2.954L-34.667,62.998z" fill="currentColor"></path></svg>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"></path></svg></button>
-				<h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z"></path></svg> <?php echo $wo['lang']['send_money_friends'] ?></h4>
+				<h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z"></path></svg> Gửi VNSEEA</h4>
 			</div>
 			<div class="modal-body">
 				<form class="form" id="send-money-form" autocomplete="off">
 					<div id="send-money-form-alert">
 						<?php if ($wo['user']['wallet'] == '0.00' || $wo['user']['wallet'] == '0'): ?>
 							<div class="alert alert-warning">
-								<?php echo $wo['lang']['balance_is_0'] ?> <a href="<?php echo Wo_SeoLink('index.php?link1=wallet'); ?>"><?php echo $wo['lang']['top_up'] ?></a>
+								Bạn chưa có VNSEEA. <a href="<?php echo Wo_SeoLink('index.php?link1=wallet'); ?>">Nạp VNSEEA</a>
 							</div>
 						<?php else: ?>  
-							<div class="alert alert-info"><?php echo $wo['lang']['u_send_money']; ?></div>
+							<div class="alert alert-info">Bạn có thể gửi VNSEEA cho người khác.</div>
 						<?php endif; ?>
 					</div>
 					<div class="wow_snd_money_form text-center">
-						<p class="bold"><?php echo $wo['lang']['amount'];?></p>
+						<p class="bold">Số VNSEEA</p>
 						<div class="add-amount">
-							<h5><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><input type="number" placeholder="0.00" min="1.00" max="1000" name="amount" id="amount" /></h5>
+							<h5><input type="number" placeholder="0.00" min="1.00" max="1000" name="amount" id="amount" /></h5>
 						</div>
 					</div>
 					
@@ -28,8 +28,8 @@
 						<div class="col-md-2"></div>
 						<div class="col-md-8">
 							<div class="wow_form_fields">
-								<label for="search"><?php echo $wo['lang']['send_to']; ?></label>
-								<input id="search" type="text" placeholder="<?php echo $wo['lang']['search_name_or_email']; ?>">
+								<label for="search">Gửi đến</label>
+								<input id="search" type="text" placeholder="Tìm kiếm bằng tên người dùng hoặc email">
 								<div class="dropdown">
 									<ul class="dropdown-menu money-recipients-list"></ul>
 								</div>
@@ -50,35 +50,66 @@
 		</div>
 	</div>
 </div>
+<style>
+	#send_money_modal #send-money-form .dropdown {
+		position: relative;
+	}
+	#send_money_modal #send-money-form .dropdown.open > .money-recipients-list {
+		display: block;
+		visibility: visible;
+		opacity: 1;
+		transform: none;
+		z-index: 1065;
+		width: 100%;
+		max-height: 260px;
+		overflow-y: auto;
+	}
+</style>
 <script>
   jQuery(document).ready(function($) {
-    $("#send-money-form").find('#search').keydown(function(event) {
-      let name = $(this).val();
+    var sendMoneySearchTimer = null;
+    $(document).off('input.sendMoneySearch', '#send-money-form #search').on('input.sendMoneySearch', '#send-money-form #search', function(event) {
+      var name = $.trim($(this).val());
+      var $form = $(this).closest("#send-money-form");
+      var $dropdown = $form.find(".dropdown");
+      var $list = $dropdown.find('ul.money-recipients-list').empty();
+      $("#recipient_user_id").val('');
+      clearTimeout(sendMoneySearchTimer);
+      if (!name) {
+        $dropdown.removeClass('open');
+        return;
+      }
+      sendMoneySearchTimer = setTimeout(function() {
       $.ajax({
         url: Wo_Ajax_Requests_File(),
         type: 'GET',
         dataType: 'json',
-        data: {f: 'family',s:'search',name:name},
+        data: {f: 'wallet',s:'search_recipients',query:name},
       })
       .done(function(data) {
-        if (data.status == 200) {
-          $("#send-money-form").find(".dropdown").addClass('open').find('ul').empty();
+        if (data && data.status == 200 && data.users && data.users.length) {
+          $dropdown.addClass('open');
           for (var i = 0; i < data.users.length; i++) {
             $("<li>",{
               class:"pointer",
               id: data.users[i].user_id,
-              text: data.users[i].name
-            }).appendTo('ul.money-recipients-list');     
+              text: data.users[i].name + (data.users[i].username ? ' (@' + data.users[i].username + ')' : '')
+            }).appendTo($list);     
           }
         }
         else{
-          $("#send-money-form").find(".dropdown").removeClass('open').find('ul').empty();
+          $dropdown.addClass('open');
+          $("<li>",{class:"disabled text-muted", text:"Không tìm thấy người dùng"}).appendTo($list);
         }
+      }).fail(function() {
+        $dropdown.addClass('open');
+        $("<li>",{class:"disabled text-muted", text:"Không tải được gợi ý"}).appendTo($list);
       });
+      }, 250);
     });
 
 
-    $(document).on('click', 'ul.money-recipients-list li', function(event) {
+    $(document).off('click.sendMoneyPick', 'ul.money-recipients-list li.pointer').on('click.sendMoneyPick', 'ul.money-recipients-list li.pointer', function(event) {
       event.preventDefault();
       $("#recipient_user_id").val($(this).attr('id'));
       $("#send-money-form").find('#search').val($(this).text());

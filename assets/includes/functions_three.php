@@ -5568,22 +5568,23 @@ function Wo_GetUsersByName($name = '', $friends = false, $limit = 25)
 		return false;
 	}
 	$user        = $wo['user']['id'];
-	$name        = Wo_Secure($name);
+	$name        = Wo_Secure(ltrim($name, '@'));
 	$data        = array();
 	$sub_sql     = "";
 	$t_users     = T_USERS;
 	$t_followers = T_FOLLOWERS;
 	if ($friends == true) {
 		$sub_sql = "
-        AND ( `user_id` IN (SELECT `follower_id` FROM $t_followers WHERE `follower_id` <> {$user}  AND `active` = '1')  OR
-        `user_id` IN (SELECT `following_id` FROM $t_followers WHERE  `following_id` <> {$user} AND `active` = '1'))";
+        AND ( `user_id` IN (SELECT `follower_id` FROM $t_followers WHERE `follower_id` <> {$user} AND `following_id` = {$user} AND `active` = '1')  OR
+        `user_id` IN (SELECT `following_id` FROM $t_followers WHERE `follower_id` = {$user} AND `following_id` <> {$user} AND `active` = '1'))";
 	}
 	$limit_text = '';
 	if (!empty($limit) && is_numeric($limit)) {
 		$limit      = Wo_Secure($limit);
 		$limit_text = 'LIMIT ' . $limit;
 	}
-	$sql   = "SELECT `user_id` FROM " . T_USERS . " WHERE `user_id` <> {$user} AND `username`  LIKE '%$name%' {$sub_sql} $limit_text";
+	$numeric_search = is_numeric($name) ? " OR `user_id` = " . (int)$name : "";
+	$sql   = "SELECT `user_id` FROM " . T_USERS . " WHERE `user_id` <> {$user} AND `active` = '1' AND `user_id` NOT IN (SELECT `blocked` FROM " . T_BLOCKS . " WHERE `blocker` = '{$user}') AND `user_id` NOT IN (SELECT `blocker` FROM " . T_BLOCKS . " WHERE `blocked` = '{$user}') AND ((`username` LIKE '%$name%') OR (`email` LIKE '%$name%') OR (`first_name` LIKE '%$name%') OR (`last_name` LIKE '%$name%') OR CONCAT(`first_name`, ' ', `last_name`) LIKE '%$name%' {$numeric_search}) {$sub_sql} ORDER BY CASE WHEN `user_id` IN (SELECT `following_id` FROM $t_followers WHERE `follower_id` = {$user} AND `active` = '1') THEN 0 ELSE 1 END, `first_name`, `last_name`, `username` $limit_text";
 	$query = mysqli_query($sqlConnect, $sql);
 	if (mysqli_num_rows($query)) {
 		while ($fetched_data = mysqli_fetch_assoc($query)) {

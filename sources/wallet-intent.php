@@ -8,5 +8,5 @@ if ($wo['loggedin'] == false) {
 $wo['description'] = $wo['config']['siteDesc'];
 $wo['keywords']    = $wo['config']['siteKeywords'];
 $wo['page']        = 'wallet';
-$wo['title']       = $wo['lang']['wallet'];
+$wo['title']       = 'Ví VNSEEA';
 $wo['content']     = Wo_LoadPage('ads/send_money');

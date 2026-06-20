@@ -12,17 +12,17 @@
           </svg></button>
         <h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
             <path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z"></path>
-          </svg> <?php echo $wo['lang']['send_money_friends'] ?></h4>
+          </svg> Gửi VNSEEA</h4>
       </div>
       <div class="modal-body">
         <form class="form" id="send-money-form" autocomplete="off">
           <div id="send-money-form-alert">
             <?php if ($wo['user']['wallet'] == '0.00' || $wo['user']['wallet'] == '0'): ?>
               <div class="alert alert-warning">
-                <?php echo $wo['lang']['balance_is_0'] ?> <a href="<?php echo Wo_SeoLink('index.php?link1=wallet'); ?>"><?php echo $wo['lang']['top_up'] ?></a>
+                Bạn chưa có VNSEEA. <a href="<?php echo Wo_SeoLink('index.php?link1=wallet'); ?>">Nạp VNSEEA</a>
               </div>
             <?php else: ?>
-              <div class="alert alert-info"><?php echo $wo['lang']['u_send_money']; ?></div>
+              <div class="alert alert-info">Bạn có thể gửi VNSEEA cho người khác.</div>
             <?php endif; ?>
           </div>
           <div class="row">
@@ -30,9 +30,8 @@
             <div class="col-md-8">
               <div class="wow_snd_money_form">
                 <div class="wow_form_fields send-money-amount-field">
-                  <label for="amount"><?php echo $wo['lang']['amount']; ?></label>
+                  <label for="amount">Số VNSEEA</label>
                   <div class="send-money-amount-input">
-                    <span class="send-money-currency"><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?></span>
                     <input type="text" placeholder="0" id="amount_display" inputmode="decimal" autocomplete="off" />
                     <input type="hidden" name="amount" id="amount" value="" />
                   </div>
@@ -41,7 +40,7 @@
 
               <div class="wow_form_fields">
                 <label for="search">
-                  <?php echo $wo['lang']['send_to']; ?>
+                  Gửi đến
                   <button type="button" class="btn btn-sm btn-light" id="btn-open-scan" style="margin-left:8px">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
                       <path fill="currentColor" d="M3 3h6v2H5v4H3V3m12 0h6v6h-2V5h-4V3M3 15h2v4h4v2H3v-6m18 6h-6v-2h4v-4h2v6Z" />
@@ -49,7 +48,7 @@
                     Quét QR
                   </button>
                 </label>
-                <input id="search" type="text" placeholder="<?php echo $wo['lang']['search_name_or_email']; ?>">
+                <input id="search" type="text" placeholder="Tìm kiếm bằng tên người dùng hoặc email">
                 <div class="dropdown">
                   <ul class="dropdown-menu money-recipients-list"></ul>
                 </div>
@@ -106,23 +105,10 @@
     position: relative;
   }
 
-  #send_money_modal .send-money-currency {
-    position: absolute;
-    top: 50%;
-    left: 14px;
-    transform: translateY(-50%);
-    font-size: 14px;
-    font-weight: 700;
-    color: #5f6368;
-    letter-spacing: 0.04em;
-    pointer-events: none;
-    z-index: 1;
-  }
-
   #send_money_modal .send-money-amount-input input {
     width: 100%;
     height: 52px;
-    padding-left: 62px;
+    padding-left: 14px;
     padding-right: 14px;
     font-size: 24px;
     line-height: 1.2;
@@ -134,6 +120,21 @@
     font-weight: 500;
   }
 
+  #send_money_modal #send-money-form .dropdown {
+    position: relative;
+  }
+
+  #send_money_modal #send-money-form .dropdown.open > .money-recipients-list {
+    display: block;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    z-index: 1065;
+    width: 100%;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
   @media (max-width: 767px) {
     #send_money_modal .row > .col-md-8 {
       width: 100%;
@@ -143,14 +144,9 @@
       margin-bottom: 16px;
     }
 
-    #send_money_modal .send-money-currency {
-      left: 12px;
-      font-size: 13px;
-    }
-
     #send_money_modal .send-money-amount-input input {
       height: 48px;
-      padding-left: 56px;
+      padding-left: 12px;
       padding-right: 12px;
       font-size: 20px;
     }
@@ -281,7 +277,7 @@ jQuery(function ($) {
     if (text.trim().startsWith('{')) {
       try {
         const j = JSON.parse(text);
-        if (j && (j.type==='wallet' || j.type==='send')) {
+        if (j && (j.type==='wallet' || j.type==='send' || j.type==='points' || j.type==='vnseea_points')) {
           out.to = j.to ? parseInt(j.to,10) : null;
           out.amount = (j.amount!=null) ? parseFloat(j.amount) : null;
           out.lock = !!j.lock;
@@ -339,30 +335,42 @@ jQuery(function ($) {
     }
     $scanModal.modal('hide');
     $('#send_money_modal').modal('show');
-    showFormAlert('Đã điền người nhận #'+p.to+(p.amount!=null?(', số tiền '+p.amount):''), true);
+    showFormAlert('Đã điền người nhận #'+p.to+(p.amount!=null?(', số VNSEEA '+p.amount):''), true);
   }
 
   // ====== Autocomplete tìm người nhận
-  $searchInp.on('keyup', debounce(function(){
-    const name = $(this).val();
+  $(document).off('input.sendMoneySearch', '#send-money-form #search').on('input.sendMoneySearch', '#send-money-form #search', debounce(function(){
+    const $form = $(this).closest('#send-money-form');
+    const name = $.trim($(this).val());
+    const $dropdown = $form.find('.dropdown');
+    const $list = $dropdown.find('ul.money-recipients-list').empty();
+    $('#recipient_user_id').val('');
+    if (!name) {
+      $dropdown.removeClass('open');
+      return;
+    }
     $.ajax({
       url: ajaxUrl,
       type: 'GET',
       dataType: 'json',
-      data: { f:'family', s:'search', name:name }
+      data: { f:'wallet', s:'search_recipients', query:name }
     }).done(function(data){
-      const $dd = $sendForm.find('.dropdown').addClass('open').find('ul.money-recipients-list').empty();
-      if (data && data.status==200 && Array.isArray(data.users)){
+      if (data && data.status==200 && Array.isArray(data.users) && data.users.length){
+        $dropdown.addClass('open');
         data.users.forEach(u=>{
-          $('<li>', {class:'pointer', id:u.user_id, text:u.name}).appendTo($dd);
+          $('<li>', {class:'pointer', id:u.user_id, text:u.name + (u.username ? ' (@' + u.username + ')' : '')}).appendTo($list);
         });
       } else {
-        $sendForm.find('.dropdown').removeClass('open').find('ul').empty();
+        $dropdown.addClass('open');
+        $('<li>', {class:'disabled text-muted', text:'Không tìm thấy người dùng'}).appendTo($list);
       }
+    }).fail(function(){
+      $dropdown.addClass('open');
+      $('<li>', {class:'disabled text-muted', text:'Không tải được gợi ý'}).appendTo($list);
     });
   }, 250));
 
-  $(document).on('click', 'ul.money-recipients-list li', function(e){
+  $(document).off('click.sendMoneyPick', 'ul.money-recipients-list li.pointer').on('click.sendMoneyPick', 'ul.money-recipients-list li.pointer', function(e){
     e.preventDefault();
     $recipIdInp.val($(this).attr('id'));
     $searchInp.val($(this).text());
@@ -401,7 +409,7 @@ jQuery(function ($) {
           }
         }
 
-        showFormAlert(data.message || 'Đã gửi tiền thành công.', true);
+        showFormAlert(data.message || 'Đã gửi VNSEEA thành công.', true);
         $sendForm.resetForm();
         $amountDisplay.val('');
         $amountDisplay.prop('readonly', false);
@@ -531,7 +539,7 @@ jQuery(function ($) {
     if (text.trim().startsWith('{')) {
       try {
         const j = JSON.parse(text);
-        if (j && (j.type === 'wallet' || j.type === 'send')) {
+        if (j && (j.type === 'wallet' || j.type === 'send' || j.type === 'points' || j.type === 'vnseea_points')) {
           out.to = j.to ? parseInt(j.to, 10) : null;
           out.amount = (j.amount != null) ? parseFloat(j.amount) : null;
           out.lock = !!j.lock;
@@ -606,7 +614,7 @@ jQuery(function ($) {
     }
     $scanModal.modal('hide');
     $('#send_money_modal').modal('show');
-    showFormAlert('Đã điền người nhận #' + p.to + (p.amount != null ? (', số tiền ' + p.amount) : ''), true);
+    showFormAlert('Đã điền người nhận #' + p.to + (p.amount != null ? (', số VNSEEA ' + p.amount) : ''), true);
   }
 
   $scanModal.off('shown.bs.modal hidden.bs.modal');

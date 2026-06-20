@@ -15,7 +15,7 @@
 							<div><b><?php echo $transaction['notes']; ?></b></div>
 							<div class="opacityy"><?php echo $transaction['transaction_dt']; ?></div>
 						</td>
-						<td><span><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><?php echo number_format($transaction['amount'], 2); ?></span></td>
+						<td><span><?php echo number_format($transaction['amount'], 2); ?> VNSEEA</span></td>
 						<td width="150" class="wallet_trans_type">
 							<?php if ($transaction['kind'] == "SALES") { ?>
 								<span class="badge success"><?php echo $transaction['kind']; ?></span>

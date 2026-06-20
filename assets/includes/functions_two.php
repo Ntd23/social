@@ -5483,6 +5483,7 @@ function Wo_ConfirmUserSMS($user_id, $code) {
         $email_code = md5(rand(1111, 9999) . time());
         $query_two  = mysqli_query($sqlConnect, " UPDATE " . T_USERS . "  SET `active` = '1', `email_code` = '$email_code' WHERE `user_id` = '{$user_id}' ");
         if ($query_two) {
+            Wo_GrantRegisterVnseeaBonus($user_id);
             return true;
         }
     } else {
@@ -5505,6 +5506,7 @@ function Wo_ConfirmUser($user_id, $code) {
         $email_code = md5(rand(1111, 9999) . time());
         $query_two  = mysqli_query($sqlConnect, " UPDATE " . T_USERS . "  SET `active` = '1', `email_code` = '$email_code' WHERE `user_id` = '{$user_id}' ");
         if ($query_two) {
+            Wo_GrantRegisterVnseeaBonus($user_id);
             return true;
         }
     } else {
