@@ -1,5 +1,12 @@
 <?php
 if ($f == 'request_payment') {
+    // VNSEEA points are internal-only. Cash withdrawal requests are disabled.
+    header("Content-type: application/json");
+    echo json_encode(array(
+        'errors' => array($error_icon . 'Chức năng rút tiền đang tạm tắt. VNSEEA chỉ dùng để chuyển VNSEEA và thanh toán nội bộ.')
+    ));
+    exit();
+
     if (Wo_CheckSession($hash_id) === true) {
         if (empty($_POST['withdraw_method']) || !in_array($_POST['withdraw_method'], array_keys($wo['config']['withdrawal_payment_method'])) || $wo['config']['withdrawal_payment_method'][$_POST['withdraw_method']] != 1) {
             $errors[] = $error_icon . $wo['lang']['please_select_payment_method'];

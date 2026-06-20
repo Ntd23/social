@@ -1235,15 +1235,16 @@ INSERT INTO `Wo_Config` (`id`, `name`, `value`) VALUES
 (564, 'qiwi_public_key', ''),
 (565, 'qiwi_private_key', ''),
 (566, 'admob_point', '5'),
-(567, 'fluttewave_public_key', ''),
-(568, 'fluttewave_encryption_key', ''),
-(569, 'payfast_payment', '0'),
-(570, 'payfast_mode', 'sandbox'),
-(571, 'payfast_merchant_id', ''),
-(572, 'payfast_merchant_key', ''),
-(573, 'exchangerate_key', ''),
-(574, 'qiwi_mode', 'sandbox'),
-(575, 'have_reels', '0');
+(567, 'register_vnseea_bonus', '0'),
+(568, 'fluttewave_public_key', ''),
+(569, 'fluttewave_encryption_key', ''),
+(570, 'payfast_payment', '0'),
+(571, 'payfast_mode', 'sandbox'),
+(572, 'payfast_merchant_id', ''),
+(573, 'payfast_merchant_key', ''),
+(574, 'exchangerate_key', ''),
+(575, 'qiwi_mode', 'sandbox'),
+(576, 'have_reels', '0');
 
 -- --------------------------------------------------------
 

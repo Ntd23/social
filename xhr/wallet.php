@@ -87,6 +87,33 @@ if ($f == 'wallet') {
         echo json_encode($data);
         exit();
     }
+    if ($s == 'search_recipients' && $wo['loggedin'] === true) {
+        $query = '';
+        if (!empty($_GET['query'])) {
+            $query = $_GET['query'];
+        } else if (!empty($_GET['name'])) {
+            $query = $_GET['name'];
+        }
+        $users = Wo_GetUsersByName($query);
+        $data = array(
+            'status' => 404,
+            'users' => array()
+        );
+        if ($users && count($users) > 0) {
+            foreach ($users as $user) {
+                $data['users'][] = array(
+                    'user_id' => $user['user_id'],
+                    'avatar' => $user['avatar'],
+                    'name' => $user['name'],
+                    'username' => $user['username']
+                );
+            }
+            $data['status'] = 200;
+        }
+        header("Content-type: application/json");
+        echo json_encode($data);
+        exit();
+    }
     if ($s == 'send' && $wo['loggedin'] === true) {
         $data = array(
             'status' => 400
@@ -107,12 +134,12 @@ if ($f == 'wallet') {
             $up_data2 = array(
                 'wallet' => sprintf('%.2f', $wallet - $amount)
             );
-            $recipient_name = $userdata['username'];
+            $recipient_name = $userdata['name'];
             $currency = Wo_GetCurrency($wo['config']['ads_currency']);
-            $success_msg = $wo['lang']['money_sent_to'];
-            $notif_msg = $wo['lang']['sent_you'];
+            $success_msg = 'Đã gửi VNSEEA cho';
+            $notif_msg = 'đã gửi cho bạn';
             $data['status'] = 200;
-            $data['message'] = "$success_msg@ $recipient_name";
+            $data['message'] = "$success_msg $recipient_name";
             //$note1           = $success_msg . " " . $userdata['name'];
             $note1 = $userdata['name'];
             //$note2           = $wo['lang']['successfully_received_from'] . " " . $wo['user']['name'];
@@ -128,18 +155,18 @@ if ($f == 'wallet') {
                 'recipient_id' => $user_id,
                 'type' => 'sent_u_money',
                 'user_id' => $wo['user']['id'],
-                'text' => "$notif_msg $amount$currency!",
+                'text' => "$notif_msg $amount VNSEEA!",
                 'url' => 'index.php?link1=wallet'
             );
             Wo_RegisterNotification($notification_data_array);
            $data = [
             'status'            => 200,
-            'message'           => $wo['lang']['money_sent_to'].' @'.$userdata['username'],
+            'message'           => 'Đã gửi VNSEEA cho '.$recipient_name,
             'recipient_id'      => (int)$userdata['user_id'],
-            'recipient_name'    => (string)($userdata['username'] ?: $to['username']),
+            'recipient_name'    => (string)$recipient_name,
             // 'sender_balance'    => (float)$new_sender_balance,
             'recipient_balance' => (float)$userdata['wallet'] + $amount,
-            'currency'          => $currency,
+            'currency'          => 'VNSEEA',
             'tx' => [
                 // 'id'             => $send_tx_id,     // id bản ghi SENT
                 'kind'           => 'SENT',

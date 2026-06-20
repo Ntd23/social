@@ -39,6 +39,7 @@ if (empty($error_code))
     {
         $db->where('user_id', $user->user_id)
             ->update(T_USERS, ['sms_code' => '', 'email_code' => '', 'active' => '1', ]);
+        Wo_GrantRegisterVnseeaBonus($user->user_id);
         $time = time();
         $cookie = '';
         $access_token = sha1(rand(111111111, 999999999)) . md5(microtime()) . rand(11111111, 99999999) . md5(rand(5555, 9999));

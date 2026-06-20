@@ -3,6 +3,10 @@ if ($wo['loggedin'] == false) {
     header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
     exit();
 }
+// VNSEEA points are internal-only. Cash withdrawal is intentionally disabled.
+header("Location: " . Wo_SeoLink('index.php?link1=wallet'));
+exit();
+
 if ($wo['config']['affiliate_system'] != 1 && $wo['config']['point_allow_withdrawal'] != 1 && $wo['config']['funding_system'] != 1 && $wo['config']['store_system'] != 'on') {
 	header("Location: " . $wo['config']['site_url']);
     exit();

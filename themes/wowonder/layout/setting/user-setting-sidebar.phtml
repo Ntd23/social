@@ -196,7 +196,7 @@
 			</li>
 		<?php } ?>
 		<?php if ($wo['config']['affiliate_system'] == 1 || $wo['config']['point_level_system'] == 1) { ?>
-			<?php if ($wo['config']['affiliate_system'] == 1 || $wo['config']['point_allow_withdrawal'] == 1 || $wo['config']['funding_system'] == 1 || $wo['config']['store_system'] == 'on') { ?>
+			<?php if (false && ($wo['config']['affiliate_system'] == 1 || $wo['config']['point_allow_withdrawal'] == 1 || $wo['config']['funding_system'] == 1 || $wo['config']['store_system'] == 'on')) { ?>
 				<li class="earnings <?php echo ($wo['setting_page'] == 'payments') ? 'active' : ''; ?>" dir="auto">
 					<a href="<?php echo Wo_SeoLink('index.php?link1=setting&' . $wo['user_setting'] . 'page=payments'); ?>" data-ajax="?link1=setting&<?php echo $wo['user_setting']; ?>page=payments">
 						<span style="color: green;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">

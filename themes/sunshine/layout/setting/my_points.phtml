@@ -69,10 +69,10 @@
 				<div class="counter">
 					<p class="point-text"><?php echo $wo['lang']['points']; ?></p>
 					<h2 class="timer count-title count-number" data-to="<?php echo $wo['setting']['points'];?>" data-speed="1500"><?php echo $wo['setting']['points'];?></h2>
-					<?php if ($wo['config']['point_allow_withdrawal'] == 1) {?>
+					<?php if (false && $wo['config']['point_allow_withdrawal'] == 1) {?>
 						<p class="count-text"><?php echo $wo['config']['dollar_to_point_cost'] . " " . $wo['lang']['points'] . " = ".Wo_GetCurrency($wo['config']['ads_currency'])."1.00"; ?></p>
 					<?php } ?>
-					<?php if ($wo['config']['point_allow_withdrawal'] == 1) { ?>
+					<?php if (false && $wo['config']['point_allow_withdrawal'] == 1) { ?>
 					<p class="count-text"><?php echo $wo['lang']['earned_points_goto'];?> <a href="<?php echo Wo_SeoLink('index.php?link1=setting&' . $wo['user_setting'] . 'page=payments');?>" data-ajax="?link1=setting&<?php echo $wo['user_setting'];?>page=payments"><?php echo $wo['lang']['my_earnings'];?></a></p>
 					<?php } else { ?>
 						<p class="count-text"><?php echo $wo['lang']['earned_points_goto'];?> <a href="<?php echo Wo_SeoLink('index.php?link1=wallet'); ?>"><?php echo $wo['lang']['wallet'];?></a></p>

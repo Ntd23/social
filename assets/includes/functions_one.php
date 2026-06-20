@@ -190,6 +190,10 @@ function Wo_GetConfig()
             $data[$fetched_data['name']] = $fetched_data['value'];
         }
     }
+    if (!isset($data['register_vnseea_bonus'])) {
+        $data['register_vnseea_bonus'] = '0';
+        mysqli_query($sqlConnect, "INSERT IGNORE INTO " . T_CONFIG . " (`name`, `value`) VALUES ('register_vnseea_bonus', '0')");
+    }
     return $data;
 }
 
@@ -260,6 +264,17 @@ function Wo_SaveConfig($update_name, $value)
         return false;
     }
     if (!array_key_exists($update_name, $config)) {
+        if ($update_name !== 'register_vnseea_bonus') {
+            return false;
+        }
+        $update_name = Wo_Secure($update_name);
+        $value = mysqli_real_escape_string($sqlConnect, $value);
+        $query = mysqli_query($sqlConnect, "INSERT INTO " . T_CONFIG . " (`name`, `value`) VALUES ('{$update_name}', '{$value}')");
+        if ($query) {
+            $config[$update_name] = $value;
+            $wo['config'][$update_name] = $value;
+            return true;
+        }
         return false;
     }
     $update_name = Wo_Secure($update_name);
@@ -271,6 +286,58 @@ function Wo_SaveConfig($update_name, $value)
     } else {
         return false;
     }
+}
+
+function Wo_EnsureRegisterVnseeaBonusConfig()
+{
+    global $wo, $config, $sqlConnect;
+    if (!isset($config['register_vnseea_bonus'])) {
+        $config['register_vnseea_bonus'] = '0';
+        $wo['config']['register_vnseea_bonus'] = '0';
+        mysqli_query($sqlConnect, "INSERT IGNORE INTO " . T_CONFIG . " (`name`, `value`) VALUES ('register_vnseea_bonus', '0')");
+    }
+}
+
+function Wo_GrantRegisterVnseeaBonus($user_id = 0)
+{
+    global $wo, $config, $sqlConnect;
+    Wo_EnsureRegisterVnseeaBonusConfig();
+    if (empty($user_id) || !is_numeric($user_id) || $user_id < 1) {
+        return false;
+    }
+    $amount = isset($config['register_vnseea_bonus']) ? (float)$config['register_vnseea_bonus'] : 0;
+    if ($amount <= 0) {
+        return false;
+    }
+    $user_id = (int)Wo_Secure($user_id);
+    $amount_sql = mysqli_real_escape_string($sqlConnect, sprintf('%.2f', $amount));
+    $note = "Thưởng xác minh tài khoản: {$amount_sql} VNSEEA";
+    $note_sql = mysqli_real_escape_string($sqlConnect, $note);
+    $exists = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_PAYMENT_TRANSACTIONS . " WHERE `userid` = {$user_id} AND `kind` = 'WELCOME' LIMIT 1");
+    if ($exists && mysqli_num_rows($exists) > 0) {
+        return false;
+    }
+    $user = mysqli_query($sqlConnect, "SELECT `user_id` FROM " . T_USERS . " WHERE `user_id` = {$user_id} AND `active` = '1' LIMIT 1");
+    if (!$user || mysqli_num_rows($user) === 0) {
+        return false;
+    }
+    mysqli_begin_transaction($sqlConnect);
+    $update = mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `wallet` = `wallet` + {$amount_sql} WHERE `user_id` = {$user_id} AND `active` = '1'");
+    $log = false;
+    if ($update) {
+        $log = mysqli_query($sqlConnect, "INSERT INTO " . T_PAYMENT_TRANSACTIONS . " (`userid`, `kind`, `amount`, `notes`) VALUES ({$user_id}, 'WELCOME', {$amount_sql}, '{$note_sql}')");
+    }
+    if ($update && $log) {
+        mysqli_commit($sqlConnect);
+        if (!empty($wo['config']['cacheSystem'])) {
+            cache($user_id, 'users', 'delete');
+        }
+        $text = mysqli_real_escape_string($sqlConnect, "Bạn đã nhận {$amount_sql} VNSEEA sau khi xác minh tài khoản.");
+        mysqli_query($sqlConnect, "INSERT INTO " . T_NOTIFICATION . " (`recipient_id`, `notifier_id`, `type`, `text`, `url`, `time`) VALUES ({$user_id}, {$user_id}, 'wallet_topup', '{$text}', 'index.php?link1=wallet', " . time() . ")");
+        return true;
+    }
+    mysqli_rollback($sqlConnect);
+    return false;
 }
 
 function Wo_Login($username, $password)
@@ -980,6 +1047,9 @@ function Wo_RegisterUser($registration_data, $invited = false)
             @Wo_DeleteAdminInvitation('code', $invited);
             Wo_AddInvitedUser($user_id, $invited);
         }
+        if (!empty($registration_data['active']) && $registration_data['active'] == 1) {
+            Wo_GrantRegisterVnseeaBonus($user_id);
+        }
         return true;
     } else {
         return false;
@@ -996,6 +1066,7 @@ function Wo_ActivateUser($email, $code)
     if ($result == 1) {
         $query_two = mysqli_query($sqlConnect, " UPDATE " . T_USERS . "  SET `active` = '1' WHERE `email` = '{$email}' ");
         if ($query_two) {
+            Wo_GrantRegisterVnseeaBonus(Wo_UserIdFromEmail($email));
             return true;
         }
     } else {
