@@ -1,12 +1,12 @@
 <?php
 // Explore nearby page layout, styles, and interactive map behavior.
 $explore_nearby = !empty($wo['explore_nearby']) ? $wo['explore_nearby'] : array();
-$users_enabled = !empty($explore_nearby['users_enabled']);
+$users_enabled = false;
 $shops_enabled = !empty($explore_nearby['shops_enabled']);
 $default_distance = !empty($explore_nearby['default_distance']) ? (int) $explore_nearby['default_distance'] : 100;
-$nearby_users = !empty($explore_nearby['nearby_users']) ? $explore_nearby['nearby_users'] : array();
+$nearby_users = array();
 $nearby_shops = !empty($explore_nearby['nearby_shops']) ? $explore_nearby['nearby_shops'] : array();
-$nearby_users_count = isset($explore_nearby['nearby_users_count']) ? (int) $explore_nearby['nearby_users_count'] : 0;
+$nearby_users_count = 0;
 $nearby_shops_count = isset($explore_nearby['nearby_shops_count']) ? (int) $explore_nearby['nearby_shops_count'] : 0;
 $current_user_id = !empty($wo['user']['user_id']) ? (int) $wo['user']['user_id'] : 0;
 $user_type_label = !empty($wo['lang']['user']) ? $wo['lang']['user'] : 'User';
@@ -187,9 +187,16 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		overflow: hidden;
 	}
 	.content-container > .contnet:not(#contnet),
+	.chat-container,
+	.chat_main,
 	footer,
 	.second-footer {
 		display: none !important;
+	}
+	body,
+	.navbar-default,
+	.wo_about_wrapper_parent {
+		padding-right: 0 !important;
 	}
 	.wo_explore_discovery {
 		--nearby-surface: rgba(255, 255, 255, 0.94);
@@ -209,10 +216,13 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		position: relative;
 		height: var(--wo-nearby-shell-height);
 		min-height: 480px;
-		border-radius: 24px;
+		border-radius: 0;
 		overflow: hidden;
 		background: linear-gradient(135deg, #dce9fb 0%, #bfd8f6 40%, #9bbef0 100%);
-		box-shadow: 0 30px 60px rgba(4, 10, 24, 0.24);
+		box-shadow: none;
+	}
+	.wo_explore_discovery_stage.wow_content {
+		padding: 0 !important;
 	}
 	.wo_explore_discovery_stage::before,
 	.wo_explore_discovery_stage::after {
@@ -338,7 +348,7 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		position: absolute;
 		inset: 72px 12px 20px;
 		z-index: 3;
-		display: flex;
+		display: none !important;
 		align-items: flex-start;
 		justify-content: center;
 		padding-top: 16px;
@@ -400,6 +410,125 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		box-shadow: 0 12px 28px rgba(35, 89, 208, 0.28);
 		transform: translateY(-1px);
 		outline: none;
+	}
+	.wo_explore_discovery_nav_banner {
+		position: absolute;
+		top: 102px;
+		left: 12px;
+		right: 12px;
+		z-index: 4;
+		display: none !important;
+		justify-content: center;
+		pointer-events: none;
+	}
+	.wo_explore_discovery_nav_banner_card {
+		width: min(560px, 100%);
+		padding: 16px 18px;
+		border-radius: 22px;
+		background: rgba(255, 255, 255, 0.96);
+		border: 1px solid rgba(210, 222, 239, 0.94);
+		box-shadow: 0 20px 38px rgba(7, 18, 36, 0.18);
+		backdrop-filter: blur(16px);
+		pointer-events: auto;
+	}
+	.wo_explore_discovery_nav_banner_card.is-rerouting {
+		border-color: rgba(245, 158, 11, 0.45);
+		box-shadow: 0 20px 38px rgba(180, 83, 9, 0.16);
+	}
+	.wo_explore_discovery_nav_banner_card.is-notice {
+		border-color: rgba(148, 163, 184, 0.44);
+	}
+	.wo_explore_discovery_nav_banner_head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 12px;
+	}
+	.wo_explore_discovery_nav_banner_status {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 5px 10px;
+		border-radius: 999px;
+		background: rgba(47, 109, 246, 0.12);
+		color: #2f6df6;
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: .04em;
+		text-transform: uppercase;
+	}
+	.wo_explore_discovery_nav_banner_card.is-rerouting .wo_explore_discovery_nav_banner_status {
+		background: rgba(245, 158, 11, 0.14);
+		color: #b45309;
+	}
+	.wo_explore_discovery_nav_banner_card.is-notice .wo_explore_discovery_nav_banner_status {
+		background: rgba(148, 163, 184, 0.14);
+		color: #475569;
+	}
+	.wo_explore_discovery_nav_banner_status::before {
+		content: "";
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: currentColor;
+		box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5);
+	}
+	.wo_explore_discovery_nav_banner_body {
+		margin-top: 12px;
+	}
+	.wo_explore_discovery_nav_banner_instruction {
+		font-size: 18px;
+		font-weight: 800;
+		line-height: 1.35;
+		color: #11203b;
+	}
+	.wo_explore_discovery_nav_banner_meta {
+		margin-top: 7px;
+		font-size: 13px;
+		line-height: 1.6;
+		color: #62718a;
+	}
+	.wo_explore_discovery_nav_banner_destination {
+		margin-top: 4px;
+		font-size: 12px;
+		line-height: 1.55;
+		color: #7c879b;
+	}
+	.wo_explore_discovery_nav_banner_actions {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+	.wo_explore_discovery_nav_banner_action {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 38px;
+		padding: 0 12px;
+		border: 0;
+		border-radius: 999px;
+		background: rgba(15, 23, 42, 0.08);
+		color: #10203a;
+		font-size: 12px;
+		font-weight: 800;
+		cursor: pointer;
+		transition: background-color .18s ease, transform .18s ease;
+	}
+	.wo_explore_discovery_nav_banner_action:hover,
+	.wo_explore_discovery_nav_banner_action:focus {
+		background: rgba(15, 23, 42, 0.14);
+		transform: translateY(-1px);
+		outline: none;
+	}
+	.wo_explore_discovery_nav_banner_action.is-primary {
+		background: #2f6df6;
+		color: #fff;
+		box-shadow: 0 10px 24px rgba(47, 109, 246, 0.2);
+	}
+	.wo_explore_discovery_nav_banner_action.is-primary:hover,
+	.wo_explore_discovery_nav_banner_action.is-primary:focus {
+		background: #2359d0;
 	}
 	.wo_explore_discovery_debug {
 		position: absolute;
@@ -781,16 +910,16 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		white-space: nowrap;
 	}
 	.wo_explore_discovery_sheet {
-		--wo-nearby-sheet-height: 360px;
+		--wo-nearby-sheet-height: 300px;
 		position: absolute;
 		left: 50%;
 		bottom: 0;
 		z-index: 5;
 		display: flex;
 		flex-direction: column;
-		width: min(920px, calc(100% - 24px));
+		width: min(1040px, calc(100% - 16px));
 		height: var(--wo-nearby-sheet-height);
-		max-height: calc(100% - 18px);
+		max-height: calc(100% - 10px);
 		transform: translateX(-50%);
 		border-radius: 32px 32px 0 0;
 		overflow: hidden;
@@ -955,7 +1084,7 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 	.wo_explore_discovery_sheet_body {
 		flex: 1 1 auto;
 		min-height: 0;
-		padding: 0 18px calc(18px + env(safe-area-inset-bottom));
+		padding: 0 16px calc(16px + env(safe-area-inset-bottom));
 		overflow: hidden;
 	}
 	.wo_explore_discovery_sheet_body.is-scrollable {
@@ -972,8 +1101,8 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 	.wo_explore_discovery_list {
 		display: flex;
 		flex-direction: column;
-		gap: 14px;
-		padding: 2px 0 8px;
+		gap: 10px;
+		padding: 0 0 6px;
 	}
 	.wo_explore_discovery_card {
 		display: grid;
@@ -1132,6 +1261,115 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		font-weight: 800;
 		color: var(--nearby-text);
 	}
+	.wo_explore_discovery_card_identity_row {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 12px;
+	}
+	.wo_explore_discovery_card_identity {
+		min-width: 0;
+		flex: 1 1 auto;
+	}
+	.wo_explore_discovery_card_inline_actions {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		flex: 0 0 auto;
+	}
+	.wo_explore_discovery_card_audio_button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 38px;
+		height: 38px;
+		border: 0;
+		border-radius: 999px;
+		background: rgba(47, 109, 246, 0.1);
+		color: #2f6df6;
+		box-shadow: inset 0 0 0 1px rgba(47, 109, 246, 0.12);
+		cursor: pointer;
+		transition: transform .18s ease, background-color .18s ease, box-shadow .18s ease, color .18s ease;
+	}
+	.wo_explore_discovery_card_audio_button svg {
+		width: 18px;
+		height: 18px;
+		flex: 0 0 auto;
+	}
+	.wo_explore_discovery_card_audio_button:hover,
+	.wo_explore_discovery_card_audio_button:focus {
+		outline: none;
+		transform: translateY(-1px);
+		background: rgba(47, 109, 246, 0.16);
+		box-shadow: inset 0 0 0 1px rgba(47, 109, 246, 0.16), 0 10px 18px rgba(47, 109, 246, 0.16);
+	}
+	.wo_explore_discovery_card_audio_button.is-active {
+		background: linear-gradient(180deg, #2f6df6 0%, #1f57d5 100%);
+		color: #fff;
+		box-shadow: 0 10px 20px rgba(47, 109, 246, 0.24);
+	}
+	.wo_explore_discovery_card_audio_button.is-muted {
+		background: rgba(15, 23, 42, 0.08);
+		color: #31425f;
+		box-shadow: inset 0 0 0 1px rgba(214, 224, 240, 0.92);
+	}
+	.wo_explore_discovery_card_navigation {
+		margin-top: 14px;
+		padding: 14px 15px;
+		border-radius: 20px;
+		background: rgba(47, 109, 246, 0.08);
+		box-shadow: inset 0 0 0 1px rgba(47, 109, 246, 0.12);
+	}
+	.wo_explore_discovery_card_navigation.is-rerouting {
+		background: rgba(245, 158, 11, 0.14);
+		box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18);
+	}
+	.wo_explore_discovery_card_navigation.is-notice {
+		background: rgba(148, 163, 184, 0.12);
+		box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
+	}
+	.wo_explore_discovery_card_navigation_status {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 5px 10px;
+		border-radius: 999px;
+		background: rgba(47, 109, 246, 0.14);
+		color: #2f6df6;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: .06em;
+		text-transform: uppercase;
+	}
+	.wo_explore_discovery_card_navigation.is-rerouting .wo_explore_discovery_card_navigation_status {
+		background: rgba(245, 158, 11, 0.18);
+		color: #b45309;
+	}
+	.wo_explore_discovery_card_navigation.is-notice .wo_explore_discovery_card_navigation_status {
+		background: rgba(148, 163, 184, 0.16);
+		color: #475569;
+	}
+	.wo_explore_discovery_card_navigation_status::before {
+		content: "";
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: currentColor;
+	}
+	.wo_explore_discovery_card_navigation_instruction {
+		margin-top: 10px;
+		font-size: 16px;
+		line-height: 1.45;
+		font-weight: 800;
+		color: #11203b;
+	}
+	.wo_explore_discovery_card_navigation_meta,
+	.wo_explore_discovery_card_navigation_destination {
+		margin-top: 6px;
+		font-size: 12px;
+		line-height: 1.6;
+		color: #62718a;
+	}
 	.wo_explore_discovery_card_subtitle {
 		margin: 6px 0 0;
 		font-size: 14px;
@@ -1173,7 +1411,8 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 	.wo_explore_discovery_directions,
 	.wo_explore_discovery_focus,
 	.wo_explore_discovery_share,
-	.wo_explore_discovery_card_my_location {
+	.wo_explore_discovery_card_my_location,
+	.wo_explore_discovery_card_nav_end {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -1198,7 +1437,8 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 	.wo_explore_discovery_directions svg,
 	.wo_explore_discovery_focus svg,
 	.wo_explore_discovery_share svg,
-	.wo_explore_discovery_card_my_location svg {
+	.wo_explore_discovery_card_my_location svg,
+	.wo_explore_discovery_card_nav_end svg {
 		flex: 0 0 auto;
 	}
 	.wo_explore_discovery_directions {
@@ -1206,8 +1446,15 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		color: #fff;
 		box-shadow: 0 10px 20px rgba(47, 109, 246, 0.26);
 	}
+	.wo_explore_discovery_card_nav_end {
+		background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+		color: #fff;
+		box-shadow: 0 10px 20px rgba(15, 23, 42, 0.22);
+	}
 	.wo_explore_discovery_directions:hover,
-	.wo_explore_discovery_directions:focus {
+	.wo_explore_discovery_directions:focus,
+	.wo_explore_discovery_card_nav_end:hover,
+	.wo_explore_discovery_card_nav_end:focus {
 		color: #fff;
 		text-decoration: none;
 		transform: translateY(-1px);
@@ -1276,10 +1523,44 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		background: #fff1d6;
 		color: #7c4a16;
 	}
+	.wo_explore_discovery_card.is-pinned .wo_explore_discovery_card_audio_button {
+		background: rgba(245, 158, 11, 0.14);
+		color: #b45309;
+		box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18);
+	}
+	.wo_explore_discovery_card.is-pinned .wo_explore_discovery_card_audio_button:hover,
+	.wo_explore_discovery_card.is-pinned .wo_explore_discovery_card_audio_button:focus {
+		background: rgba(245, 158, 11, 0.2);
+		box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.22), 0 10px 18px rgba(217, 119, 6, 0.16);
+	}
+	.wo_explore_discovery_card.is-pinned .wo_explore_discovery_card_audio_button.is-active {
+		background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+		color: #fff;
+		box-shadow: 0 10px 20px rgba(180, 83, 9, 0.24);
+	}
+	.wo_explore_discovery_card.is-pinned .wo_explore_discovery_card_audio_button.is-muted {
+		background: rgba(255, 248, 235, 0.98);
+		color: #7c4a16;
+		box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18);
+	}
+	.wo_explore_discovery_card.is-pinned .wo_explore_discovery_card_navigation {
+		background: rgba(255, 243, 221, 0.94);
+		box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18);
+	}
+	.wo_explore_discovery_card.is-pinned .wo_explore_discovery_card_navigation_status {
+		background: rgba(245, 158, 11, 0.18);
+		color: #b45309;
+	}
+	.wo_explore_discovery_card.is-pinned .wo_explore_discovery_card_nav_end {
+		background: linear-gradient(180deg, #b45309 0%, #92400e 100%);
+		box-shadow: 0 10px 20px rgba(180, 83, 9, 0.24);
+	}
 	.wo_explore_discovery_focus:disabled,
 	.wo_explore_discovery_directions:disabled,
 	.wo_explore_discovery_share:disabled,
-	.wo_explore_discovery_card_my_location:disabled {
+	.wo_explore_discovery_card_my_location:disabled,
+	.wo_explore_discovery_card_nav_end:disabled,
+	.wo_explore_discovery_card_audio_button:disabled {
 		opacity: .55;
 		cursor: not-allowed;
 		transform: none;
@@ -1426,12 +1707,29 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 			inset: calc(var(--wo-nearby-mobile-topbar-height) + 24px) 12px 20px;
 			padding-top: 10px;
 		}
+		.wo_explore_discovery_nav_banner {
+			top: calc(var(--wo-nearby-mobile-topbar-height) + 22px);
+			left: 10px;
+			right: 10px;
+		}
+		.wo_explore_discovery_nav_banner_card {
+			padding: 14px 15px;
+			border-radius: 18px;
+		}
+		.wo_explore_discovery_nav_banner_instruction {
+			font-size: 16px;
+		}
+		.wo_explore_discovery_nav_banner_meta,
+		.wo_explore_discovery_nav_banner_destination {
+			font-size: 12px;
+		}
 		.wo-nearby-google-native-pinned-marker .wo-nearby-google-native-pinned-label,
 		.wo-nearby-google-native-pinned-fallback-label {
 			max-width: 150px;
 			font-size: 11px;
 		}
 		.wo_explore_discovery_sheet {
+			--wo-nearby-sheet-height: 276px;
 			width: 100%;
 			max-height: calc(100% - 2px);
 			border-radius: 28px 28px 0 0;
@@ -1451,7 +1749,7 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 			font-size: 22px;
 		}
 		.wo_explore_discovery_sheet_body {
-			padding: 0 12px calc(16px + env(safe-area-inset-bottom));
+			padding: 0 12px calc(14px + env(safe-area-inset-bottom));
 		}
 		.wo_explore_discovery_card {
 			padding: 14px;
@@ -1470,6 +1768,9 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		.wo_explore_discovery_card_actions {
 			margin-top: 12px;
 		}
+		.wo_explore_discovery_card_identity_row {
+			gap: 10px;
+		}
 	}
 	@media (max-width: 520px) {
 		.wo_explore_discovery_topmeta h1 {
@@ -1481,6 +1782,14 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		.wo_explore_discovery_card_title {
 			font-size: 18px;
 		}
+		.wo_explore_discovery_card_audio_button {
+			width: 34px;
+			height: 34px;
+		}
+		.wo_explore_discovery_card_audio_button svg {
+			width: 16px;
+			height: 16px;
+		}
 		.wo_explore_discovery_card_location,
 		.wo_explore_discovery_card_description {
 			font-size: 13px;
@@ -1491,7 +1800,8 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		.wo_explore_discovery_directions,
 		.wo_explore_discovery_focus,
 		.wo_explore_discovery_share,
-		.wo_explore_discovery_card_my_location {
+		.wo_explore_discovery_card_my_location,
+		.wo_explore_discovery_card_nav_end {
 			min-height: 40px;
 			padding: 0 8px;
 			border-radius: 14px;
@@ -1501,9 +1811,22 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 			inset: calc(var(--wo-nearby-mobile-topbar-height) + 26px) 10px 16px;
 			padding-top: 10px;
 		}
+		.wo_explore_discovery_nav_banner {
+			top: calc(var(--wo-nearby-mobile-topbar-height) + 22px);
+		}
 		.wo_explore_discovery_map_prompt_card {
 			padding: 16px 15px 15px;
 			border-radius: 18px;
+		}
+		.wo_explore_discovery_nav_banner_head {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.wo_explore_discovery_nav_banner_actions {
+			width: 100%;
+		}
+		.wo_explore_discovery_nav_banner_action {
+			flex: 1 1 0;
 		}
 	}
 	</style>
@@ -1517,10 +1840,11 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 	<?php endif; ?>
 
 	<div class="wo_explore_discovery">
-		<div class="wo_explore_discovery_stage wow_content" id="explore-nearby-stage">
+		<div class="wo_explore_discovery_stage" id="explore-nearby-stage">
 			<div class="wo_explore_discovery_map_shell" id="explore-nearby-map-shell">
 				<div id="map" class="wo_ui_map_state_loading"></div>
 				<div class="wo_explore_discovery_map_prompt wo_explore_nearby_hidden" id="explore-nearby-map-prompt" aria-live="polite"></div>
+				<div class="wo_explore_discovery_nav_banner wo_explore_nearby_hidden" id="explore-nearby-nav-banner" aria-live="polite"></div>
 				<div class="wo_explore_discovery_debug<?php echo $nearby_debug_enabled ? '' : ' wo_explore_nearby_hidden'; ?>" id="explore-nearby-debug" aria-live="polite"></div>
 				<div class="wo_explore_discovery_map_zoom_controls" id="explore-nearby-map-zoom-controls">
 					<button type="button" class="wo_explore_discovery_map_action" id="explore-nearby-fullscreen-toggle" title="Fullscreen map" aria-label="Fullscreen map">
@@ -1548,7 +1872,7 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 						<div class="wo_explore_discovery_controls">
 							<div class="wo_explore_discovery_search">
 								<svg class="wo_explore_discovery_search_icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.5 3a6.5 6.5 0 0 1 5.174 10.438l4.944 4.944l-1.414 1.414l-4.944-4.944A6.5 6.5 0 1 1 9.5 3m0 2a4.5 4.5 0 1 0 0 9a4.5 4.5 0 0 0 0-9"/></svg>
-								<input type="text" placeholder="<?php echo $wo['lang']['keyword']; ?> / address / users / pages" id="nearby-username" autocomplete="off">
+								<input type="text" placeholder="<?php echo $wo['lang']['keyword']; ?> / address / pages" id="nearby-username" autocomplete="off">
 								<div class="wo_explore_discovery_search_suggestions wo_explore_nearby_hidden" id="explore-nearby-search-suggestions"></div>
 							</div>
 							<button type="button" class="wo_explore_discovery_location_trigger" id="explore-nearby-location-trigger" onpointerdown="Wo_ExploreNearbyHandleLocationPromptAction(); return false;" onmousedown="Wo_ExploreNearbyHandleLocationPromptAction(); return false;" ontouchstart="Wo_ExploreNearbyHandleLocationPromptAction(); return false;" onclick="return false;">
@@ -1647,7 +1971,37 @@ var WoExploreNearbyState = {
 	previewPointData: null,
 	routeTargetPointKey: null,
 	routeTargetPointData: null,
+	routeLastPath: [],
+	routeLastFallbackPath: [],
+	routeLastTargetPointKey: '',
 	routeViewportResyncTimer: null,
+	routeViewportFitTimer: null,
+	navigationActive: false,
+	navigationMuted: false,
+	navigationSpeechAvailable: false,
+	navigationSpeechPrimed: false,
+	navigationSpeechRequestToken: 0,
+	navigationRouteRequestToken: 0,
+	navigationAudioElement: null,
+	navigationAudioCache: {},
+	navigationAudioPending: {},
+	navigationCurrentStepIndex: -1,
+	navigationLastSpokenStepKey: '',
+	navigationRouteData: null,
+	navigationLastRerouteAt: 0,
+	navigationOffRouteCount: 0,
+	navigationBannerVisible: false,
+	navigationStatus: 'idle',
+	navigationInstructionText: '',
+	navigationSummaryText: '',
+	navigationDestinationName: '',
+	navigationRerouteInProgress: false,
+	navigationNoticeTimer: null,
+	navigationCompletionTimer: null,
+	navigationVoiceNoticeTimer: null,
+	lastRouteFallbackNoticeKey: '',
+	lastRouteFallbackNoticeAt: 0,
+	lastRouteErrorMessage: '',
 	debugEnabled: <?php echo $nearby_debug_enabled ? 'true' : 'false'; ?>,
 	routeDebug: {
 		status: 'idle',
@@ -1685,9 +2039,12 @@ var WoExploreNearbyState = {
 	userGoogleMarkerLibraryPromise: null,
 	googleMapDomSelectionBound: false,
 	liveLocationWatchId: null,
+	lastAcceptedLivePosition: null,
+	lastAcceptedLiveAccuracy: 0,
 	lastSavedLivePosition: null,
 	lastReloadLivePosition: null,
 	liveLocationReloadTimer: null,
+	lastLiveReloadAt: 0,
 	hasLocationAnchor: <?php echo (!empty($wo['user']['lat']) && !empty($wo['user']['lng'])) ? 'true' : 'false'; ?>,
 	locationBootstrapState: <?php echo (!empty($wo['user']['lat']) && !empty($wo['user']['lng'])) ? "'ready'" : "'waiting'"; ?>,
 	locationRequestPending: false,
@@ -1738,6 +2095,24 @@ var focusMapTitle = <?php echo json_encode($wo['lang']['show_location'], $json_f
 var mobileCloseLabel = 'Close';
 var defaultDistanceValue = <?php echo (int) $default_distance; ?>;
 var defaultNearbyViewportRadiusKm = 3;
+var liveLocationMarkerRefreshThresholdKm = 0.003;
+var liveLocationPersistThresholdKm = 0.01;
+var liveLocationReloadThresholdKm = 0.025;
+var liveLocationReloadMaxIntervalMs = 15000;
+var liveLocationReloadDelayMs = 500;
+var liveLocationNavigationMaxAccuracyMeters = 75;
+var liveLocationNavigationMinMoveMeters = 8;
+var navigationOffRouteBaseThresholdMeters = 35;
+var navigationOffRouteMaxThresholdMeters = 70;
+var navigationOffRouteRequiredSamples = 3;
+var navigationRerouteCooldownMs = 12000;
+var liveLocationRequestOptions = {
+	enableHighAccuracy: true,
+	maximumAge: 0,
+	timeout: 20000
+};
+var navigationUiLanguage = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'vi' : 'en', $json_flags); ?>;
+var navigationSpeechLanguage = <?php echo json_encode('vi-VN', $json_flags); ?>;
 var emptyUsersText = <?php echo json_encode($wo['lang']['no_users_found'], $json_flags); ?>;
 var emptyShopsText = <?php echo json_encode($wo['lang']['no_shops_found'], $json_flags); ?>;
 var locationEnablePromptText = <?php echo json_encode((!empty($wo['lang']['enable_location_for_nearby']) ? $wo['lang']['enable_location_for_nearby'] : 'Enable location to see nearby results'), $json_flags); ?>;
@@ -1746,6 +2121,8 @@ var locationDeniedPromptText = <?php echo json_encode((!empty($wo['lang']['locat
 var useMyLocationLabel = <?php echo json_encode((!empty($wo['lang']['use_my_location']) ? $wo['lang']['use_my_location'] : 'Use my location'), $json_flags); ?>;
 var requestingLocationLabel = <?php echo json_encode((!empty($wo['lang']['please_wait']) ? $wo['lang']['please_wait'] : 'Please wait..'), $json_flags); ?>;
 var sheetOnboardingStorageKey = 'woExploreNearbySheetOnboardingSeen';
+var reverseGeocodeStorageKey = 'woExploreNearbyReverseGeocodeCacheV1';
+var allowGoogleGeocoderFallback = false;
 var sheetHandleHintLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Kéo lên để xem danh sách' : 'Drag up to view list', $json_flags); ?>;
 var mapFullscreenLabel = <?php echo json_encode((!empty($wo['lang']['fullscreen']) ? $wo['lang']['fullscreen'] : 'Fullscreen map'), $json_flags); ?>;
 var mapExitFullscreenLabel = <?php echo json_encode((!empty($wo['lang']['exit_fullscreen']) ? $wo['lang']['exit_fullscreen'] : 'Exit fullscreen'), $json_flags); ?>;
@@ -1755,6 +2132,28 @@ var cardMyLocationLabel = <?php echo json_encode((!empty($wo['language']) && $wo
 var cardDirectionsLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Chỉ đường' : 'Directions', $json_flags); ?>;
 var cardShareLabel = <?php echo json_encode((!empty($wo['lang']['share']) ? $wo['lang']['share'] : ((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Chia sẻ' : 'Share')), $json_flags); ?>;
 var cardShareCopiedLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đã chép link' : 'Link copied', $json_flags); ?>;
+var navigationStatusActiveLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đang dẫn đường' : 'Navigating', $json_flags); ?>;
+var navigationStatusStartingLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đang chuẩn bị lộ trình' : 'Preparing route', $json_flags); ?>;
+var navigationStatusReroutingLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đang tính lại lộ trình' : 'Recalculating route', $json_flags); ?>;
+var navigationStatusArrivedLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đã đến nơi' : 'Arrived', $json_flags); ?>;
+var navigationStatusNoticeLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Dẫn đường' : 'Navigation', $json_flags); ?>;
+var navigationMuteLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Tắt tiếng' : 'Mute', $json_flags); ?>;
+var navigationUnmuteLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Bật tiếng' : 'Unmute', $json_flags); ?>;
+var navigationReplayLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Nghe lại hướng dẫn' : 'Replay voice instruction', $json_flags); ?>;
+var navigationEndLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Kết thúc' : 'End', $json_flags); ?>;
+var navigationGoogleRequiredLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Không có dịch vụ chỉ đường khả dụng để bắt đầu dẫn đường bằng giọng nói.' : 'A routing provider is required for voice navigation.', $json_flags); ?>;
+var navigationLocationRequiredLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Hãy bật vị trí của bạn để bắt đầu dẫn đường.' : 'Use your location to start navigation.', $json_flags); ?>;
+var navigationRouteUnavailableLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Hiện chưa thể tạo lộ trình.' : 'Unable to build a route right now.', $json_flags); ?>;
+var navigationFallbackLineLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Bản đồ hiện không thể hiển thị lộ trình cho điểm đến này.' : 'The map could not display a route for this destination.', $json_flags); ?>;
+var navigationRetryingLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đang cập nhật lại lộ trình.' : 'Trying to update your route.', $json_flags); ?>;
+var navigationArrivedVoiceLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Bạn đã đến nơi.' : 'You have arrived.', $json_flags); ?>;
+var navigationReroutedVoiceLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Lộ trình đã được cập nhật.' : 'Route updated.', $json_flags); ?>;
+var navigationDestinationLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Điểm đến' : 'Destination', $json_flags); ?>;
+var navigationGoogleRouteRequestAction = 'explore_nearby_google_route';
+var navigationVoiceStartLabel = <?php echo json_encode('Bắt đầu chỉ đường', $json_flags); ?>;
+var navigationVoiceArrivedLabel = <?php echo json_encode('Bạn đã đến nơi.', $json_flags); ?>;
+var navigationVoiceReroutedLabel = <?php echo json_encode('Lộ trình đã được cập nhật.', $json_flags); ?>;
+var navigationVoiceUnavailableLabel = <?php echo json_encode('Không thể phát hướng dẫn bằng giọng nói lúc này.', $json_flags); ?>;
 var currentUserMapPoint = {
 	item_key: <?php echo json_encode($build_item_key('user', (!empty($wo['user']['url']) ? $wo['user']['url'] : ''), $current_user_id), $json_flags); ?>,
 	name: <?php echo json_encode($wo['user']['name'], $json_flags); ?>,
@@ -1854,6 +2253,680 @@ function Wo_ExploreNearbyBuildCoordinateText(lat, lng) {
 	}
 
 	return parseFloat(lat).toFixed(6) + ', ' + parseFloat(lng).toFixed(6);
+}
+
+function Wo_ExploreNearbyBuildReverseGeocodeCacheKey(lat, lng) {
+	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+		return '';
+	}
+
+	return parseFloat(lat).toFixed(4) + ',' + parseFloat(lng).toFixed(4);
+}
+
+function Wo_ExploreNearbyIsCoordinateLikeText(text) {
+	return /^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?(?:\s*,.*)?$/.test($.trim(text || ''));
+}
+
+function Wo_ExploreNearbyHasMeaningfulLocationText(text) {
+	var value = $.trim(text || '');
+	return !!value && !Wo_ExploreNearbyIsCoordinateLikeText(value);
+}
+
+function Wo_ExploreNearbyReadStoredReverseGeocodeCache(cacheKey) {
+	var storedCache = null;
+
+	if (!cacheKey) {
+		return '';
+	}
+
+	try {
+		storedCache = window.sessionStorage.getItem(reverseGeocodeStorageKey);
+		storedCache = storedCache ? JSON.parse(storedCache) : {};
+	}
+	catch (error) {
+		storedCache = {};
+	}
+
+	return $.trim((storedCache && storedCache[cacheKey]) || '');
+}
+
+function Wo_ExploreNearbyWriteStoredReverseGeocodeCache(cacheKey, addressText) {
+	var storedCache = null;
+	var normalizedAddress = $.trim(addressText || '');
+
+	if (!cacheKey || !normalizedAddress) {
+		return;
+	}
+
+	try {
+		storedCache = window.sessionStorage.getItem(reverseGeocodeStorageKey);
+		storedCache = storedCache ? JSON.parse(storedCache) : {};
+		storedCache[cacheKey] = normalizedAddress;
+		window.sessionStorage.setItem(reverseGeocodeStorageKey, JSON.stringify(storedCache));
+	}
+	catch (error) {}
+}
+
+function Wo_ExploreNearbyGetCardSpeakerIconSvg(isMuted) {
+	if (isMuted) {
+		return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 4.28a1 1 0 0 1 1.7.72v14a1 1 0 0 1-1.7.72L9.58 15.3H6a2 2 0 0 1-2-2v-2.34a2 2 0 0 1 2-2h3.58L14 4.28Zm4.29 3.3 1.41 1.41L17.12 11.6l2.58 2.59-1.41 1.41-2.59-2.58-2.58 2.58-1.41-1.41 2.58-2.59-2.58-2.61 1.41-1.41 2.58 2.58 2.59-2.58Z"/></svg>';
+	}
+
+	return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 4.28a1 1 0 0 1 1.7.72v14a1 1 0 0 1-1.7.72L9.58 15.3H6a2 2 0 0 1-2-2v-2.34a2 2 0 0 1 2-2h3.58L14 4.28Zm4.3 1.72a1 1 0 0 1 1.4.12 8.27 8.27 0 0 1 0 11.76 1 1 0 1 1-1.52-1.3 6.27 6.27 0 0 0 0-9.16 1 1 0 0 1 .12-1.42Zm-2.74 2.12a1 1 0 0 1 1.4.14 4.77 4.77 0 0 1 0 6.48 1 1 0 1 1-1.53-1.28 2.77 2.77 0 0 0 0-3.92 1 1 0 0 1 .13-1.42Z"/></svg>';
+}
+
+function Wo_ExploreNearbyStripHtml(text) {
+	var value = String(text || '');
+	var container = Wo_ExploreNearbyStripHtml.container;
+	if (!container) {
+		container = document.createElement('div');
+		Wo_ExploreNearbyStripHtml.container = container;
+	}
+
+	container.innerHTML = value;
+	return $.trim(container.textContent || container.innerText || '');
+}
+
+function Wo_ExploreNearbyExpandSpeechInstructionText(text) {
+	var normalizedText = ' ' + $.trim(Wo_ExploreNearbyStripHtml(text || '')) + ' ';
+	var isVietnameseSpeech = String(navigationSpeechLanguage || '').toLowerCase().indexOf('vi') === 0;
+	var replacements = [
+		[/Ng\.\s*([0-9]+(?:[\/-][0-9A-Za-z]+|[A-Za-z](?!\.))*)\s*P\.\s*/gi, 'Ng\u00f5 $1 Ph\u1ed1 '],
+		[/Ng\.\s*([0-9]+(?:[\/-][0-9A-Za-z]+|[A-Za-z](?!\.))*)\s*\u0110\.\s*/g, 'Ng\u00f5 $1 \u0110\u01b0\u1eddng '],
+		[/Ng\.\s*([0-9]+(?:[\/-][0-9A-Za-z]+|[A-Za-z](?!\.))*)\b/gi, 'Ng\u00f5 $1'],
+		[/Hm\.\s*([0-9]+(?:[\/-][0-9A-Za-z]+|[A-Za-z](?!\.))*)\s*\u0110\.\s*/gi, 'H\u1ebbm $1 \u0110\u01b0\u1eddng '],
+		[/Hm\.\s*([0-9]+(?:[\/-][0-9A-Za-z]+|[A-Za-z](?!\.))*)\b/gi, 'H\u1ebbm $1'],
+		[/(^|\s)P\.\s*(?=[A-Za-z\u00c0-\u1ef9\u0110\u0111])/g, '$1Ph\u1ed1 '],
+		[/([0-9]+(?:[\/-][0-9A-Za-z]+|[A-Za-z](?!\.))*)\s*P\.\s*(?=[A-Za-z\u00c0-\u1ef9\u0110\u0111])/g, '$1 Ph\u1ed1 '],
+		[/(^|\s)\u0110S\.?\s*(\d+[A-Za-z0-9\/-]*)\b/g, '$1\u0110\u01b0\u1eddng s\u1ed1 $2'],
+		[/(^|\s)DS\.?\s*(\d+[A-Za-z0-9\/-]*)\b/gi, '$1\u0110\u01b0\u1eddng s\u1ed1 $2'],
+		[/(^|\s)\u0110L\.?\s*(?=[A-Za-z\u00c0-\u1ef9\u0110\u01110-9])/g, '$1\u0110\u1ea1i l\u1ed9 '],
+		[/(^|\s)DL\.?\s*(?=[A-Za-z\u00c0-\u1ef9\u0110\u01110-9])/gi, '$1\u0110\u1ea1i l\u1ed9 '],
+		[/(^|\s)\u0110T\.?\s*(\d+[A-Za-z0-9\/-]*)\b/g, '$1\u0110\u01b0\u1eddng t\u1ec9nh $2'],
+		[/(^|\s)DT\.?\s*(\d+[A-Za-z0-9\/-]*)\b/gi, '$1\u0110\u01b0\u1eddng t\u1ec9nh $2'],
+		[/(^|\s)QL\.?\s*(\d+[A-Za-z0-9\/-]*)\b/gi, '$1Qu\u1ed1c l\u1ed9 $2'],
+		[/(^|\s)TL\.?\s*(\d+[A-Za-z0-9\/-]*)\b/gi, '$1T\u1ec9nh l\u1ed9 $2'],
+		[/(^|\s)AH\.?\s*(\d+[A-Za-z0-9\/-]*)\b/gi, '$1\u0110\u01b0\u1eddng xuy\u00ean \u00c1 $2'],
+		[/(^|\s)CT\.?\s*(\d+[A-Za-z0-9\/-]*)\b/gi, isVietnameseSpeech ? '$1Cao t\u1ed1c $2' : '$1Expressway $2'],
+		[/(^|\s)\u0110g\.?\s*(?=[A-Za-z\u00c0-\u1ef9\u0110\u01110-9])/g, '$1\u0110\u01b0\u1eddng '],
+		[/(^|\s)Dg\.?\s*(?=[A-Za-z\u00c0-\u1ef9\u0110\u01110-9])/gi, '$1\u0110\u01b0\u1eddng '],
+		[/(^|\s)\u0110\.\s*(?=[A-Za-z\u00c0-\u1ef9\u0110\u01110-9])/g, '$1\u0110\u01b0\u1eddng '],
+		[/\bSt\b\.?/gi, 'Street'],
+		[/\bRd\b\.?/gi, 'Road'],
+		[/\bAve\b\.?/gi, 'Avenue'],
+		[/\bBlvd\b\.?/gi, 'Boulevard'],
+		[/\bDr\b\.?/gi, 'Drive'],
+		[/\bLn\b\.?/gi, 'Lane'],
+		[/\bHwy\b\.?/gi, 'Highway'],
+		[/\bPkwy\b\.?/gi, 'Parkway'],
+		[/\bCtr\b\.?/gi, 'Center'],
+		[/\bExpy\b\.?/gi, 'Expressway'],
+		[/\bFwy\b\.?/gi, 'Freeway'],
+		[/\bJct\b\.?/gi, 'Junction'],
+		[/\bCir\b\.?/gi, 'Circle'],
+		[/\bTer\b\.?/gi, 'Terrace'],
+		[/\bPlz\b\.?/gi, 'Plaza'],
+		[/\bSq\b\.?/gi, 'Square'],
+		[/\bMt\b\.?/gi, 'Mount'],
+		[/\bNE\b\.?/g, 'Northeast'],
+		[/\bNW\b\.?/g, 'Northwest'],
+		[/\bSE\b\.?/g, 'Southeast'],
+		[/\bSW\b\.?/g, 'Southwest'],
+		[/\bN\b\.?/g, 'North'],
+		[/\bS\b\.?/g, 'South'],
+		[/\bE\b\.?/g, 'East'],
+		[/\bW\b\.?/g, 'West'],
+		[/\bTP\.?\s*HCM\b/gi, 'Th\u00e0nh ph\u1ed1 H\u1ed3 Ch\u00ed Minh'],
+		[/\bTP\.?\s*HN\b/gi, 'Th\u00e0nh ph\u1ed1 H\u00e0 N\u1ed9i'],
+		[/\bQ\.?\s*([0-9]+[A-Za-z0-9\/-]*)\b/g, 'Qu\u1eadn $1'],
+		[/\bP\.?\s*([0-9]+[A-Za-z0-9\/-]*)\b/g, 'Ph\u01b0\u1eddng $1'],
+		[/\bH\.?\s*([0-9]+[A-Za-z0-9\/-]*)\b/g, 'Huy\u1ec7n $1'],
+		[/\bX\.?\s*([0-9]+[A-Za-z0-9\/-]*)\b/g, 'X\u00e3 $1'],
+		[/\bTP\.?\s?/gi, 'Th\u00e0nh ph\u1ed1 '],
+		[/\bTT\.?\s?/gi, 'Th\u1ecb tr\u1ea5n '],
+		[/\bTX\.?\s?/gi, 'Th\u1ecb x\u00e3 '],
+		[/\bKP\.?\s*([0-9]+[A-Za-z0-9\/-]*)\b/gi, 'Khu ph\u1ed1 $1'],
+		[/\bTDP\.?\s*([0-9]+[A-Za-z0-9\/-]*)\b/gi, 'T\u1ed5 d\u00e2n ph\u1ed1 $1'],
+		[/\bKDC\b/gi, 'Khu d\u00e2n c\u01b0'],
+		[/\bKCN\b/gi, 'Khu c\u00f4ng nghi\u1ec7p'],
+		[/\bK\u0110T\b/gi, 'Khu \u0111\u00f4 th\u1ecb'],
+		[/\bCCN\b/gi, 'C\u1ee5m c\u00f4ng nghi\u1ec7p'],
+		[/(\d+(?:\.\d+)?)\s?km\b/gi, isVietnameseSpeech ? '$1 ki l\u00f4 m\u00e9t' : '$1 kilometers'],
+		[/(\d+(?:\.\d+)?)\s?m\b/gi, isVietnameseSpeech ? '$1 m\u00e9t' : '$1 meters'],
+		[/(\d+(?:\.\d+)?)\s?min\b/gi, isVietnameseSpeech ? '$1 ph\u00fat' : '$1 minutes'],
+		[/(\d+(?:\.\d+)?)\s?hr\b/gi, isVietnameseSpeech ? '$1 gi\u1edd' : '$1 hours']
+	];
+	var i = 0;
+
+	for (i = 0; i < replacements.length; i++) {
+		normalizedText = normalizedText.replace(replacements[i][0], replacements[i][1]);
+	}
+
+	return $.trim(normalizedText.replace(/\s+/g, ' '));
+}
+
+function Wo_ExploreNearbyTranslateCompassDirection(directionText) {
+	var normalizedDirection = $.trim(String(directionText || '')).toLowerCase();
+	var directionMap = {
+		north: 'B\u1eafc',
+		south: 'Nam',
+		east: '\u0110\u00f4ng',
+		west: 'T\u00e2y',
+		northeast: '\u0110\u00f4ng B\u1eafc',
+		northwest: 'T\u00e2y B\u1eafc',
+		southeast: '\u0110\u00f4ng Nam',
+		southwest: 'T\u00e2y Nam'
+	};
+
+	return directionMap[normalizedDirection] || $.trim(directionText || '');
+}
+
+function Wo_ExploreNearbyTranslateGoogleRoundaboutExit(exitText) {
+	var normalizedExit = $.trim(String(exitText || '')).toLowerCase();
+	var numberedExitMatch = normalizedExit.match(/^(\d+)/);
+
+	if (numberedExitMatch) {
+		return 'th\u1ee9 ' + numberedExitMatch[1];
+	}
+
+	return $.trim(exitText || '');
+}
+
+function Wo_ExploreNearbyExtractGoogleInstructionTargetText(text) {
+	var instructionText = $.trim(Wo_ExploreNearbyStripHtml(text || ''));
+	var targetMatch = null;
+	var targetText = '';
+	var patterns = [
+		/\bonto\s+(.+)$/i,
+		/\bto stay on\s+(.+)$/i,
+		/\bon\s+(.+)$/i,
+		/\btowards?\s+(.+)$/i
+	];
+	var i = 0;
+
+	for (i = 0; i < patterns.length; i++) {
+		targetMatch = instructionText.match(patterns[i]);
+		if (targetMatch && $.trim(targetMatch[1] || '')) {
+			targetText = $.trim(targetMatch[1] || '');
+			break;
+		}
+	}
+
+	targetText = targetText.replace(/\bDestination will be on the (left|right)\b.*$/i, '');
+	targetText = targetText.replace(/\bPass by\b.*$/i, '');
+	targetText = targetText.replace(/\s*\((?:toll road|partial toll road|restricted usage road)\)\s*/ig, ' ');
+
+	return $.trim(Wo_ExploreNearbyExpandSpeechInstructionText(targetText));
+}
+
+function Wo_ExploreNearbyBuildGoogleManeuverPrefix(maneuverText, instructionText) {
+	var normalizedManeuver = $.trim(String(maneuverText || '')).toLowerCase();
+	var normalizedInstruction = $.trim(String(instructionText || '')).toLowerCase();
+
+	if (normalizedInstruction.indexOf('destination will be on the left') !== -1) {
+		return '\u0110i\u1ec3m \u0111\u1ebfn \u1edf b\u00ean tr\u00e1i';
+	}
+	if (normalizedInstruction.indexOf('destination will be on the right') !== -1) {
+		return '\u0110i\u1ec3m \u0111\u1ebfn \u1edf b\u00ean ph\u1ea3i';
+	}
+
+	switch (normalizedManeuver) {
+		case 'turn-sharp-left':
+			return 'R\u1ebd g\u1ea5p tr\u00e1i';
+		case 'turn-sharp-right':
+			return 'R\u1ebd g\u1ea5p ph\u1ea3i';
+		case 'turn-slight-left':
+			return 'Ch\u1ebfch tr\u00e1i';
+		case 'turn-slight-right':
+			return 'Ch\u1ebfch ph\u1ea3i';
+		case 'turn-left':
+			return 'R\u1ebd tr\u00e1i';
+		case 'turn-right':
+			return 'R\u1ebd ph\u1ea3i';
+		case 'uturn-left':
+		case 'uturn-right':
+		case 'uturn':
+			return 'Quay \u0111\u1ea7u';
+		case 'keep-left':
+			return 'Gi\u1eef b\u00ean tr\u00e1i';
+		case 'keep-right':
+			return 'Gi\u1eef b\u00ean ph\u1ea3i';
+		case 'fork-left':
+			return '\u0110i theo nh\u00e1nh b\u00ean tr\u00e1i';
+		case 'fork-right':
+			return '\u0110i theo nh\u00e1nh b\u00ean ph\u1ea3i';
+		case 'merge':
+		case 'ramp-left':
+		case 'ramp-right':
+			return 'Nh\u1eadp v\u00e0o';
+		case 'straight':
+			return '\u0110i th\u1eb3ng';
+		case 'roundabout-left':
+		case 'roundabout-right':
+		case 'roundabout-straight':
+			return 'V\u00e0o v\u00f2ng xuy\u1ebfn';
+	}
+
+	if (/^head\b/i.test(instructionText)) {
+		return 'B\u1eaft \u0111\u1ea7u \u0111i';
+	}
+	if (/^continue\b/i.test(instructionText)) {
+		return 'Ti\u1ebfp t\u1ee5c \u0111i';
+	}
+	if (/^take the ramp\b/i.test(instructionText)) {
+		return '\u0110i theo l\u1ed1i ra';
+	}
+	if (/^merge\b/i.test(instructionText)) {
+		return 'Nh\u1eadp v\u00e0o';
+	}
+	if (/^keep left\b/i.test(instructionText)) {
+		return 'Gi\u1eef b\u00ean tr\u00e1i';
+	}
+	if (/^keep right\b/i.test(instructionText)) {
+		return 'Gi\u1eef b\u00ean ph\u1ea3i';
+	}
+	if (/^slight left\b/i.test(instructionText)) {
+		return 'Ch\u1ebfch tr\u00e1i';
+	}
+	if (/^slight right\b/i.test(instructionText)) {
+		return 'Ch\u1ebfch ph\u1ea3i';
+	}
+	if (/^turn left\b/i.test(instructionText)) {
+		return 'R\u1ebd tr\u00e1i';
+	}
+	if (/^turn right\b/i.test(instructionText)) {
+		return 'R\u1ebd ph\u1ea3i';
+	}
+	if (/^make a u-turn\b/i.test(instructionText)) {
+		return 'Quay \u0111\u1ea7u';
+	}
+
+	return '';
+}
+
+function Wo_ExploreNearbyBuildGoogleSpeechInstructionText(text, maneuverText) {
+	var instructionText = $.trim(Wo_ExploreNearbyStripHtml(text || ''));
+	var speechText = instructionText;
+	var roundaboutMatch = null;
+	var targetText = '';
+	var prefixText = '';
+	var replacements = [];
+	var i = 0;
+
+	if (!instructionText) {
+		return '';
+	}
+
+	if (!Wo_ExploreNearbyIsVietnameseNavigationLanguage()) {
+		return Wo_ExploreNearbyExpandSpeechInstructionText(instructionText);
+	}
+
+	if (/you have arrived/i.test(instructionText)) {
+		return navigationArrivedVoiceLabel;
+	}
+
+	roundaboutMatch = instructionText.match(/At the roundabout,\s*take the\s+(.+?)\s+exit(?:\s+onto\s+(.+))?$/i);
+	if (roundaboutMatch) {
+		speechText = 'V\u00e0o v\u00f2ng xuy\u1ebfn, ra \u1edf l\u1ed1i ' + Wo_ExploreNearbyTranslateGoogleRoundaboutExit(roundaboutMatch[1]);
+		if ($.trim(roundaboutMatch[2] || '')) {
+			speechText += ' v\u00e0o ' + Wo_ExploreNearbyExpandSpeechInstructionText(roundaboutMatch[2]);
+		}
+
+		return $.trim(speechText.replace(/\s+/g, ' '));
+	}
+
+	targetText = Wo_ExploreNearbyExtractGoogleInstructionTargetText(instructionText);
+	prefixText = Wo_ExploreNearbyBuildGoogleManeuverPrefix(maneuverText, instructionText);
+	if (prefixText && targetText) {
+		if (prefixText === '\u0110i th\u1eb3ng' || prefixText === 'Ti\u1ebfp t\u1ee5c \u0111i' || prefixText === 'B\u1eaft \u0111\u1ea7u \u0111i') {
+			return prefixText + ' tr\u00ean ' + targetText;
+		}
+		if (prefixText === 'Gi\u1eef b\u00ean tr\u00e1i' || prefixText === 'Gi\u1eef b\u00ean ph\u1ea3i' || prefixText.indexOf('\u0110i theo nh\u00e1nh') === 0) {
+			return prefixText + ' theo ' + targetText;
+		}
+		if (prefixText === 'Quay \u0111\u1ea7u') {
+			return prefixText + ' \u0111\u1ec3 \u0111i v\u00e0o ' + targetText;
+		}
+		if (prefixText === 'V\u00e0o v\u00f2ng xuy\u1ebfn') {
+			return prefixText + ' v\u00e0o ' + targetText;
+		}
+
+		return prefixText + ' v\u00e0o ' + targetText;
+	}
+
+	if (prefixText) {
+		return prefixText;
+	}
+
+	replacements = [
+		[/^Head\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\b/i, function(match, directionText) {
+			return '\u0110i v\u1ec1 h\u01b0\u1edbng ' + Wo_ExploreNearbyTranslateCompassDirection(directionText);
+		}],
+		[/^Head\b/i, 'B\u1eaft \u0111\u1ea7u \u0111i'],
+		[/^Continue(?: straight)?(?: to stay on)?\b/i, 'Ti\u1ebfp t\u1ee5c \u0111i'],
+		[/^Take the ramp\b/i, '\u0110i theo l\u1ed1i ra'],
+		[/^Merge\b/i, 'Nh\u1eadp v\u00e0o'],
+		[/^Keep left\b/i, 'Gi\u1eef b\u00ean tr\u00e1i'],
+		[/^Keep right\b/i, 'Gi\u1eef b\u00ean ph\u1ea3i'],
+		[/^Slight left\b/i, 'Ch\u1ebfch tr\u00e1i'],
+		[/^Slight right\b/i, 'Ch\u1ebfch ph\u1ea3i'],
+		[/^Turn sharp left\b/i, 'R\u1ebd g\u1ea5p tr\u00e1i'],
+		[/^Turn sharp right\b/i, 'R\u1ebd g\u1ea5p ph\u1ea3i'],
+		[/^Turn left\b/i, 'R\u1ebd tr\u00e1i'],
+		[/^Turn right\b/i, 'R\u1ebd ph\u1ea3i'],
+		[/^Make a U-turn\b/i, 'Quay \u0111\u1ea7u'],
+		[/Destination will be on the left\b/i, '\u0110i\u1ec3m \u0111\u1ebfn \u1edf b\u00ean tr\u00e1i'],
+		[/Destination will be on the right\b/i, '\u0110i\u1ec3m \u0111\u1ebfn \u1edf b\u00ean ph\u1ea3i']
+	];
+
+	for (i = 0; i < replacements.length; i++) {
+		speechText = speechText.replace(replacements[i][0], replacements[i][1]);
+	}
+
+	speechText = speechText.replace(/\bonto\b/gi, ' v\u00e0o ');
+	speechText = speechText.replace(/\bon\b/gi, ' tr\u00ean ');
+	speechText = speechText.replace(/\btowards?\b/gi, ' h\u01b0\u1edbng ');
+	speechText = speechText.replace(/\s+/g, ' ');
+
+	return $.trim(Wo_ExploreNearbyExpandSpeechInstructionText(speechText));
+}
+
+function Wo_ExploreNearbyFormatMetersDistance(distanceMeters) {
+	var numericDistance = parseFloat(distanceMeters);
+	if (isNaN(numericDistance) || numericDistance <= 0) {
+		return '';
+	}
+
+	if (numericDistance < 1000) {
+		return Math.max(1, Math.round(numericDistance)) + ' m';
+	}
+
+	return (numericDistance / 1000).toFixed(numericDistance >= 10000 ? 0 : 1).replace(/\.0$/, '') + ' km';
+}
+
+function Wo_ExploreNearbyFormatDurationSeconds(durationSeconds) {
+	var numericSeconds = parseInt(durationSeconds, 10);
+	var hours = 0;
+	var minutes = 0;
+
+	if (isNaN(numericSeconds) || numericSeconds <= 0) {
+		return '';
+	}
+
+	minutes = Math.max(1, Math.round(numericSeconds / 60));
+	if (minutes < 60) {
+		return minutes + ' min';
+	}
+
+	hours = Math.floor(minutes / 60);
+	minutes = minutes % 60;
+	if (!minutes) {
+		return hours + ' hr';
+	}
+
+	return hours + ' hr ' + minutes + ' min';
+}
+
+function Wo_ExploreNearbyGetNavigationStatusLabel(status) {
+	if (status === 'starting') {
+		return navigationStatusStartingLabel;
+	}
+	if (status === 'rerouting') {
+		return navigationStatusReroutingLabel;
+	}
+	if (status === 'arrived') {
+		return navigationStatusArrivedLabel;
+	}
+	if (status === 'active') {
+		return navigationStatusActiveLabel;
+	}
+
+	return navigationStatusNoticeLabel;
+}
+
+function Wo_ExploreNearbyBuildNavigationStatusClass(status) {
+	if (status === 'rerouting') {
+		return ' is-rerouting';
+	}
+	if (status === 'notice') {
+		return ' is-notice';
+	}
+
+	return '';
+}
+
+function Wo_ExploreNearbyIsVietnameseNavigationLanguage() {
+	return String(navigationUiLanguage || '').toLowerCase().indexOf('vi') === 0;
+}
+
+function Wo_ExploreNearbyCanUseGoogleInAppNavigation() {
+	return WoExploreNearbyMapState.provider === 'google' &&
+		!!WoExploreNearbyMapState.map &&
+		typeof google !== 'undefined' &&
+		google.maps &&
+		typeof $.ajax === 'function';
+}
+
+function Wo_ExploreNearbyGetPreferredRoutingProvider() {
+	if (Wo_ExploreNearbyCanUseGoogleInAppNavigation()) {
+		return 'google';
+	}
+
+	return '';
+}
+
+function Wo_ExploreNearbyCanUseInAppNavigation() {
+	return Wo_ExploreNearbyCanUseGoogleInAppNavigation();
+}
+
+function Wo_ExploreNearbyCanStartInAppNavigationForItem(item) {
+	if (!item || item.is_self || item.isSelf) {
+		return false;
+	}
+
+	return Wo_ExploreNearbyHasValidCoordinates(item.lat, item.lng) && Wo_ExploreNearbyCanUseInAppNavigation();
+}
+
+function Wo_ExploreNearbyIsNavigationCardActive(item) {
+	var itemKey = $.trim(Wo_ExploreNearbyGetItemKey(item || {}));
+	var targetPointKey = $.trim(WoExploreNearbyState.routeTargetPointKey || '');
+
+	if (!itemKey || !targetPointKey || itemKey !== targetPointKey) {
+		return false;
+	}
+
+	return WoExploreNearbyState.navigationActive === true ||
+		WoExploreNearbyState.navigationStatus === 'starting' ||
+		WoExploreNearbyState.navigationStatus === 'rerouting';
+}
+
+function Wo_ExploreNearbyRefreshSpeechAvailability() {
+	WoExploreNearbyState.navigationSpeechAvailable = false;
+
+	return WoExploreNearbyState.navigationSpeechAvailable;
+}
+
+function Wo_ExploreNearbyEnsureNavigationAudioElement() {
+	return null;
+}
+
+function Wo_ExploreNearbyGetNavigationSpeechCacheKey(text, options) {
+	var settings = options || {};
+	var explicitCacheKey = $.trim(settings.cacheKey || '');
+
+	if (explicitCacheKey) {
+		return explicitCacheKey;
+	}
+
+	return $.trim(text || '');
+}
+
+function Wo_ExploreNearbyShowNavigationVoiceNotice(message) {
+	var noticeText = $.trim(message || '');
+	var previousSummary = '';
+
+	if (!noticeText || !WoExploreNearbyState.navigationBannerVisible) {
+		return;
+	}
+
+	clearTimeout(WoExploreNearbyState.navigationVoiceNoticeTimer);
+	previousSummary = $.trim(WoExploreNearbyState.navigationSummaryText || '');
+	WoExploreNearbyState.navigationSummaryText = noticeText;
+	Wo_ExploreNearbyUpdateNavigationBanner();
+	WoExploreNearbyState.navigationVoiceNoticeTimer = setTimeout(function() {
+		if ($.trim(WoExploreNearbyState.navigationSummaryText || '') === noticeText) {
+			WoExploreNearbyState.navigationSummaryText = previousSummary;
+			Wo_ExploreNearbyUpdateNavigationBanner();
+		}
+		WoExploreNearbyState.navigationVoiceNoticeTimer = null;
+	}, 2600);
+}
+
+function Wo_ExploreNearbyCancelNavigationSpeech() {
+	var audioElement = WoExploreNearbyState.navigationAudioElement || null;
+
+	WoExploreNearbyState.navigationSpeechRequestToken += 1;
+	try {
+		if (audioElement) {
+			audioElement.pause();
+			audioElement.currentTime = 0;
+		}
+	}
+	catch (error) {}
+}
+
+function Wo_ExploreNearbyPrimeNavigationSpeech() {
+	WoExploreNearbyState.navigationSpeechPrimed = false;
+	return false;
+}
+
+function Wo_ExploreNearbySpeakNavigationText(text, options) {
+	return false;
+}
+
+function Wo_ExploreNearbyBuildNavigationStartVoiceText(targetPoint) {
+	var destinationName = $.trim(Wo_ExploreNearbyStripHtml((targetPoint && (targetPoint.name || targetPoint.title)) || ''));
+
+	if (!destinationName) {
+		return navigationVoiceStartLabel;
+	}
+
+	return navigationVoiceStartLabel + ' đến ' + destinationName;
+
+	if (Wo_ExploreNearbyIsVietnameseNavigationLanguage()) {
+		return 'Bắt đầu chỉ đường đến ' + destinationName;
+	}
+
+	return 'Starting directions to ' + destinationName;
+}
+
+function Wo_ExploreNearbyClearNavigationTimers() {
+	clearTimeout(WoExploreNearbyState.navigationNoticeTimer);
+	clearTimeout(WoExploreNearbyState.navigationCompletionTimer);
+	clearTimeout(WoExploreNearbyState.navigationVoiceNoticeTimer);
+	WoExploreNearbyState.navigationNoticeTimer = null;
+	WoExploreNearbyState.navigationCompletionTimer = null;
+	WoExploreNearbyState.navigationVoiceNoticeTimer = null;
+}
+
+function Wo_ExploreNearbySetNavigationBannerState(status, instructionText, summaryText, destinationName) {
+	WoExploreNearbyState.navigationStatus = status || 'notice';
+	WoExploreNearbyState.navigationInstructionText = $.trim(instructionText || '');
+	WoExploreNearbyState.navigationSummaryText = $.trim(summaryText || '');
+	WoExploreNearbyState.navigationDestinationName = $.trim(destinationName || WoExploreNearbyState.navigationDestinationName || '');
+	WoExploreNearbyState.navigationBannerVisible = true;
+	Wo_ExploreNearbyUpdateNavigationBanner();
+}
+
+function Wo_ExploreNearbyResetNavigationState() {
+	Wo_ExploreNearbyClearNavigationTimers();
+	Wo_ExploreNearbyCancelNavigationSpeech();
+	WoExploreNearbyState.navigationRouteRequestToken += 1;
+	WoExploreNearbyState.navigationActive = false;
+	WoExploreNearbyState.navigationMuted = false;
+	WoExploreNearbyState.navigationCurrentStepIndex = -1;
+	WoExploreNearbyState.navigationLastSpokenStepKey = '';
+	WoExploreNearbyState.navigationRouteData = null;
+	WoExploreNearbyState.navigationLastRerouteAt = 0;
+	WoExploreNearbyState.navigationOffRouteCount = 0;
+	WoExploreNearbyState.navigationBannerVisible = false;
+	WoExploreNearbyState.navigationStatus = 'idle';
+	WoExploreNearbyState.navigationInstructionText = '';
+	WoExploreNearbyState.navigationSummaryText = '';
+	WoExploreNearbyState.navigationDestinationName = '';
+	WoExploreNearbyState.navigationRerouteInProgress = false;
+	Wo_ExploreNearbyUpdateNavigationBanner();
+}
+
+function Wo_ExploreNearbyShowNavigationNotice(message, durationMs) {
+	var timeoutMs = Math.max(1200, parseInt(durationMs, 10) || 2600);
+
+	Wo_ExploreNearbyClearNavigationTimers();
+	WoExploreNearbyState.navigationActive = false;
+	WoExploreNearbyState.navigationRerouteInProgress = false;
+	Wo_ExploreNearbySetNavigationBannerState('notice', message || navigationGoogleRequiredLabel, '', '');
+	Wo_ExploreNearbyUpdateUi();
+	WoExploreNearbyState.navigationNoticeTimer = setTimeout(function() {
+		if (WoExploreNearbyState.navigationActive) {
+			return;
+		}
+
+		WoExploreNearbyState.navigationBannerVisible = false;
+		WoExploreNearbyState.navigationStatus = 'idle';
+		WoExploreNearbyState.navigationInstructionText = '';
+		WoExploreNearbyState.navigationSummaryText = '';
+		WoExploreNearbyState.navigationDestinationName = '';
+		WoExploreNearbyState.navigationNoticeTimer = null;
+		Wo_ExploreNearbyUpdateNavigationBanner();
+	}, timeoutMs);
+}
+
+function Wo_ExploreNearbyGetRouteFailureReasonText() {
+	return $.trim(WoExploreNearbyState.lastRouteErrorMessage || '');
+}
+
+function Wo_ExploreNearbyShowRouteFallbackNotice(targetPoint, durationMs) {
+	var timeoutMs = Math.max(1800, parseInt(durationMs, 10) || 4200);
+	var targetPointKey = $.trim(Wo_ExploreNearbyGetItemKey(targetPoint || {}));
+	var reasonText = Wo_ExploreNearbyGetRouteFailureReasonText();
+	var summaryText = reasonText || navigationFallbackLineLabel;
+	var destinationName = $.trim((targetPoint && (targetPoint.name || targetPoint.title)) || '');
+	var noticeKey = (targetPointKey || 'route') + '|' + summaryText;
+	var currentTime = Date.now();
+
+	if (noticeKey === $.trim(WoExploreNearbyState.lastRouteFallbackNoticeKey || '') &&
+		(currentTime - (WoExploreNearbyState.lastRouteFallbackNoticeAt || 0)) < 3200) {
+		return;
+	}
+
+	WoExploreNearbyState.lastRouteFallbackNoticeKey = noticeKey;
+	WoExploreNearbyState.lastRouteFallbackNoticeAt = currentTime;
+	Wo_ExploreNearbyClearNavigationTimers();
+	Wo_ExploreNearbySetNavigationBannerState('notice', navigationRouteUnavailableLabel, summaryText, destinationName);
+	Wo_ExploreNearbyUpdateUi();
+	WoExploreNearbyState.navigationNoticeTimer = setTimeout(function() {
+		if (WoExploreNearbyState.navigationActive) {
+			return;
+		}
+
+		WoExploreNearbyState.navigationBannerVisible = false;
+		WoExploreNearbyState.navigationStatus = 'idle';
+		WoExploreNearbyState.navigationInstructionText = '';
+		WoExploreNearbyState.navigationSummaryText = '';
+		WoExploreNearbyState.navigationDestinationName = '';
+		WoExploreNearbyState.navigationNoticeTimer = null;
+		Wo_ExploreNearbyUpdateNavigationBanner();
+	}, timeoutMs);
+}
+
+function Wo_ExploreNearbyUpdateNavigationBanner() {
+	var banner = $('#explore-nearby-nav-banner');
+
+	if (!banner.length) {
+		return;
+	}
+
+	banner.empty().addClass('wo_explore_nearby_hidden');
 }
 
 function Wo_ExploreNearbyGetItemKey(item) {
@@ -2248,7 +3321,7 @@ function Wo_ExploreNearbyNormalizeDiscoveryItems(items) {
 		}
 
 		if (itemType === 'user' && hasCoordinates) {
-			itemLocation = dynamicLocation || Wo_ExploreNearbyBuildCoordinateText(parsedLat, parsedLng);
+			itemLocation = dynamicLocation || itemLocation || Wo_ExploreNearbyBuildCoordinateText(parsedLat, parsedLng);
 		}
 
 		normalizedItems.push({
@@ -2271,7 +3344,7 @@ function Wo_ExploreNearbyNormalizeDiscoveryItems(items) {
 			is_pinned: Wo_ExploreNearbyIsPinnedPoint(item),
 			is_pinned_only: Wo_ExploreNearbyIsTruthyFlag(item.is_pinned_only) || Wo_ExploreNearbyIsTruthyFlag(item.isPinnedOnly),
 			location: itemLocation,
-			location_dynamic: dynamicLocation || (itemType === 'user' && hasCoordinates ? Wo_ExploreNearbyBuildCoordinateText(parsedLat, parsedLng) : ''),
+			location_dynamic: dynamicLocation || '',
 			distance_value: distanceValue,
 			distance_text: item.distance_text || Wo_ExploreNearbyFormatDistance(distanceValue),
 			lat: hasCoordinates ? parsedLat : null,
@@ -2559,6 +3632,10 @@ function Wo_ExploreNearbyClearRouteTarget(skipClearRouteLine) {
 	var hadRouteTarget = !!($.trim(WoExploreNearbyState.routeTargetPointKey || '') || WoExploreNearbyState.routeTargetPointData);
 	WoExploreNearbyState.routeTargetPointKey = null;
 	WoExploreNearbyState.routeTargetPointData = null;
+	WoExploreNearbyState.routeLastPath = [];
+	WoExploreNearbyState.routeLastFallbackPath = [];
+	WoExploreNearbyState.routeLastTargetPointKey = '';
+	Wo_ExploreNearbyResetNavigationState();
 
 	if (hadRouteTarget) {
 		WoExploreNearbyState.routeRenderToken++;
@@ -2591,6 +3668,10 @@ function Wo_ExploreNearbySetRouteTargetPoint(point) {
 	WoExploreNearbyState.routeTargetPointKey = routePointKey;
 	WoExploreNearbyState.routeTargetPointData = routePoint;
 	Wo_ExploreNearbySetPreviewPoint(routePoint);
+}
+
+function Wo_ExploreNearbyHasActiveRouteTarget() {
+	return !!$.trim(WoExploreNearbyState.routeTargetPointKey || '');
 }
 
 function Wo_ExploreNearbyApplyMarkerSelection(point, options) {
@@ -3189,7 +4270,7 @@ function Wo_ExploreNearbyFetchLocationSuggestions(query) {
 			return items;
 		}
 
-		if (Wo_ExploreNearbyCanUseGoogleGeocoder()) {
+		if (Wo_ExploreNearbyCanUseGoogleGeocoderFallback()) {
 			if (!WoExploreNearbyState.userGoogleGeocoder) {
 				WoExploreNearbyState.userGoogleGeocoder = new google.maps.Geocoder();
 			}
@@ -3567,18 +4648,10 @@ function Wo_ExploreNearbyUpdateMapPrompt() {
 		return;
 	}
 
-	if (Wo_ExploreNearbySyncLocationAnchorState()) {
-		map.removeClass('is-awaiting-location');
-		prompt.empty().addClass('wo_explore_nearby_hidden');
-		mapLocationButton.removeClass('wo_explore_nearby_hidden');
-		Wo_ExploreNearbyUpdateLocationTrigger();
-		Wo_ExploreNearbyMaybeAutoOpenSheetOnboarding();
-		return;
-	}
-
-	map.addClass('is-awaiting-location');
-	prompt.html(Wo_ExploreNearbyGetMapPromptHtml()).removeClass('wo_explore_nearby_hidden');
-	mapLocationButton.addClass('wo_explore_nearby_hidden');
+	Wo_ExploreNearbySyncLocationAnchorState();
+	map.removeClass('is-awaiting-location');
+	prompt.empty().addClass('wo_explore_nearby_hidden');
+	mapLocationButton.removeClass('wo_explore_nearby_hidden');
 	Wo_ExploreNearbyUpdateLocationTrigger();
 	Wo_ExploreNearbyMaybeAutoOpenSheetOnboarding();
 }
@@ -3640,7 +4713,13 @@ function Wo_ExploreNearbyIsCompactViewport() {
 }
 
 function Wo_ExploreNearbyGetStageAvailableHeight() {
-	return Math.max(460, window.innerHeight - Wo_ExploreNearbyGetStickyHeaderOffset() - 10);
+	var headerOffset = Wo_ExploreNearbyGetStickyHeaderOffset();
+
+	if (Wo_ExploreNearbyIsCompactViewport()) {
+		return Math.max(460, window.innerHeight - headerOffset - 10);
+	}
+
+	return Math.max(520, window.innerHeight - headerOffset);
 }
 
 function Wo_ExploreNearbyUpdateViewportHeight() {
@@ -3689,11 +4768,12 @@ function Wo_ExploreNearbyUpdateFullscreenButton() {
 function Wo_ExploreNearbyUpdateMapZoomControls() {
 	var zoomControls = $('#explore-nearby-map-zoom-controls');
 	var sheetHeight = WoExploreNearbyState.sheetCurrentHeight || ($('#explore-nearby-sheet').outerHeight() || 0);
-	var desiredBottomOffset = Math.max(14, Math.round(sheetHeight + 14));
+	var bottomGap = Wo_ExploreNearbyIsCompactViewport() ? 14 : 12;
+	var desiredBottomOffset = Math.max(bottomGap, Math.round(sheetHeight + bottomGap));
 	var stageHeight = $('#explore-nearby-stage').outerHeight() || Wo_ExploreNearbyGetStageAvailableHeight();
 	var controlsHeight = Math.ceil(zoomControls.outerHeight() || 0);
 	var viewportPadding = Wo_ExploreNearbyGetMapViewportPadding();
-	var maxBottomOffset = Math.max(14, Math.round(stageHeight - viewportPadding.top - controlsHeight - 12));
+	var maxBottomOffset = Math.max(bottomGap, Math.round(stageHeight - viewportPadding.top - controlsHeight - 12));
 	var bottomOffset = Math.min(desiredBottomOffset, maxBottomOffset);
 	var myLocationLabel = WoExploreNearbyState.locationRequestPending ? requestingLocationLabel : useMyLocationLabel;
 
@@ -3888,6 +4968,14 @@ function Wo_ExploreNearbyGetFixedSheetSnapMode() {
 	return 'medium';
 }
 
+function Wo_ExploreNearbyGetFixedSheetCompactHeight(stageHeight) {
+	var isCompactViewport = Wo_ExploreNearbyIsCompactViewport();
+	var compactHeight = isCompactViewport ? 276 : 292;
+	var maxHeightOffset = isCompactViewport ? 10 : 8;
+
+	return Math.max(232, Math.min(stageHeight - maxHeightOffset, compactHeight));
+}
+
 function Wo_ExploreNearbyIsPageScrollFirstGestureMode() {
 	return Wo_ExploreNearbyGetMapGestureMode() === 'page-scroll-first';
 }
@@ -3937,6 +5025,13 @@ function Wo_ExploreNearbyGetSheetSnapHeights() {
 	heights.expanded = Math.max(320, Math.min(stageHeight - 6, heights.expanded));
 	heights.medium = Math.max(240, Math.min(heights.expanded - 72, heights.medium));
 	heights.collapsed = Math.max(152, Math.min(heights.medium - 72, heights.collapsed));
+
+	if (Wo_ExploreNearbyIsFixedSheetLayout()) {
+		var fixedCompactHeight = Wo_ExploreNearbyGetFixedSheetCompactHeight(stageHeight);
+		heights.medium = fixedCompactHeight;
+		heights.collapsed = Math.max(152, Math.min(fixedCompactHeight - 36, heights.collapsed));
+		heights.expanded = Math.max(fixedCompactHeight + 80, heights.expanded);
+	}
 
 	return heights;
 }
@@ -4422,8 +5517,15 @@ function Wo_ExploreNearbyScheduleRouteViewportResync(pointKey) {
 			return;
 		}
 
-		Wo_ExploreNearbySyncRouteLine();
+		Wo_ExploreNearbyRestoreRouteLine(pointKey);
 	}, 260);
+}
+
+function Wo_ExploreNearbyShouldLockNavigationViewport() {
+	return WoExploreNearbyState.navigationActive === true ||
+		WoExploreNearbyState.navigationRerouteInProgress === true ||
+		$.trim(WoExploreNearbyState.navigationStatus || '') === 'starting' ||
+		$.trim(WoExploreNearbyState.navigationStatus || '') === 'rerouting';
 }
 
 function Wo_ExploreNearbyGetMapViewportPadding() {
@@ -4433,12 +5535,12 @@ function Wo_ExploreNearbyGetMapViewportPadding() {
 	var topbarHeight = topbarElement ? Math.ceil($(topbarElement).outerHeight() || 0) : 0;
 	var sheetHeight = WoExploreNearbyState.sheetCurrentHeight || ($('#explore-nearby-sheet').outerHeight() || 0);
 	var isCompactViewport = Wo_ExploreNearbyIsCompactViewport();
-	var horizontalPadding = isCompactViewport ? 18 : 28;
+	var horizontalPadding = isCompactViewport ? 18 : 20;
 	var topPadding = Math.max(
-		isCompactViewport ? 78 : 92,
-		isCompactViewport ? (topbarBottom ? (topbarBottom + 18) : 0) : (topbarHeight + 22)
+		isCompactViewport ? 78 : 76,
+		isCompactViewport ? (topbarBottom ? (topbarBottom + 18) : 0) : (topbarHeight + 16)
 	);
-	var bottomPadding = Math.max(isCompactViewport ? 178 : 154, sheetHeight + 26);
+	var bottomPadding = Math.max(isCompactViewport ? 178 : 134, sheetHeight + (isCompactViewport ? 26 : 18));
 
 	return {
 		top: topPadding,
@@ -4476,6 +5578,10 @@ function Wo_ExploreNearbyCanUseGoogleGeocoder() {
 	return typeof google !== 'undefined' &&
 		google.maps &&
 		typeof google.maps.Geocoder === 'function';
+}
+
+function Wo_ExploreNearbyCanUseGoogleGeocoderFallback() {
+	return allowGoogleGeocoderFallback === true && Wo_ExploreNearbyCanUseGoogleGeocoder();
 }
 
 function Wo_ExploreNearbyGetGoogleGeocoder() {
@@ -4710,11 +5816,18 @@ function Wo_ExploreNearbyReverseGeocodeCoordinates(lat, lng) {
 
 	var numericLat = parseFloat(lat);
 	var numericLng = parseFloat(lng);
-	var cacheKey = numericLat.toFixed(6) + ',' + numericLng.toFixed(6);
+	var cacheKey = Wo_ExploreNearbyBuildReverseGeocodeCacheKey(numericLat, numericLng);
 	var fallbackText = Wo_ExploreNearbyBuildCoordinateText(numericLat, numericLng);
+	var storedAddress = '';
 
 	if (Object.prototype.hasOwnProperty.call(WoExploreNearbyState.userReverseGeocodeCache, cacheKey)) {
 		return Promise.resolve(WoExploreNearbyState.userReverseGeocodeCache[cacheKey] || fallbackText);
+	}
+
+	storedAddress = Wo_ExploreNearbyReadStoredReverseGeocodeCache(cacheKey);
+	if (storedAddress) {
+		WoExploreNearbyState.userReverseGeocodeCache[cacheKey] = storedAddress;
+		return Promise.resolve(storedAddress);
 	}
 
 	if (WoExploreNearbyState.userReverseGeocodePending[cacheKey]) {
@@ -4743,12 +5856,19 @@ function Wo_ExploreNearbyReverseGeocodeCoordinates(lat, lng) {
 	}
 
 	WoExploreNearbyState.userReverseGeocodePending[cacheKey] = resolvePromise.then(function(addressText) {
-		var normalizedAddress = $.trim(addressText || '') || fallbackText;
+		var normalizedAddress = $.trim(addressText || '');
+		if (normalizedAddress) {
+			WoExploreNearbyState.userReverseGeocodeCache[cacheKey] = normalizedAddress;
+			Wo_ExploreNearbyWriteStoredReverseGeocodeCache(cacheKey, normalizedAddress);
+			delete WoExploreNearbyState.userReverseGeocodePending[cacheKey];
+			return normalizedAddress;
+		}
+
 		WoExploreNearbyState.userReverseGeocodeCache[cacheKey] = normalizedAddress;
 		delete WoExploreNearbyState.userReverseGeocodePending[cacheKey];
-		return normalizedAddress;
+		return fallbackText;
 	}).catch(function() {
-		WoExploreNearbyState.userReverseGeocodeCache[cacheKey] = fallbackText;
+		WoExploreNearbyState.userReverseGeocodeCache[cacheKey] = '';
 		delete WoExploreNearbyState.userReverseGeocodePending[cacheKey];
 		return fallbackText;
 	});
@@ -4810,62 +5930,12 @@ function Wo_ExploreNearbyGeocodeSearchPlace(query, placeId, placePrediction) {
 
 	var geocodePromise = null;
 	if (normalizedPlaceId) {
-		geocodePromise = Wo_ExploreNearbyResolvePlaceById(normalizedPlaceId, normalizedQuery, normalizedQuery, placePrediction).then(function(placeItem) {
-			if (placeItem) {
-				return placeItem;
-			}
-
-			if (!Wo_ExploreNearbyGetGoogleGeocoder()) {
-				return null;
-			}
-
-			return new Promise(function(resolve) {
-				Wo_ExploreNearbyGetGoogleGeocoder().geocode({
-					placeId: normalizedPlaceId
-				}, function(results, status) {
-					var geocodeResult = null;
-					if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
-						geocodeResult = {
-							lat: results[0].geometry.location.lat(),
-							lng: results[0].geometry.location.lng(),
-							title: $.trim((results[0].address_components && results[0].address_components[0] && results[0].address_components[0].long_name) || normalizedQuery),
-							location: $.trim(results[0].formatted_address || normalizedQuery)
-						};
-					}
-					resolve(Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, geocodeResult));
-				});
-			});
-		});
+		geocodePromise = Wo_ExploreNearbyResolvePlaceById(normalizedPlaceId, normalizedQuery, normalizedQuery, placePrediction);
 	}
 	else if (placePrediction) {
-		geocodePromise = Wo_ExploreNearbyResolvePlacePrediction(placePrediction, normalizedQuery, normalizedQuery).then(function(placeItem) {
-			if (placeItem) {
-				return placeItem;
-			}
-
-			if (!Wo_ExploreNearbyGetGoogleGeocoder()) {
-				return null;
-			}
-
-			return new Promise(function(resolve) {
-				Wo_ExploreNearbyGetGoogleGeocoder().geocode({
-					address: normalizedQuery
-				}, function(results, status) {
-					var geocodeResult = null;
-					if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
-						geocodeResult = {
-							lat: results[0].geometry.location.lat(),
-							lng: results[0].geometry.location.lng(),
-							title: $.trim((results[0].address_components && results[0].address_components[0] && results[0].address_components[0].long_name) || normalizedQuery),
-							location: $.trim(results[0].formatted_address || normalizedQuery)
-						};
-					}
-					resolve(Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, geocodeResult));
-				});
-			});
-		});
+		geocodePromise = Wo_ExploreNearbyResolvePlacePrediction(placePrediction, normalizedQuery, normalizedQuery);
 	}
-	else if (Wo_ExploreNearbyGetGoogleGeocoder()) {
+	else if (Wo_ExploreNearbyCanUseGoogleGeocoderFallback()) {
 		geocodePromise = new Promise(function(resolve) {
 			Wo_ExploreNearbyGetGoogleGeocoder().geocode({
 				address: normalizedQuery
@@ -4972,8 +6042,24 @@ function Wo_ExploreNearbyResolveSelectedSuggestionAnchor(item, query) {
 				return Wo_ExploreNearbyBuildAnchorItem('page', suggestion);
 			}
 
+			var pagePlaceId = $.trim(suggestion.place_id || '');
 			var pageAddress = $.trim(suggestion.address || suggestion.location || '');
-			if (!pageAddress || !Wo_ExploreNearbyGetGoogleGeocoder()) {
+			if (pagePlaceId) {
+				return Wo_ExploreNearbyResolveShopPlaceCoordinatesByPlaceId(pagePlaceId, pageAddress || normalizedQuery).then(function(placeCoordinates) {
+					if (!placeCoordinates) {
+						return null;
+					}
+
+					return Wo_ExploreNearbyBuildAnchorItem('page', suggestion, {
+						lat: placeCoordinates.lat,
+						lng: placeCoordinates.lng,
+						location: $.trim(placeCoordinates.location || pageAddress || normalizedQuery),
+						title: $.trim(suggestion.title || suggestion.name || '')
+					});
+				});
+			}
+
+			if (!pageAddress || !Wo_ExploreNearbyCanUseGoogleGeocoderFallback()) {
 				return null;
 			}
 
@@ -5437,12 +6523,12 @@ function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
 }
 
 function Wo_ExploreNearbyRefreshCurrentUserDynamicLocation() {
-	if (!Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng)) {
+	if (!Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng) || Wo_ExploreNearbyHasMeaningfulLocationText(currentUserMapPoint.location)) {
 		return;
 	}
 
 	Wo_ExploreNearbyReverseGeocodeCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng).then(function(addressText) {
-		if (!addressText) {
+		if (!Wo_ExploreNearbyHasMeaningfulLocationText(addressText)) {
 			return;
 		}
 
@@ -5452,65 +6538,7 @@ function Wo_ExploreNearbyRefreshCurrentUserDynamicLocation() {
 }
 
 function Wo_ExploreNearbyRefreshDynamicUserLocations(shouldRefreshMap) {
-	var normalizedUsers = Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.usersItems || []);
-	var refreshToken = ++WoExploreNearbyState.dynamicLocationRefreshToken;
-	var requests = [];
-
-	for (var i = 0; i < normalizedUsers.length; i++) {
-		if (normalizedUsers[i].type !== 'user' || !Wo_ExploreNearbyHasValidCoordinates(normalizedUsers[i].lat, normalizedUsers[i].lng)) {
-			continue;
-		}
-
-		(function(itemKey, lat, lng) {
-			requests.push(Wo_ExploreNearbyReverseGeocodeCoordinates(lat, lng).then(function(addressText) {
-				return {
-					item_key: itemKey,
-					location: addressText
-				};
-			}));
-		})(normalizedUsers[i].item_key, normalizedUsers[i].lat, normalizedUsers[i].lng);
-	}
-
-	if (!requests.length) {
-		Wo_ExploreNearbyRefreshCurrentUserDynamicLocation();
-		return;
-	}
-
-	Promise.all(requests).then(function(results) {
-		if (refreshToken !== WoExploreNearbyState.dynamicLocationRefreshToken) {
-			return;
-		}
-
-		var locationLookup = {};
-		var hasChanged = false;
-		for (var resultIndex = 0; resultIndex < results.length; resultIndex++) {
-			if (results[resultIndex] && results[resultIndex].item_key && results[resultIndex].location) {
-				locationLookup[results[resultIndex].item_key] = results[resultIndex].location;
-			}
-		}
-
-		WoExploreNearbyState.usersItems = normalizedUsers.map(function(item) {
-			var nextLocation = locationLookup[item.item_key] || item.location;
-			if (nextLocation && item.location !== nextLocation) {
-				hasChanged = true;
-			}
-
-			return $.extend({}, item, {
-				location: nextLocation,
-				location_dynamic: nextLocation || item.location_dynamic || ''
-			});
-		});
-
-		Wo_ExploreNearbyRefreshCurrentUserDynamicLocation();
-		if (!hasChanged) {
-			return;
-		}
-
-		Wo_ExploreNearbyRenderList();
-		if (shouldRefreshMap !== false) {
-			Wo_ExploreNearbyRenderCurrentMap(WoExploreNearbyState.openPopupPointKey || null);
-		}
-	});
+	Wo_ExploreNearbyRefreshCurrentUserDynamicLocation();
 }
 
 function Wo_ExploreNearbyGetDirectionsUrl(point) {
@@ -5649,11 +6677,7 @@ function Wo_ExploreNearbyShouldUseMobileSheet(point) {
 }
 
 function Wo_ExploreNearbyShouldOpenMarkerPopup(point) {
-	if (Wo_ExploreNearbyIsPlaceSearchMode() && point && point.type === 'place') {
-		return false;
-	}
-
-	return !Wo_ExploreNearbyIsCompactViewport() && point && !point.isSelf;
+	return false;
 }
 
 function Wo_ExploreNearbyNormalizeHeading(heading) {
@@ -6329,7 +7353,7 @@ function Wo_ExploreNearbyInitOrientationTracking() {
 	Wo_ExploreNearbyBindDeviceOrientationTracking();
 }
 
-function Wo_ExploreNearbySetCurrentUserCoordinates(lat, lng) {
+function Wo_ExploreNearbySetCurrentUserCoordinates(lat, lng, accuracyMeters) {
 	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
 		return false;
 	}
@@ -6343,7 +7367,7 @@ function Wo_ExploreNearbySetCurrentUserCoordinates(lat, lng) {
 		hasMeaningfulChange = Wo_ExploreNearbyGetDistanceKm(
 			{lat: parseFloat(currentUserMapPoint.lat), lng: parseFloat(currentUserMapPoint.lng)},
 			{lat: numericLat, lng: numericLng}
-		) >= 0.005;
+		) >= liveLocationMarkerRefreshThresholdKm;
 	}
 
 	currentUserMapPoint.lat = numericLat;
@@ -6352,6 +7376,11 @@ function Wo_ExploreNearbySetCurrentUserCoordinates(lat, lng) {
 	currentUserMapPoint.location = currentUserMapPoint.location_dynamic;
 	nearbyMapCenter.lat = numericLat;
 	nearbyMapCenter.lng = numericLng;
+	WoExploreNearbyState.lastAcceptedLivePosition = {
+		lat: numericLat,
+		lng: numericLng
+	};
+	WoExploreNearbyState.lastAcceptedLiveAccuracy = Wo_ExploreNearbyNormalizeAccuracyMeters(accuracyMeters);
 	WoExploreNearbyState.locationBootstrapState = 'ready';
 	Wo_ExploreNearbySyncLocationAnchorState();
 	Wo_ExploreNearbyRefreshSelfMarker();
@@ -6362,30 +7391,92 @@ function Wo_ExploreNearbySetCurrentUserCoordinates(lat, lng) {
 
 function Wo_ExploreNearbyPersistCurrentUserLocation(lat, lng) {
 	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
-		return;
+		return $.Deferred().resolve().promise();
 	}
 
 	var nextPosition = {
 		lat: parseFloat(lat),
 		lng: parseFloat(lng)
 	};
-	if (WoExploreNearbyState.lastSavedLivePosition && Wo_ExploreNearbyGetDistanceKm(WoExploreNearbyState.lastSavedLivePosition, nextPosition) < 0.02) {
-		return;
+	if (WoExploreNearbyState.lastSavedLivePosition && Wo_ExploreNearbyGetDistanceKm(WoExploreNearbyState.lastSavedLivePosition, nextPosition) < liveLocationPersistThresholdKm) {
+		return $.Deferred().resolve().promise();
 	}
 
 	WoExploreNearbyState.lastSavedLivePosition = nextPosition;
-	$.post(Wo_Ajax_Requests_File(), {
+	return $.post(Wo_Ajax_Requests_File(), {
 		f: 'save_user_location',
 		lat: nextPosition.lat,
 		lng: nextPosition.lng
+	}).then(function() {
+		return true;
+	}, function() {
+		return false;
 	});
 }
 
-function Wo_ExploreNearbyScheduleLiveReload() {
+function Wo_ExploreNearbyScheduleLiveReload(persistRequest) {
 	clearTimeout(WoExploreNearbyState.liveLocationReloadTimer);
 	WoExploreNearbyState.liveLocationReloadTimer = setTimeout(function() {
-		Wo_ExploreNearbyLoad(false);
-	}, 350);
+		if (Wo_ExploreNearbyHasActiveRouteTarget()) {
+			WoExploreNearbyState.lastLiveReloadAt = Date.now();
+			return;
+		}
+
+		$.when(persistRequest).always(function() {
+			WoExploreNearbyState.lastLiveReloadAt = Date.now();
+			Wo_ExploreNearbyLoad(false);
+		});
+	}, liveLocationReloadDelayMs);
+}
+
+function Wo_ExploreNearbyRefreshStateItemDistances(items) {
+	if (!Array.isArray(items) || !Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng)) {
+		return false;
+	}
+
+	var selfPoint = {
+		lat: parseFloat(currentUserMapPoint.lat),
+		lng: parseFloat(currentUserMapPoint.lng)
+	};
+	var hasChanges = false;
+
+	for (var i = 0; i < items.length; i++) {
+		var nextItem = items[i] || {};
+		var itemLat = parseFloat(nextItem.lat);
+		var itemLng = parseFloat(nextItem.lng);
+		var nextDistance = null;
+		var nextDistanceText = '';
+		var currentDistance = (nextItem.distance_value !== null && nextItem.distance_value !== undefined && nextItem.distance_value !== '' && !isNaN(parseFloat(nextItem.distance_value))) ? parseFloat(nextItem.distance_value) : null;
+
+		if (nextItem.is_self || nextItem.isSelf || !Wo_ExploreNearbyHasValidCoordinates(itemLat, itemLng)) {
+			continue;
+		}
+
+		nextDistance = Wo_ExploreNearbyGetDistanceKm(selfPoint, {
+			lat: itemLat,
+			lng: itemLng
+		});
+		nextDistanceText = Wo_ExploreNearbyFormatDistance(nextDistance);
+
+		if (currentDistance === null || Math.abs(currentDistance - nextDistance) >= 0.01 || String(nextItem.distance_text || '') !== nextDistanceText) {
+			nextItem.distance_value = nextDistance;
+			nextItem.distance_text = nextDistanceText;
+			hasChanges = true;
+		}
+	}
+
+	return hasChanges;
+}
+
+function Wo_ExploreNearbyRefreshLoadedItemDistances() {
+	var hasChanges = false;
+
+	hasChanges = Wo_ExploreNearbyRefreshStateItemDistances(WoExploreNearbyState.usersItems || []) || hasChanges;
+	hasChanges = Wo_ExploreNearbyRefreshStateItemDistances(WoExploreNearbyState.shopsItems || []) || hasChanges;
+	hasChanges = Wo_ExploreNearbyRefreshStateItemDistances(WoExploreNearbyState.relatedPlaceItems || []) || hasChanges;
+	hasChanges = Wo_ExploreNearbyRefreshStateItemDistances(WoExploreNearbyState.placeSearchResults || []) || hasChanges;
+
+	return hasChanges;
 }
 
 function Wo_ExploreNearbyHandleLiveLocation(position) {
@@ -6397,36 +7488,59 @@ function Wo_ExploreNearbyHandleLiveLocation(position) {
 
 	var lat = parseFloat(position.coords.latitude);
 	var lng = parseFloat(position.coords.longitude);
+	var accuracyMeters = Wo_ExploreNearbyNormalizeAccuracyMeters(position.coords.accuracy);
+	var nextPosition = {
+		lat: lat,
+		lng: lng
+	};
 	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+		WoExploreNearbyState.locationRequestPending = false;
+		Wo_ExploreNearbyUpdateMapPrompt();
+		return;
+	}
+	if (!Wo_ExploreNearbyShouldAcceptLiveLocationUpdate(nextPosition, accuracyMeters)) {
 		WoExploreNearbyState.locationRequestPending = false;
 		Wo_ExploreNearbyUpdateMapPrompt();
 		return;
 	}
 
 	WoExploreNearbyState.locationRequestPending = false;
-	var locationChanged = Wo_ExploreNearbySetCurrentUserCoordinates(lat, lng);
-	var nextPosition = {
-		lat: lat,
-		lng: lng
-	};
+	var hadCurrentUserPoint = Wo_ExploreNearbyHasCurrentUserPoint();
+	var locationChanged = Wo_ExploreNearbySetCurrentUserCoordinates(lat, lng, accuracyMeters);
+	var persistRequest = Wo_ExploreNearbyPersistCurrentUserLocation(lat, lng);
+	var hasRouteTarget = !!$.trim(WoExploreNearbyState.routeTargetPointKey || '');
+	var distancesChanged = false;
+	var now = Date.now();
+	var shouldReloadNearby = false;
 
-	Wo_ExploreNearbyPersistCurrentUserLocation(lat, lng);
 	Wo_ExploreNearbyRefreshCurrentUserDynamicLocation();
 	Wo_ExploreNearbyUpdateMapPrompt();
+	distancesChanged = Wo_ExploreNearbyRefreshLoadedItemDistances();
 
-	if (!WoExploreNearbyState.lastReloadLivePosition || Wo_ExploreNearbyGetDistanceKm(WoExploreNearbyState.lastReloadLivePosition, nextPosition) >= 0.08) {
-		WoExploreNearbyState.lastReloadLivePosition = nextPosition;
-		Wo_ExploreNearbyScheduleLiveReload();
-		return;
+	if (!WoExploreNearbyState.lastReloadLivePosition || Wo_ExploreNearbyGetDistanceKm(WoExploreNearbyState.lastReloadLivePosition, nextPosition) >= liveLocationReloadThresholdKm) {
+		shouldReloadNearby = true;
+	}
+	else if (locationChanged && (!WoExploreNearbyState.lastLiveReloadAt || (now - WoExploreNearbyState.lastLiveReloadAt) >= liveLocationReloadMaxIntervalMs)) {
+		shouldReloadNearby = true;
 	}
 
-	if (locationChanged) {
-		if (WoExploreNearbyState.routeTargetPointKey) {
-			Wo_ExploreNearbySyncRouteLine();
-		}
-		else {
-			Wo_ExploreNearbyRenderCurrentMap(WoExploreNearbyState.openPopupPointKey || null);
-		}
+	if (!hadCurrentUserPoint) {
+		Wo_ExploreNearbyRenderCurrentMap(WoExploreNearbyState.openPopupPointKey || null);
+	}
+	else if (WoExploreNearbyState.navigationActive) {
+		Wo_ExploreNearbyUpdateActiveNavigation(nextPosition);
+	}
+	else if (hasRouteTarget && locationChanged) {
+		Wo_ExploreNearbyUpdateUi();
+		Wo_ExploreNearbyRestoreRouteLine();
+	}
+	else if (distancesChanged) {
+		Wo_ExploreNearbyUpdateUi();
+	}
+
+	if (shouldReloadNearby) {
+		WoExploreNearbyState.lastReloadLivePosition = nextPosition;
+		Wo_ExploreNearbyScheduleLiveReload(persistRequest);
 	}
 }
 
@@ -6461,9 +7575,9 @@ function Wo_ExploreNearbyRequestCurrentUserLocation(userInitiated) {
 	}
 
 	navigator.geolocation.getCurrentPosition(Wo_ExploreNearbyHandleLiveLocation, Wo_ExploreNearbyHandleLocationError, {
-		enableHighAccuracy: true,
-		maximumAge: 30000,
-		timeout: 12000
+		enableHighAccuracy: liveLocationRequestOptions.enableHighAccuracy,
+		maximumAge: liveLocationRequestOptions.maximumAge,
+		timeout: liveLocationRequestOptions.timeout
 	});
 }
 
@@ -6472,14 +7586,8 @@ function Wo_ExploreNearbyStartLiveLocationTracking() {
 		return;
 	}
 
-	var watchOptions = {
-		enableHighAccuracy: true,
-		maximumAge: 30000,
-		timeout: 12000
-	};
-
 	Wo_ExploreNearbyRequestCurrentUserLocation(false);
-	WoExploreNearbyState.liveLocationWatchId = navigator.geolocation.watchPosition(Wo_ExploreNearbyHandleLiveLocation, Wo_ExploreNearbyHandleLocationError, watchOptions);
+	WoExploreNearbyState.liveLocationWatchId = navigator.geolocation.watchPosition(Wo_ExploreNearbyHandleLiveLocation, Wo_ExploreNearbyHandleLocationError, liveLocationRequestOptions);
 }
 
 function Wo_ExploreNearbyHasCurrentUserPoint() {
@@ -6521,21 +7629,28 @@ function Wo_ExploreNearbyRenderCardHtml(item) {
 	var safeKey = Wo_ExploreNearbyEscapeHtml(item.item_key);
 	var safeTitle = Wo_ExploreNearbyEscapeHtml(item.title);
 	var safeSubtitle = Wo_ExploreNearbyEscapeHtml(item.subtitle || '');
+	var safeLocation = Wo_ExploreNearbyEscapeHtml(item.location || '');
 	var safeDescription = Wo_ExploreNearbyEscapeHtml(item.description || '');
 	var safeDistance = Wo_ExploreNearbyEscapeHtml(item.distance_text || '');
 	var isPinned = Wo_ExploreNearbyIsPinnedPoint(item);
+	var isNavigationActive = Wo_ExploreNearbyIsNavigationCardActive(item);
 	var mediaHtml = '';
 	var descriptionHtml = '';
 	var distanceHtml = '';
+	var locationHtml = '';
 	var pinnedBadgeHtml = '';
 	var pinnedMediaBadgeHtml = '';
-	var directionsActionHtml = '';
+	var audioActionHtml = '';
 	var myLocationActionHtml = '';
+	var directionsActionHtml = '';
 	var shareActionHtml = '';
 	var cardActionsHtml = '';
 	var cardClassName = 'wo_explore_discovery_card is-' + Wo_ExploreNearbyEscapeHtml(item.type) + (isPinned ? ' is-pinned' : '');
-	var directionsDisabled = Wo_ExploreNearbyCanGetDirections(item) ? '' : ' disabled';
+	var canStartNavigation = Wo_ExploreNearbyCanStartInAppNavigationForItem(item);
+	var directionsTitle = canStartNavigation ? cardDirectionsLabel : navigationGoogleRequiredLabel;
 	var shareDisabled = $.trim(Wo_ExploreNearbyGetShareUrl(item)) ? '' : ' disabled';
+	var audioButtonDisabled = '';
+	var audioButtonClassName = 'wo_explore_discovery_card_audio_button';
 
 	if (item.avatar) {
 		mediaHtml = '<img src="' + Wo_ExploreNearbyEscapeHtml(item.avatar) + '" alt="' + safeTitle + '">';
@@ -6558,14 +7673,15 @@ function Wo_ExploreNearbyRenderCardHtml(item) {
 	if (safeDistance) {
 		distanceHtml = '<span class="wo_explore_discovery_card_distance">' + safeDistance + '</span>';
 	}
+	if (safeLocation) {
+		locationHtml = '<div class="wo_explore_discovery_card_location">' +
+			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7m0 4.5A2.5 2.5 0 1 0 12 11.5A2.5 2.5 0 0 0 12 6.5"/></svg>' +
+			'<span>' + safeLocation + '</span>' +
+		'</div>';
+	}
 
 	myLocationActionHtml = '<button type="button" class="wo_explore_discovery_card_my_location">' + Wo_ExploreNearbyEscapeHtml(cardMyLocationLabel) + '</button>';
-	if (directionsDisabled === '') {
-		directionsActionHtml = '<button type="button" class="wo_explore_discovery_directions" data-point-key="' + safeKey + '">' + Wo_ExploreNearbyEscapeHtml(cardDirectionsLabel) + '</button>';
-	}
-	else {
-		directionsActionHtml = '<button type="button" class="wo_explore_discovery_directions" disabled>' + Wo_ExploreNearbyEscapeHtml(cardDirectionsLabel) + '</button>';
-	}
+	directionsActionHtml = '<button type="button" class="wo_explore_discovery_directions" data-point-key="' + safeKey + '"' + (canStartNavigation ? '' : ' disabled') + ' title="' + Wo_ExploreNearbyEscapeHtml(directionsTitle) + '" aria-label="' + Wo_ExploreNearbyEscapeHtml(directionsTitle) + '">' + Wo_ExploreNearbyEscapeHtml(cardDirectionsLabel) + '</button>';
 	shareActionHtml = '<button type="button" class="wo_explore_discovery_share" data-point-key="' + safeKey + '"' + shareDisabled + '>' + Wo_ExploreNearbyEscapeHtml(cardShareLabel) + '</button>';
 	cardActionsHtml = '<div class="wo_explore_discovery_card_actions">' +
 		myLocationActionHtml +
@@ -6579,8 +7695,14 @@ function Wo_ExploreNearbyRenderCardHtml(item) {
 			'<div class="wo_explore_discovery_card_head">' +
 				distanceHtml +
 			'</div>' +
-			'<h3 class="wo_explore_discovery_card_title">' + safeTitle + '</h3>' +
-			(safeSubtitle ? '<p class="wo_explore_discovery_card_subtitle">' + safeSubtitle + '</p>' : '') +
+			'<div class="wo_explore_discovery_card_identity_row">' +
+				'<div class="wo_explore_discovery_card_identity">' +
+					'<h3 class="wo_explore_discovery_card_title">' + safeTitle + '</h3>' +
+					(safeSubtitle ? '<p class="wo_explore_discovery_card_subtitle">' + safeSubtitle + '</p>' : '') +
+					locationHtml +
+				'</div>' +
+				audioActionHtml +
+			'</div>' +
 			pinnedBadgeHtml +
 			descriptionHtml +
 			cardActionsHtml +
@@ -6636,6 +7758,269 @@ function Wo_ExploreNearbyGetDistanceKm(firstPoint, secondPoint) {
 		Math.sin(lngDistance / 2) * Math.sin(lngDistance / 2);
 
 	return earthRadiusKm * (2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine)));
+}
+
+function Wo_ExploreNearbyGetDistanceMeters(firstPoint, secondPoint) {
+	return Wo_ExploreNearbyGetDistanceKm(firstPoint, secondPoint) * 1000;
+}
+
+function Wo_ExploreNearbyNormalizeAccuracyMeters(accuracy) {
+	var accuracyMeters = parseFloat(accuracy);
+	if (isNaN(accuracyMeters) || accuracyMeters <= 0) {
+		return 0;
+	}
+
+	return accuracyMeters;
+}
+
+function Wo_ExploreNearbyGetLiveLocationJitterThresholdMeters(accuracyMeters) {
+	var normalizedAccuracy = Wo_ExploreNearbyNormalizeAccuracyMeters(accuracyMeters);
+	var minThreshold = WoExploreNearbyState.navigationActive ? liveLocationNavigationMinMoveMeters : 5;
+	var maxThreshold = WoExploreNearbyState.navigationActive ? 24 : 16;
+
+	if (!normalizedAccuracy) {
+		return minThreshold;
+	}
+
+	return Math.max(minThreshold, Math.min(maxThreshold, normalizedAccuracy * (WoExploreNearbyState.navigationActive ? 0.45 : 0.3)));
+}
+
+function Wo_ExploreNearbyShouldAcceptLiveLocationUpdate(nextPosition, accuracyMeters) {
+	var previousPoint = Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng) ? {
+		lat: parseFloat(currentUserMapPoint.lat),
+		lng: parseFloat(currentUserMapPoint.lng)
+	} : null;
+	var normalizedAccuracy = Wo_ExploreNearbyNormalizeAccuracyMeters(accuracyMeters);
+	var movementMeters = 0;
+
+	if (!nextPosition || !Wo_ExploreNearbyHasValidCoordinates(nextPosition.lat, nextPosition.lng)) {
+		return false;
+	}
+
+	if (!previousPoint || !WoExploreNearbyState.lastAcceptedLivePosition) {
+		return true;
+	}
+
+	if (WoExploreNearbyState.navigationActive && normalizedAccuracy > liveLocationNavigationMaxAccuracyMeters) {
+		return false;
+	}
+
+	movementMeters = Wo_ExploreNearbyGetDistanceMeters(previousPoint, nextPosition);
+	if (movementMeters <= 0) {
+		return false;
+	}
+
+	return movementMeters >= Wo_ExploreNearbyGetLiveLocationJitterThresholdMeters(normalizedAccuracy);
+}
+
+function Wo_ExploreNearbyProjectPointToMeters(referenceLat, point) {
+	var latitudeScale = 111320;
+	var longitudeScale = 111320 * Math.cos((parseFloat(referenceLat) || 0) * (Math.PI / 180));
+
+	return {
+		x: (parseFloat(point.lng) || 0) * longitudeScale,
+		y: (parseFloat(point.lat) || 0) * latitudeScale
+	};
+}
+
+function Wo_ExploreNearbyGetDistanceMetersToSegment(point, segmentStart, segmentEnd) {
+	var referenceLat = ((parseFloat(point.lat) || 0) + (parseFloat(segmentStart.lat) || 0) + (parseFloat(segmentEnd.lat) || 0)) / 3;
+	var projectedPoint = Wo_ExploreNearbyProjectPointToMeters(referenceLat, point);
+	var projectedStart = Wo_ExploreNearbyProjectPointToMeters(referenceLat, segmentStart);
+	var projectedEnd = Wo_ExploreNearbyProjectPointToMeters(referenceLat, segmentEnd);
+	var deltaX = projectedEnd.x - projectedStart.x;
+	var deltaY = projectedEnd.y - projectedStart.y;
+	var segmentLengthSquared = (deltaX * deltaX) + (deltaY * deltaY);
+	var projection = 0;
+	var nearestX = 0;
+	var nearestY = 0;
+
+	if (!segmentLengthSquared) {
+		return Math.sqrt(Math.pow(projectedPoint.x - projectedStart.x, 2) + Math.pow(projectedPoint.y - projectedStart.y, 2));
+	}
+
+	projection = ((projectedPoint.x - projectedStart.x) * deltaX + (projectedPoint.y - projectedStart.y) * deltaY) / segmentLengthSquared;
+	projection = Math.max(0, Math.min(1, projection));
+	nearestX = projectedStart.x + (projection * deltaX);
+	nearestY = projectedStart.y + (projection * deltaY);
+
+	return Math.sqrt(Math.pow(projectedPoint.x - nearestX, 2) + Math.pow(projectedPoint.y - nearestY, 2));
+}
+
+function Wo_ExploreNearbyNormalizeRoutePath(path) {
+	var normalizedPath = [];
+	var points = Array.isArray(path) ? path : [];
+	var i = 0;
+
+	for (i = 0; i < points.length; i++) {
+		if (!Wo_ExploreNearbyHasValidCoordinates(points[i] && points[i].lat, points[i] && points[i].lng)) {
+			continue;
+		}
+
+		normalizedPath.push({
+			lat: parseFloat(points[i].lat),
+			lng: parseFloat(points[i].lng)
+		});
+	}
+
+	return normalizedPath;
+}
+
+function Wo_ExploreNearbyGetDistanceMetersToPath(point, path) {
+	var normalizedPath = Wo_ExploreNearbyNormalizeRoutePath(path);
+	var nearestDistance = Number.POSITIVE_INFINITY;
+	var i = 0;
+
+	if (!Wo_ExploreNearbyHasValidCoordinates(point && point.lat, point && point.lng) || !normalizedPath.length) {
+		return Number.POSITIVE_INFINITY;
+	}
+
+	if (normalizedPath.length === 1) {
+		return Wo_ExploreNearbyGetDistanceMeters(point, normalizedPath[0]);
+	}
+
+	for (i = 0; i < (normalizedPath.length - 1); i++) {
+		nearestDistance = Math.min(nearestDistance, Wo_ExploreNearbyGetDistanceMetersToSegment(point, normalizedPath[i], normalizedPath[i + 1]));
+	}
+
+	return nearestDistance;
+}
+
+function Wo_ExploreNearbyNormalizeRouteStepPath(stepPath, startPoint, endPoint) {
+	var normalizedPath = Wo_ExploreNearbyNormalizeRoutePath(stepPath);
+
+	if (normalizedPath.length > 1) {
+		return normalizedPath;
+	}
+
+	if (Wo_ExploreNearbyHasValidCoordinates(startPoint && startPoint.lat, startPoint && startPoint.lng) && Wo_ExploreNearbyHasValidCoordinates(endPoint && endPoint.lat, endPoint && endPoint.lng)) {
+		return [
+			{lat: parseFloat(startPoint.lat), lng: parseFloat(startPoint.lng)},
+			{lat: parseFloat(endPoint.lat), lng: parseFloat(endPoint.lng)}
+		];
+	}
+
+	return normalizedPath;
+}
+
+function Wo_ExploreNearbyGetRoutePathDistanceMeters(path) {
+	var normalizedPath = Wo_ExploreNearbyNormalizeRoutePath(path);
+	var totalDistance = 0;
+	var i = 0;
+
+	if (normalizedPath.length <= 1) {
+		return 0;
+	}
+
+	for (i = 1; i < normalizedPath.length; i++) {
+		totalDistance += Wo_ExploreNearbyGetDistanceMeters(normalizedPath[i - 1], normalizedPath[i]);
+	}
+
+	return totalDistance;
+}
+
+function Wo_ExploreNearbyBuildNavigationStepKey(step, stepIndex) {
+	var normalizedStep = step || {};
+	var endPoint = normalizedStep.endLatLng || {};
+	return [
+		parseInt(stepIndex, 10) || 0,
+		$.trim(normalizedStep.instructionText || ''),
+		Wo_ExploreNearbyBuildCoordinateText(endPoint.lat, endPoint.lng)
+	].join('|');
+}
+
+function Wo_ExploreNearbyFindNearestNavigationStepIndex(point, steps) {
+	var routeSteps = Array.isArray(steps) ? steps : [];
+	var nearestStepIndex = -1;
+	var nearestDistance = Number.POSITIVE_INFINITY;
+	var i = 0;
+
+	if (!Wo_ExploreNearbyHasValidCoordinates(point && point.lat, point && point.lng) || !routeSteps.length) {
+		return -1;
+	}
+
+	for (i = 0; i < routeSteps.length; i++) {
+		var step = routeSteps[i] || {};
+		var stepPath = Wo_ExploreNearbyNormalizeRouteStepPath(step.polylinePath, step.startLatLng, step.endLatLng);
+		var stepDistance = Wo_ExploreNearbyGetDistanceMetersToPath(point, stepPath);
+
+		if (stepDistance < nearestDistance) {
+			nearestDistance = stepDistance;
+			nearestStepIndex = i;
+		}
+	}
+
+	return nearestStepIndex;
+}
+
+function Wo_ExploreNearbyGetRemainingRouteMetrics(routeData, stepIndex) {
+	var remainingDistanceMeters = 0;
+	var remainingDurationSeconds = 0;
+	var routeSteps = (routeData && Array.isArray(routeData.steps)) ? routeData.steps : [];
+	var index = Math.max(0, parseInt(stepIndex, 10) || 0);
+	var i = 0;
+
+	for (i = index; i < routeSteps.length; i++) {
+		remainingDistanceMeters += parseFloat(routeSteps[i].distanceMeters) || 0;
+		remainingDurationSeconds += parseFloat(routeSteps[i].durationSeconds) || 0;
+	}
+
+	return {
+		distanceMeters: remainingDistanceMeters,
+		durationSeconds: remainingDurationSeconds
+	};
+}
+
+function Wo_ExploreNearbyHasArrivedAtRouteDestination(point, routeData) {
+	var destinationPoint = (routeData && routeData.destination) ? routeData.destination : null;
+
+	if (!Wo_ExploreNearbyHasValidCoordinates(point && point.lat, point && point.lng)) {
+		return false;
+	}
+	if (!destinationPoint || !Wo_ExploreNearbyHasValidCoordinates(destinationPoint.lat, destinationPoint.lng)) {
+		return false;
+	}
+
+	return Wo_ExploreNearbyGetDistanceMeters(point, destinationPoint) <= 20;
+}
+
+function Wo_ExploreNearbyGetNavigationStepState(point, routeData) {
+	var routeSteps = (routeData && Array.isArray(routeData.steps)) ? routeData.steps : [];
+	var nearestStepIndex = 0;
+	var activeStepIndex = 0;
+	var activeStep = null;
+	var currentStep = null;
+
+	if (!routeSteps.length) {
+		return {
+			stepIndex: -1,
+			step: null
+		};
+	}
+
+	nearestStepIndex = Wo_ExploreNearbyFindNearestNavigationStepIndex(point, routeSteps);
+	activeStepIndex = Math.max(0, parseInt(WoExploreNearbyState.navigationCurrentStepIndex, 10) || 0);
+	if (nearestStepIndex >= 0) {
+		activeStepIndex = Math.max(activeStepIndex, nearestStepIndex);
+	}
+
+	while (activeStepIndex < (routeSteps.length - 1)) {
+		currentStep = routeSteps[activeStepIndex] || null;
+		if (!currentStep || !currentStep.endLatLng || !Wo_ExploreNearbyHasValidCoordinates(currentStep.endLatLng.lat, currentStep.endLatLng.lng)) {
+			break;
+		}
+		if (Wo_ExploreNearbyGetDistanceMeters(point, currentStep.endLatLng) > 20) {
+			break;
+		}
+
+		activeStepIndex++;
+	}
+
+	activeStep = routeSteps[activeStepIndex] || routeSteps[routeSteps.length - 1] || null;
+	return {
+		stepIndex: activeStep ? activeStepIndex : -1,
+		step: activeStep
+	};
 }
 
 function Wo_ExploreNearbyNormalizePoints(points) {
@@ -6838,7 +8223,6 @@ function Wo_ExploreNearbyGetPopupHtml(point) {
 	var linkOpen = '';
 	var linkClose = '';
 	var locationHtml = '';
-	var directionsHtml = '';
 	var badgeStyle = 'rgba(47,109,246,.12);color:#2f6df6;';
 	var pinnedBadgeHtml = '';
 	var avatarShadowStyle = '';
@@ -6874,12 +8258,6 @@ function Wo_ExploreNearbyGetPopupHtml(point) {
 		locationHtml = '<div style="font-size:12px;color:#64748b;line-height:1.5;margin-top:4px;">' + safeLocation + '</div>';
 	}
 
-	if (!isSelfPoint) {
-		directionsHtml = '<a href="' + Wo_ExploreNearbyEscapeHtml(Wo_ExploreNearbyGetDirectionsUrl(point)) + '" target="_blank" rel="noopener" title="Directions" style="width:34px;height:34px;border-radius:999px;background:#0d6efd;color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;text-decoration:none;box-shadow:0 6px 14px rgba(13,110,253,.28);">' +
-			'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.71 11.29l-9-9a.996.996 0 0 0-1.09-.21a1 1 0 0 0-.62.92V7H5a1 1 0 0 0 0 2h6v4.99a1 1 0 0 0 1.71.7l9-9a.997.997 0 0 0 0-1.4Z"/></svg>' +
-		'</a>';
-	}
-
 	return '<div style="display:flex;align-items:center;gap:10px;min-width:240px;">' +
 		'<div style="flex:0 0 auto;">' + avatarHtml + '</div>' +
 		'<div style="min-width:0;flex:1 1 auto;">' +
@@ -6890,7 +8268,6 @@ function Wo_ExploreNearbyGetPopupHtml(point) {
 			'<div style="margin-top:8px;font-size:14px;line-height:1.35;">' + linkOpen + safeName + linkClose + '</div>' +
 			locationHtml +
 		'</div>' +
-		directionsHtml +
 	'</div>';
 }
 
@@ -7596,6 +8973,9 @@ function Wo_ExploreNearbyOpenGoogleInfoPopupAtPoint(point, position) {
 }
 
 function Wo_ExploreNearbyClearRouteLine() {
+	clearTimeout(WoExploreNearbyState.routeViewportFitTimer);
+	WoExploreNearbyState.routeViewportFitTimer = null;
+
 	if (WoExploreNearbyMapState.googleRouteLine) {
 		WoExploreNearbyMapState.googleRouteLine.setMap(null);
 		WoExploreNearbyMapState.googleRouteLine = null;
@@ -7612,29 +8992,58 @@ function Wo_ExploreNearbyClearRouteLine() {
 	}
 }
 
+function Wo_ExploreNearbyRestoreRouteLine(pointKey) {
+	var targetPointKey = $.trim(pointKey || WoExploreNearbyState.routeTargetPointKey || '');
+	var cachedTargetPointKey = $.trim(WoExploreNearbyState.routeLastTargetPointKey || '');
+	var cachedPath = Array.isArray(WoExploreNearbyState.routeLastPath) ? WoExploreNearbyState.routeLastPath.slice() : [];
+	var cachedFallbackPath = Array.isArray(WoExploreNearbyState.routeLastFallbackPath) ? WoExploreNearbyState.routeLastFallbackPath.slice() : [];
+	var targetPoint = null;
+
+	if (!targetPointKey || !cachedTargetPointKey || targetPointKey !== cachedTargetPointKey) {
+		return false;
+	}
+
+	if (cachedPath.length <= 1 && cachedFallbackPath.length <= 1) {
+		return false;
+	}
+
+	targetPoint = Wo_ExploreNearbyResolvePointByKey(targetPointKey, true) ||
+		Wo_ExploreNearbyResolveCanonicalPointByKey(targetPointKey, true) ||
+		WoExploreNearbyState.routeTargetPointData ||
+		null;
+
+	if (!targetPoint) {
+		return false;
+	}
+
+	Wo_ExploreNearbyRenderRoutePath(cachedPath, targetPoint, cachedFallbackPath, {
+		fitViewport: false
+	});
+	return true;
+}
+
 function Wo_ExploreNearbyFitRouteViewport(path, fallbackPoints) {
 	var normalizedPath = [];
 	var points = Array.isArray(path) ? path : [];
+	var fallbackPath = Array.isArray(fallbackPoints) ? fallbackPoints : [];
 	var viewportPadding = Wo_ExploreNearbyGetMapViewportPadding();
-	for (var i = 0; i < points.length; i++) {
-		var lat = parseFloat(points[i].lat);
-		var lng = parseFloat(points[i].lng);
+	var appendPointToViewportPath = function(point) {
+		var lat = parseFloat(point && point.lat);
+		var lng = parseFloat(point && point.lng);
 		if (isNaN(lat) || isNaN(lng)) {
-			continue;
+			return;
 		}
 
 		normalizedPath.push({lat: lat, lng: lng});
+	};
+
+	for (var i = 0; i < points.length; i++) {
+		appendPointToViewportPath(points[i]);
 	}
 
-	if (!normalizedPath.length && Array.isArray(fallbackPoints)) {
-		for (var j = 0; j < fallbackPoints.length; j++) {
-			var fallbackLat = parseFloat(fallbackPoints[j].lat);
-			var fallbackLng = parseFloat(fallbackPoints[j].lng);
-			if (isNaN(fallbackLat) || isNaN(fallbackLng)) {
-				continue;
-			}
-
-			normalizedPath.push({lat: fallbackLat, lng: fallbackLng});
+	if (fallbackPath.length) {
+		for (var j = 0; j < fallbackPath.length; j++) {
+			appendPointToViewportPath(fallbackPath[j]);
 		}
 	}
 
@@ -7684,9 +9093,364 @@ function Wo_ExploreNearbyGetRouteCacheKey(provider, fromPoint, toPoint) {
 	].join('|');
 }
 
+function Wo_ExploreNearbyEnsureGoogleDirectionsService() {
+	if (typeof google === 'undefined' || !google.maps || typeof google.maps.DirectionsService !== 'function') {
+		return null;
+	}
+
+	if (!WoExploreNearbyMapState.googleDirectionsService) {
+		WoExploreNearbyMapState.googleDirectionsService = new google.maps.DirectionsService();
+	}
+
+	return WoExploreNearbyMapState.googleDirectionsService;
+}
+
+function Wo_ExploreNearbyBuildGoogleDirectionsStatusMessage(status) {
+	var normalizedStatus = $.trim(String(status || '')).toUpperCase();
+
+	if (!normalizedStatus) {
+		return '';
+	}
+
+	return 'Google Directions ' + normalizedStatus + '.';
+}
+
+function Wo_ExploreNearbyBuildGoogleRouteStep(step, stepIndex) {
+	var routeStep = step || {};
+	var stepPath = [];
+	var rawPath = routeStep.path || routeStep.lat_lngs || [];
+	var startLat = Wo_ExploreNearbyGetGoogleLatLngValue(routeStep.start_location, 'lat');
+	var startLng = Wo_ExploreNearbyGetGoogleLatLngValue(routeStep.start_location, 'lng');
+	var endLat = Wo_ExploreNearbyGetGoogleLatLngValue(routeStep.end_location, 'lat');
+	var endLng = Wo_ExploreNearbyGetGoogleLatLngValue(routeStep.end_location, 'lng');
+	var instructionText = Wo_ExploreNearbyStripHtml(routeStep.instructions || routeStep.html_instructions || '');
+	var spokenInstructionText = instructionText;
+	var i = 0;
+
+	for (i = 0; i < rawPath.length; i++) {
+		var nextLat = Wo_ExploreNearbyGetGoogleLatLngValue(rawPath[i], 'lat');
+		var nextLng = Wo_ExploreNearbyGetGoogleLatLngValue(rawPath[i], 'lng');
+		if (!Wo_ExploreNearbyHasValidCoordinates(nextLat, nextLng)) {
+			continue;
+		}
+
+		stepPath.push({
+			lat: parseFloat(nextLat),
+			lng: parseFloat(nextLng)
+		});
+	}
+
+	return {
+		stepKey: Wo_ExploreNearbyBuildNavigationStepKey({
+			instructionText: instructionText,
+			endLatLng: {lat: endLat, lng: endLng}
+		}, stepIndex),
+		instructionText: instructionText,
+		spokenInstructionText: spokenInstructionText,
+		distanceMeters: parseFloat(routeStep.distance && routeStep.distance.value) || 0,
+		durationSeconds: parseFloat(routeStep.duration && routeStep.duration.value) || 0,
+		startLatLng: Wo_ExploreNearbyHasValidCoordinates(startLat, startLng) ? {
+			lat: parseFloat(startLat),
+			lng: parseFloat(startLng)
+		} : null,
+		endLatLng: Wo_ExploreNearbyHasValidCoordinates(endLat, endLng) ? {
+			lat: parseFloat(endLat),
+			lng: parseFloat(endLng)
+		} : null,
+		maneuver: $.trim(routeStep.maneuver || ''),
+		polylinePath: stepPath
+	};
+}
+
+function Wo_ExploreNearbyBuildFallbackNavigationStep(path, destinationPoint, distanceMeters, durationSeconds) {
+	var normalizedPath = Wo_ExploreNearbyNormalizeRoutePath(path);
+	var destinationName = $.trim((destinationPoint && (destinationPoint.name || destinationPoint.title)) || '');
+	var instructionText = '';
+
+	if (normalizedPath.length <= 1 || !destinationPoint || !Wo_ExploreNearbyHasValidCoordinates(destinationPoint.lat, destinationPoint.lng)) {
+		return null;
+	}
+
+	instructionText = Wo_ExploreNearbyIsVietnameseNavigationLanguage() ?
+		('Tiếp tục đi đến ' + (destinationName || navigationDestinationLabel.toLowerCase())) :
+		('Continue to ' + (destinationName || 'destination'));
+
+	return {
+		stepKey: Wo_ExploreNearbyBuildNavigationStepKey({
+			instructionText: instructionText,
+			endLatLng: {
+				lat: parseFloat(destinationPoint.lat),
+				lng: parseFloat(destinationPoint.lng)
+			}
+		}, 0),
+		instructionText: instructionText,
+		spokenInstructionText: instructionText,
+		distanceMeters: Math.max(0, parseFloat(distanceMeters) || 0),
+		durationSeconds: Math.max(0, parseFloat(durationSeconds) || 0),
+		startLatLng: normalizedPath[0],
+		endLatLng: {
+			lat: parseFloat(destinationPoint.lat),
+			lng: parseFloat(destinationPoint.lng)
+		},
+		maneuver: 'fallback',
+		polylinePath: normalizedPath
+	};
+}
+
+function Wo_ExploreNearbyBuildGoogleRouteData(routeResult, destinationPoint) {
+	var nextRoute = routeResult || {};
+	var leg = (nextRoute.legs && nextRoute.legs[0]) ? nextRoute.legs[0] : null;
+	var overviewPath = nextRoute.overview_path || [];
+	var normalizedPath = [];
+	var normalizedSteps = [];
+	var fallbackPath = [];
+	var i = 0;
+
+	for (i = 0; i < overviewPath.length; i++) {
+		normalizedPath.push({
+			lat: overviewPath[i].lat(),
+			lng: overviewPath[i].lng()
+		});
+	}
+
+	if (leg && Array.isArray(leg.steps)) {
+		for (i = 0; i < leg.steps.length; i++) {
+			var nextStep = Wo_ExploreNearbyBuildGoogleRouteStep(leg.steps[i], i);
+			normalizedSteps.push(nextStep);
+
+			var stepPath = Wo_ExploreNearbyNormalizeRouteStepPath(nextStep.polylinePath, nextStep.startLatLng, nextStep.endLatLng);
+			if (!fallbackPath.length && stepPath.length) {
+				fallbackPath = fallbackPath.concat(stepPath);
+			}
+			else if (stepPath.length) {
+				if (fallbackPath.length && stepPath.length && fallbackPath[fallbackPath.length - 1].lat === stepPath[0].lat && fallbackPath[fallbackPath.length - 1].lng === stepPath[0].lng) {
+					stepPath.shift();
+				}
+				fallbackPath = fallbackPath.concat(stepPath);
+			}
+		}
+	}
+
+	if ((normalizedPath.length <= 1 && fallbackPath.length > 1) || fallbackPath.length > normalizedPath.length) {
+		normalizedPath = fallbackPath;
+	}
+
+	if (normalizedPath.length <= 1) {
+		return null;
+	}
+
+	if (!normalizedSteps.length) {
+		var googleFallbackStep = Wo_ExploreNearbyBuildFallbackNavigationStep(
+			normalizedPath,
+			destinationPoint,
+			parseFloat(leg && leg.distance && leg.distance.value) || 0,
+			parseFloat(leg && leg.duration && leg.duration.value) || 0
+		);
+		if (googleFallbackStep) {
+			normalizedSteps.push(googleFallbackStep);
+		}
+	}
+
+	return {
+		path: normalizedPath,
+		steps: normalizedSteps,
+		distanceMeters: parseFloat(leg && leg.distance && leg.distance.value) || 0,
+		durationSeconds: parseFloat(leg && leg.duration && leg.duration.value) || 0,
+		destination: destinationPoint ? {
+			item_key: Wo_ExploreNearbyGetItemKey(destinationPoint),
+			name: $.trim(destinationPoint.name || destinationPoint.title || ''),
+			lat: parseFloat(destinationPoint.lat),
+			lng: parseFloat(destinationPoint.lng)
+		} : null,
+		provider: 'google'
+	};
+}
+
+function Wo_ExploreNearbyNormalizeProxyRouteStep(step, stepIndex) {
+	var routeStep = step || {};
+	var instructionText = $.trim(Wo_ExploreNearbyStripHtml(routeStep.instructionText || ''));
+	var spokenInstructionText = $.trim(Wo_ExploreNearbyStripHtml(routeStep.spokenInstructionText || instructionText));
+	var startPoint = Wo_ExploreNearbyHasValidCoordinates(routeStep.startLatLng && routeStep.startLatLng.lat, routeStep.startLatLng && routeStep.startLatLng.lng) ? {
+		lat: parseFloat(routeStep.startLatLng.lat),
+		lng: parseFloat(routeStep.startLatLng.lng)
+	} : null;
+	var endPoint = Wo_ExploreNearbyHasValidCoordinates(routeStep.endLatLng && routeStep.endLatLng.lat, routeStep.endLatLng && routeStep.endLatLng.lng) ? {
+		lat: parseFloat(routeStep.endLatLng.lat),
+		lng: parseFloat(routeStep.endLatLng.lng)
+	} : null;
+
+	if (!instructionText || !startPoint || !endPoint) {
+		return null;
+	}
+
+	return {
+		stepKey: $.trim(routeStep.stepKey || Wo_ExploreNearbyBuildNavigationStepKey({
+			instructionText: instructionText,
+			endLatLng: endPoint
+		}, stepIndex)),
+		instructionText: instructionText,
+		spokenInstructionText: spokenInstructionText || instructionText,
+		distanceMeters: Math.max(0, parseFloat(routeStep.distanceMeters) || 0),
+		durationSeconds: Math.max(0, parseFloat(routeStep.durationSeconds) || 0),
+		startLatLng: startPoint,
+		endLatLng: endPoint,
+		maneuver: $.trim(routeStep.maneuver || ''),
+		polylinePath: Wo_ExploreNearbyNormalizeRouteStepPath(routeStep.polylinePath, startPoint, endPoint)
+	};
+}
+
+function Wo_ExploreNearbyNormalizeProxyRouteData(routeData, destinationPoint) {
+	var nextRoute = routeData || {};
+	var normalizedPath = Wo_ExploreNearbyNormalizeRoutePath(nextRoute.path);
+	var normalizedSteps = [];
+	var stepList = Array.isArray(nextRoute.steps) ? nextRoute.steps : [];
+	var destinationData = null;
+	var i = 0;
+
+	if (normalizedPath.length <= 1) {
+		return null;
+	}
+
+	for (i = 0; i < stepList.length; i++) {
+		var nextStep = Wo_ExploreNearbyNormalizeProxyRouteStep(stepList[i], i);
+		if (!nextStep) {
+			continue;
+		}
+
+		normalizedSteps.push(nextStep);
+	}
+
+	if (!normalizedSteps.length && destinationPoint) {
+		var fallbackStep = Wo_ExploreNearbyBuildFallbackNavigationStep(
+			normalizedPath,
+			destinationPoint,
+			parseFloat(nextRoute.distanceMeters) || 0,
+			parseFloat(nextRoute.durationSeconds) || 0
+		);
+		if (fallbackStep) {
+			normalizedSteps.push(fallbackStep);
+		}
+	}
+
+	if (destinationPoint && Wo_ExploreNearbyHasValidCoordinates(destinationPoint.lat, destinationPoint.lng)) {
+		destinationData = {
+			item_key: Wo_ExploreNearbyGetItemKey(destinationPoint),
+			name: $.trim(destinationPoint.name || destinationPoint.title || ''),
+			lat: parseFloat(destinationPoint.lat),
+			lng: parseFloat(destinationPoint.lng)
+		};
+	}
+	else if (nextRoute.destination && Wo_ExploreNearbyHasValidCoordinates(nextRoute.destination.lat, nextRoute.destination.lng)) {
+		destinationData = {
+			item_key: $.trim(nextRoute.destination.item_key || ''),
+			name: $.trim(nextRoute.destination.name || ''),
+			lat: parseFloat(nextRoute.destination.lat),
+			lng: parseFloat(nextRoute.destination.lng)
+		};
+	}
+
+	return {
+		path: normalizedPath,
+		steps: normalizedSteps,
+		distanceMeters: Math.max(0, parseFloat(nextRoute.distanceMeters) || 0),
+		durationSeconds: Math.max(0, parseFloat(nextRoute.durationSeconds) || 0),
+		destination: destinationData,
+		provider: 'google'
+	};
+}
+
+function Wo_ExploreNearbyRequestGoogleBrowserRoute(fromPoint, toPoint) {
+	var directionsService = Wo_ExploreNearbyEnsureGoogleDirectionsService();
+
+	if (!Wo_ExploreNearbyCanUseGoogleInAppNavigation() || !directionsService) {
+		return Promise.resolve(null);
+	}
+
+	return new Promise(function(resolve) {
+		directionsService.route({
+			origin: {
+				lat: parseFloat(fromPoint.lat),
+				lng: parseFloat(fromPoint.lng)
+			},
+			destination: {
+				lat: parseFloat(toPoint.lat),
+				lng: parseFloat(toPoint.lng)
+			},
+			travelMode: google.maps.TravelMode.DRIVING,
+			unitSystem: google.maps.UnitSystem ? google.maps.UnitSystem.METRIC : undefined,
+			provideRouteAlternatives: false,
+			region: 'VN'
+		}, function(result, status) {
+			var routeData = null;
+
+			if (status === 'OK' && result && Array.isArray(result.routes) && result.routes[0]) {
+				routeData = Wo_ExploreNearbyBuildGoogleRouteData(result.routes[0], toPoint);
+			}
+
+			if (routeData) {
+				WoExploreNearbyState.lastRouteErrorMessage = '';
+				resolve(routeData);
+				return;
+			}
+
+			WoExploreNearbyState.lastRouteErrorMessage = Wo_ExploreNearbyBuildGoogleDirectionsStatusMessage(status);
+			if (WoExploreNearbyState.lastRouteErrorMessage && window.console && typeof window.console.warn === 'function') {
+				window.console.warn('Explore nearby browser route request failed:', WoExploreNearbyState.lastRouteErrorMessage);
+			}
+			resolve(null);
+		});
+	});
+}
+
+function Wo_ExploreNearbyRequestGoogleProxyRoute(fromPoint, toPoint) {
+	if (!Wo_ExploreNearbyCanUseGoogleInAppNavigation()) {
+		return Promise.resolve(null);
+	}
+
+	return new Promise(function(resolve) {
+		$.ajax({
+			url: Wo_Ajax_Requests_File(),
+			type: 'GET',
+			dataType: 'json',
+			data: {
+				f: navigationGoogleRouteRequestAction,
+				origin_lat: parseFloat(fromPoint.lat),
+				origin_lng: parseFloat(fromPoint.lng),
+				destination_lat: parseFloat(toPoint.lat),
+				destination_lng: parseFloat(toPoint.lng)
+			}
+		}).done(function(response) {
+			var routeData = null;
+
+			if (response && response.status === 200 && response.route) {
+				routeData = Wo_ExploreNearbyNormalizeProxyRouteData(response.route, toPoint);
+			}
+
+			if (routeData) {
+				WoExploreNearbyState.lastRouteErrorMessage = '';
+				WoExploreNearbyState.routeCache[cacheKey] = routeData;
+				resolve(routeData);
+				return;
+			}
+
+			WoExploreNearbyState.lastRouteErrorMessage = $.trim((response && response.message) || '');
+			if (WoExploreNearbyState.lastRouteErrorMessage && window.console && typeof window.console.warn === 'function') {
+				window.console.warn('Explore nearby route request failed:', WoExploreNearbyState.lastRouteErrorMessage);
+			}
+			resolve(null);
+		}).fail(function(xhr, statusText) {
+			WoExploreNearbyState.lastRouteErrorMessage = $.trim(statusText || 'Route request failed');
+			if (window.console && typeof window.console.warn === 'function') {
+				window.console.warn('Explore nearby route request failed:', WoExploreNearbyState.lastRouteErrorMessage);
+			}
+			resolve(null);
+		});
+	});
+}
+
 function Wo_ExploreNearbyRequestGoogleRoute(fromPoint, toPoint) {
-	if (!WoExploreNearbyMapState.map || typeof google === 'undefined' || !google.maps || typeof google.maps.DirectionsService === 'undefined') {
-		return Wo_ExploreNearbyRequestLeafletRoute(fromPoint, toPoint);
+	if (!Wo_ExploreNearbyCanUseGoogleInAppNavigation()) {
+		return Promise.resolve(null);
 	}
 
 	var cacheKey = Wo_ExploreNearbyGetRouteCacheKey('google', fromPoint, toPoint);
@@ -7694,38 +9458,20 @@ function Wo_ExploreNearbyRequestGoogleRoute(fromPoint, toPoint) {
 		return Promise.resolve(WoExploreNearbyState.routeCache[cacheKey]);
 	}
 
-	if (!WoExploreNearbyMapState.googleDirectionsService) {
-		WoExploreNearbyMapState.googleDirectionsService = new google.maps.DirectionsService();
-	}
+	WoExploreNearbyState.lastRouteErrorMessage = '';
+	return Wo_ExploreNearbyRequestGoogleBrowserRoute(fromPoint, toPoint).then(function(routeData) {
+		if (routeData) {
+			WoExploreNearbyState.routeCache[cacheKey] = routeData;
+			return routeData;
+		}
 
-	return new Promise(function(resolve) {
-		WoExploreNearbyMapState.googleDirectionsService.route({
-			origin: {lat: fromPoint.lat, lng: fromPoint.lng},
-			destination: {lat: toPoint.lat, lng: toPoint.lng},
-			travelMode: google.maps.TravelMode.DRIVING,
-			provideRouteAlternatives: false
-		}, function(result, status) {
-			if (status === 'OK' && result && result.routes && result.routes[0]) {
-				var overviewPath = result.routes[0].overview_path || [];
-				var normalizedPath = [];
-				for (var i = 0; i < overviewPath.length; i++) {
-					normalizedPath.push({
-						lat: overviewPath[i].lat(),
-						lng: overviewPath[i].lng()
-					});
-				}
-
-				if (normalizedPath.length > 1) {
-					var routeData = {path: normalizedPath};
-					WoExploreNearbyState.routeCache[cacheKey] = routeData;
-					resolve(routeData);
-					return;
-				}
+		return Wo_ExploreNearbyRequestGoogleProxyRoute(fromPoint, toPoint).then(function(proxyRouteData) {
+			if (proxyRouteData) {
+				WoExploreNearbyState.routeCache[cacheKey] = proxyRouteData;
+				return proxyRouteData;
 			}
 
-			Wo_ExploreNearbyRequestLeafletRoute(fromPoint, toPoint).then(resolve).catch(function() {
-				resolve(null);
-			});
+			return null;
 		});
 	});
 }
@@ -7781,10 +9527,6 @@ function Wo_ExploreNearbyRequestLeafletRoute(fromPoint, toPoint) {
 function Wo_ExploreNearbyRequestRoute(fromPoint, toPoint) {
 	if (WoExploreNearbyMapState.provider === 'google') {
 		return Wo_ExploreNearbyRequestGoogleRoute(fromPoint, toPoint);
-	}
-
-	if (WoExploreNearbyMapState.provider === 'leaflet') {
-		return Wo_ExploreNearbyRequestLeafletRoute(fromPoint, toPoint);
 	}
 
 	return Promise.resolve(null);
@@ -7843,12 +9585,60 @@ function Wo_ExploreNearbyDrawLeafletRouteLine(path, toPoint) {
 	}
 }
 
-function Wo_ExploreNearbySyncRouteLine() {
-	Wo_ExploreNearbyClearRouteLine();
+function Wo_ExploreNearbyRenderRoutePath(routePath, targetPoint, fallbackPoints, options) {
+	var resolvedPath = Wo_ExploreNearbyNormalizeRoutePath(routePath);
+	var resolvedFallbackPath = Wo_ExploreNearbyNormalizeRoutePath(fallbackPoints);
+	var shouldFitViewport = !(options && options.fitViewport === false);
+	var deferredViewportFitMs = Math.max(0, parseInt(options && options.deferViewportFitMs, 10) || 0);
+	var fitPath = [];
+	var fallbackFitPath = [];
+	var targetPointKey = $.trim(Wo_ExploreNearbyGetItemKey(targetPoint || {}) || WoExploreNearbyState.routeTargetPointKey || '');
 
+	if (Wo_ExploreNearbyShouldLockNavigationViewport()) {
+		shouldFitViewport = false;
+	}
+
+	if (resolvedPath.length <= 1 && resolvedFallbackPath.length > 1) {
+		resolvedPath = resolvedFallbackPath;
+	}
+
+	WoExploreNearbyState.routeLastPath = resolvedPath.slice();
+	WoExploreNearbyState.routeLastFallbackPath = resolvedFallbackPath.slice();
+	WoExploreNearbyState.routeLastTargetPointKey = targetPointKey;
+
+	Wo_ExploreNearbyClearRouteLine();
+	if (resolvedPath.length > 1 && WoExploreNearbyMapState.provider === 'google') {
+		Wo_ExploreNearbyDrawGoogleRouteLine(resolvedPath, targetPoint);
+	}
+	else if (resolvedPath.length > 1 && WoExploreNearbyMapState.provider === 'leaflet') {
+		Wo_ExploreNearbyDrawLeafletRouteLine(resolvedPath, targetPoint);
+	}
+
+	if ((resolvedPath.length > 1 || resolvedFallbackPath.length > 1) && shouldFitViewport) {
+		fitPath = (resolvedPath.length > 1 ? resolvedPath.slice() : resolvedFallbackPath.slice());
+		fallbackFitPath = (resolvedFallbackPath.length ? resolvedFallbackPath.slice() : resolvedPath.slice());
+		if (deferredViewportFitMs > 0) {
+			WoExploreNearbyState.routeViewportFitTimer = setTimeout(function() {
+				WoExploreNearbyState.routeViewportFitTimer = null;
+				if (Wo_ExploreNearbyShouldLockNavigationViewport()) {
+					return;
+				}
+
+				Wo_ExploreNearbyFitRouteViewport(fitPath, fallbackFitPath);
+			}, deferredViewportFitMs);
+		}
+		else {
+			Wo_ExploreNearbyFitRouteViewport(fitPath, fallbackFitPath);
+		}
+	}
+}
+
+function Wo_ExploreNearbySyncRouteLine(options) {
 	var routeToken = ++WoExploreNearbyState.routeRenderToken;
 	var selfPoint = Wo_ExploreNearbyGetCurrentUserPoint();
 	var routePointKey = $.trim(WoExploreNearbyState.routeTargetPointKey || '');
+	var canRequestRoute = false;
+	var renderOptions = options || {};
 	if (!selfPoint || !routePointKey) {
 		return;
 	}
@@ -7872,47 +9662,285 @@ function Wo_ExploreNearbySyncRouteLine() {
 	];
 
 	WoExploreNearbyState.routeTargetPointData = targetPoint;
+	canRequestRoute = Wo_ExploreNearbyCanUseInAppNavigation();
 
-	if (WoExploreNearbyMapState.provider === 'google') {
-		Wo_ExploreNearbyDrawGoogleRouteLine(fallbackPath, targetPoint);
-	}
-	else if (WoExploreNearbyMapState.provider === 'leaflet') {
-		Wo_ExploreNearbyDrawLeafletRouteLine(fallbackPath, targetPoint);
+	if (WoExploreNearbyState.navigationActive && WoExploreNearbyState.navigationRouteData && WoExploreNearbyState.navigationRouteData.destination && Wo_ExploreNearbyGetItemKey(WoExploreNearbyState.navigationRouteData.destination) === routePointKey) {
+		Wo_ExploreNearbyRenderRoutePath(WoExploreNearbyState.navigationRouteData.path, targetPoint, fallbackPath, renderOptions);
+		Wo_ExploreNearbyUpdateNavigationBanner();
+		return;
 	}
 
-	Wo_ExploreNearbyFitRouteViewport(fallbackPath, [selfPoint, targetPoint]);
+	if (!canRequestRoute) {
+		Wo_ExploreNearbyClearRouteLine();
+		Wo_ExploreNearbyShowRouteFallbackNotice(targetPoint, 4200);
+		return;
+	}
 
 	Wo_ExploreNearbyRequestRoute(selfPoint, targetPoint).then(function(routeData) {
 		if (routeToken !== WoExploreNearbyState.routeRenderToken) {
 			return;
 		}
 
-		var routePath = (routeData && Array.isArray(routeData.path) && routeData.path.length > 1) ? routeData.path : fallbackPath;
+		if (routeData && Array.isArray(routeData.path)) {
+			Wo_ExploreNearbyRenderRoutePath(routeData.path, targetPoint, fallbackPath, renderOptions);
+			return;
+		}
+
 		Wo_ExploreNearbyClearRouteLine();
-
-		if (routePath.length > 1 && WoExploreNearbyMapState.provider === 'google') {
-			Wo_ExploreNearbyDrawGoogleRouteLine(routePath, targetPoint);
-		}
-		else if (routePath.length > 1 && WoExploreNearbyMapState.provider === 'leaflet') {
-			Wo_ExploreNearbyDrawLeafletRouteLine(routePath, targetPoint);
-		}
-
-		Wo_ExploreNearbyFitRouteViewport(routePath, [selfPoint, targetPoint]);
+		Wo_ExploreNearbyShowRouteFallbackNotice(targetPoint, 4200);
 	}).catch(function() {
 		if (routeToken !== WoExploreNearbyState.routeRenderToken) {
 			return;
 		}
 
 		Wo_ExploreNearbyClearRouteLine();
-		if (WoExploreNearbyMapState.provider === 'google') {
-			Wo_ExploreNearbyDrawGoogleRouteLine(fallbackPath, targetPoint);
+		Wo_ExploreNearbyShowRouteFallbackNotice(targetPoint, 4200);
+	});
+}
+
+function Wo_ExploreNearbyGetNavigationTargetPoint() {
+	var targetPoint = WoExploreNearbyState.routeTargetPointData || null;
+	var targetPointKey = $.trim(WoExploreNearbyState.routeTargetPointKey || '');
+
+	if (targetPoint && Wo_ExploreNearbyHasValidCoordinates(targetPoint.lat, targetPoint.lng)) {
+		return targetPoint;
+	}
+	if (targetPointKey) {
+		targetPoint = Wo_ExploreNearbyResolvePointByKey(targetPointKey, true) || Wo_ExploreNearbyResolveCanonicalPointByKey(targetPointKey, true);
+		if (targetPoint) {
+			return targetPoint;
 		}
-		else if (WoExploreNearbyMapState.provider === 'leaflet') {
-			Wo_ExploreNearbyDrawLeafletRouteLine(fallbackPath, targetPoint);
+	}
+
+	if (WoExploreNearbyState.navigationRouteData && WoExploreNearbyState.navigationRouteData.destination) {
+		return WoExploreNearbyState.navigationRouteData.destination;
+	}
+
+	return null;
+}
+
+function Wo_ExploreNearbyGetNavigationSummaryText(routeData, stepState, currentPoint) {
+	var summaryParts = [];
+	var currentStep = stepState && stepState.step ? stepState.step : null;
+	var currentStepDistance = 0;
+	var remainingMetrics = Wo_ExploreNearbyGetRemainingRouteMetrics(routeData, stepState && stepState.stepIndex >= 0 ? stepState.stepIndex : 0);
+	var isVietnameseNavigation = Wo_ExploreNearbyIsVietnameseNavigationLanguage();
+
+	if (currentStep && currentStep.endLatLng && Wo_ExploreNearbyHasValidCoordinates(currentStep.endLatLng.lat, currentStep.endLatLng.lng) && Wo_ExploreNearbyHasValidCoordinates(currentPoint && currentPoint.lat, currentPoint && currentPoint.lng)) {
+		currentStepDistance = Wo_ExploreNearbyGetDistanceMeters(currentPoint, currentStep.endLatLng);
+		if (currentStepDistance > 0) {
+			summaryParts.push(isVietnameseNavigation ? ('Còn ' + Wo_ExploreNearbyFormatMetersDistance(currentStepDistance) + ' tới chỗ rẽ tiếp theo') : (Wo_ExploreNearbyFormatMetersDistance(currentStepDistance) + ' to next turn'));
+		}
+	}
+
+	if (remainingMetrics.distanceMeters > 0) {
+		summaryParts.push(isVietnameseNavigation ? ('Còn ' + Wo_ExploreNearbyFormatMetersDistance(remainingMetrics.distanceMeters)) : (Wo_ExploreNearbyFormatMetersDistance(remainingMetrics.distanceMeters) + ' remaining'));
+	}
+	if (remainingMetrics.durationSeconds > 0) {
+		summaryParts.push(Wo_ExploreNearbyFormatDurationSeconds(remainingMetrics.durationSeconds));
+	}
+
+	return summaryParts.join(' . ');
+}
+
+function Wo_ExploreNearbyMaybeSpeakNavigationStep(routeData, stepState, voicePrefix) {
+	var nextStep = stepState && stepState.step ? stepState.step : null;
+	var stepKey = '';
+	var speechText = '';
+	var spokenInstructionText = '';
+
+	if (!nextStep || !$.trim(nextStep.spokenInstructionText || nextStep.instructionText || '')) {
+		return;
+	}
+
+	stepKey = Wo_ExploreNearbyBuildNavigationStepKey(nextStep, stepState.stepIndex);
+	if (WoExploreNearbyState.navigationLastSpokenStepKey === stepKey) {
+		return;
+	}
+
+	speechText = $.trim(voicePrefix || '');
+	if (speechText) {
+		speechText += '. ';
+	}
+	spokenInstructionText = $.trim(nextStep.spokenInstructionText || nextStep.instructionText || '');
+	speechText += spokenInstructionText;
+	if (Wo_ExploreNearbySpeakNavigationText(speechText, {
+		cacheKey: 'step:' + stepKey + '|prefix:' + $.trim(voicePrefix || ''),
+		stepKey: stepKey + (voicePrefix ? '|prefix' : '')
+	})) {
+		WoExploreNearbyState.navigationLastSpokenStepKey = stepKey;
+	}
+}
+
+function Wo_ExploreNearbyApplyNavigationRouteData(routeData, targetPoint, source) {
+	var currentPoint = Wo_ExploreNearbyGetCurrentUserPoint();
+	var navigationSource = $.trim(source || 'start');
+	var stepState = {stepIndex: -1, step: null};
+	var instructionText = '';
+	var summaryText = '';
+	var destinationName = $.trim((targetPoint && (targetPoint.name || targetPoint.title)) || (routeData && routeData.destination && routeData.destination.name) || '');
+	var voicePrefix = '';
+
+	if (!routeData || !Array.isArray(routeData.path) || routeData.path.length <= 1 || !targetPoint) {
+		return false;
+	}
+
+	Wo_ExploreNearbySetRouteTargetPoint(targetPoint);
+	routeData.destination = {
+		item_key: Wo_ExploreNearbyGetItemKey(targetPoint),
+		name: destinationName,
+		lat: parseFloat(targetPoint.lat),
+		lng: parseFloat(targetPoint.lng)
+	};
+
+	WoExploreNearbyState.navigationActive = true;
+	WoExploreNearbyState.navigationRerouteInProgress = false;
+	WoExploreNearbyState.navigationOffRouteCount = 0;
+	WoExploreNearbyState.navigationRouteData = routeData;
+	if (currentPoint) {
+		stepState = Wo_ExploreNearbyGetNavigationStepState(currentPoint, routeData);
+	}
+
+	WoExploreNearbyState.navigationCurrentStepIndex = stepState.stepIndex;
+	instructionText = $.trim((stepState.step && stepState.step.instructionText) || navigationStatusActiveLabel);
+	summaryText = Wo_ExploreNearbyGetNavigationSummaryText(routeData, stepState, currentPoint);
+	Wo_ExploreNearbySetNavigationBannerState('active', instructionText, summaryText, destinationName);
+	Wo_ExploreNearbyUpdateUi();
+	Wo_ExploreNearbyRenderRoutePath(routeData.path, targetPoint, currentPoint ? [currentPoint, targetPoint] : routeData.path, {
+		fitViewport: false
+	});
+	Wo_ExploreNearbyScheduleRouteViewportResync(Wo_ExploreNearbyGetItemKey(targetPoint));
+
+	if (navigationSource === 'reroute') {
+		voicePrefix = $.trim(navigationVoiceReroutedLabel || '');
+	}
+
+	Wo_ExploreNearbyMaybeSpeakNavigationStep(routeData, stepState, voicePrefix);
+	return true;
+}
+
+function Wo_ExploreNearbyHandleNavigationArrival() {
+	if (WoExploreNearbyState.navigationCompletionTimer) {
+		return;
+	}
+
+	WoExploreNearbyState.navigationActive = false;
+	WoExploreNearbyState.navigationRerouteInProgress = false;
+	Wo_ExploreNearbySetNavigationBannerState('arrived', navigationArrivedVoiceLabel, '', $.trim(WoExploreNearbyState.navigationDestinationName || ''));
+	Wo_ExploreNearbyUpdateUi();
+	Wo_ExploreNearbySpeakNavigationText(navigationVoiceArrivedLabel, {
+		cacheKey: 'system:arrived',
+		stepKey: 'system:arrived'
+	});
+	WoExploreNearbyState.navigationCompletionTimer = setTimeout(function() {
+		WoExploreNearbyState.navigationCompletionTimer = null;
+		Wo_ExploreNearbyClearRouteTarget();
+		Wo_ExploreNearbyUpdateUi();
+		Wo_ExploreNearbyRenderCurrentMap(null);
+	}, 1800);
+}
+
+function Wo_ExploreNearbyRerouteActiveNavigation(currentPoint) {
+	var targetPoint = Wo_ExploreNearbyGetNavigationTargetPoint();
+	var routeToken = 0;
+	var fallbackPath = null;
+
+	if (!WoExploreNearbyState.navigationActive || WoExploreNearbyState.navigationRerouteInProgress || !targetPoint || !currentPoint || !Wo_ExploreNearbyCanUseInAppNavigation()) {
+		return;
+	}
+
+	fallbackPath = [
+		{lat: currentPoint.lat, lng: currentPoint.lng},
+		{lat: targetPoint.lat, lng: targetPoint.lng}
+	];
+	WoExploreNearbyState.navigationRerouteInProgress = true;
+	WoExploreNearbyState.navigationOffRouteCount = 0;
+	WoExploreNearbyState.navigationLastRerouteAt = Date.now();
+	Wo_ExploreNearbySetNavigationBannerState('rerouting', navigationRetryingLabel, '', $.trim(targetPoint.name || targetPoint.title || ''));
+	Wo_ExploreNearbyUpdateUi();
+	routeToken = ++WoExploreNearbyState.navigationRouteRequestToken;
+
+	Wo_ExploreNearbyRequestRoute(currentPoint, targetPoint).then(function(routeData) {
+		if (routeToken !== WoExploreNearbyState.navigationRouteRequestToken) {
+			return;
 		}
 
-		Wo_ExploreNearbyFitRouteViewport(fallbackPath, [selfPoint, targetPoint]);
+		if (!routeData || !Array.isArray(routeData.path) || routeData.path.length <= 1) {
+			WoExploreNearbyState.navigationRerouteInProgress = false;
+			Wo_ExploreNearbyClearRouteLine();
+			Wo_ExploreNearbyShowRouteFallbackNotice(targetPoint, 4200);
+			return;
+		}
+
+		Wo_ExploreNearbyApplyNavigationRouteData(routeData, targetPoint, 'reroute');
+	}).catch(function() {
+		if (routeToken !== WoExploreNearbyState.navigationRouteRequestToken) {
+			return;
+		}
+
+		WoExploreNearbyState.navigationRerouteInProgress = false;
+		Wo_ExploreNearbyClearRouteLine();
+		Wo_ExploreNearbyShowRouteFallbackNotice(targetPoint, 4200);
 	});
+}
+
+function Wo_ExploreNearbyUpdateActiveNavigation(currentPoint) {
+	var routeData = WoExploreNearbyState.navigationRouteData || null;
+	var stepState = null;
+	var instructionText = '';
+	var summaryText = '';
+	var distanceToRouteMeters = 0;
+	var locationAccuracyMeters = Wo_ExploreNearbyNormalizeAccuracyMeters(WoExploreNearbyState.lastAcceptedLiveAccuracy);
+	var offRouteThresholdMeters = Math.max(
+		navigationOffRouteBaseThresholdMeters,
+		Math.min(
+			navigationOffRouteMaxThresholdMeters,
+			locationAccuracyMeters ? (locationAccuracyMeters * 1.2) : navigationOffRouteBaseThresholdMeters
+		)
+	);
+	var offRouteResetThresholdMeters = Math.max(16, offRouteThresholdMeters * 0.6);
+	var previousStepIndex = WoExploreNearbyState.navigationCurrentStepIndex;
+	var previousInstructionText = $.trim(WoExploreNearbyState.navigationInstructionText || '');
+	var previousStatus = $.trim(WoExploreNearbyState.navigationStatus || '');
+
+	if (!WoExploreNearbyState.navigationActive || !routeData || !Wo_ExploreNearbyHasValidCoordinates(currentPoint && currentPoint.lat, currentPoint && currentPoint.lng)) {
+		return;
+	}
+
+	if (Wo_ExploreNearbyHasArrivedAtRouteDestination(currentPoint, routeData)) {
+		Wo_ExploreNearbyHandleNavigationArrival();
+		return;
+	}
+
+	distanceToRouteMeters = Wo_ExploreNearbyGetDistanceMetersToPath(currentPoint, routeData.path);
+	if (distanceToRouteMeters > offRouteThresholdMeters) {
+		WoExploreNearbyState.navigationOffRouteCount++;
+	}
+	else if (distanceToRouteMeters < offRouteResetThresholdMeters) {
+		WoExploreNearbyState.navigationOffRouteCount = 0;
+	}
+	else {
+		WoExploreNearbyState.navigationOffRouteCount = Math.max(0, (WoExploreNearbyState.navigationOffRouteCount || 0) - 1);
+	}
+
+	if (WoExploreNearbyState.navigationOffRouteCount >= navigationOffRouteRequiredSamples && !WoExploreNearbyState.navigationRerouteInProgress && ((Date.now() - (WoExploreNearbyState.navigationLastRerouteAt || 0)) >= navigationRerouteCooldownMs)) {
+		Wo_ExploreNearbyRerouteActiveNavigation(currentPoint);
+		return;
+	}
+
+	if (WoExploreNearbyState.navigationRerouteInProgress) {
+		return;
+	}
+
+	stepState = Wo_ExploreNearbyGetNavigationStepState(currentPoint, routeData);
+	WoExploreNearbyState.navigationCurrentStepIndex = stepState.stepIndex;
+	instructionText = $.trim((stepState.step && stepState.step.instructionText) || navigationStatusActiveLabel);
+	summaryText = Wo_ExploreNearbyGetNavigationSummaryText(routeData, stepState, currentPoint);
+	Wo_ExploreNearbySetNavigationBannerState('active', instructionText, summaryText, $.trim(WoExploreNearbyState.navigationDestinationName || ''));
+	if (previousStepIndex !== stepState.stepIndex || previousInstructionText !== instructionText || previousStatus !== 'active') {
+		Wo_ExploreNearbyUpdateUi();
+	}
+	Wo_ExploreNearbyMaybeSpeakNavigationStep(routeData, stepState, '');
 }
 
 function Wo_ExploreNearbyGetViewportTargetPoints(points) {
@@ -8144,11 +10172,18 @@ function Wo_ExploreNearbyScrollToMap() {
 	}, 280);
 }
 
-function Wo_ExploreNearbyStartRouteToPointByKey(pointKey, shouldScrollMap) {
+function Wo_ExploreNearbyStartRouteToPointByKey(pointKey, shouldScrollMap, startNavigation) {
 	var requestedPointKey = $.trim(pointKey || '');
 	var initialTargetPoint = Wo_ExploreNearbyResolvePointByKey(requestedPointKey, false) || Wo_ExploreNearbyResolveCanonicalPointByKey(requestedPointKey, false);
+	var shouldStartNavigation = startNavigation === true;
 
 	if (!requestedPointKey || !initialTargetPoint) {
+		return;
+	}
+
+	if (shouldStartNavigation && !Wo_ExploreNearbyCanUseInAppNavigation()) {
+		Wo_ExploreNearbyShowNavigationNotice(navigationGoogleRequiredLabel, 2800);
+		Wo_ExploreNearbyUpdateUi();
 		return;
 	}
 
@@ -8157,6 +10192,10 @@ function Wo_ExploreNearbyStartRouteToPointByKey(pointKey, shouldScrollMap) {
 		var targetPoint = null;
 		var targetPointKey = requestedPointKey;
 		var marker = null;
+		var currentPoint = null;
+		var routeToken = 0;
+		var destinationName = '';
+		var shouldResetNavigation = false;
 
 		if (!resolvedTargetPoint || !Wo_ExploreNearbyHasValidCoordinates(resolvedTargetPoint.lat, resolvedTargetPoint.lng)) {
 			return;
@@ -8165,31 +10204,78 @@ function Wo_ExploreNearbyStartRouteToPointByKey(pointKey, shouldScrollMap) {
 		canonicalTargetPoint = Wo_ExploreNearbyResolveCanonicalDisplayItem(resolvedTargetPoint) || null;
 		targetPoint = $.extend({}, canonicalTargetPoint || {}, resolvedTargetPoint || {});
 		targetPointKey = targetPoint ? Wo_ExploreNearbyGetItemKey(targetPoint) : requestedPointKey;
+		destinationName = $.trim(targetPoint.name || targetPoint.title || '');
+		shouldResetNavigation = WoExploreNearbyState.navigationActive ||
+			WoExploreNearbyState.navigationStatus === 'starting' ||
+			WoExploreNearbyState.navigationRerouteInProgress === true;
 
+		if (shouldResetNavigation) {
+			WoExploreNearbyState.routeRenderToken++;
+			Wo_ExploreNearbyResetNavigationState();
+		}
+
+		Wo_ExploreNearbyCloseInfoPopup();
 		Wo_ExploreNearbyRememberPointSelection();
 		Wo_ExploreNearbySetRouteTargetPoint(targetPoint);
 		WoExploreNearbyState.openPopupPointKey = null;
 
 		if (WoExploreNearbyMapState.provider === 'google') {
 			marker = WoExploreNearbyMapState.googleMarkerLookup[targetPointKey] || WoExploreNearbyMapState.googleMarkerLookup[requestedPointKey] || null;
-			if (marker && WoExploreNearbyMapState.map) {
-				WoExploreNearbyMapState.map.panTo(Wo_ExploreNearbyGoogleMarkerGetPosition(marker));
-			}
 		}
 		else if (WoExploreNearbyMapState.provider === 'leaflet') {
 			marker = WoExploreNearbyMapState.leafletMarkerLookup[targetPointKey] || WoExploreNearbyMapState.leafletMarkerLookup[requestedPointKey] || null;
-			if (marker && WoExploreNearbyMapState.map) {
-				WoExploreNearbyMapState.map.panTo(marker.getLatLng());
-			}
 		}
 
 		Wo_ExploreNearbyEnsureSheetAtLeast('medium');
 		Wo_ExploreNearbyHighlightCard(targetPointKey, true);
-		Wo_ExploreNearbySyncRouteLine();
-		Wo_ExploreNearbyScheduleRouteViewportResync(targetPointKey);
 		if (shouldScrollMap) {
 			Wo_ExploreNearbyScrollToMap();
 		}
+
+		if (!shouldStartNavigation) {
+			Wo_ExploreNearbyCenterMapOnCurrentUser(true);
+			Wo_ExploreNearbySyncRouteLine({
+				deferViewportFitMs: 700
+			});
+			return;
+		}
+
+		currentPoint = Wo_ExploreNearbyGetCurrentUserPoint();
+		if (!currentPoint || !Wo_ExploreNearbyHasValidCoordinates(currentPoint.lat, currentPoint.lng)) {
+			Wo_ExploreNearbyShowNavigationNotice(navigationLocationRequiredLabel, 3200);
+			Wo_ExploreNearbyHandleLocationPromptAction();
+			return;
+		}
+
+		var navigationFallbackPath = [
+			{lat: currentPoint.lat, lng: currentPoint.lng},
+			{lat: targetPoint.lat, lng: targetPoint.lng}
+		];
+		Wo_ExploreNearbySetNavigationBannerState('starting', navigationStatusStartingLabel, '', destinationName);
+		Wo_ExploreNearbyCenterMapOnCurrentUser(true);
+		Wo_ExploreNearbyClearRouteLine();
+		Wo_ExploreNearbyUpdateUi();
+		routeToken = ++WoExploreNearbyState.navigationRouteRequestToken;
+		Wo_ExploreNearbyRequestRoute(currentPoint, targetPoint).then(function(routeData) {
+			if (routeToken !== WoExploreNearbyState.navigationRouteRequestToken) {
+				return;
+			}
+
+			if (!routeData || !Array.isArray(routeData.path) || routeData.path.length <= 1) {
+				Wo_ExploreNearbyClearRouteLine();
+				Wo_ExploreNearbyShowRouteFallbackNotice(targetPoint, 4200);
+				return;
+			}
+
+			Wo_ExploreNearbyApplyNavigationRouteData(routeData, targetPoint, 'start');
+		}).catch(function() {
+			if (routeToken !== WoExploreNearbyState.navigationRouteRequestToken) {
+				return;
+			}
+
+			Wo_ExploreNearbyClearRouteLine();
+			Wo_ExploreNearbyShowRouteFallbackNotice(targetPoint, 4200);
+		});
 	}).catch(function() {});
 }
 
@@ -8209,20 +10295,7 @@ function Wo_ExploreNearbyOpenGoogleMarker(marker, focusCard, openPopup) {
 	var pointKey = Wo_ExploreNearbyGetItemKey(selectedPoint);
 	var shouldOpenPopup = openPopup !== false && Wo_ExploreNearbyShouldOpenMarkerPopup(selectedPoint);
 	var markerSelection = null;
-
-	WoExploreNearbyMapState.map.panTo(Wo_ExploreNearbyGoogleMarkerGetPosition(marker));
-	Wo_ExploreNearbyEnsureMapSelectionZoom(selectedPoint);
-	if (shouldOpenPopup) {
-		WoExploreNearbyMapState.googleInfoWindow.setContent(Wo_ExploreNearbyGetPopupHtml(selectedPoint));
-		WoExploreNearbyMapState.googleInfoWindow.open({
-			map: WoExploreNearbyMapState.map,
-			anchor: marker,
-			shouldFocus: false
-		});
-	}
-	else {
-		WoExploreNearbyMapState.googleInfoWindow.close();
-	}
+	var shouldKeepViewportOnCurrentUser = false;
 
 	if (focusCard) {
 		var preservedSource = 'marker:google';
@@ -8246,9 +10319,32 @@ function Wo_ExploreNearbyOpenGoogleMarker(marker, focusCard, openPopup) {
 		Wo_ExploreNearbyEnsureSheetAtLeast('medium');
 		Wo_ExploreNearbyHighlightCard(pointKey, true);
 		if (markerSelection && markerSelection.routed) {
-			Wo_ExploreNearbySyncRouteLine();
-			Wo_ExploreNearbyScheduleRouteViewportResync(pointKey);
+			shouldKeepViewportOnCurrentUser = true;
+			Wo_ExploreNearbyCenterMapOnCurrentUser(true);
+			Wo_ExploreNearbySyncRouteLine({
+				deferViewportFitMs: 700
+			});
 		}
+	}
+
+	if (!shouldKeepViewportOnCurrentUser) {
+		WoExploreNearbyMapState.map.panTo(Wo_ExploreNearbyGoogleMarkerGetPosition(marker));
+		Wo_ExploreNearbyEnsureMapSelectionZoom(selectedPoint);
+		if (shouldOpenPopup) {
+			WoExploreNearbyMapState.googleInfoWindow.setContent(Wo_ExploreNearbyGetPopupHtml(selectedPoint));
+			WoExploreNearbyMapState.googleInfoWindow.open({
+				map: WoExploreNearbyMapState.map,
+				anchor: marker,
+				shouldFocus: false
+			});
+		}
+		else {
+			WoExploreNearbyMapState.googleInfoWindow.close();
+		}
+	}
+	else {
+		WoExploreNearbyState.openPopupPointKey = null;
+		WoExploreNearbyMapState.googleInfoWindow.close();
 	}
 }
 
@@ -8330,15 +10426,10 @@ function Wo_ExploreNearbyHandleGoogleNativePlaceSelection(event) {
 		WoExploreNearbyState.openPopupPointKey = null;
 		Wo_ExploreNearbyEnsureSheetAtLeast('medium');
 		Wo_ExploreNearbyEnsurePlacePointCard(resolvedPoint, true);
-		Wo_ExploreNearbyEnsureMapSelectionZoom(resolvedPoint);
-		if (WoExploreNearbyMapState.map && typeof WoExploreNearbyMapState.map.panTo === 'function') {
-			WoExploreNearbyMapState.map.panTo({
-				lat: resolvedPoint.lat,
-				lng: resolvedPoint.lng
-			});
-		}
-		Wo_ExploreNearbySyncRouteLine();
-		Wo_ExploreNearbyScheduleRouteViewportResync(resolvedPointKey);
+		Wo_ExploreNearbyCenterMapOnCurrentUser(true);
+		Wo_ExploreNearbySyncRouteLine({
+			deferViewportFitMs: 700
+		});
 	}).catch(function() {
 		var fallbackPointKey = Wo_ExploreNearbyGetItemKey(fallbackPoint);
 
@@ -8346,8 +10437,10 @@ function Wo_ExploreNearbyHandleGoogleNativePlaceSelection(event) {
 		WoExploreNearbyState.openPopupPointKey = null;
 		Wo_ExploreNearbyEnsureSheetAtLeast('medium');
 		Wo_ExploreNearbyEnsurePlacePointCard(fallbackPoint, true);
-		Wo_ExploreNearbySyncRouteLine();
-		Wo_ExploreNearbyScheduleRouteViewportResync(fallbackPointKey);
+		Wo_ExploreNearbyCenterMapOnCurrentUser(true);
+		Wo_ExploreNearbySyncRouteLine({
+			deferViewportFitMs: 700
+		});
 	});
 
 	return true;
@@ -8521,25 +10614,35 @@ function Wo_ExploreNearbyRenderLeafletMarkers(points, options) {
 					activePointKey: selectedPointKey
 				});
 				Wo_ExploreNearbyEnsureSheetAtLeast('medium');
-				WoExploreNearbyMapState.map.panTo(marker.getLatLng());
-				Wo_ExploreNearbyEnsureMapSelectionZoom(selectedPoint);
-				if (Wo_ExploreNearbyShouldOpenMarkerPopup(selectedPoint)) {
-					if (typeof marker.setPopupContent === 'function') {
-						marker.setPopupContent(Wo_ExploreNearbyGetPopupHtml(selectedPoint));
-					}
-					WoExploreNearbyState.openPopupPointKey = selectedPointKey;
-					marker.openPopup();
-				}
-				else {
+				if (markerSelection && markerSelection.routed) {
+					Wo_ExploreNearbyCenterMapOnCurrentUser(true);
 					WoExploreNearbyState.openPopupPointKey = null;
 					if (typeof marker.closePopup === 'function') {
 						marker.closePopup();
 					}
 				}
+				else {
+					WoExploreNearbyMapState.map.panTo(marker.getLatLng());
+					Wo_ExploreNearbyEnsureMapSelectionZoom(selectedPoint);
+					if (Wo_ExploreNearbyShouldOpenMarkerPopup(selectedPoint)) {
+						if (typeof marker.setPopupContent === 'function') {
+							marker.setPopupContent(Wo_ExploreNearbyGetPopupHtml(selectedPoint));
+						}
+						WoExploreNearbyState.openPopupPointKey = selectedPointKey;
+						marker.openPopup();
+					}
+					else {
+						WoExploreNearbyState.openPopupPointKey = null;
+						if (typeof marker.closePopup === 'function') {
+							marker.closePopup();
+						}
+					}
+				}
 				Wo_ExploreNearbyHighlightCard(selectedPointKey, true);
 				if (markerSelection && markerSelection.routed) {
-					Wo_ExploreNearbySyncRouteLine();
-					Wo_ExploreNearbyScheduleRouteViewportResync(selectedPointKey);
+					Wo_ExploreNearbySyncRouteLine({
+						deferViewportFitMs: 700
+					});
 				}
 			};
 		})(point, Wo_ExploreNearbyGetItemKey(point), marker));
@@ -8580,7 +10683,7 @@ function Wo_ExploreNearbyRenderMap(points, options) {
 		Wo_ExploreNearbyRenderLeafletMarkers(points, options || {});
 	}
 
-	Wo_ExploreNearbySyncRouteLine();
+	Wo_ExploreNearbyRestoreRouteLine();
 	$('#map').removeClass('wo_ui_map_state_loading');
 	Wo_ExploreNearbyUpdateMapPrompt();
 }
@@ -8702,7 +10805,7 @@ function Wo_ExploreNearbyCreateGoogleMap() {
 		Wo_ExploreNearbyRenderCurrentMap(WoExploreNearbyState.openPopupPointKey || null);
 	});
 	WoExploreNearbyMapState.googleInfoWindow = new google.maps.InfoWindow();
-	WoExploreNearbyMapState.googleDirectionsService = (typeof google.maps.DirectionsService !== 'undefined') ? new google.maps.DirectionsService() : null;
+	WoExploreNearbyMapState.googleDirectionsService = null;
 	Wo_ExploreNearbySyncMapGestureMode();
 	Wo_ExploreNearbyUpdateMapPrompt();
 	return true;
@@ -8806,7 +10909,7 @@ function Wo_ExploreNearbyGeocodeShopLocation(location) {
 		return Promise.resolve(WoExploreNearbyState.shopGeocodeCache[normalizedLocation]);
 	}
 
-	if (!Wo_ExploreNearbyGetGoogleGeocoder()) {
+	if (!Wo_ExploreNearbyCanUseGoogleGeocoderFallback()) {
 		WoExploreNearbyState.shopGeocodeCache[normalizedLocation] = null;
 		return Promise.resolve(null);
 	}
@@ -8862,26 +10965,7 @@ function Wo_ExploreNearbyResolveShopPlaceCoordinatesByPlaceId(placeId, fallbackL
 			};
 		}
 
-		if (!Wo_ExploreNearbyGetGoogleGeocoder()) {
-			return null;
-		}
-
-		return new Promise(function(resolve) {
-			Wo_ExploreNearbyGetGoogleGeocoder().geocode({
-				placeId: normalizedPlaceId
-			}, function(results, status) {
-				var resolvedLocation = null;
-				if (status === 'OK' && Array.isArray(results) && results[0] && results[0].geometry && results[0].geometry.location) {
-					resolvedLocation = {
-						lat: results[0].geometry.location.lat(),
-						lng: results[0].geometry.location.lng(),
-						location: $.trim(results[0].formatted_address || fallbackLabel)
-					};
-				}
-
-				resolve(resolvedLocation);
-			});
-		});
+		return null;
 	}).catch(function() {
 		return null;
 	}).then(function(resolvedLocation) {
@@ -9042,7 +11126,7 @@ function Wo_ExploreNearbyRenderCurrentMap(openPointKey) {
 		}
 
 		Wo_ExploreNearbyRenderMap(resolvedPoints, {
-			fit: true,
+			fit: !Wo_ExploreNearbyShouldLockNavigationViewport() && !Wo_ExploreNearbyHasActiveRouteTarget(),
 			openPointKey: targetOpenPointKey || null
 		});
 
@@ -9456,6 +11540,7 @@ jQuery(document).ready(function($) {
 	Wo_ExploreNearbyInitOrientationTracking();
 	Wo_ExploreNearbyRenderDebugPanel();
 	Wo_ExploreNearbyUpdateMapZoomControls();
+	Wo_ExploreNearbyRefreshSpeechAvailability();
 	initMap();
 	setTimeout(Wo_ExploreNearbyRefreshMapSize, 60);
 	Wo_ExploreNearbySetSheetSnap(Wo_ExploreNearbyGetFixedSheetSnapMode(), false);
@@ -9580,7 +11665,7 @@ jQuery(document).ready(function($) {
 		}
 
 		if (Wo_ExploreNearbyCanRouteToItem(item)) {
-			Wo_ExploreNearbyStartRouteToPointByKey(pointKey, true);
+			Wo_ExploreNearbyStartRouteToPointByKey(pointKey, true, false);
 			return;
 		}
 
@@ -9654,7 +11739,7 @@ jQuery(document).ready(function($) {
 			return;
 		}
 		if (Wo_ExploreNearbyCanRouteToItem(item)) {
-			Wo_ExploreNearbyStartRouteToPointByKey(pointKey, true);
+			Wo_ExploreNearbyStartRouteToPointByKey(pointKey, true, false);
 			return;
 		}
 		Wo_ExploreNearbyFocusOnMapByKey(pointKey, true);
@@ -9673,7 +11758,16 @@ jQuery(document).ready(function($) {
 			return;
 		}
 
-		Wo_ExploreNearbyStartRouteToPointByKey($(this).attr('data-point-key'), true);
+		var pointKey = $.trim($(this).attr('data-point-key') || '');
+		Wo_ExploreNearbyStartRouteToPointByKey(pointKey, true, true);
+	});
+
+	$(document).on('click', '#explore-nearby-nav-end, .wo_explore_discovery_card_nav_end', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		Wo_ExploreNearbyClearRouteTarget();
+		Wo_ExploreNearbyUpdateUi();
+		Wo_ExploreNearbyRenderCurrentMap(null);
 	});
 
 	$(document).on('click', '.wo_explore_discovery_share', function(e) {

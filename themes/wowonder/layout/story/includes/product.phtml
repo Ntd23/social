@@ -1,3 +1,58 @@
+<?php /* Description: Product card media and details for Wowonder feed posts. */ ?>
+<style>
+.post .wo_post_prod_img {
+	background: #f5f6f8;
+	overflow: hidden;
+}
+
+.post .wo_post_prod_img .wo_single_proimg {
+	display: block;
+	width: 100%;
+	height: clamp(420px, 48vw, 680px);
+	max-height: 78vh;
+	object-fit: contain;
+	background: #f5f6f8;
+}
+
+.post .wo_post_prod_img img.width-2,
+.post .wo_post_prod_img img.width-3,
+.post .wo_post_prod_img .album-collapse {
+	height: clamp(340px, 42vw, 560px);
+	object-fit: cover;
+	background: #f5f6f8;
+}
+
+.post .wo_post_prod_img .album-collapse .image-file {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+@media (min-width: 1024px) {
+	.post .wo_post_prod_img .wo_single_proimg {
+		height: clamp(520px, 44vw, 760px);
+	}
+
+	.post .wo_post_prod_img img.width-2,
+	.post .wo_post_prod_img img.width-3,
+	.post .wo_post_prod_img .album-collapse {
+		height: clamp(420px, 40vw, 620px);
+	}
+}
+
+@media (max-width: 600px) {
+	.post .wo_post_prod_img .wo_single_proimg {
+		height: auto;
+		max-height: 85vh;
+	}
+
+	.post .wo_post_prod_img img.width-2,
+	.post .wo_post_prod_img img.width-3,
+	.post .wo_post_prod_img .album-collapse {
+		height: 42vw;
+	}
+}
+</style>
 <?php
 	if (!empty($wo['story']['product_id']) && !empty($wo['story']['product']) && !empty($wo['story']['product']['images'])) {
 		$class = '';

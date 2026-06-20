@@ -1,4 +1,5 @@
 <?php
+// Story post layout wrapper with media, reactions, comments, and live post polling.
 $post_shared_from = array();
 $current_post = $wo['current_post'] = $wo['story'];
 ?>
@@ -323,16 +324,16 @@ $current_post = $wo['current_post'] = $wo['story'];
         $('#live_count_<?php echo $wo['story']['id']; ?>').html(0);
         $('#live_word_<?php echo $wo['story']['id']; ?>').html("<?php echo $wo['lang']['offline']; ?>");
         $('.was_live_text_<?php echo $wo['story']['id']; ?>').html("<?php echo ($wo['lang']['was_live']) ?>");
-        $('#post-<?php echo $wo['story']['id']; ?>').find('.comment-textarea').prop('disabled', true).attr('placeholder', "<?php echo (str_replace('{{user}}', $wo['story']['publisher']['username'], addslashes($wo['lang']['stream_has_ended']))) ?>");
-        $('#post-<?php echo $wo['story']['id']; ?>').find('.sendbtn').prop('disabled', true);
+        $('#post-<?php echo $wo['story']['id']; ?>').find('.comment-textarea').prop('disabled', false).attr('placeholder', "<?php echo addslashes(TextForMode('write_comment')); ?>");
+        $('#post-<?php echo $wo['story']['id']; ?>').find('.sendbtn').prop('disabled', false);
       }
       var post_live_<?php echo $wo['story']['id']; ?> = setInterval(function() {
         data = {};
-        for (var i = 0; i < $('.live_comments').length; i++) {
-          if ($($('.live_comments')[i]).attr('live_comment_id')) {
-            data[i] = $($('.live_comments')[i]).attr('live_comment_id');
+        $('#live_post_comments_<?php echo $wo['story']['id']; ?> .live_comments').each(function(i, node) {
+          if ($(node).attr('live_comment_id')) {
+            data[i] = $(node).attr('live_comment_id');
           }
-        }
+        });
         $.post(Wo_Ajax_Requests_File() + "?f=live&s=check_comments", {
           post_id: <?php echo $wo['story']['id']; ?>,
           ids: data,

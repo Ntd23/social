@@ -1,4 +1,5 @@
 <?php
+// Live studio page layout and LiveKit host controls.
 $livekit_host = !empty($wo['livekit_livestream']) ? $wo['livekit_livestream'] : array();
 $host_name = !empty($wo['user']['name']) ? $wo['user']['name'] : 'Host';
 $host_avatar = '';
@@ -82,6 +83,16 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
 .wo-stage{position:relative;min-height:0;border-radius:16px;overflow:hidden;background:#111315;border:1px solid #3a3b3c}
 .wo-stage video{width:100%;height:100%;object-fit:cover;display:block;background:#020617;transform:scaleX(-1)}
 .wo-stage-overlay{position:absolute;top:14px;left:14px;right:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;pointer-events:none}
+.wo-stage-comments-overlay{position:absolute;left:14px;bottom:14px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:min(360px,calc(100% - 28px));pointer-events:none;z-index:3}
+.wo-stage-comments-overlay:empty{display:none}
+.wo-stage-comments-overlay .live_comments{display:flex;align-items:flex-start;gap:10px;width:auto;max-width:100%;margin:0;padding:0;background:transparent;border:0;box-shadow:none;backdrop-filter:none}
+.wo-stage-comments-overlay .live_comments .pull-left,.wo-stage-comments-overlay .live_comments .comment-body{float:none!important}
+.wo-stage-comments-overlay .live_comments .comment-body{min-width:0}
+.wo-stage-comments-overlay .live_comments .clear{display:none}
+.wo-stage-comments-overlay .live_comments .live_avatar{width:36px;height:36px;min-width:36px;object-fit:cover}
+.wo-stage-comments-overlay .live_comments .live_user_h{margin:0 0 2px;font-size:14px;line-height:1.2}
+.wo-stage-comments-overlay .live_comments .live_user_h,.wo-stage-comments-overlay .live_comments .comment-text{color:#f0f2f5;text-shadow:0 1px 3px rgba(0,0,0,.85)}
+.wo-stage-comments-overlay .live_comments .comment-text{margin-top:2px;font-size:14px;line-height:1.35;word-break:break-word}
 .wo-stage-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;background:linear-gradient(180deg,rgba(17,19,21,.78),rgba(17,19,21,.94));color:#b0b3b8}
 .wo-stage-empty strong{display:block;margin-bottom:8px;color:#f0f2f5;font-size:20px}
 .wo-feed-note{display:flex;align-items:center;gap:10px;font-size:15px;color:#b0b3b8}
@@ -112,10 +123,28 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
 .wo-link-url{min-width:0;flex:1;color:#b0b3b8;font-size:13px;line-height:1.45;word-break:break-all}
 .wo-hidden{display:none!important}
 .wo-inline-count{font-variant-numeric:tabular-nums}
+.wo-livekit-studio[data-mode="setup"] .wo-shell{grid-template-columns:minmax(260px,300px) minmax(0,1fr);grid-template-areas:"side main"}
+.wo-livekit-studio[data-mode="setup"] .wo-right{display:none}
+.wo-livekit-studio[data-mode="setup"] .wo-main-mode.setup{grid-template-rows:minmax(0,1fr)}
+.wo-livekit-studio[data-mode="setup"] .wo-setup-camera-card,.wo-livekit-studio[data-mode="setup"] .wo-setup-detail-card{display:none!important}
+.wo-livekit-studio[data-mode="setup"] .wo-setup-sidebar-intro{display:none!important}
+.wo-livekit-studio[data-mode="setup"] .wo-mode.setup .wo-account{margin-top:0}
+.wo-livekit-studio[data-mode="live"] .wo-shell{grid-template-columns:minmax(260px,300px) minmax(0,1fr);grid-template-areas:"side main"}
+.wo-livekit-studio[data-mode="live"] .wo-right{display:none}
+.wo-livekit-studio[data-mode="live"] .wo-main-mode.live{grid-template-rows:minmax(0,1fr)}
+.wo-livekit-studio[data-mode="live"] .wo-live-sidebar-overview{display:none!important}
+.wo-livekit-studio[data-mode="live"] .wo-mode.live{justify-content:flex-start}
+.wo-livekit-studio[data-mode="live"] .wo-live-footer{margin-top:0}
+.wo-livekit-studio[data-mode="live"] .wo-live-activity-card,
+.wo-livekit-studio[data-mode="live"] .wo-live-details-card,
+.wo-livekit-studio[data-mode="live"] .wo-live-video-stats-card,
+.wo-livekit-studio[data-mode="live"] .wo-live-comments-card,
+.wo-livekit-studio[data-mode="live"] .wo-live-post-details-card,
+.wo-livekit-studio[data-mode="live"] .wo-live-preview-link-card{display:none!important}
 @media (max-width:1440px){.wo-shell{grid-template-columns:240px minmax(0,1fr) 280px}}
 @media (max-width:1180px){.content-container,.wo-livekit-studio{min-height:auto;overflow:auto}.wo-livekit-studio .container{min-height:auto;padding:8px 8px 14px}.wo-shell{grid-template-columns:1fr;grid-template-areas:"side" "main" "right";min-height:auto}.wo-sidebar,.wo-main,.wo-right{min-height:auto}.wo-main-mode.live,.wo-right-mode.live{min-height:auto}.wo-comments{min-height:280px;max-height:42vh}}
 @media (max-width:900px){.wo-tool-stack{grid-template-columns:1fr}}
-@media (max-width:767px){.wo-livekit-studio .container{padding:0}.wo-shell{gap:10px}.wo-panel,.wo-card,.wo-stage-card{border-radius:0;border-left:0;border-right:0}.wo-sidebar,.wo-card,.wo-stage-card{padding:14px}.wo-title{font-size:26px}.wo-camera-grid,.wo-stats-grid,.wo-detail-grid,.wo-tool-stack{grid-template-columns:1fr}.wo-stage-head,.wo-video-footer,.wo-side-actions,.wo-link-row,.wo-actions,.wo-inline-actions{flex-direction:column;align-items:stretch}.wo-btn{width:100%}.wo-stage-overlay{top:12px;left:12px;right:12px}}
+@media (max-width:767px){.wo-livekit-studio .container{padding:0}.wo-shell{gap:10px}.wo-panel,.wo-card,.wo-stage-card{border-radius:0;border-left:0;border-right:0}.wo-sidebar,.wo-card,.wo-stage-card{padding:14px}.wo-title{font-size:26px}.wo-camera-grid,.wo-stats-grid,.wo-detail-grid,.wo-tool-stack{grid-template-columns:1fr}.wo-stage-head,.wo-video-footer,.wo-side-actions,.wo-link-row,.wo-actions,.wo-inline-actions{flex-direction:column;align-items:stretch}.wo-btn{width:100%}.wo-stage-overlay{top:12px;left:12px;right:12px}.wo-stage-comments-overlay{left:12px;bottom:12px;max-width:calc(100% - 24px)}.wo-stage-comments-overlay .live_comments{padding:9px 11px}}
 @media (hover:none) and (pointer:coarse){.wo-livekit-studio .container{padding:0}.wo-shell{grid-template-columns:1fr!important;grid-template-areas:"side" "main" "right"!important;gap:10px;min-height:auto}.wo-sidebar,.wo-main,.wo-right{min-height:auto}.wo-panel,.wo-card,.wo-stage-card{border-radius:0;border-left:0;border-right:0}.wo-sidebar,.wo-card,.wo-stage-card{padding:14px}.wo-camera-grid,.wo-stats-grid,.wo-detail-grid,.wo-tool-stack{grid-template-columns:1fr}.wo-stage-head,.wo-video-footer,.wo-side-actions,.wo-link-row,.wo-actions,.wo-inline-actions{flex-direction:column;align-items:stretch}.wo-btn{width:100%}.wo-comments{min-height:280px;max-height:none}}
 </style>
 
@@ -124,17 +153,19 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
         <div class="wo-shell">
             <aside class="wo-panel wo-sidebar">
                 <div class="wo-mode setup">
-                    <h1 class="wo-title">Phát trực tiếp</h1>
-                    <div class="wo-copy">Kết nối camera, hoàn tất nội dung bài viết và bắt đầu livestream trong một màn hình.</div>
-                    <div class="wo-progress">
-                        <div class="wo-bar"><span id="wo-livekit-setup-progress" style="width:33%"></span></div>
-                        <div id="wo-livekit-progress-text" class="wo-progress-text">1/3</div>
+                    <div class="wo-setup-sidebar-intro">
+                        <h1 class="wo-title">Phát trực tiếp</h1>
+                        <div class="wo-copy">Kết nối camera, hoàn tất nội dung bài viết và bắt đầu livestream trong một màn hình.</div>
+                        <div class="wo-progress">
+                            <div class="wo-bar"><span id="wo-livekit-setup-progress" style="width:33%"></span></div>
+                            <div id="wo-livekit-progress-text" class="wo-progress-text">1/3</div>
+                        </div>
+                        <ul class="wo-steps">
+                            <li id="wo-step-source" class="active"><span class="wo-step-icon">1</span>Kết nối camera</li>
+                            <li id="wo-step-detail"><span class="wo-step-icon">2</span>Hoàn tất chi tiết bài viết</li>
+                            <li id="wo-step-live"><span class="wo-step-icon">3</span>Phát trực tiếp</li>
+                        </ul>
                     </div>
-                    <ul class="wo-steps">
-                        <li id="wo-step-source" class="active"><span class="wo-step-icon">1</span>Kết nối camera</li>
-                        <li id="wo-step-detail"><span class="wo-step-icon">2</span>Hoàn tất chi tiết bài viết</li>
-                        <li id="wo-step-live"><span class="wo-step-icon">3</span>Phát trực tiếp</li>
-                    </ul>
 
                     <div class="wo-account">
                         <div class="wo-account-head">
@@ -173,31 +204,33 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
                 </div>
 
                 <div class="wo-mode live">
-                    <h2 class="wo-title" style="font-size:26px">Bảng điều khiển phát trực tiếp</h2>
-                    <div class="wo-copy">Theo dõi buổi phát, chỉ số cơ bản và bình luận ngay trong studio.</div>
+                    <div class="wo-live-sidebar-overview">
+                        <h2 class="wo-title" style="font-size:26px">Bảng điều khiển phát trực tiếp</h2>
+                        <div class="wo-copy">Theo dõi buổi phát, chỉ số cơ bản và bình luận ngay trong studio.</div>
 
-                    <div class="wo-account">
-                        <div class="wo-account-head">
-                            <div class="wo-avatar">
-                                <?php if (!empty($host_avatar)) { ?>
-                                    <img src="<?php echo $host_avatar; ?>" alt="<?php echo $host_name; ?>">
-                                <?php } else { ?>
-                                    <?php echo $host_initial; ?>
-                                <?php } ?>
-                            </div>
-                            <div>
-                                <div class="wo-account-name"><?php echo $host_name; ?></div>
-                                <div class="wo-account-note">Đang phát trực tiếp</div>
+                        <div class="wo-account">
+                            <div class="wo-account-head">
+                                <div class="wo-avatar">
+                                    <?php if (!empty($host_avatar)) { ?>
+                                        <img src="<?php echo $host_avatar; ?>" alt="<?php echo $host_name; ?>">
+                                    <?php } else { ?>
+                                        <?php echo $host_initial; ?>
+                                    <?php } ?>
+                                </div>
+                                <div>
+                                    <div class="wo-account-name"><?php echo $host_name; ?></div>
+                                    <div class="wo-account-note">Đang phát trực tiếp</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="wo-nav">
-                        <div class="wo-nav-item active">Bảng điều khiển</div>
-                        <div class="wo-nav-item">Cài đặt</div>
-                        <div class="wo-nav-item">Tương tác</div>
-                        <div class="wo-nav-item">Phân phối</div>
-                        <div class="wo-nav-item">Báo cáo sự cố</div>
+                        <div class="wo-nav">
+                            <div class="wo-nav-item active">Bảng điều khiển</div>
+                            <div class="wo-nav-item">Cài đặt</div>
+                            <div class="wo-nav-item">Tương tác</div>
+                            <div class="wo-nav-item">Phân phối</div>
+                            <div class="wo-nav-item">Báo cáo sự cố</div>
+                        </div>
                     </div>
 
                     <div class="wo-live-footer">
@@ -212,7 +245,7 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
 
             <main class="wo-main">
                 <div class="wo-main-mode setup">
-                    <div class="wo-card">
+                    <div class="wo-card wo-setup-camera-card">
                         <h3 class="wo-card-title">Kiểm soát camera</h3>
                         <div class="wo-camera-grid">
                             <div class="wo-device-stack">
@@ -284,6 +317,7 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
                                 <span class="wo-chip live"><span class="wo-chip-dot"></span>TRỰC TIẾP</span>
                                 <span class="wo-chip"><span id="wo-livekit-side-count-chip" class="wo-inline-count">0</span> người xem</span>
                             </div>
+                            <div id="wo-livekit-stage-comments" class="wo-stage-comments-overlay"></div>
                             <div id="wo-livekit-host-empty-live" class="wo-stage-empty">
                                 <div>
                                     <strong>Đang chuẩn bị hình ảnh</strong>
@@ -303,7 +337,7 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
                         </div>
                     </div>
 
-                    <div class="wo-card">
+                    <div class="wo-card wo-live-activity-card">
                         <h3 class="wo-card-title">Hoạt động trong live</h3>
                         <div class="wo-stats-grid">
                             <div class="wo-stat">
@@ -317,7 +351,7 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
                         </div>
                     </div>
 
-                    <div class="wo-card">
+                    <div class="wo-card wo-live-details-card">
                         <h3 class="wo-card-title">Thông tin chi tiết</h3>
                         <div class="wo-detail-grid">
                             <div class="wo-detail">
@@ -343,7 +377,7 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
                         </div>
                     </div>
 
-                    <div class="wo-card">
+                    <div class="wo-card wo-live-video-stats-card">
                         <h3 class="wo-card-title">Số liệu về video đang phát</h3>
                         <div class="wo-card-copy">V1 chỉ hiển thị chỉ số cơ bản của livestream. Các thông số nâng cao sẽ được bổ sung khi lấy dữ liệu ổn định từ track stats.</div>
                     </div>
@@ -352,7 +386,7 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
 
             <aside class="wo-right">
                 <div class="wo-right-mode setup">
-                    <div class="wo-card">
+                    <div class="wo-card wo-setup-detail-card">
                         <h3 class="wo-card-title">Thêm chi tiết về bài viết</h3>
                         <div class="wo-field">
                             <label for="wo-livekit-title-input">Tiêu đề</label>
@@ -366,7 +400,7 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
                 </div>
 
                 <div class="wo-right-mode live">
-                    <div class="wo-card wo-comment-panel">
+                    <div class="wo-card wo-comment-panel wo-live-comments-card">
                         <h3 class="wo-card-title">Bình luận</h3>
                         <div id="wo-livekit-comments-shell" class="wo-comments">
                             <div id="wo-livekit-comments-empty" class="wo-comments-empty">
@@ -379,13 +413,13 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
                         </div>
                     </div>
 
-                    <div class="wo-card">
+                    <div class="wo-card wo-live-post-details-card">
                         <h3 class="wo-card-title">Chi tiết bài viết</h3>
                         <div id="wo-livekit-live-title" class="wo-output empty">Chưa có tiêu đề</div>
                         <div id="wo-livekit-live-description" class="wo-output empty" style="margin-top:12px">Chưa có mô tả</div>
                     </div>
 
-                    <div class="wo-card">
+                    <div class="wo-card wo-live-preview-link-card">
                         <h3 class="wo-card-title">Liên kết xem trước</h3>
                         <div class="wo-card-copy">Nhấn vào liên kết dưới đây để xem bài live như viewer.</div>
                         <div class="wo-link-row">
@@ -421,6 +455,7 @@ const audioMeter = document.getElementById('wo-livekit-audio-meter');
 const commentsShell = document.getElementById('wo-livekit-comments-shell');
 const commentsFeed = document.getElementById('live_post_comments');
 const commentsEmpty = document.getElementById('wo-livekit-comments-empty');
+const stageCommentsMount = document.getElementById('wo-livekit-stage-comments');
 const postIdInput = document.getElementById('live_post_id');
 const titleInput = document.getElementById('wo-livekit-title-input');
 const descriptionInput = document.getElementById('wo-livekit-description-input');
@@ -428,6 +463,9 @@ const publishBtn = document.getElementById('publishBtn');
 const postLink = document.getElementById('wo-livekit-post-link');
 const postLinkUrl = document.getElementById('wo-livekit-post-link-url');
 const liveTimerEl = document.getElementById('wo-livekit-live-timer');
+const overlayBubbleLifetime = 4500;
+const overlayBubbleMax = 3;
+const overlayRecentKeys = {};
 
 let hostRoom = null;
 let hostTracks = [];
@@ -452,6 +490,9 @@ function setStudioMode(mode) {
   studioMode = mode === 'live' ? 'live' : 'setup';
   if (studioRoot) {
     studioRoot.setAttribute('data-mode', studioMode);
+  }
+  if (studioMode !== 'live') {
+    clearOverlayComments();
   }
   renderHostPreview();
   updateTrackButtons();
@@ -550,10 +591,99 @@ function updateEngagementStats(reactions, shares, clips) {
   $('#wo-livekit-detail-clips').text(safeClips);
 }
 
+function pruneOverlayCommentKeys(now) {
+  Object.keys(overlayRecentKeys).forEach(function(key) {
+    if ((now - overlayRecentKeys[key]) > (overlayBubbleLifetime * 2)) {
+      delete overlayRecentKeys[key];
+    }
+  });
+}
+
+function getOverlayCommentKey(node) {
+  if (!node) {
+    return '';
+  }
+  const liveCommentId = node.getAttribute('live_comment_id');
+  if (liveCommentId) {
+    return 'comment:' + liveCommentId;
+  }
+  const publisherLink = node.querySelector('a[href]');
+  const commentText = node.querySelector('.comment-text');
+  const publisher = publisherLink ? publisherLink.getAttribute('href') : '';
+  const text = $.trim(String(commentText ? commentText.textContent : node.textContent || '').replace(/\s+/g, ' '));
+  if (!publisher && !text) {
+    return '';
+  }
+  return 'bubble:' + publisher + ':' + text;
+}
+
+function removeOverlayBubble(node, immediate) {
+  if (!node) {
+    return;
+  }
+  if (node.parentNode) {
+    node.parentNode.removeChild(node);
+  }
+}
+
+function pushOverlayCommentBubble(node) {
+  if (studioMode !== 'live' || !stageCommentsMount || !node) {
+    return;
+  }
+  const now = Date.now();
+  pruneOverlayCommentKeys(now);
+  const key = getOverlayCommentKey(node);
+  if (key && overlayRecentKeys[key] && (now - overlayRecentKeys[key]) < overlayBubbleLifetime) {
+    return;
+  }
+  if (key) {
+    overlayRecentKeys[key] = now;
+  }
+
+  const bubble = node.cloneNode(true);
+  bubble.classList.add('wo-live-comment-bubble');
+  Array.prototype.forEach.call(bubble.querySelectorAll('[id]'), function(element) {
+    element.removeAttribute('id');
+  });
+  stageCommentsMount.appendChild(bubble);
+
+  while (stageCommentsMount.children.length > overlayBubbleMax) {
+    removeOverlayBubble(stageCommentsMount.firstElementChild, true);
+  }
+}
+
+function renderOverlayComments(html) {
+  if (studioMode !== 'live' || !stageCommentsMount || !html) {
+    return;
+  }
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  Array.prototype.forEach.call(container.querySelectorAll('.live_comments'), function(node) {
+    pushOverlayCommentBubble(node);
+  });
+}
+
+function clearOverlayComments() {
+  if (!stageCommentsMount) {
+    return;
+  }
+  Array.prototype.slice.call(stageCommentsMount.children).forEach(function(node) {
+    removeOverlayBubble(node, true);
+  });
+  stageCommentsMount.innerHTML = '';
+  Object.keys(overlayRecentKeys).forEach(function(key) {
+    delete overlayRecentKeys[key];
+  });
+}
+
 function syncCommentsState() {
   const hasComments = $('#live_post_comments .live_comments').length > 0;
-  commentsShell.classList.toggle('has-comments', hasComments);
-  commentsEmpty.classList.toggle('wo-hidden', hasComments);
+  if (commentsShell) {
+    commentsShell.classList.toggle('has-comments', hasComments);
+  }
+  if (commentsEmpty) {
+    commentsEmpty.classList.toggle('wo-hidden', hasComments);
+  }
   updateCommentStats();
 }
 
@@ -922,6 +1052,7 @@ var main_live = setInterval(function() {
 
   $.post(liveCheckUrl, {post_id: postId, ids: ids, page: 'live'}, function(response) {
     if (response.status == 200) {
+      renderOverlayComments(response.html);
       $('#live_post_comments').append(response.html);
       updateLiveCount(response.count);
       updateEngagementStats(response.reactions_count, response.shares_count, response.clips_count);

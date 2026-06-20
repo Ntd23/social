@@ -1,4 +1,5 @@
 <?php
+// Bootstraps application startup, configuration defaults, and core environment setup.
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(0);
@@ -48,6 +49,8 @@ $required_config_defaults = array(
     'livekit_host' => '',
     'livekit_api_key' => '',
     'livekit_api_secret' => '',
+    'openrouteservice_api_key' => 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjBlYTc3Mzc0NWZmNTQwYTNiMWIzN2E2OGQzOTlmYmUyIiwiaCI6Im11cm11cjY0In0=',
+    'openrouteservice_base_url' => '',
     'nearby_pinned_pages' => ''
 );
 foreach ($required_config_defaults as $config_name => $config_value) {
@@ -498,6 +501,12 @@ if (!$wo['config']['can_use_gift']) {
 }
 if (!$wo['config']['can_use_nearby']) {
     $wo['config']['find_friends'] = 0;
+}
+if (!isset($wo['config']['find_nearby']) && isset($wo['config']['find_friends'])) {
+    $wo['config']['find_nearby'] = $wo['config']['find_friends'];
+}
+if (!isset($wo['lang']['find_nearby']) && isset($wo['lang']['find_friends'])) {
+    $wo['lang']['find_nearby'] = $wo['lang']['find_friends'];
 }
 if (!$wo['config']['can_use_video_upload']) {
     $wo['config']['video_upload'] = 0;
