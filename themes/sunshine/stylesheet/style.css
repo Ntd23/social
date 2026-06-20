@@ -894,12 +894,15 @@ iframe,
 }
 
 .post .post-file img {
-    max-height: 500px;
+    display: block;
+    width: auto;
+    height: auto;
     max-width: 100%;
-    width: 100%;
+    max-height: min(75vh, 960px);
+    margin: 0 auto;
     border: 0;
     border-radius: 10px;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .post .post-image .image {
@@ -12622,11 +12625,17 @@ svg.feather {
 }
 
 #fullsizeimg img {
-    max-height: none;
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: min(75vh, 960px);
     border: 0;
     padding: 0;
     border-radius: 0;
-    min-height: 300px;
+    min-height: 0;
+    margin: 0 auto;
+    object-fit: contain;
 }
 
 #fullsizeimg img.fund {

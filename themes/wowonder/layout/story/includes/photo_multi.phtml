@@ -1,3 +1,4 @@
+<?php /* Description: Multi-photo feed collage for the Wowonder theme. */ ?>
 <?php
 $photos = $wo['story']['photo_multi'] ?? [];
 if (!$photos) { return; }
@@ -80,7 +81,7 @@ if (!empty($wo['story']['blur']) && $wo['story']['blur'] == 1) { ?>
 
 <style>
  /* ===== Collage base (nhẹ) ===== */
-.collage{ --gap:4px; --row:min(240px,24vw); display:grid; gap:var(--gap); width:100% }
+.collage{ --gap:4px; --row:clamp(260px,30vw,420px); display:grid; gap:var(--gap); width:100% }
 .collage .tile{ position:relative; overflow:hidden; border-radius:10px; background:#111 }
 .collage .tile img.image-file{ width:100%; height:100%; display:block; object-fit:cover }
 
@@ -90,7 +91,7 @@ if (!empty($wo['story']['blur']) && $wo['story']['blur'] == 1) { ?>
 .collage-1 .tile img{ height:auto; object-fit:contain; max-height:70vh }
 
 /* 2 ảnh */
-.collage-2{ grid-template-columns:repeat(2,1fr); grid-auto-rows:var(--row) }
+.collage-2{ --row:clamp(340px,42vw,560px); grid-template-columns:repeat(2,1fr); grid-auto-rows:var(--row) }
 
 /* 3 ảnh: A cao bên trái; B,C xếp chồng bên phải (desktop) */
 .collage-3{
@@ -133,7 +134,8 @@ if (!empty($wo['story']['blur']) && $wo['story']['blur'] == 1) { ?>
 
 /* Desktop rộng tinh chỉnh nhẹ */
 @media (min-width:1024px){
-  .collage{ --row:min(280px,22vw) }
+  .collage{ --row:clamp(300px,28vw,460px) }
+  .collage-2{ --row:clamp(420px,40vw,620px) }
 }
 /* ================= FB MOBILE LAYOUT (≤540px) ================= */
 /* ====== FB-like MOBILE (≤600px) — override dứt điểm ====== */

@@ -1,6 +1,8 @@
-<?php echo Wo_LoadPage('live/includes/livekit_assets'); ?>
+<?php
+// Inline LiveKit player markup for feed and story livestream posts.
+echo Wo_LoadPage('live/includes/livekit_assets'); ?>
 <?php $ended_text = str_replace('{{user}}', $wo['story']['publisher']['username'], $wo['lang']['stream_has_ended']); ?>
-<div class="post-file wo-livekit-post-file" data-livekit-post-id="<?php echo (int) $wo['story']['id']; ?>" <?php echo $wo['story']['is_still_live'] ? 'style="/*height: 440px;*/"' : ''; ?>>
+<div class="post-file wo-livekit-post-file<?php echo !$wo['story']['is_still_live'] ? ' is-ended' : ''; ?>" data-livekit-post-id="<?php echo (int) $wo['story']['id']; ?>" <?php echo $wo['story']['is_still_live'] ? 'style="/*height: 440px;*/"' : ''; ?>>
     <div
         id="wo-livekit-wrap-<?php echo $wo['story']['id']; ?>"
         class="embed-responsive embed-responsive-4by3 wo-livekit-live-wrap"
@@ -23,7 +25,7 @@
     <?php if (!empty($wo['page']) && $wo['page'] != 'story' && $wo['story']['is_still_live']) { ?>
         <a href="<?php echo $wo['story']['url']; ?>" target="_blank" class="live_link_style live_link_<?php echo($wo['story']['id']) ?> wo-livekit-inline-link"></a>
     <?php } ?>
-    <?php if (!empty($wo['story']['comments_status']) && $wo['story']['comments_status'] == 1) { ?>
+    <?php if (!empty($wo['story']['comments_status']) && $wo['story']['comments_status'] == 1 && $wo['story']['is_still_live']) { ?>
         <div id="live_post_comments_<?php echo($wo['story']['id']) ?>" class="wow_liv_comments_feed">
             <?php if (!empty($wo['story']['get_post_comments'])) {
                 $count = 0;

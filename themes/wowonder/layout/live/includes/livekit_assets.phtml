@@ -1,6 +1,13 @@
-<?php if (empty($wo['livekit_live_assets_loaded'])) { $wo['livekit_live_assets_loaded'] = true; ?>
+<?php
+// Shared LiveKit viewer assets for inline and fullscreen livestream playback.
+if (empty($wo['livekit_live_assets_loaded'])) { $wo['livekit_live_assets_loaded'] = true; ?>
 <style>
 .wo-livekit-post-file {position: relative;isolation: isolate}
+.wo-livekit-post-file.is-ended .wow_liv_comments_feed {position: static;width: auto;left: auto;right: auto;bottom: auto;padding: 16px 0 0}
+.wo-livekit-post-file.is-ended .live_comments {padding: 10px 0}
+.wo-livekit-post-file.is-ended .live_comments .live_user_h {color: #111827}
+.wo-livekit-post-file.is-ended .live_comments .comment-text,
+.wo-livekit-post-file.is-ended .live_comments .reply-text {color: #4b5563}
 .wo-livekit-live-wrap {position: relative;background: #020617;border-radius: 16px;overflow: hidden;z-index: 0;isolation: isolate}
 .wo-livekit-post-file .wo-livekit-live-wrap {z-index: 0}
 .wo-livekit-inline-link {z-index: 5 !important}
@@ -273,6 +280,26 @@
     }
   }
 
+  function syncEndedPostLayout(entry) {
+    if (!entry || !entry.wrap) {
+      return;
+    }
+    var anchorNode = entry.wrap.parentNode;
+    if (entry.placeholders && entry.placeholders.wrap && entry.placeholders.wrap.parentNode) {
+      anchorNode = entry.placeholders.wrap.parentNode;
+    }
+    if (!anchorNode) {
+      return;
+    }
+    var postFile = anchorNode;
+    while (postFile && !(postFile.classList && postFile.classList.contains('wo-livekit-post-file'))) {
+      postFile = postFile.parentNode;
+    }
+    if (postFile && postFile.classList) {
+      postFile.classList.toggle('is-ended', !!entry.stopped);
+    }
+  }
+
   function scheduleReconnect(entry) {
     if (!entry || entry.stopped || entry.retryTimer) {
       return;
@@ -428,9 +455,6 @@
 
   function enableCommentComposer(postId) {
     var entry = ensureEntry(postId);
-    if (entry.stopped) {
-      return;
-    }
     var sourceTextarea = entry.postComments ? entry.postComments.querySelector('.comment-textarea') : null;
     var sendButton = entry.postComments ? entry.postComments.querySelector('.sendbtn') : null;
     if (sourceTextarea) {
@@ -458,6 +482,7 @@
     var entry = ensureEntry(postId);
     entry.stopped = true;
     entry.streamState = 'offline';
+    syncEndedPostLayout(entry);
     clearRetry(entry);
     if (entry.room) {
       try {
@@ -468,7 +493,7 @@
     if (entry.audioSink) {
       entry.audioSink.innerHTML = '';
     }
-    disableCommentComposer(postId, 'Livestream đã kết thúc');
+    enableCommentComposer(postId);
     renderStageMessage(entry, endedText || entry.endedText || 'Livestream đã kết thúc.', true);
     updateFullscreenShellState(entry);
   }
@@ -957,6 +982,7 @@
       entry.hostUrl = options.hostUrl || entry.hostUrl || '#';
       entry.stopped = options.isStillLive === false;
       entry.streamState = entry.stopped ? 'offline' : 'live';
+      syncEndedPostLayout(entry);
       if (entry.stopped) {
         markEnded(entry.postId, entry.endedText);
         return;
@@ -976,6 +1002,7 @@
         return;
       }
       entry.streamState = state === 'offline' ? 'stale' : (state || 'live');
+      syncEndedPostLayout(entry);
       if (entry.streamState === 'live') {
         clearRetry(entry);
         enableCommentComposer(entry.postId);

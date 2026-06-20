@@ -1,3 +1,4 @@
+<?php /* Description: Photo album feed layout for the Wowonder theme. */ ?>
 <?php if (!empty($wo['story']['photo_album']) && $wo['story']['blur'] == 1) { ?>
   <div class="post-file show_album_<?php echo $wo['story']['id']; ?> blur_multi_images" id="fullsizeimg">
     <button class='btn btn-main image_blur_btn remover_blur_btn_<?php echo $wo['story']['id']; ?>' onclick='Wo_RemoveBlurAlbum(this,<?php echo $wo['story']['id']; ?>)'><?php echo $wo['lang']['view_image']; ?></button>
@@ -104,6 +105,7 @@ else if (count($wo['story']['photo_album']) > 3) {
    }
 }
 elseif (count($wo['story']['photo_album']) == 2) {
+  echo "<div class='wo_photo_album_grid_2'>";
   foreach ($wo['story']['photo_album'] as $photo) {
       if ($wo['story']['admin'] === true) {
         $delete = "<span onclick='Wo_RemoveAlbumImage(" . $photo['parent_id'] . "," . $photo['id'] . ");' class='pointer'><i class='fa fa-remove'></i></span>";
@@ -113,8 +115,9 @@ elseif (count($wo['story']['photo_album']) == 2) {
      if (!empty($photo['parent_id'])) {
        $multi_image_function = "Wo_OpenLightBox(" . $photo['parent_id'] . ", \"album\");";
      }
-      echo  "<div style='text-align:center;width: 100%;' class='album-image " . $class . "' id='image-" . $photo['id'] . "' data_image_parent='image-" . $photo['parent_id'] . "' {$onhover}>{$delete}<img src='" . Wo_GetMedia($photo['image_org']) . "' alt='image' class='image-file pointer' onclick='".$multi_image_function."'></div>";
+      echo  "<div class='album-image' id='image-" . $photo['id'] . "' data_image_parent='image-" . $photo['parent_id'] . "' {$onhover}>{$delete}<img src='" . Wo_GetMedia($photo['image_org']) . "' alt='image' class='image-file pointer' onclick='".$multi_image_function."'></div>";
     }
+  echo "</div>";
 }
 else{
     foreach ($wo['story']['photo_album'] as $photo) {
@@ -131,3 +134,37 @@ else{
 }
 } 
 ?>
+<style>
+.wo_photo_album_grid_2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+}
+
+.wo_photo_album_grid_2 .album-image {
+  float: none;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #111;
+}
+
+.wo_photo_album_grid_2 .album-image .image-file {
+  display: block;
+  width: 100% !important;
+  height: clamp(340px, 42vw, 560px);
+  object-fit: cover;
+}
+
+@media (min-width: 1024px) {
+  .wo_photo_album_grid_2 .album-image .image-file {
+    height: clamp(420px, 40vw, 620px);
+  }
+}
+
+@media (max-width: 600px) {
+  .wo_photo_album_grid_2 .album-image .image-file {
+    height: 42vw;
+  }
+}
+</style>
