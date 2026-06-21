@@ -260,6 +260,17 @@ function Wo_SaveConfig($update_name, $value)
         return false;
     }
     if (!array_key_exists($update_name, $config)) {
+        if ($update_name !== 'google_maps_map_id') {
+            return false;
+        }
+        $update_name = Wo_Secure($update_name);
+        $value = mysqli_real_escape_string($sqlConnect, $value);
+        $query = mysqli_query($sqlConnect, "INSERT INTO " . T_CONFIG . " (`name`, `value`) VALUES ('{$update_name}', '{$value}')");
+        if ($query) {
+            $config[$update_name] = $value;
+            $wo['config'][$update_name] = $value;
+            return true;
+        }
         return false;
     }
     $update_name = Wo_Secure($update_name);

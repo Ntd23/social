@@ -264,7 +264,7 @@ function Wo_SaveConfig($update_name, $value)
         return false;
     }
     if (!array_key_exists($update_name, $config)) {
-        if ($update_name !== 'register_vnseea_bonus') {
+        if (!in_array($update_name, array('register_vnseea_bonus', 'google_maps_map_id'))) {
             return false;
         }
         $update_name = Wo_Secure($update_name);
