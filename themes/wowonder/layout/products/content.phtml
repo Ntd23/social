@@ -1,3 +1,9 @@
+<?php // Products marketplace page with optional seller-specific filtering. ?>
+<?php
+$market_owner_user_id = (!empty($_GET['user_id']) && is_numeric($_GET['user_id'])) ? (int) $_GET['user_id'] : 0;
+$market_owner_profile = ($market_owner_user_id > 0) ? Wo_UserData($market_owner_user_id) : array();
+$market_owner_query_suffix = ($market_owner_user_id > 0) ? '&user_id=' . $market_owner_user_id : '';
+?>
 <div class="page-margin products wo_market">
 	<div class="wow_main_float_head markets new_market">
 		<div class="container">
@@ -9,6 +15,11 @@
 				<a class="btn btn-mat my_articles_btn my_prods_btn" href="<?php echo Wo_SeoLink('index.php?link1=my-products'); ?>" data-ajax="?link1=my-products">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12,13A5,5 0 0,1 7,8H9A3,3 0 0,0 12,11A3,3 0 0,0 15,8H17A5,5 0 0,1 12,13M12,3A3,3 0 0,1 15,6H9A3,3 0 0,1 12,3M19,6H17A5,5 0 0,0 12,1A5,5 0 0,0 7,6H5C3.89,6 3,6.89 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8C21,6.89 20.1,6 19,6ZZ"></svg> <?php echo $wo['lang']['my_products'];?>
 				</a>
+				<?php if ($market_owner_user_id > 0) { ?>
+					<a class="btn btn-mat my_articles_btn my_prods_btn" href="<?php echo Wo_SeoLink('index.php?link1=products'); ?>" data-ajax="?link1=products">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14H18V20H20V14M20,4H4V6H20V4Z"></path></svg> <?php echo $wo['lang']['market']; ?>
+					</a>
+				<?php } ?>
 			<?php } ?>
 		</div>
 	</div>
@@ -55,7 +66,7 @@
 									foreach ($wo['products_categories'] as $key => $category) {
 										$active = ($category_id == $key) ? 'active' : '';
 								?>
-									<li class="<?php echo $active?>" data_prodect_cat_id="<?php echo($key) ?>"><a href="<?php echo Wo_SeoLink('index.php?link1=products&c_id=' . $key);?>"><?php echo $category;?></a></li>
+									<li class="<?php echo $active?>" data_prodect_cat_id="<?php echo($key) ?>"><a href="<?php echo Wo_SeoLink('index.php?link1=products&c_id=' . $key . $market_owner_query_suffix);?>"><?php echo $category;?></a></li>
 								<?php } ?>
 							</ul>
 						</div>
@@ -74,7 +85,7 @@
 										foreach ($wo['products_sub_categories'][$_GET['c_id']] as $key => $category) {
 											$active = ($category_id == $category['id']) ? 'active' : '';
 									?>
-										<li class="<?php echo $active?>" data_prodect_cat_id="<?php echo($category['id']) ?>"><a href="<?php echo Wo_SeoLink('index.php?link1=products&c_id=' . $_GET['c_id'].'&sub_id='.$category['id']);?>"><?php echo $category['lang'];?></a></li>
+										<li class="<?php echo $active?>" data_prodect_cat_id="<?php echo($category['id']) ?>"><a href="<?php echo Wo_SeoLink('index.php?link1=products&c_id=' . $_GET['c_id'].'&sub_id='.$category['id'] . $market_owner_query_suffix);?>"><?php echo $category['lang'];?></a></li>
 									<?php } ?>
 								</ul>
 							</div>
@@ -131,6 +142,10 @@
 						echo '<input type="hidden" value="0" id="c_id" />';
 						echo '<input type="hidden" value="" id="sub_id" />';
 					}
+					echo '<input type="hidden" value="' . $market_owner_user_id . '" id="product_owner_user_id" />';
+					if (!empty($market_owner_profile['user_id'])) {
+						$data['user_id'] = (int) $market_owner_profile['user_id'];
+					}
 				?>
 				<div class="market_bottom">
 					<?php
@@ -168,10 +183,11 @@ function changePriceSortValue(price_sort) {
 	cat_id = $('.product-category-slider').find('.active').attr('data_prodect_cat_id');
 	sub_id = $('.product-category-slider-sub').find('.active').attr('data_prodect_cat_id');
 	distance = $('#distance_val').text();
+	var user_id = $('#product_owner_user_id').val() || 0;
 	$('.product-sort-slider li').removeClass('active');
 	$(this).addClass('active');
 	
-	$.post(Wo_Ajax_Requests_File() + '?f=get_prodects_by_filter', {price_sort: price_sort, cat_id:cat_id, sub_id:sub_id, distance: distance}, function (data) {
+	$.post(Wo_Ajax_Requests_File() + '?f=get_prodects_by_filter', {price_sort: price_sort, cat_id:cat_id, sub_id:sub_id, distance: distance, user_id: user_id}, function (data) {
 		if (data.status == 200) {
 			if (data.html.length > 0) {
 				$('#products').html(data.html);
@@ -190,7 +206,8 @@ function Wo_SearchProductsNearBy() {
 		c_id = $('#c_id').val();
 	}
 	var sub_id = $('#sub_id').val();
-	$.post(Wo_Ajax_Requests_File() + '?f=search_products', {value: text_value, c_id:c_id, sub_id:sub_id, length: length}, function (data) {
+	var user_id = $('#product_owner_user_id').val() || 0;
+	$.post(Wo_Ajax_Requests_File() + '?f=search_products', {value: text_value, c_id:c_id, sub_id:sub_id, length: length, user_id: user_id}, function (data) {
 		if (data.status == 200) {
 			if (data.html.length > 0) {
 				$('#products').html(data.html);
@@ -206,7 +223,8 @@ function Wo_LoadProducts() {
 	var sub_id = $('#sub_id').val();
 	var $last_id = $('.product:last').attr('data-id');
 	var length = $('#cusrange-reader').val();
-	$.post(Wo_Ajax_Requests_File() + '?f=load_more_products', {last_id: $last_id, c_id:$c_id, sub_id:sub_id, length: length}, function (data) {
+	var user_id = $('#product_owner_user_id').val() || 0;
+	$.post(Wo_Ajax_Requests_File() + '?f=load_more_products', {last_id: $last_id, c_id:$c_id, sub_id:sub_id, length: length, user_id: user_id}, function (data) {
 		if (data.status == 200) {
 			if (data.html.length > 0) {
 				$('.load-produts').html('<div class="load-more"><button class="btn btn-default text-center pointer" onclick="Wo_LoadProducts();"><i class="fa fa-arrow-down progress-icon" data-icon="arrow-down"></i> <?php echo $wo['lang']['load_more_products'] ?></button></div>');
@@ -224,7 +242,8 @@ function Wo_SearchProducts(value) {
 		c_id = $('#c_id').val();
 	}
 	var sub_id = $('#sub_id').val();
-	$.post(Wo_Ajax_Requests_File() + '?f=search_products', {value: value, c_id:c_id, sub_id:sub_id, length: length}, function (data) {
+	var user_id = $('#product_owner_user_id').val() || 0;
+	$.post(Wo_Ajax_Requests_File() + '?f=search_products', {value: value, c_id:c_id, sub_id:sub_id, length: length, user_id: user_id}, function (data) {
 		if (data.status == 200) {
 			if (data.html.length > 0) {
 				$('#products').html(data.html);
