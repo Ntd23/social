@@ -172,7 +172,16 @@
 		leafletMarkersLayer: null,
 		googleMarkers: [],
 		googleInfoWindow: null,
-		renderedPoints: []
+		renderedPoints: [],
+		directionsService: null,
+		directionsRenderer: null,
+		navigationMarker: null,
+		navigationWatchId: null,
+		navigationRoute: null,
+		navigationDestination: null,
+		navigationHeading: 0,
+		navigationLastPosition: null,
+		navigationPanel: null
 	};
 	window.WoNearbyFriendsMapState = WoNearbyFriendsMapState;
 	var WoNearbyMapResolvedUrls = window.WoNearbyMapResolvedUrls || {};
@@ -504,6 +513,324 @@
 		};
 	}
 
+	function Wo_IsNearbyMobileNavigationDevice() {
+		return window.matchMedia && window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+	}
+
+	function Wo_GetNearbyNavigationPanel() {
+		var panel = document.getElementById('wo-nearby-navigation-panel');
+		if (panel) {
+			return panel;
+		}
+
+		panel = document.createElement('div');
+		panel.id = 'wo-nearby-navigation-panel';
+		panel.style.cssText = 'position:fixed;left:12px;right:12px;top:74px;z-index:1065;display:none;align-items:center;gap:10px;padding:12px 14px;border-radius:18px;background:rgba(15,23,42,.92);color:#fff;box-shadow:0 18px 45px rgba(15,23,42,.28);backdrop-filter:blur(12px);font-family:inherit;';
+		panel.innerHTML = '<div class="wo-nearby-nav-turn" style="width:42px;height:42px;border-radius:14px;background:#16a34a;display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:transform .28s ease, background .28s ease;"></div>' +
+			'<div style="min-width:0;flex:1 1 auto;">' +
+				'<div class="wo-nearby-nav-title" style="font-size:15px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Starting route</div>' +
+				'<div class="wo-nearby-nav-subtitle" style="font-size:12px;opacity:.78;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Waiting for your location...</div>' +
+			'</div>' +
+			'<button type="button" class="wo-nearby-nav-close" aria-label="Close navigation" style="width:36px;height:36px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;">&times;</button>';
+		document.body.appendChild(panel);
+		panel.querySelector('.wo-nearby-nav-close').onclick = Wo_StopNearbyMobileNavigation;
+		WoNearbyFriendsMapState.navigationPanel = panel;
+		return panel;
+	}
+
+	function Wo_GetNearbyNavigationTurnSvg(maneuver) {
+		var rotation = 0;
+		var bg = '#16a34a';
+		var normalized = String(maneuver || '').toLowerCase();
+		if (normalized.indexOf('left') > -1) {
+			rotation = -90;
+			bg = '#2563eb';
+		} else if (normalized.indexOf('right') > -1) {
+			rotation = 90;
+			bg = '#2563eb';
+		} else if (normalized.indexOf('uturn') > -1 || normalized.indexOf('u-turn') > -1) {
+			rotation = 180;
+			bg = '#f97316';
+		}
+
+		return {
+			bg: bg,
+			html: '<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" style="transform:rotate(' + rotation + 'deg);transition:transform .32s cubic-bezier(.2,.9,.2,1);"><path fill="currentColor" d="M12 2 5 9h4v11h6V9h4L12 2Z"/></svg>'
+		};
+	}
+
+	function Wo_UpdateNearbyNavigationPanel(step, distanceText) {
+		var panel = Wo_GetNearbyNavigationPanel();
+		var title = panel.querySelector('.wo-nearby-nav-title');
+		var subtitle = panel.querySelector('.wo-nearby-nav-subtitle');
+		var icon = panel.querySelector('.wo-nearby-nav-turn');
+		var maneuver = step && step.maneuver ? step.maneuver : 'straight';
+		var turn = Wo_GetNearbyNavigationTurnSvg(maneuver);
+		var instruction = step && step.instructions ? step.instructions.replace(/<[^>]*>/g, '') : 'Continue on route';
+
+		icon.style.background = turn.bg;
+		icon.innerHTML = turn.html;
+		title.textContent = instruction;
+		subtitle.textContent = distanceText ? (distanceText + ' to next step') : 'Follow the highlighted route';
+		panel.style.display = 'flex';
+	}
+
+	function Wo_GetNearbyNavigationArrowIcon(rotation) {
+		return {
+			path: 'M 0 -18 L 11 12 L 0 6 L -11 12 Z',
+			fillColor: '#0d6efd',
+			fillOpacity: 1,
+			strokeColor: '#ffffff',
+			strokeWeight: 3,
+			scale: 1,
+			rotation: rotation || 0,
+			anchor: new google.maps.Point(0, 0)
+		};
+	}
+
+	function Wo_GetNearbyBearing(fromLat, fromLng, toLat, toLng) {
+		var lat1 = fromLat * Math.PI / 180;
+		var lat2 = toLat * Math.PI / 180;
+		var lngDiff = (toLng - fromLng) * Math.PI / 180;
+		var y = Math.sin(lngDiff) * Math.cos(lat2);
+		var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lngDiff);
+		return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+	}
+
+	function Wo_SmoothNearbyHeading(currentHeading, targetHeading) {
+		if (typeof currentHeading !== 'number' || isNaN(currentHeading)) {
+			return targetHeading;
+		}
+		var diff = ((targetHeading - currentHeading + 540) % 360) - 180;
+		return (currentHeading + diff * 0.24 + 360) % 360;
+	}
+
+	function Wo_GetNearbyRouteStepForPosition(lat, lng) {
+		var route = WoNearbyFriendsMapState.navigationRoute;
+		if (!route || !route.legs || !route.legs.length) {
+			return null;
+		}
+		var steps = route.legs[0].steps || [];
+		var bestStep = null;
+		var bestDistance = Infinity;
+		var current = new google.maps.LatLng(lat, lng);
+
+		for (var i = 0; i < steps.length; i++) {
+			var path = steps[i].path || [];
+			for (var j = 0; j < path.length; j++) {
+				var distance = google.maps.geometry && google.maps.geometry.spherical ? google.maps.geometry.spherical.computeDistanceBetween(current, path[j]) : Infinity;
+				if (distance < bestDistance) {
+					bestDistance = distance;
+					bestStep = steps[i];
+				}
+			}
+		}
+
+		return bestStep;
+	}
+
+	function Wo_GetNearbyNavigationRouteHeading(origin) {
+		var route = WoNearbyFriendsMapState.navigationRoute;
+		if (!route || !route.legs || !route.legs.length) {
+			return WoNearbyFriendsMapState.navigationHeading || 0;
+		}
+		var steps = route.legs[0].steps || [];
+		for (var i = 0; i < steps.length; i++) {
+			var path = steps[i].path || [];
+			for (var j = 0; j < path.length; j++) {
+				var point = path[j];
+				if (point && typeof point.lat === 'function' && typeof point.lng === 'function') {
+					var pointLat = point.lat();
+					var pointLng = point.lng();
+					if (Math.abs(pointLat - origin.lat) > 0.00001 || Math.abs(pointLng - origin.lng) > 0.00001) {
+						return Wo_GetNearbyBearing(origin.lat, origin.lng, pointLat, pointLng);
+					}
+				}
+			}
+		}
+		return WoNearbyFriendsMapState.navigationHeading || 0;
+	}
+
+	function Wo_ApplyNearbyNavigationCamera(center, heading, immediate) {
+		var map = WoNearbyFriendsMapState.map;
+		if (!map || !center) {
+			return;
+		}
+
+		var targetHeading = (typeof heading === 'number' && !isNaN(heading)) ? heading : (WoNearbyFriendsMapState.navigationHeading || 0);
+		WoNearbyFriendsMapState.navigationHeading = targetHeading;
+
+		if (typeof map.moveCamera === 'function') {
+			map.moveCamera({
+				center: center,
+				zoom: 18,
+				tilt: 67,
+				heading: targetHeading
+			});
+			return;
+		}
+
+		map.panTo(center);
+		if (typeof map.setZoom === 'function') {
+			map.setZoom(18);
+		}
+		if (typeof map.setTilt === 'function') {
+			map.setTilt(67);
+		}
+		if (typeof map.setHeading === 'function') {
+			map.setHeading(targetHeading);
+		}
+	}
+
+	function Wo_PrimeNearbyNavigationCamera(position) {
+		var coords = position && position.coords ? position.coords : {};
+		var lat = parseFloat(coords.latitude);
+		var lng = parseFloat(coords.longitude);
+		if (isNaN(lat) || isNaN(lng)) {
+			return;
+		}
+
+		var origin = { lat: lat, lng: lng };
+		var heading = (typeof coords.heading === 'number' && !isNaN(coords.heading)) ? coords.heading : Wo_GetNearbyNavigationRouteHeading(origin);
+		Wo_ApplyNearbyNavigationCamera(origin, heading, true);
+	}
+
+	function Wo_UpdateNearbyNavigationPosition(position) {
+		if (!WoNearbyFriendsMapState.map || WoNearbyFriendsMapState.provider !== 'google') {
+			return;
+		}
+
+		var coords = position.coords || {};
+		var lat = parseFloat(coords.latitude);
+		var lng = parseFloat(coords.longitude);
+		if (isNaN(lat) || isNaN(lng)) {
+			return;
+		}
+
+		var currentPosition = { lat: lat, lng: lng };
+		var targetHeading = (typeof coords.heading === 'number' && !isNaN(coords.heading)) ? coords.heading : null;
+		var lastPosition = WoNearbyFriendsMapState.navigationLastPosition;
+		if (targetHeading === null && lastPosition) {
+			targetHeading = Wo_GetNearbyBearing(lastPosition.lat, lastPosition.lng, lat, lng);
+		}
+		if (targetHeading === null) {
+			targetHeading = WoNearbyFriendsMapState.navigationHeading || 0;
+		}
+
+		WoNearbyFriendsMapState.navigationHeading = Wo_SmoothNearbyHeading(WoNearbyFriendsMapState.navigationHeading, targetHeading);
+		WoNearbyFriendsMapState.navigationLastPosition = currentPosition;
+
+		if (!WoNearbyFriendsMapState.navigationMarker) {
+			WoNearbyFriendsMapState.navigationMarker = new google.maps.Marker({
+				position: currentPosition,
+				map: WoNearbyFriendsMapState.map,
+				zIndex: 9999,
+				icon: Wo_GetNearbyNavigationArrowIcon(WoNearbyFriendsMapState.navigationHeading),
+				optimized: false
+			});
+		} else {
+			WoNearbyFriendsMapState.navigationMarker.setPosition(currentPosition);
+			WoNearbyFriendsMapState.navigationMarker.setIcon(Wo_GetNearbyNavigationArrowIcon(WoNearbyFriendsMapState.navigationHeading));
+		}
+
+		Wo_ApplyNearbyNavigationCamera(currentPosition, WoNearbyFriendsMapState.navigationHeading, false);
+
+		var step = Wo_GetNearbyRouteStepForPosition(lat, lng);
+		var distanceText = '';
+		if (step && step.end_location && google.maps.geometry && google.maps.geometry.spherical) {
+			var distance = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(lat, lng), step.end_location);
+			distanceText = distance >= 1000 ? (distance / 1000).toFixed(1) + ' km' : Math.max(1, Math.round(distance)) + ' m';
+		}
+		Wo_UpdateNearbyNavigationPanel(step, distanceText);
+	}
+
+	function Wo_StopNearbyMobileNavigation() {
+		if (WoNearbyFriendsMapState.navigationWatchId !== null && navigator.geolocation) {
+			navigator.geolocation.clearWatch(WoNearbyFriendsMapState.navigationWatchId);
+		}
+		WoNearbyFriendsMapState.navigationWatchId = null;
+		WoNearbyFriendsMapState.navigationRoute = null;
+		WoNearbyFriendsMapState.navigationDestination = null;
+		WoNearbyFriendsMapState.navigationLastPosition = null;
+
+		if (WoNearbyFriendsMapState.navigationMarker) {
+			WoNearbyFriendsMapState.navigationMarker.setMap(null);
+			WoNearbyFriendsMapState.navigationMarker = null;
+		}
+		if (WoNearbyFriendsMapState.directionsRenderer) {
+			WoNearbyFriendsMapState.directionsRenderer.setMap(null);
+		}
+		var panel = Wo_GetNearbyNavigationPanel();
+		panel.style.display = 'none';
+	}
+
+	function Wo_StartNearbyMobileNavigation(point) {
+		if (!point || WoNearbyFriendsMapState.provider !== 'google' || !WoNearbyFriendsMapState.map || typeof google === 'undefined' || !google.maps || !google.maps.DirectionsService || !navigator.geolocation) {
+			return false;
+		}
+
+		Wo_StopNearbyMobileNavigation();
+		WoNearbyFriendsMapState.navigationDestination = point;
+		Wo_UpdateNearbyNavigationPanel(null, '');
+
+		navigator.geolocation.getCurrentPosition(function(position) {
+			var origin = {
+				lat: position.coords.latitude,
+				lng: position.coords.longitude
+			};
+			var destination = {
+				lat: point.lat,
+				lng: point.lng
+			};
+
+			if (!WoNearbyFriendsMapState.directionsService) {
+				WoNearbyFriendsMapState.directionsService = new google.maps.DirectionsService();
+			}
+			if (!WoNearbyFriendsMapState.directionsRenderer) {
+				WoNearbyFriendsMapState.directionsRenderer = new google.maps.DirectionsRenderer({
+					suppressMarkers: true,
+					preserveViewport: true,
+					polylineOptions: {
+						strokeColor: '#0d6efd',
+						strokeOpacity: .96,
+						strokeWeight: 7
+					}
+				});
+			}
+			WoNearbyFriendsMapState.directionsRenderer.setMap(WoNearbyFriendsMapState.map);
+			WoNearbyFriendsMapState.directionsService.route({
+				origin: origin,
+				destination: destination,
+				travelMode: google.maps.TravelMode.DRIVING,
+				provideRouteAlternatives: false
+			}, function(response, status) {
+				if (status !== 'OK' || !response || !response.routes || !response.routes.length) {
+					Wo_UpdateNearbyNavigationPanel(null, '');
+					window.open(Wo_GetNearbyMapDirectionsUrl(point), '_blank');
+					return;
+				}
+
+				WoNearbyFriendsMapState.navigationRoute = response.routes[0];
+				WoNearbyFriendsMapState.directionsRenderer.setDirections(response);
+				Wo_PrimeNearbyNavigationCamera(position);
+				Wo_UpdateNearbyNavigationPosition(position);
+				WoNearbyFriendsMapState.navigationWatchId = navigator.geolocation.watchPosition(Wo_UpdateNearbyNavigationPosition, function() {}, {
+					enableHighAccuracy: true,
+					maximumAge: 1000,
+					timeout: 12000
+				});
+			});
+		}, function() {
+			window.open(Wo_GetNearbyMapDirectionsUrl(point), '_blank');
+		}, {
+			enableHighAccuracy: true,
+			maximumAge: 1000,
+			timeout: 12000
+		});
+
+		return true;
+	}
+
 	function Wo_BuildNearbyGoogleResolvedUrl(point, geocoderResult) {
 		var resolvedAddress = '';
 		if (geocoderResult && geocoderResult.formatted_address) {
@@ -558,6 +885,13 @@
 		var point = Wo_GetNearbyMapPointFromElement(element);
 		if (!point || isNaN(point.lat) || isNaN(point.lng)) {
 			return true;
+		}
+
+		if (Wo_IsNearbyMobileNavigationDevice() && Wo_StartNearbyMobileNavigation(point)) {
+			if (event) {
+				event.preventDefault();
+			}
+			return false;
 		}
 
 		var fallbackUrl = Wo_GetNearbyMapDirectionsUrl(point);
@@ -733,6 +1067,9 @@
 	}
 
 	function Wo_ResetNearbyMapMarkers() {
+		if (WoNearbyFriendsMapState.navigationWatchId !== null || WoNearbyFriendsMapState.navigationRoute) {
+			Wo_StopNearbyMobileNavigation();
+		}
 		if (WoNearbyFriendsMapState.provider === 'google') {
 			for (var i = 0; i < WoNearbyFriendsMapState.googleMarkers.length; i++) {
 				WoNearbyFriendsMapState.googleMarkers[i].setMap(null);
@@ -939,11 +1276,18 @@
 		}
 
 		WoNearbyFriendsMapState.provider = 'google';
-		WoNearbyFriendsMapState.map = new google.maps.Map(document.getElementById('map'), {
+		var googleMapOptions = {
 			center: nearbyMapCenter,
 			zoom: 7,
-			mapTypeId: google.maps.MapTypeId.ROADMAP
-		});
+			mapTypeId: google.maps.MapTypeId.ROADMAP,
+			gestureHandling: 'greedy',
+			tilt: 0,
+			heading: 0
+		};
+		<?php if (!empty($wo['config']['google_maps_map_id'])) { ?>
+		googleMapOptions.mapId = <?php echo json_encode($wo['config']['google_maps_map_id']); ?>;
+		<?php } ?>
+		WoNearbyFriendsMapState.map = new google.maps.Map(document.getElementById('map'), googleMapOptions);
 		WoNearbyFriendsMapState.leafletMarkersLayer = null;
 		WoNearbyFriendsMapState.googleMarkers = [];
 		WoNearbyFriendsMapState.googleInfoWindow = new google.maps.InfoWindow();

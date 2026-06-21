@@ -3326,7 +3326,7 @@ if ($f == 'admin_setting' AND (Wo_IsAdmin() || Wo_IsModerator())) {
                     $value = '';
                 }
             }
-            if (isset($wo['config'][$key]) || $key == 'googleAnalytics_en') {
+            if (isset($wo['config'][$key]) || $key == 'googleAnalytics_en' || $key == 'google_maps_map_id') {
                 if ($key == 'yandex_translate') {
                     if ($value == 1) {
                         $saveSetting = Wo_SaveConfig('google_translate', 0);

@@ -4996,12 +4996,6 @@ function FileListItems (files) {
     var postId = getPostIdFromPlyr(container);
     if (!postId) return false;
 
-    overlayDebug("openVideoOverlay:start", {
-      postId: postId,
-      hasPlaceholder: !!container.__wo_overlay_placeholder,
-      activePostId: overlayState.activePostId,
-    });
-
     ensureOverlayShell();
 
     if (overlayState.activePlayer === player && overlayState.shell) {
@@ -5065,11 +5059,6 @@ function FileListItems (files) {
     updateOverlayButtonState(container, true);
     pauseOtherPlayers(postId);
     createFullscreenButtons(container);
-    overlayDebug("openVideoOverlay:done", {
-      postId: postId,
-      activePostId: overlayState.activePostId,
-    });
-
     return true;
   }
 

@@ -688,6 +688,7 @@ INSERT INTO `Wo_Config` (`id`, `name`, `value`) VALUES
 (23, 'message_seen', '1'),
 (24, 'message_typing', '1'),
 (25, 'google_map_api', 'AIzaSyBOfpaMO_tMMsuvS2T4zx4llbtsFqMuT9Y'),
+(10000, 'google_maps_map_id', ''),
 (26, 'allowedExtenstion', 'jpg,png,jpeg,gif,mkv,docx,zip,rar,pdf,doc,mp3,mp4,flv,wav,txt,mov,avi,webm,wav,mpeg'),
 (27, 'censored_words', ''),
 (28, 'googleAnalytics', ''),
