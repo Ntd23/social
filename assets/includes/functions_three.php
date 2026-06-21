@@ -4849,13 +4849,20 @@ function Wo_GetMytransactions($args = array())
 			}
 
 			if ($fetched_data['kind'] == 'RECEIVED') {
-				if (strpos($fetched_data['notes'], "subscribed")) {
+				$received_description_handled = false;
+				if (strpos($fetched_data['notes'], "subscribed") !== false) {
 					$fetched_data['notes'] = str_replace('{text}', $fetched_data['notes'], $wo['lang']['trans_successfully_received_from']);
+					$received_description_handled = true;
 				}
 				if (!empty($fetched_data['extra']) && $fetched_data['extra']['type'] == 'monetization_subscription' && !empty($fetched_data['extra']['from_id'])) {
 					$user = Wo_UserData($fetched_data['extra']['from_id']);
 					$link = '<a href="' . $user['url'] . '" data-ajax="?link1=timeline&u=' . $user['username'] . '">' . $user['name'] . '</a>';
 					$fetched_data['notes'] = str_replace('{text}', $link, $wo['lang']['subscription_earnings']);
+					$received_description_handled = true;
+				}
+				if ($received_description_handled === false) {
+					$sender_name = trim((string)$fetched_data['notes']);
+					$fetched_data['notes'] = 'Nhận VNSEEA từ ' . (!empty($sender_name) ? $sender_name : 'người dùng khác');
 				}
 			}
 

@@ -642,7 +642,7 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		top: 6px;
 		left: 50%;
 		z-index: 4;
-		width: min(420px, calc(100% - 12px));
+		width: min(600px, calc(100% - 12px));
 		transform: translateX(-50%);
 		pointer-events: auto;
 	}
@@ -708,29 +708,29 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 	}
 	.wo_explore_discovery_search {
 		position: relative;
-		min-height: 40px;
+		min-height: 48px;
 		flex: 1 1 auto;
 		pointer-events: auto;
 	}
 	.wo_explore_discovery_search_icon {
 		position: absolute;
-		left: 12px;
+		left: 15px;
 		top: 50%;
-		width: 16px;
-		height: 16px;
+		width: 18px;
+		height: 18px;
 		transform: translateY(-50%);
 		color: #8190a8;
 		pointer-events: none;
 	}
 	.wo_explore_discovery_search input {
 		width: 100%;
-		min-height: 40px;
-		padding: 0 12px 0 36px;
+		min-height: 48px;
+		padding: 0 16px 0 44px;
 		border: 1px solid rgba(190, 208, 234, 0.82);
-		border-radius: 12px;
+		border-radius: 14px;
 		background: rgba(255, 255, 255, 0.94);
 		color: var(--nearby-text);
-		font-size: 13px;
+		font-size: 15px;
 		font-weight: 700;
 		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 6px 14px rgba(8, 14, 28, 0.06);
 	}
@@ -1689,10 +1689,10 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 			font-size: 28px;
 		}
 		.wo_explore_discovery_search input {
-			min-height: 36px;
-			padding-left: 34px;
-			border-radius: 10px;
-			font-size: 13px;
+			min-height: 48px;
+			padding-left: 44px;
+			border-radius: 14px;
+			font-size: 15px;
 		}
 		.wo_explore_discovery_location_trigger {
 			width: 100%;
@@ -2024,6 +2024,7 @@ var WoExploreNearbyState = {
 	activePointData: null,
 	openPopupPointKey: null,
 	pendingFocusPointKey: null,
+	pendingMapFocusPoint: null,
 	deviceHeading: null,
 	deviceHeadingSource: null,
 	deviceOrientationBound: false,
@@ -3701,7 +3702,7 @@ function Wo_ExploreNearbyApplyMarkerSelection(point, options) {
 		};
 	}
 
-	shouldRoute = selectionOptions.forceRoute === true || (selectionOptions.allowRoute !== false && Wo_ExploreNearbyCanRouteToItem(selectedPoint));
+	shouldRoute = selectionOptions.forceRoute === true;
 	if (shouldRoute) {
 		Wo_ExploreNearbySetRouteTargetPoint(selectedPoint);
 		if (selectionOptions.syncRoute !== false) {
@@ -3811,7 +3812,7 @@ function Wo_ExploreNearbyGetSearchValue() {
 }
 
 function Wo_ExploreNearbyGetNormalizedSearchValue() {
-	return Wo_ExploreNearbyGetSearchValue().toLowerCase();
+	return Wo_ExploreNearbyNormalizeSearchKey(Wo_ExploreNearbyGetSearchValue());
 }
 
 function Wo_ExploreNearbyCanUseGooglePlacesAutocomplete() {
@@ -3894,6 +3895,8 @@ function Wo_ExploreNearbyEnsureGooglePlacesLibrary() {
 }
 
 function Wo_ExploreNearbyGetGooglePlaceText(textValue) {
+	var textString = '';
+
 	if (!textValue) {
 		return '';
 	}
@@ -3906,11 +3909,55 @@ function Wo_ExploreNearbyGetGooglePlaceText(textValue) {
 		return $.trim(textValue.text);
 	}
 
+	if (typeof textValue.value === 'string') {
+		return $.trim(textValue.value);
+	}
+
 	if (typeof textValue.toString === 'function') {
-		return $.trim(textValue.toString());
+		textString = $.trim(textValue.toString());
+		return textString === '[object Object]' ? '' : textString;
 	}
 
 	return '';
+}
+
+function Wo_ExploreNearbyGetPlacePredictionPlaceId(placePrediction) {
+	if (!placePrediction) {
+		return '';
+	}
+
+	return $.trim(placePrediction.placeId || placePrediction.place_id || placePrediction.id || '');
+}
+
+function Wo_ExploreNearbyGetPlacePredictionDisplayText(placePrediction, fallbackText) {
+	var fullText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction && placePrediction.text);
+	var mainText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction && placePrediction.mainText);
+	var secondaryText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction && placePrediction.secondaryText);
+	var combinedText = '';
+
+	if (fullText) {
+		return fullText;
+	}
+
+	combinedText = $.trim([mainText, secondaryText].filter(function(part) {
+		return !!$.trim(part || '');
+	}).join(', '));
+
+	return combinedText || $.trim(fallbackText || '');
+}
+
+function Wo_ExploreNearbyNormalizeSearchKey(value) {
+	var normalizedValue = Wo_ExploreNearbyNormalizeTextValue(value || '').toLowerCase();
+
+	if (!normalizedValue) {
+		return '';
+	}
+
+	if (typeof normalizedValue.normalize === 'function') {
+		normalizedValue = normalizedValue.normalize('NFC');
+	}
+
+	return normalizedValue.replace(/\s+/g, ' ').trim();
 }
 
 function Wo_ExploreNearbyGetSuggestionTypeLabel(item) {
@@ -3929,7 +3976,7 @@ function Wo_ExploreNearbyGetSuggestionTypeLabel(item) {
 
 function Wo_ExploreNearbyGetSearchPlaceCacheKey(query, placeId) {
 	var normalizedPlaceId = $.trim(placeId || '');
-	var normalizedQuery = $.trim(query || '').toLowerCase();
+	var normalizedQuery = Wo_ExploreNearbyNormalizeSearchKey(query || '');
 
 	if (normalizedPlaceId) {
 		return 'place_id|' + normalizedPlaceId;
@@ -3947,13 +3994,105 @@ function Wo_ExploreNearbyResetSearchSelectionHint() {
 	WoExploreNearbyState.searchSelectionHintPlacePrediction = null;
 }
 
+function Wo_ExploreNearbyDoesSearchMatchSelectionHint(searchKey) {
+	var normalizedSearchKey = Wo_ExploreNearbyNormalizeSearchKey(searchKey || '');
+	var selectedItem = WoExploreNearbyState.searchSelectionHintItemData || null;
+	var candidates = [];
+	var i = 0;
+
+	if (!normalizedSearchKey) {
+		return false;
+	}
+
+	candidates.push(WoExploreNearbyState.searchSelectionHintQuery || '');
+	if (selectedItem) {
+		candidates.push(selectedItem.search_value || '');
+		candidates.push(selectedItem.location || '');
+		candidates.push(selectedItem.title || '');
+		candidates.push(selectedItem.subtitle || '');
+	}
+
+	for (i = 0; i < candidates.length; i++) {
+		if (normalizedSearchKey === Wo_ExploreNearbyNormalizeSearchKey(candidates[i] || '')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 function Wo_ExploreNearbySyncSearchSelectionHint() {
 	if (!WoExploreNearbyState.searchSelectionHintQuery) {
 		return;
 	}
-	if (Wo_ExploreNearbyGetNormalizedSearchValue() !== WoExploreNearbyState.searchSelectionHintQuery) {
+	if (!Wo_ExploreNearbyDoesSearchMatchSelectionHint(Wo_ExploreNearbyGetSearchValue())) {
 		Wo_ExploreNearbyResetSearchSelectionHint();
 	}
+}
+
+function Wo_ExploreNearbyApplyExactPlaceSuggestion(placeItem, inputValue) {
+	var normalizedItems = Wo_ExploreNearbyNormalizeDiscoveryItems(placeItem ? [placeItem] : []);
+	var exactPlace = normalizedItems.length ? normalizedItems[0] : null;
+	var exactPlaceKey = exactPlace ? Wo_ExploreNearbyGetItemKey(exactPlace) : '';
+	var displayValue = $.trim(inputValue || (exactPlace && (exactPlace.location || exactPlace.title)) || '');
+
+	if (!exactPlace || !exactPlaceKey || !Wo_ExploreNearbyHasValidCoordinates(exactPlace.lat, exactPlace.lng)) {
+		return false;
+	}
+
+	if (displayValue) {
+		$('#nearby-username').val(displayValue);
+		WoExploreNearbyState.searchSelectionHintQuery = Wo_ExploreNearbyNormalizeSearchKey(displayValue);
+	}
+
+	WoExploreNearbyState.isPlaceSearchMode = true;
+	WoExploreNearbyState.placeSearchQuery = displayValue || exactPlace.location || exactPlace.title || '';
+	WoExploreNearbyState.placeSearchResults = [];
+	WoExploreNearbyState.previewPointKey = null;
+	WoExploreNearbyState.previewPointData = null;
+	WoExploreNearbyState.activePointKey = null;
+	WoExploreNearbyState.activePointData = null;
+	WoExploreNearbyState.openPopupPointKey = null;
+	WoExploreNearbyState.pendingFocusPointKey = null;
+	Wo_ExploreNearbySetSearchContext('location', exactPlace);
+	Wo_ExploreNearbyClearRouteTarget();
+	Wo_ExploreNearbySetPreviewPoint(exactPlace);
+	WoExploreNearbyState.openPopupPointKey = exactPlaceKey;
+	WoExploreNearbyState.pendingFocusPointKey = exactPlaceKey;
+	WoExploreNearbyState.pendingMapFocusPoint = $.extend({}, exactPlace, {
+		zoom: 17
+	});
+	Wo_ExploreNearbyUpdateUi();
+	Wo_ExploreNearbyRenderCurrentMap(exactPlaceKey);
+	Wo_ExploreNearbyFocusMapOnPointCoordinates(exactPlace, {
+		zoom: 17
+	});
+	setTimeout(function() {
+		Wo_ExploreNearbyFocusMapOnPointCoordinates(exactPlace, {
+			zoom: 17
+		});
+	}, 120);
+	setTimeout(function() {
+		Wo_ExploreNearbyFocusMapOnPointCoordinates(exactPlace, {
+			zoom: 17
+		});
+	}, 420);
+
+	return true;
+}
+
+function Wo_ExploreNearbyClearPlaceSuggestionCache(item, inputValue) {
+	var suggestion = item || {};
+	var nextValue = $.trim(inputValue || suggestion.search_value || suggestion.location || suggestion.title || '');
+	var placeId = $.trim(suggestion.place_id || '');
+	var identity = Wo_ExploreNearbyNormalizeSearchKey(placeId || suggestion.id || suggestion.url || nextValue);
+	var normalizedValue = Wo_ExploreNearbyNormalizeSearchKey(nextValue);
+	var resolveCacheKey = ['place', identity, normalizedValue].join('|');
+
+	delete WoExploreNearbyState.searchPlaceCache[Wo_ExploreNearbyGetSearchPlaceCacheKey(nextValue, placeId)];
+	delete WoExploreNearbyState.searchPlacePending[Wo_ExploreNearbyGetSearchPlaceCacheKey(nextValue, placeId)];
+	delete WoExploreNearbyState.searchPlaceCache[resolveCacheKey];
+	delete WoExploreNearbyState.searchPlacePending[resolveCacheKey];
 }
 
 function Wo_ExploreNearbyAbortSuggestionRequest() {
@@ -4075,6 +4214,7 @@ function Wo_ExploreNearbySortSuggestions(items) {
 
 function Wo_ExploreNearbyRenderSuggestionHtml(item, index) {
 	var safeType = Wo_ExploreNearbyEscapeHtml(item.type || 'user');
+	var safeIndex = parseInt(index, 10) || 0;
 	var decodedTitle = Wo_ExploreNearbyNormalizeTextValue(item.title || '');
 	var decodedSubtitle = Wo_ExploreNearbyNormalizeTextValue(item.subtitle || '');
 	var decodedLocation = Wo_ExploreNearbyNormalizeTextValue(item.location || '');
@@ -4093,7 +4233,7 @@ function Wo_ExploreNearbyRenderSuggestionHtml(item, index) {
 		avatarHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 1 7 7c0 4.97-5.06 11.13-6.25 12.52a1 1 0 0 1-1.5 0C10.06 20.13 5 13.97 5 9a7 7 0 0 1 7-7m0 9.5A2.5 2.5 0 1 0 12 6a2.5 2.5 0 0 0 0 5.5"/></svg>';
 	}
 
-	return '<button type="button" class="wo_explore_discovery_search_suggestion type-' + safeType + activeClass + '" data-index="' + index + '">' +
+	return '<button type="button" class="wo_explore_discovery_search_suggestion type-' + safeType + activeClass + '" data-index="' + safeIndex + '" onpointerdown="return Wo_ExploreNearbySelectSuggestionFromInline(event,' + safeIndex + ');" onmousedown="return Wo_ExploreNearbySelectSuggestionFromInline(event,' + safeIndex + ');" onclick="return Wo_ExploreNearbySelectSuggestionFromInline(event,' + safeIndex + ');">' +
 		'<span class="wo_explore_discovery_search_suggestion_media">' + avatarHtml + '</span>' +
 		'<span class="wo_explore_discovery_search_suggestion_body">' +
 			'<span class="wo_explore_discovery_search_suggestion_title">' + safeTitle + '</span>' +
@@ -4254,6 +4394,7 @@ function Wo_ExploreNearbyFetchLocationSuggestions(query) {
 				fullText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction.text);
 				mainText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction.mainText);
 				secondaryText = Wo_ExploreNearbyGetGooglePlaceText(placePrediction.secondaryText);
+				fullText = Wo_ExploreNearbyGetPlacePredictionDisplayText(placePrediction, normalizedQuery);
 
 				return {
 					type: 'place',
@@ -4263,7 +4404,7 @@ function Wo_ExploreNearbyFetchLocationSuggestions(query) {
 					location: $.trim(fullText || normalizedQuery),
 					avatar: '',
 					search_value: $.trim(fullText || normalizedQuery),
-					place_id: placePrediction.placeId || '',
+					place_id: Wo_ExploreNearbyGetPlacePredictionPlaceId(placePrediction),
 					place_prediction: placePrediction,
 					distance_meters: (placePrediction && typeof placePrediction.distanceMeters === 'number') ? placePrediction.distanceMeters : null
 				};
@@ -4365,7 +4506,8 @@ function Wo_ExploreNearbyRequestSuggestions() {
 
 function Wo_ExploreNearbySelectSuggestion(item) {
 	var nextValue = $.trim((item && (item.search_value || item.location || item.title)) || '');
-	var normalizedValue = nextValue.toLowerCase();
+	var normalizedValue = Wo_ExploreNearbyNormalizeSearchKey(nextValue);
+	var selectedItemData = $.extend({}, item || {});
 
 	if (!item || !nextValue) {
 		return;
@@ -4374,12 +4516,32 @@ function Wo_ExploreNearbySelectSuggestion(item) {
 	clearTimeout(WoExploreNearbyState.searchTimer);
 	clearTimeout(WoExploreNearbyState.searchSuggestionTimer);
 	$('#nearby-username').val(nextValue);
+	selectedItemData.search_value = nextValue;
+	if (item.type === 'place') {
+		WoExploreNearbyState.mapRenderToken++;
+		WoExploreNearbyState.isPlaceSearchMode = false;
+		WoExploreNearbyState.placeSearchQuery = '';
+		WoExploreNearbyState.placeSearchResults = [];
+		WoExploreNearbyState.selectedAnchorItem = null;
+		WoExploreNearbyState.previewPointKey = null;
+		WoExploreNearbyState.previewPointData = null;
+		WoExploreNearbyState.activePointKey = null;
+		WoExploreNearbyState.activePointData = null;
+		WoExploreNearbyState.openPopupPointKey = null;
+		WoExploreNearbyState.pendingFocusPointKey = null;
+		WoExploreNearbyState.pendingMapFocusPoint = null;
+		Wo_ExploreNearbyClearRouteTarget();
+		selectedItemData.location = nextValue;
+		if (!$.trim(selectedItemData.title || '')) {
+			selectedItemData.title = nextValue;
+		}
+	}
 
 	if (item.type === 'user' || item.type === 'page' || item.type === 'place') {
 		WoExploreNearbyState.searchSelectionHintMode = 'anchor';
 		WoExploreNearbyState.searchSelectionHintQuery = normalizedValue;
 		WoExploreNearbyState.searchSelectionHintItemType = item.type;
-		WoExploreNearbyState.searchSelectionHintItemData = $.extend({}, item);
+		WoExploreNearbyState.searchSelectionHintItemData = selectedItemData;
 		WoExploreNearbyState.searchSelectionHintPlaceId = '';
 		WoExploreNearbyState.searchSelectionHintPlacePrediction = null;
 		if (item.type === 'place') {
@@ -4392,10 +4554,55 @@ function Wo_ExploreNearbySelectSuggestion(item) {
 	}
 
 	if (item.type === 'place' && item.place_item) {
-		WoExploreNearbyState.searchPlaceCache[Wo_ExploreNearbyGetSearchPlaceCacheKey(normalizedValue, item.place_id || '')] = item.place_item;
+		WoExploreNearbyState.searchPlaceCache[Wo_ExploreNearbyGetSearchPlaceCacheKey(nextValue, item.place_id || '')] = item.place_item;
 	}
 
 	Wo_ExploreNearbyCloseSuggestions();
+	if (item.type === 'place') {
+		var placeSelectionToken = ++WoExploreNearbyState.loadToken;
+		Wo_ExploreNearbyAbortPendingRequests();
+		Wo_ExploreNearbyClearPlaceSuggestionCache(selectedItemData, nextValue);
+		if (Wo_ExploreNearbyHasValidCoordinates(selectedItemData.lat, selectedItemData.lng) && Wo_ExploreNearbyApplyExactPlaceSuggestion(selectedItemData, nextValue)) {
+			return;
+		}
+		if (item.place_item && Wo_ExploreNearbyApplyExactPlaceSuggestion(item.place_item, nextValue)) {
+			return;
+		}
+		Wo_ExploreNearbyResolveSelectedSuggestionAnchor(selectedItemData, nextValue).then(function(placeItem) {
+			if (placeSelectionToken !== WoExploreNearbyState.loadToken) {
+				return;
+			}
+			if (Wo_ExploreNearbyApplyExactPlaceSuggestion(placeItem, nextValue)) {
+				return;
+			}
+			return Wo_ExploreNearbyResolvePlaceByGeocoder(selectedItemData.place_id || '', nextValue, nextValue).then(function(geocoderPlaceItem) {
+				if (placeSelectionToken !== WoExploreNearbyState.loadToken) {
+					return;
+				}
+				if (Wo_ExploreNearbyApplyExactPlaceSuggestion(geocoderPlaceItem, nextValue)) {
+					return;
+				}
+				Wo_ExploreNearbySetRouteDebug('blocked', 'Selected place suggestion could not be resolved to coordinates', {
+					source: 'search:suggestion',
+					provider: WoExploreNearbyMapState.provider || 'none',
+					selfPoint: Wo_ExploreNearbyDescribeDebugPoint(Wo_ExploreNearbyGetCurrentUserPoint() || currentUserMapPoint),
+					targetPoint: $.trim(nextValue || ''),
+					activePointKey: ''
+				});
+			});
+		}).catch(function() {
+			if (placeSelectionToken !== WoExploreNearbyState.loadToken) {
+				return;
+			}
+			Wo_ExploreNearbyResolvePlaceByGeocoder(selectedItemData.place_id || '', nextValue, nextValue).then(function(geocoderPlaceItem) {
+				if (placeSelectionToken !== WoExploreNearbyState.loadToken) {
+					return;
+				}
+				Wo_ExploreNearbyApplyExactPlaceSuggestion(geocoderPlaceItem, nextValue);
+			});
+		});
+		return;
+	}
 	Wo_ExploreNearbyLoad(false);
 }
 
@@ -4407,6 +4614,29 @@ function Wo_ExploreNearbySelectSuggestionByIndex(index) {
 	}
 
 	Wo_ExploreNearbySelectSuggestion(items[index]);
+}
+
+function Wo_ExploreNearbySelectSuggestionFromInline(event, index) {
+	var normalizedIndex = parseInt(index, 10);
+	var now = Date.now();
+
+	if (event && typeof event.preventDefault === 'function') {
+		event.preventDefault();
+	}
+	if (event && typeof event.stopPropagation === 'function') {
+		event.stopPropagation();
+	}
+
+	if (isNaN(normalizedIndex)) {
+		return false;
+	}
+	if (WoExploreNearbyState.lastSuggestionSelectionAt && (now - WoExploreNearbyState.lastSuggestionSelectionAt) < 300) {
+		return false;
+	}
+
+	WoExploreNearbyState.lastSuggestionSelectionAt = now;
+	Wo_ExploreNearbySelectSuggestionByIndex(normalizedIndex);
+	return false;
 }
 
 function Wo_ExploreNearbyGetSuggestionMoveThresholdPx() {
@@ -4492,7 +4722,7 @@ function Wo_ExploreNearbyReleaseSuggestionInteraction() {
 }
 
 function Wo_ExploreNearbyHandleSuggestionPointerRelease(event, index) {
-	if (isNaN(index) || !Wo_ExploreNearbyShouldHandleSuggestionReleaseSelection(event)) {
+	if (isNaN(index)) {
 		Wo_ExploreNearbyReleaseSuggestionInteraction();
 		return;
 	}
@@ -5608,6 +5838,108 @@ function Wo_ExploreNearbyGetGoogleGeocoder() {
 	return WoExploreNearbyState.userGoogleGeocoder;
 }
 
+function Wo_ExploreNearbyGetLegacyPlacesService() {
+	if (typeof google === 'undefined' || !google.maps || !google.maps.places || typeof google.maps.places.PlacesService !== 'function') {
+		return null;
+	}
+
+	if (!WoExploreNearbyState.userGooglePlacesServiceNode) {
+		WoExploreNearbyState.userGooglePlacesServiceNode = document.createElement('div');
+	}
+
+	if (!WoExploreNearbyState.userGooglePlacesService) {
+		WoExploreNearbyState.userGooglePlacesService = new google.maps.places.PlacesService(WoExploreNearbyState.userGooglePlacesServiceNode);
+	}
+
+	return WoExploreNearbyState.userGooglePlacesService;
+}
+
+function Wo_ExploreNearbyResolvePlaceByLegacyDetails(placeId, query, fallbackLocation) {
+	var normalizedPlaceId = $.trim(placeId || '');
+	var normalizedQuery = $.trim(query || '');
+	var fallbackLabel = $.trim(fallbackLocation || normalizedQuery || normalizedPlaceId);
+	var placesService = Wo_ExploreNearbyGetLegacyPlacesService();
+
+	if (!normalizedPlaceId || !placesService || typeof placesService.getDetails !== 'function') {
+		return Promise.resolve(null);
+	}
+
+	return new Promise(function(resolve) {
+		placesService.getDetails({
+			placeId: normalizedPlaceId,
+			fields: ['place_id', 'name', 'formatted_address', 'geometry']
+		}, function(place, status) {
+			var geometryLocation = place && place.geometry ? place.geometry.location : null;
+			var lat = Wo_ExploreNearbyGetGoogleLatLngValue(geometryLocation, 'lat');
+			var lng = Wo_ExploreNearbyGetGoogleLatLngValue(geometryLocation, 'lng');
+
+			if (status !== google.maps.places.PlacesServiceStatus.OK || !Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+				resolve(null);
+				return;
+			}
+
+			resolve(Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery || fallbackLabel, {
+				place_id: $.trim((place && place.place_id) || normalizedPlaceId),
+				lat: lat,
+				lng: lng,
+				title: $.trim((place && place.name) || fallbackLabel || normalizedQuery),
+				location: $.trim((place && place.formatted_address) || fallbackLabel || normalizedQuery)
+			}));
+		});
+	});
+}
+
+function Wo_ExploreNearbyResolvePlaceByGeocoder(placeId, query, fallbackLocation) {
+	var normalizedPlaceId = $.trim(placeId || '');
+	var normalizedQuery = $.trim(query || '');
+	var fallbackLabel = $.trim(fallbackLocation || normalizedQuery || normalizedPlaceId);
+	var geocoder = Wo_ExploreNearbyGetGoogleGeocoder();
+	var runGeocode = null;
+
+	if (!geocoder) {
+		return Promise.resolve(null);
+	}
+
+	if (!normalizedPlaceId && !fallbackLabel) {
+		return Promise.resolve(null);
+	}
+
+	runGeocode = function(request) {
+		return new Promise(function(resolve) {
+		geocoder.geocode(request, function(results, status) {
+			var result = (status === 'OK' && Array.isArray(results) && results[0]) ? results[0] : null;
+			var geometryLocation = result && result.geometry ? result.geometry.location : null;
+			var lat = Wo_ExploreNearbyGetGoogleLatLngValue(geometryLocation, 'lat');
+			var lng = Wo_ExploreNearbyGetGoogleLatLngValue(geometryLocation, 'lng');
+
+			if (!result || !Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+				resolve(null);
+				return;
+			}
+
+			resolve(Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery || fallbackLabel, {
+				place_id: $.trim(normalizedPlaceId || result.place_id || ''),
+				lat: lat,
+				lng: lng,
+				title: $.trim((result.address_components && result.address_components[0] && result.address_components[0].long_name) || fallbackLabel || normalizedQuery),
+				location: $.trim(result.formatted_address || fallbackLabel || normalizedQuery)
+			}));
+		});
+		});
+	};
+
+	if (normalizedPlaceId) {
+		return runGeocode({placeId: normalizedPlaceId}).then(function(placeItem) {
+			if (placeItem || !fallbackLabel) {
+				return placeItem;
+			}
+			return runGeocode({address: fallbackLabel});
+		});
+	}
+
+	return runGeocode({address: fallbackLabel});
+}
+
 function Wo_ExploreNearbyBuildTextSearchPlaceItem(placeResult, centerPoint, query) {
 	var result = placeResult || {};
 	var geometryLocation = result.location || (result.geometry ? result.geometry.location : null);
@@ -5752,6 +6084,7 @@ function Wo_ExploreNearbyResolvePlacePrediction(placePrediction, query, fallback
 			var lng = Wo_ExploreNearbyGetGoogleLatLngValue(predictedPlace.location, 'lng');
 
 			return Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, {
+				place_id: $.trim(predictedPlace.id || (placePrediction && placePrediction.placeId) || ''),
 				lat: lat,
 				lng: lng,
 				title: Wo_ExploreNearbyGetGooglePlaceText(predictedPlace.displayName) || predictionMainText || fallbackLabel || normalizedQuery,
@@ -5775,14 +6108,20 @@ function Wo_ExploreNearbyResolvePlaceById(placeId, query, fallbackLocation, plac
 		return Wo_ExploreNearbyResolvePlacePrediction(placePrediction, normalizedQuery, fallbackLabel);
 	}
 
-	return Wo_ExploreNearbyResolvePlacePrediction(placePrediction, normalizedQuery, fallbackLabel).then(function(placeItem) {
+	return Wo_ExploreNearbyResolvePlaceByLegacyDetails(normalizedPlaceId, normalizedQuery, fallbackLabel).then(function(legacyPlaceItem) {
+		if (legacyPlaceItem) {
+			return legacyPlaceItem;
+		}
+
+		return Wo_ExploreNearbyResolvePlacePrediction(placePrediction, normalizedQuery, fallbackLabel);
+	}).then(function(placeItem) {
 		if (placeItem) {
 			return placeItem;
 		}
 
 		return Wo_ExploreNearbyEnsureGooglePlacesLibrary().then(function(placesLibrary) {
 		if (!placesLibrary || typeof placesLibrary.Place !== 'function') {
-			return null;
+			return Wo_ExploreNearbyResolvePlaceByGeocoder(normalizedPlaceId, normalizedQuery, fallbackLabel);
 		}
 
 		var modernPlace = null;
@@ -5797,7 +6136,7 @@ function Wo_ExploreNearbyResolvePlaceById(placeId, query, fallbackLocation, plac
 		}
 
 		if (!modernPlace || typeof modernPlace.fetchFields !== 'function') {
-			return null;
+			return Wo_ExploreNearbyResolvePlaceByGeocoder(normalizedPlaceId, normalizedQuery, fallbackLabel);
 		}
 
 		return modernPlace.fetchFields({
@@ -5807,17 +6146,18 @@ function Wo_ExploreNearbyResolvePlaceById(placeId, query, fallbackLocation, plac
 			var lng = Wo_ExploreNearbyGetGoogleLatLngValue(modernPlace.location, 'lng');
 
 			return Wo_ExploreNearbyBuildSearchPlaceItem(normalizedQuery, {
+				place_id: $.trim(modernPlace.id || normalizedPlaceId || ''),
 				lat: lat,
 				lng: lng,
 				title: Wo_ExploreNearbyGetGooglePlaceText(modernPlace.displayName) || fallbackLabel || normalizedQuery,
 				location: $.trim(modernPlace.formattedAddress || fallbackLabel || normalizedQuery)
 			});
 		}).catch(function() {
-			return null;
+			return Wo_ExploreNearbyResolvePlaceByGeocoder(normalizedPlaceId, normalizedQuery, fallbackLabel);
 		});
 		});
 	}).catch(function() {
-		return null;
+		return Wo_ExploreNearbyResolvePlaceByGeocoder(normalizedPlaceId, normalizedQuery, fallbackLabel);
 	});
 }
 
@@ -5945,7 +6285,9 @@ function Wo_ExploreNearbyGeocodeSearchPlace(query, placeId, placePrediction) {
 		geocodePromise = Wo_ExploreNearbyResolvePlaceById(normalizedPlaceId, normalizedQuery, normalizedQuery, placePrediction);
 	}
 	else if (placePrediction) {
-		geocodePromise = Wo_ExploreNearbyResolvePlacePrediction(placePrediction, normalizedQuery, normalizedQuery);
+		geocodePromise = Wo_ExploreNearbyResolvePlacePrediction(placePrediction, normalizedQuery, normalizedQuery).then(function(placeItem) {
+			return placeItem || Wo_ExploreNearbyResolvePlaceByGeocoder('', normalizedQuery, normalizedQuery);
+		});
 	}
 	else if (Wo_ExploreNearbyCanUseGoogleGeocoderFallback()) {
 		geocodePromise = new Promise(function(resolve) {
@@ -6026,7 +6368,7 @@ function Wo_ExploreNearbyResolveSelectedSuggestionAnchor(item, query) {
 	var suggestion = $.extend({}, item || {});
 	var itemType = $.trim(suggestion.type || '');
 	var normalizedQuery = $.trim(query || suggestion.search_value || suggestion.location || suggestion.title || '');
-	var cacheKey = [itemType || 'item', $.trim(suggestion.place_id || suggestion.id || suggestion.url || normalizedQuery).toLowerCase(), normalizedQuery.toLowerCase()].join('|');
+	var cacheKey = [itemType || 'item', Wo_ExploreNearbyNormalizeSearchKey(suggestion.place_id || suggestion.id || suggestion.url || normalizedQuery), Wo_ExploreNearbyNormalizeSearchKey(normalizedQuery)].join('|');
 
 	if (!itemType) {
 		return Promise.resolve(null);
@@ -6389,6 +6731,10 @@ function Wo_ExploreNearbyClearSearchPlaceSelection() {
 		hasChanged = true;
 	}
 	WoExploreNearbyState.pendingFocusPointKey = null;
+	if (WoExploreNearbyState.pendingMapFocusPoint) {
+		WoExploreNearbyState.pendingMapFocusPoint = null;
+		hasChanged = true;
+	}
 	if (selectedAnchorPointKey && WoExploreNearbyState.activePointKey === selectedAnchorPointKey) {
 		WoExploreNearbyState.activePointKey = null;
 		WoExploreNearbyState.activePointData = null;
@@ -6417,7 +6763,7 @@ function Wo_ExploreNearbyRenderResolvedSearchPlace() {
 
 function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
 	var query = Wo_ExploreNearbyGetSearchValue();
-	var normalizedQuery = $.trim(query).toLowerCase();
+	var normalizedQuery = Wo_ExploreNearbyNormalizeSearchKey(query);
 	var selectedSuggestionItem = null;
 
 	Wo_ExploreNearbySyncSearchSelectionHint();
@@ -6436,6 +6782,9 @@ function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
 				WoExploreNearbyState.activePointData = placeItem;
 				WoExploreNearbyState.openPopupPointKey = null;
 				WoExploreNearbyState.pendingFocusPointKey = WoExploreNearbyState.activePointKey;
+				WoExploreNearbyState.pendingMapFocusPoint = $.extend({}, placeItem, {
+					zoom: 17
+				});
 				WoExploreNearbyState.previewPointKey = null;
 				WoExploreNearbyState.previewPointData = null;
 				Wo_ExploreNearbyClearRouteTarget();
@@ -6463,10 +6812,7 @@ function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
 		return Promise.resolve(anchorPromise).then(function(anchorItem) {
 			var centerPoint = null;
 			var anchorPointKey = '';
-			var previousPreviewPointKey = $.trim(WoExploreNearbyState.previewPointKey || '');
-			var previousRoutePointKey = $.trim(WoExploreNearbyState.routeTargetPointKey || '');
-			var restoredPreviewPoint = null;
-			var restoredRoutePoint = null;
+			var selfFocusPoint = null;
 
 			if (loadToken !== WoExploreNearbyState.loadToken) {
 				return {skipNearby: true};
@@ -6475,6 +6821,41 @@ function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
 			if (anchorItem) {
 				Wo_ExploreNearbySetSearchContext('location', anchorItem);
 				anchorPointKey = Wo_ExploreNearbyGetItemKey(anchorItem);
+				if (selectedSuggestionItem && selectedSuggestionItem.type === 'place') {
+					var resolvedInputValue = $.trim(anchorItem.location || anchorItem.title || query);
+					if (resolvedInputValue) {
+						$('#nearby-username').val(resolvedInputValue);
+						WoExploreNearbyState.searchSelectionHintQuery = Wo_ExploreNearbyNormalizeSearchKey(resolvedInputValue);
+						WoExploreNearbyState.searchSelectionHintItemData = $.extend({}, selectedSuggestionItem, {
+							search_value: resolvedInputValue,
+							location: resolvedInputValue,
+							place_item: anchorItem
+						});
+					}
+					WoExploreNearbyState.isPlaceSearchMode = true;
+					WoExploreNearbyState.placeSearchQuery = resolvedInputValue || query;
+					WoExploreNearbyState.placeSearchResults = [];
+					WoExploreNearbyState.previewPointKey = null;
+					WoExploreNearbyState.previewPointData = null;
+					WoExploreNearbyState.activePointKey = null;
+					WoExploreNearbyState.activePointData = null;
+					WoExploreNearbyState.openPopupPointKey = null;
+					WoExploreNearbyState.pendingFocusPointKey = null;
+					Wo_ExploreNearbyClearRouteTarget();
+					Wo_ExploreNearbySetPreviewPoint(anchorItem);
+					WoExploreNearbyState.openPopupPointKey = anchorPointKey;
+					WoExploreNearbyState.pendingFocusPointKey = anchorPointKey;
+					WoExploreNearbyState.pendingMapFocusPoint = $.extend({}, anchorItem, {
+						zoom: 17
+					});
+					return {skipNearby: true};
+				}
+				WoExploreNearbyState.pendingMapFocusPoint = $.extend({}, anchorItem, {
+					zoom: 17
+				});
+				Wo_ExploreNearbyFocusMapOnPointCoordinates(anchorItem, {
+					zoom: 17
+				});
 			}
 
 			centerPoint = Wo_ExploreNearbyGetPlaceSearchCenterPoint(anchorItem);
@@ -6491,8 +6872,6 @@ function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
 				WoExploreNearbyState.isPlaceSearchMode = true;
 				WoExploreNearbyState.placeSearchQuery = query;
 				WoExploreNearbyState.placeSearchResults = Wo_ExploreNearbyNormalizeDiscoveryItems(placeResults || []);
-				restoredPreviewPoint = previousPreviewPointKey ? Wo_ExploreNearbyGetMergedItemByKey(previousPreviewPointKey) : null;
-				restoredRoutePoint = previousRoutePointKey ? Wo_ExploreNearbyGetMergedItemByKey(previousRoutePointKey) : null;
 				WoExploreNearbyState.previewPointKey = null;
 				WoExploreNearbyState.previewPointData = null;
 				WoExploreNearbyState.activePointKey = null;
@@ -6500,16 +6879,11 @@ function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
 				WoExploreNearbyState.openPopupPointKey = null;
 				WoExploreNearbyState.pendingFocusPointKey = null;
 				Wo_ExploreNearbyClearRouteTarget();
-				if (anchorItem && anchorPointKey) {
-					Wo_ExploreNearbySetPreviewPoint(anchorItem);
-					WoExploreNearbyState.openPopupPointKey = anchorPointKey;
-					WoExploreNearbyState.pendingFocusPointKey = anchorPointKey;
-				}
-				else if (restoredPreviewPoint) {
-					Wo_ExploreNearbySetPreviewPoint(restoredPreviewPoint);
-				}
-				if (restoredRoutePoint) {
-					Wo_ExploreNearbySetRouteTargetPoint(restoredRoutePoint);
+				selfFocusPoint = Wo_ExploreNearbyGetCurrentUserPoint();
+				if (selfFocusPoint) {
+					WoExploreNearbyState.pendingMapFocusPoint = $.extend({}, selfFocusPoint, {
+						zoom: 15
+					});
 				}
 				return {skipNearby: true};
 			});
@@ -6523,7 +6897,7 @@ function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
 		return Promise.resolve({skipNearby: false});
 	}
 
-	if (normalizedQuery && normalizedQuery === WoExploreNearbyState.searchSelectionHintQuery && WoExploreNearbyState.searchSelectionHintMode === 'anchor' && selectedSuggestionItem) {
+	if (normalizedQuery && Wo_ExploreNearbyDoesSearchMatchSelectionHint(query) && WoExploreNearbyState.searchSelectionHintMode === 'anchor' && selectedSuggestionItem) {
 		if (selectedSuggestionItem.type === 'user' || selectedSuggestionItem.type === 'page') {
 			return resolveAndApplyEntityAnchor(Wo_ExploreNearbyResolveSelectedSuggestionAnchor(selectedSuggestionItem, query));
 		}
@@ -7797,6 +8171,60 @@ function Wo_ExploreNearbyGetBearing(firstPoint, secondPoint) {
 	return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
+function Wo_ExploreNearbyInterpolatePoint(firstPoint, secondPoint, fraction) {
+	var ratio = parseFloat(fraction);
+
+	if (!Wo_ExploreNearbyHasValidCoordinates(firstPoint && firstPoint.lat, firstPoint && firstPoint.lng) ||
+		!Wo_ExploreNearbyHasValidCoordinates(secondPoint && secondPoint.lat, secondPoint && secondPoint.lng)) {
+		return null;
+	}
+
+	if (isNaN(ratio)) {
+		ratio = 0;
+	}
+	ratio = Math.max(0, Math.min(1, ratio));
+
+	return {
+		lat: parseFloat(firstPoint.lat) + ((parseFloat(secondPoint.lat) - parseFloat(firstPoint.lat)) * ratio),
+		lng: parseFloat(firstPoint.lng) + ((parseFloat(secondPoint.lng) - parseFloat(firstPoint.lng)) * ratio)
+	};
+}
+
+function Wo_ExploreNearbyGetNavigationCameraCenter(currentPoint, routeData, options) {
+	var cameraOptions = options || {};
+	var destinationPoint = routeData && routeData.destination ? routeData.destination : null;
+	var routePath = (routeData && Array.isArray(routeData.path)) ? Wo_ExploreNearbyNormalizeRoutePath(routeData.path) : [];
+	var lookAheadPoint = null;
+	var i = 0;
+
+	if (!Wo_ExploreNearbyHasValidCoordinates(currentPoint && currentPoint.lat, currentPoint && currentPoint.lng)) {
+		return null;
+	}
+
+	if (cameraOptions.preferDestination === true && destinationPoint && Wo_ExploreNearbyHasValidCoordinates(destinationPoint.lat, destinationPoint.lng)) {
+		return {
+			lat: parseFloat(currentPoint.lat),
+			lng: parseFloat(currentPoint.lng)
+		};
+	}
+
+	for (i = 0; i < routePath.length; i++) {
+		if (Wo_ExploreNearbyGetDistanceMeters(currentPoint, routePath[i]) > 30) {
+			lookAheadPoint = routePath[i];
+			break;
+		}
+	}
+
+	if (lookAheadPoint) {
+		return Wo_ExploreNearbyInterpolatePoint(currentPoint, lookAheadPoint, 0.45);
+	}
+
+	return {
+		lat: parseFloat(currentPoint.lat),
+		lng: parseFloat(currentPoint.lng)
+	};
+}
+
 function Wo_ExploreNearbySmoothHeading(currentHeading, targetHeading) {
 	var current = Wo_ExploreNearbyNormalizeHeading(currentHeading);
 	var target = Wo_ExploreNearbyNormalizeHeading(targetHeading);
@@ -7813,8 +8241,11 @@ function Wo_ExploreNearbySmoothHeading(currentHeading, targetHeading) {
 	return (current + diff * 0.28 + 360) % 360;
 }
 
-function Wo_ExploreNearbyGetRouteHeadingFromPoint(currentPoint, routeData) {
+function Wo_ExploreNearbyGetRouteHeadingFromPoint(currentPoint, routeData, options) {
 	var routePath = (routeData && Array.isArray(routeData.path)) ? Wo_ExploreNearbyNormalizeRoutePath(routeData.path) : [];
+	var headingOptions = options || {};
+	var destinationPoint = routeData && routeData.destination ? routeData.destination : null;
+	var destinationHeading = null;
 	var nearestIndex = 0;
 	var nearestDistance = Number.POSITIVE_INFINITY;
 	var i = 0;
@@ -7822,6 +8253,12 @@ function Wo_ExploreNearbyGetRouteHeadingFromPoint(currentPoint, routeData) {
 
 	if (!Wo_ExploreNearbyHasValidCoordinates(currentPoint && currentPoint.lat, currentPoint && currentPoint.lng)) {
 		return WoExploreNearbyState.deviceHeading;
+	}
+	if (headingOptions.preferDestination === true && destinationPoint && Wo_ExploreNearbyHasValidCoordinates(destinationPoint.lat, destinationPoint.lng)) {
+		destinationHeading = Wo_ExploreNearbyGetBearing(currentPoint, destinationPoint);
+		if (destinationHeading !== null) {
+			return destinationHeading;
+		}
 	}
 	if (WoExploreNearbyState.deviceHeading !== null && WoExploreNearbyState.deviceHeadingSource === 'device') {
 		return WoExploreNearbyState.deviceHeading;
@@ -7847,20 +8284,27 @@ function Wo_ExploreNearbyGetRouteHeadingFromPoint(currentPoint, routeData) {
 	return Wo_ExploreNearbyGetBearing(routePath[Math.max(0, routePath.length - 2)], routePath[routePath.length - 1]);
 }
 
-function Wo_ExploreNearbyApplyNavigationCamera(currentPoint, routeData, immediate) {
+function Wo_ExploreNearbyApplyNavigationCamera(currentPoint, routeData, immediate, options) {
+	var cameraOptions = options || {};
 	var map = WoExploreNearbyMapState.map || null;
-	var targetHeading = Wo_ExploreNearbyGetRouteHeadingFromPoint(currentPoint, routeData);
-	var nextHeading = Wo_ExploreNearbySmoothHeading(WoExploreNearbyState.navigationCameraHeading, targetHeading);
+	var targetHeading = Wo_ExploreNearbyGetRouteHeadingFromPoint(currentPoint, routeData, cameraOptions);
+	var nextHeading = immediate === true ? Wo_ExploreNearbyNormalizeHeading(targetHeading) : Wo_ExploreNearbySmoothHeading(WoExploreNearbyState.navigationCameraHeading, targetHeading);
 	var cameraCenter = null;
 
 	if (WoExploreNearbyMapState.provider !== 'google' || !map || !Wo_ExploreNearbyHasValidCoordinates(currentPoint && currentPoint.lat, currentPoint && currentPoint.lng)) {
 		return false;
 	}
 
-	cameraCenter = {
+	cameraCenter = Wo_ExploreNearbyGetNavigationCameraCenter(currentPoint, routeData, cameraOptions) || {
 		lat: parseFloat(currentPoint.lat),
 		lng: parseFloat(currentPoint.lng)
 	};
+	if (nextHeading === null) {
+		nextHeading = Wo_ExploreNearbyNormalizeHeading(WoExploreNearbyState.navigationCameraHeading);
+	}
+	if (nextHeading === null) {
+		nextHeading = 0;
+	}
 	WoExploreNearbyState.navigationCameraHeading = nextHeading;
 	currentUserMapPoint.heading = nextHeading;
 	Wo_ExploreNearbyRefreshSelfMarker();
@@ -7869,7 +8313,7 @@ function Wo_ExploreNearbyApplyNavigationCamera(currentPoint, routeData, immediat
 		map.moveCamera({
 			center: cameraCenter,
 			zoom: 18,
-			tilt: 67,
+			tilt: 55,
 			heading: nextHeading
 		});
 		return true;
@@ -7885,7 +8329,7 @@ function Wo_ExploreNearbyApplyNavigationCamera(currentPoint, routeData, immediat
 		map.setZoom(18);
 	}
 	if (typeof map.setTilt === 'function') {
-		map.setTilt(67);
+		map.setTilt(55);
 	}
 	if (typeof map.setHeading === 'function') {
 		map.setHeading(nextHeading);
@@ -9941,7 +10385,9 @@ function Wo_ExploreNearbyApplyNavigationRouteData(routeData, targetPoint, source
 	});
 	if (currentPoint) {
 		Wo_ExploreNearbySetSheetSnap('collapsed', true);
-		Wo_ExploreNearbyApplyNavigationCamera(currentPoint, routeData, true);
+		Wo_ExploreNearbyApplyNavigationCamera(currentPoint, routeData, true, {
+			preferDestination: true
+		});
 	}
 	Wo_ExploreNearbyScheduleRouteViewportResync(Wo_ExploreNearbyGetItemKey(targetPoint));
 
@@ -10067,7 +10513,9 @@ function Wo_ExploreNearbyUpdateActiveNavigation(currentPoint) {
 	}
 
 	stepState = Wo_ExploreNearbyGetNavigationStepState(currentPoint, routeData);
-	Wo_ExploreNearbyApplyNavigationCamera(currentPoint, routeData, false);
+	Wo_ExploreNearbyApplyNavigationCamera(currentPoint, routeData, false, {
+		preferDestination: true
+	});
 	WoExploreNearbyState.navigationCurrentStepIndex = stepState.stepIndex;
 	instructionText = $.trim((stepState.step && stepState.step.instructionText) || navigationStatusActiveLabel);
 	summaryText = Wo_ExploreNearbyGetNavigationSummaryText(routeData, stepState, currentPoint);
@@ -10331,6 +10779,7 @@ function Wo_ExploreNearbyStartRouteToPointByKey(pointKey, shouldScrollMap, start
 		var routeToken = 0;
 		var destinationName = '';
 		var shouldResetNavigation = false;
+		var navigationHeading = null;
 
 		if (!resolvedTargetPoint || !Wo_ExploreNearbyHasValidCoordinates(resolvedTargetPoint.lat, resolvedTargetPoint.lng)) {
 			return;
@@ -10386,8 +10835,15 @@ function Wo_ExploreNearbyStartRouteToPointByKey(pointKey, shouldScrollMap, start
 			{lat: currentPoint.lat, lng: currentPoint.lng},
 			{lat: targetPoint.lat, lng: targetPoint.lng}
 		];
+		navigationHeading = Wo_ExploreNearbyGetBearing(currentPoint, targetPoint);
 		Wo_ExploreNearbySetNavigationBannerState('starting', navigationStatusStartingLabel, '', destinationName);
-		Wo_ExploreNearbyCenterMapOnCurrentUser(true);
+		if (!Wo_ExploreNearbyFocusMapOnPointCoordinates(currentPoint, {
+			zoom: 18,
+			tilt: 55,
+			heading: navigationHeading !== null ? navigationHeading : undefined
+		})) {
+			Wo_ExploreNearbyCenterMapOnCurrentUser(true);
+		}
 		Wo_ExploreNearbyClearRouteLine();
 		Wo_ExploreNearbyUpdateUi();
 		routeToken = ++WoExploreNearbyState.navigationRouteRequestToken;
@@ -11241,10 +11697,68 @@ function Wo_ExploreNearbyResolveVisiblePoints(points) {
 	}));
 }
 
+function Wo_ExploreNearbyFocusMapOnPointCoordinates(point, options) {
+	var focusOptions = options || {};
+	var lat = parseFloat(point && point.lat);
+	var lng = parseFloat(point && point.lng);
+	var zoom = parseInt(focusOptions.zoom, 10) || 17;
+	var heading = focusOptions.heading;
+	var tilt = focusOptions.tilt;
+
+	if (!Wo_ExploreNearbyHasValidCoordinates(lat, lng) || !WoExploreNearbyMapState.map) {
+		return false;
+	}
+
+	if (WoExploreNearbyMapState.provider === 'google') {
+		var center = {lat: lat, lng: lng};
+		if (typeof WoExploreNearbyMapState.map.moveCamera === 'function' && (heading !== undefined || tilt !== undefined)) {
+			WoExploreNearbyMapState.map.moveCamera({
+				center: center,
+				zoom: zoom,
+				tilt: tilt !== undefined ? tilt : (typeof WoExploreNearbyMapState.map.getTilt === 'function' ? WoExploreNearbyMapState.map.getTilt() : 0),
+				heading: heading !== undefined ? heading : (typeof WoExploreNearbyMapState.map.getHeading === 'function' ? WoExploreNearbyMapState.map.getHeading() : 0)
+			});
+			return true;
+		}
+		if (typeof WoExploreNearbyMapState.map.panTo === 'function') {
+			WoExploreNearbyMapState.map.panTo(center);
+		}
+		else if (typeof WoExploreNearbyMapState.map.setCenter === 'function') {
+			WoExploreNearbyMapState.map.setCenter(center);
+		}
+		if (typeof WoExploreNearbyMapState.map.setZoom === 'function') {
+			WoExploreNearbyMapState.map.setZoom(zoom);
+		}
+		if (tilt !== undefined && typeof WoExploreNearbyMapState.map.setTilt === 'function') {
+			WoExploreNearbyMapState.map.setTilt(tilt);
+		}
+		if (heading !== undefined && typeof WoExploreNearbyMapState.map.setHeading === 'function') {
+			WoExploreNearbyMapState.map.setHeading(heading);
+		}
+		return true;
+	}
+
+	if (WoExploreNearbyMapState.provider === 'leaflet') {
+		if (typeof WoExploreNearbyMapState.map.setView === 'function') {
+			WoExploreNearbyMapState.map.setView([lat, lng], zoom, {
+				animate: true
+			});
+			return true;
+		}
+		if (typeof WoExploreNearbyMapState.map.panTo === 'function') {
+			WoExploreNearbyMapState.map.panTo([lat, lng]);
+			return true;
+		}
+	}
+
+	return false;
+}
+
 function Wo_ExploreNearbyRenderCurrentMap(openPointKey) {
 	var visiblePoints = Wo_ExploreNearbyGetVisiblePoints();
 	var renderToken = ++WoExploreNearbyState.mapRenderToken;
 	var pendingFocusPointKey = WoExploreNearbyState.pendingFocusPointKey || null;
+	var pendingMapFocusPoint = WoExploreNearbyState.pendingMapFocusPoint || null;
 	var targetOpenPointKey = openPointKey || WoExploreNearbyState.openPopupPointKey || Wo_ExploreNearbyGetDefaultOpenPointKey();
 
 	if (targetOpenPointKey) {
@@ -11254,10 +11768,12 @@ function Wo_ExploreNearbyRenderCurrentMap(openPointKey) {
 
 	$('#map').addClass('wo_ui_map_state_loading');
 	if (!Wo_ExploreNearbySyncLocationAnchorState()) {
-		Wo_ExploreNearbyResetMapMarkers();
-		$('#map').removeClass('wo_ui_map_state_loading');
-		Wo_ExploreNearbyUpdateMapPrompt();
-		return;
+		if (!pendingMapFocusPoint && !Wo_ExploreNearbyGetSelectedAnchorPointKey()) {
+			Wo_ExploreNearbyResetMapMarkers();
+			$('#map').removeClass('wo_ui_map_state_loading');
+			Wo_ExploreNearbyUpdateMapPrompt();
+			return;
+		}
 	}
 
 	Wo_ExploreNearbyResolveVisiblePoints(visiblePoints).then(function(resolvedPoints) {
@@ -11274,6 +11790,13 @@ function Wo_ExploreNearbyRenderCurrentMap(openPointKey) {
 			WoExploreNearbyState.pendingFocusPointKey = null;
 			Wo_ExploreNearbyFocusOnMapByKey(pendingFocusPointKey, true);
 		}
+		if (pendingMapFocusPoint && Wo_ExploreNearbyFocusMapOnPointCoordinates(pendingMapFocusPoint, {
+			zoom: pendingMapFocusPoint.zoom || 17,
+			heading: pendingMapFocusPoint.heading,
+			tilt: pendingMapFocusPoint.tilt
+		})) {
+			WoExploreNearbyState.pendingMapFocusPoint = null;
+		}
 
 		Wo_ExploreNearbyUpdateMapPrompt();
 	});
@@ -11283,6 +11806,8 @@ function Wo_ExploreNearbyFocusOnMapByKey(pointKey, shouldScrollMap) {
 	var requestedPointKey = $.trim(pointKey || '');
 	var canonicalPoint = Wo_ExploreNearbyResolveCanonicalPointByKey(requestedPointKey, false);
 	var targetPointKey = canonicalPoint ? Wo_ExploreNearbyGetItemKey(canonicalPoint) : requestedPointKey;
+	var fallbackActivePointData = WoExploreNearbyState.activePointKey === targetPointKey ? WoExploreNearbyState.activePointData : null;
+	var fallbackPreviewPointData = WoExploreNearbyState.previewPointKey === targetPointKey ? WoExploreNearbyState.previewPointData : null;
 	var focusedByCoordinates = false;
 
 	if (!requestedPointKey) {
@@ -11306,11 +11831,11 @@ function Wo_ExploreNearbyFocusOnMapByKey(pointKey, shouldScrollMap) {
 	var marker = null;
 	var targetPoint = canonicalPoint || null;
 
-	if (!targetPoint && WoExploreNearbyState.activePointKey === targetPointKey && WoExploreNearbyState.activePointData) {
-		targetPoint = WoExploreNearbyState.activePointData;
+	if (!targetPoint && fallbackActivePointData) {
+		targetPoint = fallbackActivePointData;
 	}
-	if (!targetPoint && WoExploreNearbyState.previewPointKey === targetPointKey && WoExploreNearbyState.previewPointData) {
-		targetPoint = WoExploreNearbyState.previewPointData;
+	if (!targetPoint && fallbackPreviewPointData) {
+		targetPoint = fallbackPreviewPointData;
 	}
 
 	if (WoExploreNearbyMapState.provider === 'google') {
@@ -11844,14 +12369,8 @@ jQuery(document).ready(function($) {
 
 	$(document).on('click', '.wo_explore_discovery_card', function(e) {
 		var pointKey = $(this).attr('data-point-key');
-		var item = Wo_ExploreNearbyResolvePointByKey(pointKey, false);
 
 		if ($(e.target).closest('a,button').length) {
-			return;
-		}
-
-		if (Wo_ExploreNearbyCanRouteToItem(item)) {
-			Wo_ExploreNearbyStartRouteToPointByKey(pointKey, true, false);
 			return;
 		}
 
@@ -11859,7 +12378,17 @@ jQuery(document).ready(function($) {
 	});
 
 	$(document).on('pointerdown mousedown touchstart', '.wo_explore_discovery_search_suggestion', function(e) {
-		Wo_ExploreNearbyMarkSuggestionInteractionActive(e, parseInt($(this).attr('data-index'), 10));
+		var index = parseInt($(this).attr('data-index'), 10);
+		if ((Date.now() - (WoExploreNearbyState.lastSuggestionSelectionAt || 0)) < 300) {
+			return;
+		}
+		if (!Wo_ExploreNearbyShouldHandleSuggestionReleaseSelection(e)) {
+			e.preventDefault();
+			e.stopPropagation();
+			Wo_ExploreNearbyHandleSuggestionSelection(index);
+			return;
+		}
+		Wo_ExploreNearbyMarkSuggestionInteractionActive(e, index);
 	});
 
 	$(document).on('mouseenter', '.wo_explore_discovery_search_suggestion', function() {
@@ -11894,9 +12423,6 @@ jQuery(document).ready(function($) {
 		var index = parseInt($(this).attr('data-index'), 10);
 		e.preventDefault();
 		e.stopPropagation();
-		if (Wo_ExploreNearbyShouldIgnoreSuggestionClick(index)) {
-			return;
-		}
 		if ((Date.now() - (WoExploreNearbyState.lastSuggestionSelectionAt || 0)) < 400) {
 			return;
 		}
@@ -11905,7 +12431,9 @@ jQuery(document).ready(function($) {
 			return;
 		}
 
-		Wo_ExploreNearbyHandleSuggestionSelection(index);
+		if (!WoExploreNearbyState.searchSuggestionPointerMoved) {
+			Wo_ExploreNearbyHandleSuggestionSelection(index);
+		}
 	});
 
 	$(document).on('click', function(e) {
@@ -11920,12 +12448,7 @@ jQuery(document).ready(function($) {
 		e.preventDefault();
 		e.stopPropagation();
 		var pointKey = $(this).attr('data-point-key');
-		var item = Wo_ExploreNearbyResolvePointByKey(pointKey, false);
 		if ($(this).is(':disabled')) {
-			return;
-		}
-		if (Wo_ExploreNearbyCanRouteToItem(item)) {
-			Wo_ExploreNearbyStartRouteToPointByKey(pointKey, true, false);
 			return;
 		}
 		Wo_ExploreNearbyFocusOnMapByKey(pointKey, true);

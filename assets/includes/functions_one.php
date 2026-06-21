@@ -5776,28 +5776,35 @@ function Wo_DisplaySharedFile($media, $placement = '', $cache = false, $is_video
                     $media_file .= Wo_LoadPage('players /videojs');
                 } else {
                     if ($wo['config']['ffmpeg_system'] == 'on') {
-                        $explode_video = explode('_video', $wo['media']['filename']);
+                        $explode_video = explode('_video', $orginal);
                         if (!empty($wo['story'])) {
                             if ($wo['story']['240p'] == 1) {
-                                $wo['story']['240p_video'] = $explode_video[0] . '_video_240p_converted.mp4';
+                                $video_240p = $explode_video[0] . '_video_240p_converted.mp4';
+                                $wo['story']['240p_video'] = filter_var($video_240p, FILTER_VALIDATE_URL) ? $video_240p : Wo_GetMedia($video_240p);
                             }
                             if ($wo['story']['360p'] == 1) {
-                                $wo['story']['360p_video'] = $explode_video[0] . '_video_360p_converted.mp4';
+                                $video_360p = $explode_video[0] . '_video_360p_converted.mp4';
+                                $wo['story']['360p_video'] = filter_var($video_360p, FILTER_VALIDATE_URL) ? $video_360p : Wo_GetMedia($video_360p);
                             }
                             if ($wo['story']['480p'] == 1) {
-                                $wo['story']['480p_video'] = $explode_video[0] . '_video_480p_converted.mp4';
+                                $video_480p = $explode_video[0] . '_video_480p_converted.mp4';
+                                $wo['story']['480p_video'] = filter_var($video_480p, FILTER_VALIDATE_URL) ? $video_480p : Wo_GetMedia($video_480p);
                             }
                             if ($wo['story']['720p'] == 1) {
-                                $wo['story']['720p_video'] = $explode_video[0] . '_video_720p_converted.mp4';
+                                $video_720p = $explode_video[0] . '_video_720p_converted.mp4';
+                                $wo['story']['720p_video'] = filter_var($video_720p, FILTER_VALIDATE_URL) ? $video_720p : Wo_GetMedia($video_720p);
                             }
                             if ($wo['story']['1080p'] == 1) {
-                                $wo['story']['1080p_video'] = $explode_video[0] . '_video_1080p_converted.mp4';
+                                $video_1080p = $explode_video[0] . '_video_1080p_converted.mp4';
+                                $wo['story']['1080p_video'] = filter_var($video_1080p, FILTER_VALIDATE_URL) ? $video_1080p : Wo_GetMedia($video_1080p);
                             }
                             if ($wo['story']['2048p'] == 1) {
-                                $wo['story']['2048p_video'] = $explode_video[0] . '_video_2048p_converted.mp4';
+                                $video_2048p = $explode_video[0] . '_video_2048p_converted.mp4';
+                                $wo['story']['2048p_video'] = filter_var($video_2048p, FILTER_VALIDATE_URL) ? $video_2048p : Wo_GetMedia($video_2048p);
                             }
                             if ($wo['story']['4096p'] == 1) {
-                                $wo['story']['4096p_video'] = $explode_video[0] . '_video_4096p_converted.mp4';
+                                $video_4096p = $explode_video[0] . '_video_4096p_converted.mp4';
+                                $wo['story']['4096p_video'] = filter_var($video_4096p, FILTER_VALIDATE_URL) ? $video_4096p : Wo_GetMedia($video_4096p);
                             }
                         }
                     }

@@ -958,13 +958,13 @@ function Wo_OpenFirstFilteredVideo(attempt) {
 
   if (!firstVideo) {
     if (tries >= 12) {
-      return;
+      return false;
     }
 
     setTimeout(function () {
       Wo_OpenFirstFilteredVideo(tries + 1);
     }, 180);
-    return;
+    return false;
   }
 
   var postId = firstVideo.getAttribute("data-post-video");
@@ -988,13 +988,13 @@ function Wo_OpenFirstFilteredVideo(attempt) {
 
   if (!player || !player.fullscreen || typeof player.fullscreen.enter !== "function") {
     if (tries >= 12) {
-      return;
+      return false;
     }
 
     setTimeout(function () {
       Wo_OpenFirstFilteredVideo(tries + 1);
     }, 180);
-    return;
+    return false;
   }
 
   try {
@@ -1005,7 +1005,10 @@ function Wo_OpenFirstFilteredVideo(attempt) {
         playPromise.catch(function () {});
       }
     }
+    return true;
   } catch (err) {}
+
+  return false;
 }
 
 // post filteration
@@ -1037,15 +1040,15 @@ function Wo_FilterPostBy(filter_by) {
     type: type
   }, function (data) {
     if(data) {
-	  $('html, body').animate({
+      $('html, body').animate({
 		scrollTop: $('#scroll_filter_click').offset().top - 100 //#DIV_ID is an example. Use the id of your destination on the page
-	  }, 500);
+      }, 500);
       $('#posts').html(data);
       if (filter_by === "video") {
-  // setTimeout(function () {
-    Wo_OpenFirstFilteredVideo();
-  // }, 120);
-}
+        setTimeout(function () {
+          Wo_OpenFirstFilteredVideo();
+        }, 120);
+      }
 
     }
   });
@@ -4560,35 +4563,18 @@ function FileListItems (files) {
 
   function overlayDebug() {
     var badge = document.getElementById("wo-video-overlay-debug");
-    if (!arguments.length) {
-      if (badge && badge.parentNode) {
-        badge.parentNode.removeChild(badge);
-      }
-      return;
+    if (badge && badge.parentNode) {
+      badge.parentNode.removeChild(badge);
     }
+    return;
+  }
 
-    if (!badge) {
-      badge = document.createElement("div");
-      badge.id = "wo-video-overlay-debug";
-      badge.style.cssText =
-        "position:fixed;left:12px;bottom:12px;z-index:999999;padding:8px 10px;max-width:calc(100vw - 24px);background:rgba(0,0,0,.78);color:#fff;font:12px/1.4 monospace;border-radius:8px;white-space:pre-wrap;pointer-events:none;";
-      document.body.appendChild(badge);
-    }
-
-    var parts = [];
-    for (var i = 0; i < arguments.length; i++) {
-      var part = arguments[i];
-      if (part && typeof part === "object") {
-        try {
-          parts.push(JSON.stringify(part));
-        } catch (err) {
-          parts.push("[object]");
-        }
-      } else {
-        parts.push(String(part));
-      }
-    }
-    badge.textContent = parts.join("\n");
+  function isReelsPlayerContainer(container) {
+    return !!(
+      container &&
+      container.closest &&
+      container.closest(".reels_list, .wo_reels_cont")
+    );
   }
 
   function getPlayerContainer(player) {
@@ -4992,6 +4978,7 @@ function FileListItems (files) {
   function openVideoOverlay(player) {
     var container = getPlayerContainer(player);
     if (!container) return false;
+    if (isReelsPlayerContainer(container)) return false;
 
     var postId = getPostIdFromPlyr(container);
     if (!postId) return false;
@@ -5323,6 +5310,11 @@ function FileListItems (files) {
       return;
     }
 
+    var container = getPlayerContainer(player);
+    if (!container || isReelsPlayerContainer(container)) {
+      return;
+    }
+
     player.__wo_overlay_bound = true;
 
     if (player.fullscreen) {
@@ -5351,11 +5343,6 @@ function FileListItems (files) {
           openVideoOverlay(player);
         }
       };
-    }
-
-    var container = getPlayerContainer(player);
-    if (!container) {
-      return;
     }
 
     var fullscreenBtn = container.querySelector('[data-plyr="fullscreen"]');
@@ -5485,11 +5472,13 @@ function FileListItems (files) {
   }
 
  function createFullscreenButtons(plyrEl) {
+    if (isReelsPlayerContainer(plyrEl)) return;
     if (plyrEl.querySelector(".video-fullscreen-actions")) return;
     var postId = getPostIdFromPlyr(plyrEl);
     if (!postId) return;
 
     var video = plyrEl.querySelector("video");
+    if (!video) return;
     var pubName = video.getAttribute("data-user-name") || "";
     var pubAvatar = video.getAttribute("data-user-avatar") || "";
     var pubId = video.getAttribute("data-user-id") || "";
