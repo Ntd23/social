@@ -1,4 +1,4 @@
-<?php 
+<?php // Product pagination endpoint with optional seller filtering. ?>
 if ($f == 'load_more_products') {
     $html  = '';
     $array = array(
@@ -24,6 +24,9 @@ if ($f == 'load_more_products') {
     }
     if (!empty($_POST['text'])) {
         $array['keyword'] = $_POST['text'];
+    }
+    if (!empty($_POST['user_id']) && is_numeric($_POST['user_id'])) {
+        $array['user_id'] = Wo_Secure($_POST['user_id']);
     }
     $result = Wo_GetProducts($array);
     foreach ($result as $key => $wo['product']) {

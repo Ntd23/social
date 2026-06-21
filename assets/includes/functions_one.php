@@ -3881,18 +3881,44 @@ function Wo_GetMessagesUsers($user_id, $searchQuery = '', $limit = 50, $new = fa
                 }
             }
         }
-        if (!empty($data)) {
-            usort($data, function ($a, $b) {
-                $a_time = !empty($a['chat_time']) ? (int) $a['chat_time'] : 0;
-                $b_time = !empty($b['chat_time']) ? (int) $b['chat_time'] : 0;
-                if ($a_time === $b_time) {
-                    return 0;
-                }
-                return ($a_time < $b_time) ? 1 : -1;
-            });
-            if (count($data) > $limit) {
-                $data = array_slice($data, 0, $limit);
+    }
+    $added = array();
+    foreach ($data as $existing_user) {
+        if (!empty($existing_user['user_id'])) {
+            $added[(int) $existing_user['user_id']] = true;
+        }
+    }
+    $followed_users = Wo_GetFollowedMessageUsers($user_id, $searchQuery, $limit);
+    if (!empty($followed_users) && is_array($followed_users)) {
+        foreach ($followed_users as $followed_user) {
+            $followed_user_id = !empty($followed_user['user_id']) ? (int) $followed_user['user_id'] : 0;
+            if ($followed_user_id < 1 || isset($added[$followed_user_id])) {
+                continue;
             }
+            if (empty($followed_user['message']) || !is_array($followed_user['message'])) {
+                $followed_user['message'] = array();
+            }
+            if (empty($followed_user['message']['conversation_user_id'])) {
+                $followed_user['message']['conversation_user_id'] = $followed_user_id;
+            }
+            if (empty($followed_user['message']['time']) && !empty($followed_user['chat_time'])) {
+                $followed_user['message']['time'] = $followed_user['chat_time'];
+            }
+            $data[] = $followed_user;
+            $added[$followed_user_id] = true;
+        }
+    }
+    if (!empty($data)) {
+        usort($data, function ($a, $b) {
+            $a_time = !empty($a['chat_time']) ? (int) $a['chat_time'] : 0;
+            $b_time = !empty($b['chat_time']) ? (int) $b['chat_time'] : 0;
+            if ($a_time === $b_time) {
+                return 0;
+            }
+            return ($a_time < $b_time) ? 1 : -1;
+        });
+        if (count($data) > ($limit * 2)) {
+            $data = array_slice($data, 0, ($limit * 2));
         }
     }
     return $data;

@@ -1,4 +1,4 @@
-<?php 
+<?php // Product search endpoint with optional seller filtering. ?>
 if ($f == 'search_products') {
     $html  = '';
     $array = array(
@@ -18,6 +18,9 @@ if ($f == 'search_products') {
     }
     if (!empty($_POST['price_sort'])) {
         $array['order_by'] = $_POST['price_sort'];
+    }
+    if (!empty($_POST['user_id']) && is_numeric($_POST['user_id'])) {
+        $array['user_id'] = Wo_Secure($_POST['user_id']);
     }
     $result = Wo_GetProducts($array);
     foreach ($result as $key => $wo['product']) {
