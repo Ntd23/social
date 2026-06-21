@@ -28,6 +28,7 @@ if ($wo['story']['processing'] > 0 && (Wo_IsModerator() || Wo_IsAdmin() || $wo['
         <source src="<?php echo $wo['media']['filename']; ?>" type='video/mp4'>
         <source src="<?php echo $wo['media']['filename']; ?>" type='video/webm'>
     <?php } else { ?>
+        <source src="<?php echo $wo['media']['filename']; ?>" type='video/mp4'>
         <?php if (!empty($wo['story']['4096p_video'])) { ?>
             <source src="<?php echo($wo['story']['4096p_video']) ?>" type="video/mp4" data-quality="4096p" size='4096'
                     label='4096p' res='4096'>

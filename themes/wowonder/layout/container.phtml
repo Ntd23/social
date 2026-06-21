@@ -969,9 +969,24 @@
           </script>
       <?php
        }
-       ?>
+      ?>
       <script>window.wo_google_maps_map_id = <?php echo json_encode(!empty($wo['config']['google_maps_map_id']) ? $wo['config']['google_maps_map_id'] : ''); ?>;</script>
-      <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/script.js<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>&v=1.6"></script>
+      <style>#wo-video-overlay-debug{display:none!important;}</style>
+      <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/script.js<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>&v=1.8"></script>
+      <script>
+        (function () {
+          function removeVideoOverlayDebug() {
+            var badge = document.getElementById('wo-video-overlay-debug');
+            if (badge && badge.parentNode) {
+              badge.parentNode.removeChild(badge);
+            }
+          }
+          removeVideoOverlayDebug();
+          document.addEventListener('DOMContentLoaded', removeVideoOverlayDebug);
+          setTimeout(removeVideoOverlayDebug, 500);
+          setTimeout(removeVideoOverlayDebug, 1500);
+        })();
+      </script>
       <?php if ($wo['loggedin'] == true) {?>
       <?php if ($wo['config']['google_map'] == 1) { ?>
       <script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $wo['config']['google_map_api'];?>&libraries=places,geometry"></script>

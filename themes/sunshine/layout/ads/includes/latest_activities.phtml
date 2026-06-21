@@ -1,36 +1,20 @@
 <div class="ads-cont-wrapper">
 	<?php if (count($wo['trans']) > 0): ?>
-		<table class="table table-responsive wow_wallet_trans">
+		<table class="table wow_wallet_trans wallet-transactions-table">
 			<thead>
 				<tr>
-					<th><?php echo $wo['lang']['description']; ?></th>
+					<th class="wallet-trans-desc"><?php echo $wo['lang']['description']; ?></th>
 					<th><?php echo $wo['lang']['amount']; ?></th>
-					<th><?php echo $wo['lang']['type']; ?></th>
 				</tr>
 			</thead>
 			<tbody id="user-ads">
 				<?php foreach ($wo['trans'] as $key => $transaction): ?>
 					<tr data-ad-id="<?php echo $transaction['id']; ?>">
-						<td>
+						<td class="wallet-trans-desc" data-label="<?php echo $wo['lang']['description']; ?>">
 							<div><b><?php echo $transaction['notes']; ?></b></div>
 							<div class="opacityy"><?php echo $transaction['transaction_dt']; ?></div>
 						</td>
-						<td><span><?php echo number_format($transaction['amount'], 2); ?> VNSEEA</span></td>
-						<td width="150" class="wallet_trans_type">
-							<?php if ($transaction['kind'] == "SALES") { ?>
-								<span class="badge success"><?php echo $transaction['kind']; ?></span>
-							<?php } else if ($transaction['kind'] == "PRO") { ?>
-								<span class="badge warning"><?php echo $transaction['kind']; ?></span>
-							<?php } else if ($transaction['kind'] == "SENT") { ?>
-								<span class="badge info"><?php echo $transaction['kind']; ?></span>
-							<?php } else if ($transaction['kind'] == "WALLET" || $transaction['kind'] == "RECEIVED" || $transaction['kind'] == "SALE") { ?>
-								<span class="badge success"><?php echo $transaction['kind']; ?></span>
-							<?php } else if ($transaction['kind'] == "PURCHASE") { ?>
-								<span class="badge danger"><?php echo $transaction['kind']; ?></span>
-							<?php } else { ?>
-								<span class="badge"><?php echo $transaction['kind']; ?></span>
-							<?php } ?>
-						</td>
+						<td class="wallet-trans-amount" data-label="<?php echo $wo['lang']['amount']; ?>"><span><?php echo number_format($transaction['amount'], 2); ?> VNSEEA</span></td>
 					</tr>
 				<?php endforeach; ?>
 			</tbody>
@@ -41,3 +25,63 @@
 		</div>
 	<?php endif; ?>
 </div>
+<style>
+	.wallet_transactions .wallet-transactions-table {
+		width: 100%;
+		table-layout: fixed;
+	}
+	.wallet_transactions .wallet-trans-desc {
+		width: 68%;
+	}
+	.wallet_transactions .wallet-trans-amount {
+		width: 32%;
+		text-align: right;
+		white-space: nowrap;
+	}
+	.wallet_transactions .wallet-trans-desc b,
+	.wallet_transactions .wallet-trans-desc .opacityy {
+		display: inline-block;
+		max-width: 100%;
+		overflow-wrap: anywhere;
+	}
+	@media (max-width: 767px) {
+		.wallet_transactions .wallet-transactions-table,
+		.wallet_transactions .wallet-transactions-table tbody,
+		.wallet_transactions .wallet-transactions-table tr,
+		.wallet_transactions .wallet-transactions-table td {
+			display: block;
+			width: 100%;
+		}
+		.wallet_transactions .wallet-transactions-table thead {
+			display: none;
+		}
+		.wallet_transactions .wallet-transactions-table tr {
+			margin: 0 0 12px;
+			padding: 12px;
+			border: 1px solid #ececec;
+			border-radius: 8px;
+			background: #fff;
+		}
+		.wallet_transactions .wallet-transactions-table td {
+			padding: 4px 0;
+			border: 0;
+			text-align: left;
+			white-space: normal;
+		}
+		.wallet_transactions .wallet-trans-amount {
+			display: flex;
+			justify-content: space-between;
+			gap: 12px;
+			align-items: center;
+		}
+		.wallet_transactions .wallet-trans-amount::before {
+			content: attr(data-label);
+			color: #777;
+			font-size: 12px;
+			font-weight: 600;
+		}
+		.wallet_transactions .wallet-trans-amount span {
+			font-weight: 700;
+		}
+	}
+</style>
