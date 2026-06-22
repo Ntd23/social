@@ -298,6 +298,46 @@ function Wo_EnsureRegisterVnseeaBonusConfig()
     }
 }
 
+function Wo_RegisterVnseeaBonusStorageReady()
+{
+    global $sqlConnect;
+    static $storage_ready = null;
+    $required_tables = array(
+        T_USERS => array('user_id', 'active', 'wallet'),
+        T_PAYMENT_TRANSACTIONS => array('id', 'userid', 'kind', 'amount', 'notes'),
+        T_NOTIFICATION => array('recipient_id', 'notifier_id', 'type', 'text', 'url', 'time')
+    );
+
+    if ($storage_ready !== null) {
+        return $storage_ready;
+    }
+
+    $storage_ready = false;
+    foreach ($required_tables as $table_name => $required_columns) {
+        $columns = array();
+        $query = @mysqli_query($sqlConnect, "SHOW COLUMNS FROM " . $table_name);
+
+        if (!$query) {
+            return false;
+        }
+
+        while ($column = mysqli_fetch_assoc($query)) {
+            if (!empty($column['Field'])) {
+                $columns[$column['Field']] = true;
+            }
+        }
+
+        foreach ($required_columns as $column_name) {
+            if (empty($columns[$column_name])) {
+                return false;
+            }
+        }
+    }
+
+    $storage_ready = true;
+    return true;
+}
+
 function Wo_GrantRegisterVnseeaBonus($user_id = 0)
 {
     global $wo, $config, $sqlConnect;
@@ -309,34 +349,41 @@ function Wo_GrantRegisterVnseeaBonus($user_id = 0)
     if ($amount <= 0) {
         return false;
     }
+    if (!Wo_RegisterVnseeaBonusStorageReady()) {
+        return false;
+    }
     $user_id = (int)Wo_Secure($user_id);
     $amount_sql = mysqli_real_escape_string($sqlConnect, sprintf('%.2f', $amount));
     $note = "Thưởng xác minh tài khoản: {$amount_sql} VNSEEA";
     $note_sql = mysqli_real_escape_string($sqlConnect, $note);
-    $exists = mysqli_query($sqlConnect, "SELECT `id` FROM " . T_PAYMENT_TRANSACTIONS . " WHERE `userid` = {$user_id} AND `kind` = 'WELCOME' LIMIT 1");
+    $exists = @mysqli_query($sqlConnect, "SELECT `id` FROM " . T_PAYMENT_TRANSACTIONS . " WHERE `userid` = {$user_id} AND `kind` = 'WELCOME' LIMIT 1");
     if ($exists && mysqli_num_rows($exists) > 0) {
         return false;
     }
-    $user = mysqli_query($sqlConnect, "SELECT `user_id` FROM " . T_USERS . " WHERE `user_id` = {$user_id} AND `active` = '1' LIMIT 1");
+    $user = @mysqli_query($sqlConnect, "SELECT `user_id` FROM " . T_USERS . " WHERE `user_id` = {$user_id} AND `active` = '1' LIMIT 1");
     if (!$user || mysqli_num_rows($user) === 0) {
         return false;
     }
-    mysqli_begin_transaction($sqlConnect);
-    $update = mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `wallet` = `wallet` + {$amount_sql} WHERE `user_id` = {$user_id} AND `active` = '1'");
+    $transaction_started = @mysqli_begin_transaction($sqlConnect);
+    $update = @mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `wallet` = `wallet` + {$amount_sql} WHERE `user_id` = {$user_id} AND `active` = '1'");
     $log = false;
     if ($update) {
-        $log = mysqli_query($sqlConnect, "INSERT INTO " . T_PAYMENT_TRANSACTIONS . " (`userid`, `kind`, `amount`, `notes`) VALUES ({$user_id}, 'WELCOME', {$amount_sql}, '{$note_sql}')");
+        $log = @mysqli_query($sqlConnect, "INSERT INTO " . T_PAYMENT_TRANSACTIONS . " (`userid`, `kind`, `amount`, `notes`) VALUES ({$user_id}, 'WELCOME', {$amount_sql}, '{$note_sql}')");
     }
     if ($update && $log) {
-        mysqli_commit($sqlConnect);
+        if ($transaction_started) {
+            @mysqli_commit($sqlConnect);
+        }
         if (!empty($wo['config']['cacheSystem'])) {
             cache($user_id, 'users', 'delete');
         }
         $text = mysqli_real_escape_string($sqlConnect, "Bạn đã nhận {$amount_sql} VNSEEA sau khi xác minh tài khoản.");
-        mysqli_query($sqlConnect, "INSERT INTO " . T_NOTIFICATION . " (`recipient_id`, `notifier_id`, `type`, `text`, `url`, `time`) VALUES ({$user_id}, {$user_id}, 'wallet_topup', '{$text}', 'index.php?link1=wallet', " . time() . ")");
+        @mysqli_query($sqlConnect, "INSERT INTO " . T_NOTIFICATION . " (`recipient_id`, `notifier_id`, `type`, `text`, `url`, `time`) VALUES ({$user_id}, {$user_id}, 'wallet_topup', '{$text}', 'index.php?link1=wallet', " . time() . ")");
         return true;
     }
-    mysqli_rollback($sqlConnect);
+    if ($transaction_started) {
+        @mysqli_rollback($sqlConnect);
+    }
     return false;
 }
 
@@ -3774,7 +3821,7 @@ if (!function_exists('Wo_GetFollowedMessageUsers')) {
       $whereSearch = " AND (u.username LIKE '%{$s}%' OR CONCAT(u.first_name,' ',u.last_name) LIKE '%{$s}%') ";
     }
     $q = "
-      SELECT u.user_id AS conversation_user_id, uc.`time` AS time
+      SELECT u.user_id AS conversation_user_id, uc.`time` AS time, f.id AS follow_id
       FROM ".T_FOLLOWERS." f
       INNER JOIN ".T_USERS." u ON u.user_id = f.following_id
       LEFT JOIN ".T_U_CHATS." uc ON uc.user_id = {$user_id} AND uc.conversation_user_id = u.user_id
@@ -3785,13 +3832,15 @@ if (!function_exists('Wo_GetFollowedMessageUsers')) {
         AND u.user_id NOT IN (SELECT blocked FROM ".T_BLOCKS." WHERE blocker = {$user_id})
         AND u.user_id NOT IN (SELECT blocker FROM ".T_BLOCKS." WHERE blocked = {$user_id})
         {$whereSearch}
-      ORDER BY COALESCE(uc.`time`,0) DESC
+      ORDER BY CASE WHEN uc.`time` IS NULL OR uc.`time` = 0 THEN 0 ELSE 1 END ASC, f.id DESC, COALESCE(uc.`time`,0) DESC
       LIMIT {$limit}";
         $data=[]; $res=mysqli_query($sqlConnect,$q);
     if ($res && mysqli_num_rows($res)>0){
       while($row=mysqli_fetch_assoc($res)){
         $u=Wo_UserData($row['conversation_user_id']); if(!$u) continue;
         $u['chat_time']=!empty($row['time'])?(int)$row['time']:0;
+        $u['follow_priority']=empty($row['time']) ? 1 : 0;
+        $u['follow_id']=!empty($row['follow_id']) ? (int)$row['follow_id'] : 0;
         $u['message']=['time'=>$u['chat_time']];
         $data[]=$u;
       }
@@ -3910,8 +3959,18 @@ function Wo_GetMessagesUsers($user_id, $searchQuery = '', $limit = 50, $new = fa
     }
     if (!empty($data)) {
         usort($data, function ($a, $b) {
+            $a_follow_priority = !empty($a['follow_priority']) ? (int) $a['follow_priority'] : 0;
+            $b_follow_priority = !empty($b['follow_priority']) ? (int) $b['follow_priority'] : 0;
             $a_time = !empty($a['chat_time']) ? (int) $a['chat_time'] : 0;
             $b_time = !empty($b['chat_time']) ? (int) $b['chat_time'] : 0;
+            $a_follow_id = !empty($a['follow_id']) ? (int) $a['follow_id'] : 0;
+            $b_follow_id = !empty($b['follow_id']) ? (int) $b['follow_id'] : 0;
+            if ($a_follow_priority !== $b_follow_priority) {
+                return ($a_follow_priority < $b_follow_priority) ? 1 : -1;
+            }
+            if ($a_follow_priority === 1 && $a_follow_id !== $b_follow_id) {
+                return ($a_follow_id < $b_follow_id) ? 1 : -1;
+            }
             if ($a_time === $b_time) {
                 return 0;
             }

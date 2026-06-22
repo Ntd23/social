@@ -1,3 +1,28 @@
+<?php // My products management page and quick navigation links. ?>
+<style>
+	.my-products-quick-actions {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+	.my-products-storefront-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		background: linear-gradient(135deg, #ff8a00 0%, #ff5a3d 100%);
+		color: #fff !important;
+		box-shadow: 0 14px 28px rgba(255, 106, 61, 0.24);
+		transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+	}
+	.my-products-storefront-btn:hover,
+	.my-products-storefront-btn:focus {
+		color: #fff !important;
+		transform: translateY(-1px);
+		filter: saturate(1.04);
+		box-shadow: 0 18px 34px rgba(255, 106, 61, 0.3);
+	}
+</style>
 <div class="page-margin">
 	<div class="row">
 		<div class="col-md-2 leftcol"><?php echo Wo_LoadPage("sidebar/left-sidebar"); ?></div>
@@ -5,7 +30,14 @@
 			<div class="page-margin wow_content mt-0">
 				<div class="wo_page_hdng pag_neg_padd pag_alone">
 					<div class="wo_page_hdng_innr big_size">
-						<span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14H18V20H20V14M20,4H4V6H20V4Z"></path></svg></span> <?php echo $wo['lang']['market']; ?>
+						<div class="my-products-quick-actions">
+							<a class="btn btn-mat btn-main" style="color: #e8e8e8!important;" href="<?php echo Wo_SeoLink('index.php?link1=products'); ?>" data-ajax="?link1=products">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14H18V20H20V14M20,4H4V6H20V4Z"></path></svg> Chuyển đến thị trường
+							</a>
+							<a class="btn btn-mat my-products-storefront-btn" href="<?php echo Wo_SeoLink('index.php?link1=products&user_id=' . $wo['user']['user_id']); ?>" data-ajax="?link1=products&user_id=<?php echo $wo['user']['user_id']; ?>">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14H18V20H20V14M20,4H4V6H20V4Z"></path></svg> Giỏ hàng
+							</a>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -22,7 +54,6 @@
 								<li><a href="<?php echo Wo_SeoLink('index.php?link1=orders'); ?>" data-ajax="?link1=orders"><?php echo $wo['lang']['orders'] ?></a></li>
 							<?php } ?>
 							<?php } ?>
-							<li><a href="<?php echo Wo_SeoLink('index.php?link1=products'); ?>" data-ajax="?link1=products"><?php echo $wo['lang']['market'] ?></a></li>
 						</ul>
 						<?php if ($wo['config']['can_use_market']) { ?>
 						<a class="btn btn-main btn-mat btn-mat-raised" href="#" data-toggle="modal" data-target="#create-product-modal" data-backdrop="static" data-keyboard="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"></path></svg> <?php echo $wo['lang']['create'] ?></a>

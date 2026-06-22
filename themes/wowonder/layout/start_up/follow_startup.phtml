@@ -1,3 +1,4 @@
+<?php // Startup follow step and finish action for onboarding. ?>
 <div class="row">
 	<div class="col-md-1"></div>
 	<div class="col-md-10">
@@ -44,13 +45,28 @@
 
 <script type="text/javascript">
 function Wo_SubmitFollow() {
-	$('.con-button').attr('disabled', true);
-  $('.con-button').text("<?php echo $wo['lang']['please_wait'];?>");
+	var button = $('.con-button');
+	button.attr('disabled', true);
+	button.text("<?php echo $wo['lang']['please_wait'];?>");
 	var users = $('#users-id').val();
-	$.post(Wo_Ajax_Requests_File() + '?f=follow_users', {user:users}, function (data) {
+	$.ajax({
+		url: Wo_Ajax_Requests_File() + '?f=follow_users',
+		type: 'POST',
+		dataType: 'json',
+		data: {user: users},
+		success: function (data) {
 		if (data.status == 200) {
-			window.location.href = '<?php echo Wo_SeoLink('index.php?link1=start-up');?>';
+			window.location.href = data.location || '<?php echo $wo['config']['site_url']; ?>';
 		}
+		else {
+			button.attr('disabled', false);
+			button.html('<?php $string = str_replace('{number}', count($wo['users']), $wo['lang']['follow_num']); echo addslashes($string);?> <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>');
+		}
+	},
+	error: function () {
+		button.attr('disabled', false);
+		button.html('<?php $string = str_replace('{number}', count($wo['users']), $wo['lang']['follow_num']); echo addslashes($string);?> <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>');
+	}
 	});
 }
 </script>
