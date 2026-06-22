@@ -44,7 +44,12 @@
 </div>
 
 <script type="text/javascript">
+var wo_follow_submitting = false;
 function Wo_SubmitFollow() {
+	if (wo_follow_submitting) {
+		return;
+	}
+	wo_follow_submitting = true;
 	var button = $('.con-button');
 	var originalHtml = button.data('original-html') || button.html();
 	button.data('original-html', originalHtml);
@@ -62,10 +67,12 @@ function Wo_SubmitFollow() {
 				return;
 			}
 
+			wo_follow_submitting = false;
 			button.attr('disabled', false);
 			button.html(originalHtml);
 		},
 		error: function () {
+			wo_follow_submitting = false;
 			button.attr('disabled', false);
 			button.html(originalHtml);
 		}
