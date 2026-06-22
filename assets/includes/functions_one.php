@@ -7996,7 +7996,12 @@ function Wo_RegisterActivity($data = array())
     } else {
         $follow_id = Wo_Secure($data['follow_id']);
     }
-    @$post_id = Wo_Secure($data['post_id']);
+    $post_id = 0;
+    if (empty($data['post_id']) || !is_numeric($data['post_id']) || $data['post_id'] < 1) {
+        $post_id = 0;
+    } else {
+        $post_id = Wo_Secure($data['post_id']);
+    }
     @$user_id = Wo_Secure($data['user_id']);
     @$post_user_id = Wo_Secure($data['post_user_id']);
     @$activity_type = Wo_Secure($data['activity_type']);
