@@ -2829,6 +2829,10 @@ function Wo_SkipStep(type) {
     type: type
   }, function (data) {
     if(data.status == 200) {
+     if (data.location) {
+      window.location.href = data.location;
+      return;
+     }
      window.location.reload();
     }
   });

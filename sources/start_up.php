@@ -1,4 +1,4 @@
-<?php
+<?php // Resolves startup onboarding steps and final redirects after registration. ?>
 if ($wo['loggedin'] == false) {
     header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
     exit();
@@ -18,12 +18,12 @@ if ($wo['user']['startup_image'] == 0) {
             'start_up' => 1,
             'startup_follow' => 1
         ));
-        header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
+        header("Location: " . $wo['config']['site_url']);
         exit();
     }
     $page = 'follow_startup';
 } else {
-    header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
+    header("Location: " . $wo['config']['site_url']);
     exit();
 }
 $wo['description'] = $wo['config']['siteDesc'];
