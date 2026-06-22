@@ -46,27 +46,29 @@
 <script type="text/javascript">
 function Wo_SubmitFollow() {
 	var button = $('.con-button');
+	var originalHtml = button.data('original-html') || button.html();
+	button.data('original-html', originalHtml);
 	button.attr('disabled', true);
 	button.text("<?php echo $wo['lang']['please_wait'];?>");
-	var users = $('#users-id').val();
+	var users = $('#users-id').val() || '';
 	$.ajax({
 		url: Wo_Ajax_Requests_File() + '?f=follow_users',
 		type: 'POST',
 		dataType: 'json',
 		data: {user: users},
 		success: function (data) {
-		if (data.status == 200) {
-			window.location.href = data.location || '<?php echo $wo['config']['site_url']; ?>';
-		}
-		else {
+			if (data && (data.status == 200 || data.location)) {
+				window.location.href = data.location || '<?php echo $wo['config']['site_url']; ?>';
+				return;
+			}
+
 			button.attr('disabled', false);
-			button.html('<?php $string = str_replace('{number}', count($wo['users']), $wo['lang']['follow_num']); echo addslashes($string);?> <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>');
+			button.html(originalHtml);
+		},
+		error: function () {
+			button.attr('disabled', false);
+			button.html(originalHtml);
 		}
-	},
-	error: function () {
-		button.attr('disabled', false);
-		button.html('<?php $string = str_replace('{number}', count($wo['users']), $wo['lang']['follow_num']); echo addslashes($string);?> <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>');
-	}
 	});
 }
 </script>
