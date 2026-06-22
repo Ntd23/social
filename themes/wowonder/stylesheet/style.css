@@ -24782,8 +24782,9 @@ body .wo_chat_story_innr p {
 }
 
 .pub-focus .sun_pub_mid_foot .poster-left-buttons {
-    max-width: 33.3333333333%;
-    min-width: 33.3333333333%;
+    flex: 1 1 0;
+    max-width: none;
+    min-width: 0;
     margin: 0;
 }
 
@@ -24797,7 +24798,7 @@ body .wo_chat_story_innr p {
 }
 
 .sun_pub_more {
-    display: flex;
+    display: none !important;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
