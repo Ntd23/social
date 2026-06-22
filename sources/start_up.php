@@ -1,4 +1,5 @@
-<?php // Resolves startup onboarding steps and final redirects after registration. ?>
+<?php
+// Resolves startup onboarding steps and final redirects after registration.
 if ($wo['loggedin'] == false) {
     header("Location: " . Wo_SeoLink('index.php?link1=welcome'));
     exit();
