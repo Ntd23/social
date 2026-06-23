@@ -178,6 +178,10 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 	<link rel="stylesheet" href="<?php echo $wo['config']['theme_url']; ?>/stylesheet/leaflet.css?version=<?php echo $wo['config']['version']; ?>">
 	<?php echo Wo_LoadPage('common_things/leaflet-muted-map-config'); ?>
 	<style>
+	html, body {
+		overscroll-behavior-y: none !important;
+		overscroll-behavior-x: none !important;
+	}
 	.wo_explore_discovery_page {
 		width: 100vw;
 		max-width: 100vw;
@@ -185,6 +189,7 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		margin-right: calc(50% - 50vw) !important;
 		padding: 0 !important;
 		overflow: hidden;
+		overscroll-behavior: none !important;
 	}
 	.content-container > .contnet:not(#contnet),
 	.chat-container,
@@ -256,14 +261,14 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		border-radius: inherit;
 		background: linear-gradient(135deg, #f7f4ed 0%, #f2f0ea 100%);
 		box-shadow: none;
-		touch-action: pan-x pan-y pinch-zoom;
+		touch-action: none !important;
 	}
 	#map .gm-style,
 	#map .gm-style > div,
 	#map .leaflet-container,
 	#map .leaflet-pane,
 	#map canvas {
-		touch-action: pan-x pan-y pinch-zoom;
+		touch-action: none !important;
 	}
 	#map.is-page-scroll-priority,
 	#map.is-page-scroll-priority .gm-style,
@@ -1750,6 +1755,9 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		}
 		.wo_explore_discovery_sheet_body {
 			padding: 0 12px calc(14px + env(safe-area-inset-bottom));
+		}
+		.wo_explore_discovery_list {
+			padding-bottom: 120px !important;
 		}
 		.wo_explore_discovery_card {
 			padding: 14px;
@@ -5256,7 +5264,7 @@ function Wo_ExploreNearbySyncMapGestureMode() {
 function Wo_ExploreNearbyGetSheetSnapHeights() {
 	var stageHeight = $('#explore-nearby-stage').outerHeight() || Wo_ExploreNearbyGetStageAvailableHeight();
 	var ratios = Wo_ExploreNearbyIsCompactViewport() ?
-		{collapsed: 0.18, medium: 0.44, expanded: 0.78} :
+		{collapsed: 0.18, medium: 0.44, expanded: 0.95} :
 		{collapsed: 0.20, medium: 0.42, expanded: 0.70};
 	var heights = {
 		collapsed: Math.round(stageHeight * ratios.collapsed),
@@ -8091,13 +8099,11 @@ function Wo_ExploreNearbyRenderCardHtml(item) {
 			'<div class="wo_explore_discovery_card_identity_row">' +
 				'<div class="wo_explore_discovery_card_identity">' +
 					'<h3 class="wo_explore_discovery_card_title">' + safeTitle + '</h3>' +
-					(safeSubtitle ? '<p class="wo_explore_discovery_card_subtitle">' + safeSubtitle + '</p>' : '') +
 					locationHtml +
 				'</div>' +
 				audioActionHtml +
 			'</div>' +
 			pinnedBadgeHtml +
-			descriptionHtml +
 			cardActionsHtml +
 		'</div>' +
 	'</article>';
@@ -12559,5 +12565,21 @@ jQuery(document).ready(function($) {
 	});
 
 	$(document).on('pointerdown mousedown touchstart wheel', '#map', Wo_ExploreNearbyHandleMapIntent);
+
+	var mapEl = document.getElementById('map');
+	if (mapEl) {
+		mapEl.addEventListener('touchstart', function(e) {
+			e.stopPropagation();
+		}, { passive: true });
+
+		mapEl.addEventListener('touchmove', function(e) {
+			e.stopPropagation();
+			if (e.touches && e.touches.length === 1) {
+				if (e.cancelable) {
+					e.preventDefault();
+				}
+			}
+		}, { passive: false });
+	}
 });
 </script>

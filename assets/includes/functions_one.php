@@ -3821,18 +3821,22 @@ if (!function_exists('Wo_GetFollowedMessageUsers')) {
       $whereSearch = " AND (u.username LIKE '%{$s}%' OR CONCAT(u.first_name,' ',u.last_name) LIKE '%{$s}%') ";
     }
     $q = "
-      SELECT u.user_id AS conversation_user_id, uc.`time` AS time, f.id AS follow_id
+      SELECT 
+        CASE WHEN f.follower_id = {$user_id} THEN f.following_id ELSE f.follower_id END AS conversation_user_id,
+        MAX(uc.`time`) AS time,
+        MAX(f.id) AS follow_id
       FROM ".T_FOLLOWERS." f
-      INNER JOIN ".T_USERS." u ON u.user_id = f.following_id
+      INNER JOIN ".T_USERS." u ON u.user_id = CASE WHEN f.follower_id = {$user_id} THEN f.following_id ELSE f.follower_id END
       LEFT JOIN ".T_U_CHATS." uc ON uc.user_id = {$user_id} AND uc.conversation_user_id = u.user_id
-      WHERE f.follower_id = {$user_id}
-        AND f.following_id <> {$user_id}
+      WHERE (f.follower_id = {$user_id} OR f.following_id = {$user_id})
+        AND u.user_id <> {$user_id}
         AND (f.active = '1' OR f.active IS NULL)
         AND u.active = '1'
         AND u.user_id NOT IN (SELECT blocked FROM ".T_BLOCKS." WHERE blocker = {$user_id})
         AND u.user_id NOT IN (SELECT blocker FROM ".T_BLOCKS." WHERE blocked = {$user_id})
         {$whereSearch}
-      ORDER BY CASE WHEN uc.`time` IS NULL OR uc.`time` = 0 THEN 0 ELSE 1 END ASC, f.id DESC, COALESCE(uc.`time`,0) DESC
+      GROUP BY CASE WHEN f.follower_id = {$user_id} THEN f.following_id ELSE f.follower_id END
+      ORDER BY CASE WHEN MAX(uc.`time`) IS NULL OR MAX(uc.`time`) = 0 THEN 0 ELSE 1 END ASC, follow_id DESC, COALESCE(MAX(uc.`time`),0) DESC
       LIMIT {$limit}";
         $data=[]; $res=mysqli_query($sqlConnect,$q);
     if ($res && mysqli_num_rows($res)>0){

@@ -692,13 +692,26 @@ if ($f == 'messages') {
         $array = [];
         if (!empty($users)) {
             foreach ($users as $value) {
-                // đảm bảo có khóa chat_time để sort
-                if (!isset($value['chat_time'])) {
-                    $value['chat_time'] = 0;
-                }
                 $array[] = $value;
             }
-            array_multisort(array_column($array, 'chat_time'), SORT_DESC, $array);
+            usort($array, function ($a, $b) {
+                $a_follow_priority = !empty($a['follow_priority']) ? (int) $a['follow_priority'] : 0;
+                $b_follow_priority = !empty($b['follow_priority']) ? (int) $b['follow_priority'] : 0;
+                $a_time = !empty($a['chat_time']) ? (int) $a['chat_time'] : 0;
+                $b_time = !empty($b['chat_time']) ? (int) $b['chat_time'] : 0;
+                $a_follow_id = !empty($a['follow_id']) ? (int) $a['follow_id'] : 0;
+                $b_follow_id = !empty($b['follow_id']) ? (int) $b['follow_id'] : 0;
+                if ($a_follow_priority !== $b_follow_priority) {
+                    return ($a_follow_priority < $b_follow_priority) ? 1 : -1;
+                }
+                if ($a_follow_priority === 1 && $a_follow_id !== $b_follow_id) {
+                    return ($a_follow_id < $b_follow_id) ? 1 : -1;
+                }
+                if ($a_time === $b_time) {
+                    return 0;
+                }
+                return ($a_time < $b_time) ? 1 : -1;
+            });
         }
 
         $data = ['status' => 404];
