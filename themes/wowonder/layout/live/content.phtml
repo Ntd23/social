@@ -9,6 +9,9 @@ if (!empty($wo['user']['avatar'])) {
 $host_initial = strtoupper(substr(trim($host_name), 0, 1));
 ?>
 <style>
+.cam-off-svg, .mic-off-svg {
+    display: none !important;
+}
 footer,footer .footer-wrapper,.second-footer,.chat-container,#wo_sidebar_users,#wo_right_sidebar,.chat-tab,.chat-wrapper,.leftcol,.rightcol,.sidebar,.sidebar-conatnier{display:none!important}
 html,body{overflow-x:hidden!important}
 body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
@@ -146,6 +149,346 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
 @media (max-width:900px){.wo-tool-stack{grid-template-columns:1fr}}
 @media (max-width:767px){.wo-livekit-studio .container{padding:0}.wo-shell{gap:10px}.wo-panel,.wo-card,.wo-stage-card{border-radius:0;border-left:0;border-right:0}.wo-sidebar,.wo-card,.wo-stage-card{padding:14px}.wo-title{font-size:26px}.wo-camera-grid,.wo-stats-grid,.wo-detail-grid,.wo-tool-stack{grid-template-columns:1fr}.wo-stage-head,.wo-video-footer,.wo-side-actions,.wo-link-row,.wo-actions,.wo-inline-actions{flex-direction:column;align-items:stretch}.wo-btn{width:100%}.wo-stage-overlay{top:12px;left:12px;right:12px}.wo-stage-comments-overlay{left:12px;bottom:12px;max-width:calc(100% - 24px)}.wo-stage-comments-overlay .live_comments{padding:9px 11px}}
 @media (hover:none) and (pointer:coarse){.wo-livekit-studio .container{padding:0}.wo-shell{grid-template-columns:1fr!important;grid-template-areas:"side" "main" "right"!important;gap:10px;min-height:auto}.wo-sidebar,.wo-main,.wo-right{min-height:auto}.wo-panel,.wo-card,.wo-stage-card{border-radius:0;border-left:0;border-right:0}.wo-sidebar,.wo-card,.wo-stage-card{padding:14px}.wo-camera-grid,.wo-stats-grid,.wo-detail-grid,.wo-tool-stack{grid-template-columns:1fr}.wo-stage-head,.wo-video-footer,.wo-side-actions,.wo-link-row,.wo-actions,.wo-inline-actions{flex-direction:column;align-items:stretch}.wo-btn{width:100%}.wo-comments{min-height:280px;max-height:none}}
+
+@media (max-width: 767px) {
+    /* Set studio to fixed full screen */
+    .wo-livekit-studio {
+        position: fixed;
+        inset: 0;
+        height: 100vh !important;
+        width: 100vw !important;
+        z-index: 9999;
+        background: #000000;
+        overflow: hidden;
+    }
+    .wo-livekit-studio .container {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+    }
+    .wo-livekit-studio .wo-shell {
+        display: block !important;
+        height: 100vh !important;
+        position: relative !important;
+        margin: 0 !important;
+    }
+
+    /* Hide desktop panels */
+    .wo-livekit-studio .wo-sidebar, 
+    .wo-livekit-studio .wo-right {
+        display: none !important;
+    }
+
+    /* Video stage card full screen */
+    .wo-livekit-studio .wo-main {
+        height: 100vh !important;
+    }
+    .wo-livekit-studio[data-mode="setup"] .wo-main-mode.setup,
+    .wo-livekit-studio[data-mode="live"] .wo-main-mode.live {
+        display: block !important;
+        height: 100vh !important;
+    }
+    .wo-livekit-studio .wo-setup-camera-card {
+        display: none !important;
+    }
+    .wo-livekit-studio .wo-stage-card {
+        position: fixed !important;
+        inset: 0 !important;
+        height: 100vh !important;
+        width: 100vw !important;
+        z-index: 10000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: #000000 !important;
+    }
+    .wo-livekit-studio .wo-stage-head, 
+    .wo-livekit-studio .wo-video-footer {
+        display: none !important;
+    }
+    .wo-livekit-studio .wo-stage {
+        height: 100vh !important;
+        width: 100vw !important;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+    .wo-livekit-studio .wo-stage video {
+        height: 100vh !important;
+        width: 100vw !important;
+        object-fit: cover !important;
+    }
+
+    /* Mobile Header Overlay */
+    .mobile-setup-header {
+        display: flex;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 16px 20px;
+        z-index: 10002;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0) 100%);
+        gap: 16px;
+    }
+    .mobile-back-btn {
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.3);
+        transition: background 0.2s;
+    }
+    .mobile-back-btn:hover {
+        background: rgba(0, 0, 0, 0.5);
+    }
+    .mobile-back-btn svg {
+        width: 24px;
+        height: 24px;
+    }
+    .mobile-host-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .mobile-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 1.5px solid #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #3a3b3c;
+    }
+    .mobile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .mobile-avatar span {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 16px;
+    }
+    .mobile-host-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+    .mobile-host-name {
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+    .mobile-privacy-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.95);
+        color: #050505;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .mobile-privacy-pill svg {
+        color: #65676b;
+    }
+
+    /* Mobile Controls (Top overlay) */
+    .wo-stage-mobile-controls {
+        position: fixed;
+        top: 200px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        z-index: 10002;
+    }
+    .mobile-control-btn {
+        background: rgba(0,0,0,0.4);
+        border: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        transition: background 0.2s, transform 0.1s;
+        padding: 0;
+    }
+    .mobile-control-btn:active {
+        transform: scale(0.95);
+    }
+    .mobile-control-btn.is-muted {
+        background: rgba(239, 68, 68, 0.7);
+    }
+    .mobile-control-btn.is-muted .cam-on-svg,
+    .mobile-control-btn.is-muted .mic-on-svg {
+        display: none !important;
+    }
+    .mobile-control-btn.is-muted .cam-off-svg,
+    .mobile-control-btn.is-muted .mic-off-svg {
+        display: block !important;
+    }
+
+    /* Mobile Setup Footer */
+    .mobile-setup-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 24px 20px;
+        z-index: 10002;
+        background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .mobile-desc-field textarea {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 500;
+        resize: none;
+        outline: none;
+        height: 40px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .mobile-desc-field textarea::placeholder {
+        color: rgba(255, 255, 255, 0.75);
+    }
+    .mobile-share-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #ffffff;
+        background: rgba(255,255,255,0.08);
+        padding: 12px 14px;
+        border-radius: 14px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    .share-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .share-icon {
+        color: #ffffff;
+    }
+    .share-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .share-title {
+        font-size: 14px;
+        font-weight: 700;
+    }
+    .share-desc {
+        font-size: 12px;
+        color: rgba(255,255,255,0.7);
+    }
+    .chevron-icon {
+        color: rgba(255,255,255,0.7);
+    }
+    .mobile-live-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        width: 100%;
+    }
+    .mobile-live-btn {
+        flex: 1;
+        background: #2374e1;
+        color: #ffffff;
+        border: none;
+        min-height: 52px;
+        border-radius: 14px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(35, 116, 225, 0.35);
+        transition: background 0.2s;
+    }
+    .mobile-live-btn:active {
+        background: #1b60c2;
+    }
+    .mobile-end-live-btn {
+        display: none !important;
+        min-height: 52px;
+        padding: 0 16px;
+        border-radius: 14px;
+        background: #ef4444;
+        color: #ffffff;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 15px;
+        flex: 1;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+        transition: background 0.2s;
+        text-decoration: none;
+    }
+    .mobile-end-live-btn:active {
+        background: #dc2626;
+    }
+    .mobile-end-live-btn:hover, .mobile-end-live-btn:focus {
+        color: #ffffff;
+        text-decoration: none;
+    }
+    .mobile-end-live-btn svg {
+        width: 18px;
+        height: 18px;
+        margin-right: 6px;
+    }
+    .wo-stage-comments-overlay {
+        bottom: 160px !important;
+        left: 20px !important;
+        right: 20px !important;
+        z-index: 10001 !important;
+    }
+}
+
+/* Hide mobile setup elements on desktop */
+@media (min-width: 768px) {
+    .mobile-setup-header,
+    .wo-stage-mobile-controls,
+    .mobile-setup-footer {
+        display: none !important;
+    }
+}
+
+/* Update mobile overlays when stream starts (live mode) */
+.wo-livekit-studio[data-mode="live"] .mobile-back-btn {
+    display: none !important;
+}
+.wo-livekit-studio[data-mode="live"] .mobile-live-btn {
+    background: #ef4444 !important;
+    pointer-events: none !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35) !important;
+}
+.wo-livekit-studio[data-mode="live"] .mobile-end-live-btn {
+    display: flex !important;
+}
 </style>
 
 <div id="wo-livekit-studio" class="wo-livekit-studio" data-mode="setup">
@@ -192,6 +535,10 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
                             <select id="wo-livekit-when" class="wo-select">
                                 <option value="now">Bây giờ</option>
                             </select>
+                        </div>
+                        <div class="wo-field">
+                            <label for="wo-livekit-title-input">Tiêu đề livestream</label>
+                            <input id="wo-livekit-title-input" class="wo-input" type="text" placeholder="Tiêu đề livestream (không bắt buộc)">
                         </div>
                     </div>
 
@@ -433,6 +780,62 @@ body,.navbar-default,.wo_about_wrapper_parent{padding-right:0!important}
                 </div>
             </aside>
         </div>
+
+        <!-- Mobile Setup Header -->
+        <div class="mobile-setup-header">
+            <a href="<?php echo $wo['config']['site_url']; ?>" class="mobile-back-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </a>
+            <div class="mobile-host-info">
+                <div class="mobile-avatar">
+                    <?php if (!empty($host_avatar)) { ?>
+                        <img src="<?php echo $host_avatar; ?>" alt="<?php echo $host_name; ?>">
+                    <?php } else { ?>
+                        <span><?php echo $host_initial; ?></span>
+                    <?php } ?>
+                </div>
+                <div class="mobile-host-meta">
+                    <span class="mobile-host-name"><?php echo $host_name; ?></span>
+                    <div class="mobile-privacy-pill" style="position: relative;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        <span>Chọn nơi đăng</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+                        <select id="mobile-post-destination-select" style="position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; background: transparent; -webkit-appearance: none; z-index: 10;">
+                            <option value="timeline">Đăng lên trang cá nhân</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Video Controls -->
+        <div class="wo-stage-mobile-controls">
+            <button type="button" class="mobile-control-btn js-toggle-cam-mobile" onclick="toggleHostTrack('video')" title="Bật/Tắt Camera">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" class="cam-on-svg"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" class="cam-off-svg"><path d="M21 6.5l-4 4V7c0-.55-.45-1-1-1H9.82L21 17.18V6.5zM3.27 2L2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.2 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z"/></svg>
+            </button>
+            <button type="button" class="mobile-control-btn js-flip-cam-mobile" onclick="Wo_LivekitFlipCamera()" title="Xoay Camera">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>
+            </button>
+            <button type="button" class="mobile-control-btn js-toggle-mic-mobile" onclick="toggleHostTrack('audio')" title="Bật/Tắt Mic">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" class="mic-on-svg"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" class="mic-off-svg"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17l-1.98-1.98V5c0-1.66-1.34-3-3-3S7.34 3.34 7.34 5v1.82l6.82 6.82c.51-.51.91-1.11 1.2-1.74l-.38-.91zM3.27 2L2 3.27l7 7V11c0 1.66 1.34 3 3 3 .27 0 .53-.04.79-.1l1.62 1.62c-.74.36-1.55.58-2.41.58-3 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c1.38-.2 2.66-.75 3.73-1.54L19.73 21 21 19.73 3.27 2z"/></svg>
+            </button>
+        </div>
+
+        <!-- Mobile Setup Footer -->
+        <div class="mobile-setup-footer">
+            <div class="mobile-desc-field">
+                <textarea id="wo-livekit-description-input-mobile" placeholder="Nhấn để thêm mô tả..."></textarea>
+            </div>
+            <div class="mobile-live-actions">
+                <button type="button" class="mobile-live-btn" id="mobile-live-btn" onclick="document.getElementById('publishBtn').click();">Phát trực tiếp</button>
+                <a href="<?php echo $wo['config']['site_url']; ?>" onclick="DeleteLive()" class="mobile-end-live-btn" id="mobile-end-live-btn" title="Tắt live">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+                    <span>Tắt live</span>
+                </a>
+            </div>
+        </div>
     </div>
     <input type="hidden" id="live_post_id">
 </div>
@@ -493,6 +896,12 @@ function setStudioMode(mode) {
   }
   if (studioMode !== 'live') {
     clearOverlayComments();
+    $('.mobile-setup-footer .mobile-desc-field').show();
+  } else {
+    var descMobile = $.trim($('#wo-livekit-description-input-mobile').val() || '');
+    if (!descMobile) {
+      $('.mobile-setup-footer .mobile-desc-field').hide();
+    }
   }
   renderHostPreview();
   updateTrackButtons();
@@ -626,6 +1035,7 @@ function removeOverlayBubble(node, immediate) {
   }
 }
 
+// Comments bubble handler
 function pushOverlayCommentBubble(node) {
   if (studioMode !== 'live' || !stageCommentsMount || !node) {
     return;
@@ -745,6 +1155,9 @@ function updateTrackButtons() {
   $('.js-toggle-cam')
     .text(camOn ? 'Camera đang bật' : 'Camera đang tắt')
     .toggleClass('primary', camOn);
+
+  $('.js-toggle-mic-mobile').toggleClass('is-muted', !micOn);
+  $('.js-toggle-cam-mobile').toggleClass('is-muted', !camOn);
 
   if (audioMeter) {
     audioMeter.classList.toggle('active', micOn);
@@ -926,12 +1339,20 @@ function formatDuration(totalSeconds) {
 function startLiveTimer() {
   stopLiveTimer();
   liveTimerEl.textContent = '00:00';
+  var mobBtn = document.getElementById('mobile-live-btn');
+  if (mobBtn) {
+    mobBtn.textContent = '00:00';
+  }
   liveTimerInterval = window.setInterval(function() {
     if (!liveMeta.startedAt) {
       return;
     }
     const elapsed = Math.floor((Date.now() - liveMeta.startedAt) / 1000);
-    liveTimerEl.textContent = formatDuration(elapsed);
+    const durationStr = formatDuration(elapsed);
+    liveTimerEl.textContent = durationStr;
+    if (mobBtn) {
+      mobBtn.textContent = durationStr;
+    }
   }, 1000);
 }
 
@@ -939,6 +1360,10 @@ function stopLiveTimer() {
   if (liveTimerInterval) {
     clearInterval(liveTimerInterval);
     liveTimerInterval = null;
+  }
+  var mobBtn = document.getElementById('mobile-live-btn');
+  if (mobBtn) {
+    mobBtn.textContent = 'Phát trực tiếp';
   }
 }
 
@@ -1102,6 +1527,74 @@ $('#wo-livekit-camera-select').on('change', function() {
 
 $('#wo-livekit-mic-select').on('change', function() {
   changePreviewDevice('audio', this.value);
+});
+
+// Mobile camera flip function
+async function Wo_LivekitFlipCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+    return;
+  }
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const cameras = devices.filter(function(device) { return device.kind === 'videoinput'; });
+  if (cameras.length <= 1) {
+    return;
+  }
+  let currentIndex = cameras.findIndex(c => c.deviceId === selectedDevices.videoId);
+  let nextIndex = (currentIndex + 1) % cameras.length;
+  let nextDeviceId = cameras[nextIndex].deviceId;
+  
+  const camSelect = document.getElementById('wo-livekit-camera-select');
+  if (camSelect) {
+    camSelect.value = nextDeviceId;
+  }
+  await changePreviewDevice('video', nextDeviceId);
+}
+
+// Sync description value from mobile input to original input
+$(document).on('input', '#wo-livekit-description-input-mobile', function() {
+  $('#wo-livekit-description-input').val($(this).val());
+  syncSetupProgress();
+});
+
+// Mobile destination select logic
+function Wo_SyncMobileDestinations() {
+  var desktopSelect = $('#wo-livekit-destination');
+  var mobileSelect = $('#mobile-post-destination-select');
+  if (desktopSelect.length && mobileSelect.length) {
+    mobileSelect.empty();
+    desktopSelect.find('option').each(function() {
+      mobileSelect.append($('<option>', {
+        value: $(this).val(),
+        text: $(this).text(),
+        selected: $(this).is(':selected')
+      }));
+    });
+    var selectedText = mobileSelect.find('option:selected').text();
+    if (selectedText) {
+      mobileSelect.siblings('span').text(selectedText);
+    }
+  }
+}
+
+$(document).on('change', '#mobile-post-destination-select', function() {
+  var selectedText = $(this).find('option:selected').text();
+  $(this).siblings('span').text(selectedText);
+  
+  var desktopSelect = $('#wo-livekit-destination');
+  if (desktopSelect.length) {
+    desktopSelect.val($(this).val()).trigger('change');
+  }
+});
+
+$(document).ready(function() {
+  Wo_SyncMobileDestinations();
+  $('#wo-livekit-destination').on('change', function() {
+    $('#mobile-post-destination-select').val($(this).val());
+    var selectedText = $('#mobile-post-destination-select').find('option:selected').text();
+    if (selectedText) {
+      $('#mobile-post-destination-select').siblings('span').text(selectedText);
+    }
+  });
 });
 
 setStudioMode('setup');

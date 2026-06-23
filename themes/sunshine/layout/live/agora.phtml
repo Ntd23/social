@@ -255,9 +255,12 @@ function joinChannel() {
 	  $('#publishBtn').removeAttr('disabled');
       $('#publishBtn').text("<?php echo($wo['lang']['please_wait']); ?>");
       $('#publishBtn').addClass('hidden');
+      $('#live_title_container').addClass('hidden');
+      $('.wow_go_live_cont').addClass('live-active');
       $('.end_vdo_call').removeClass('hidden');
 
-      $.post(Wo_Ajax_Requests_File() + "?f=live&s=create", {stream_name: channelName,token:token}, function(data, textStatus, xhr) {
+      var liveTitle = $('#live_title').val();
+      $.post(Wo_Ajax_Requests_File() + "?f=live&s=create", {stream_name: channelName,token:token,title:liveTitle}, function(data, textStatus, xhr) {
 	                if (data.status == 200) {
 	                  $('#live_post_id').val(data.post_id);
                     $('.live_mic_cam_switch').slideDown();
