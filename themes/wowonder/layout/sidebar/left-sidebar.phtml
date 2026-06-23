@@ -90,6 +90,13 @@
 			</a>
 		</li>
 		<?php } ?>
+				<?php if ($wo['config']['classified'] == 1) { ?>
+		<li>
+			<a href="<?php echo Wo_SeoLink('index.php?link1=products'); ?>" data-ajax="?link1=products">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#7d8250" d="M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14H18V20H20V14M20,4H4V6H20V4Z"></svg><img src="<?php echo $wo['config']['theme_url'];?>/img/sidebar/market.svg"> <?php echo $wo['lang']['market'];?>
+			</a>
+		</li>
+		<?php } ?>
 		<?php if ($wo['config']['website_mode'] != 'askfm' && $wo['config']['website_mode'] != 'instagram' && $wo['config']['website_mode'] != 'twitter' && $wo['loggedin'] == true) { ?>
 		<li>
 			<a href="<?php echo Wo_SeoLink('index.php?link1=albums'); ?>" data-ajax="?link1=albums">
@@ -177,14 +184,6 @@
 		<li>
 			<a href="<?php echo Wo_SeoLink('index.php?link1=blogs'); ?>" data-ajax="?link1=blogs">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#f35d4d" d="M20,11H4V8H20M20,15H13V13H20M20,19H13V17H20M11,19H4V13H11M20.33,4.67L18.67,3L17,4.67L15.33,3L13.67,4.67L12,3L10.33,4.67L8.67,3L7,4.67L5.33,3L3.67,4.67L2,3V19A2,2 0 0,0 4,21H20A2,2 0 0,0 22,19V3L20.33,4.67Z"></svg><img src="<?php echo $wo['config']['theme_url'];?>/img/sidebar/blog.svg"> <?php echo $wo['lang']['blog'] ?>
-			</a>
-		</li>
-		<?php } ?>
-		
-		<?php if ($wo['config']['classified'] == 1) { ?>
-		<li>
-			<a href="<?php echo Wo_SeoLink('index.php?link1=products'); ?>" data-ajax="?link1=products">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#7d8250" d="M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14H18V20H20V14M20,4H4V6H20V4Z"></svg><img src="<?php echo $wo['config']['theme_url'];?>/img/sidebar/market.svg"> <?php echo $wo['lang']['market'];?>
 			</a>
 		</li>
 		<?php } ?>

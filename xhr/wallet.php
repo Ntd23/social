@@ -119,12 +119,42 @@ if ($f == 'wallet') {
             'status' => 400
         );
         $user_id = (!empty($_POST['user_id']) && is_numeric($_POST['user_id'])) ? $_POST['user_id'] : 0;
+
+        // If user_id is empty, try to resolve from recipient_query
+        if (empty($user_id) && !empty($_POST['recipient_query'])) {
+            $recipient_query = Wo_Secure($_POST['recipient_query']);
+            // Remove leading @ if present
+            $recipient_query = ltrim($recipient_query, '@');
+
+            // Try to find by username
+            $db_user = $db->where('username', $recipient_query)->getOne(T_USERS, 'user_id');
+            if (!empty($db_user['user_id'])) {
+                $user_id = $db_user['user_id'];
+            } else {
+                // Try to find by email
+                $db_user = $db->where('email', $recipient_query)->getOne(T_USERS, 'user_id');
+                if (!empty($db_user['user_id'])) {
+                    $user_id = $db_user['user_id'];
+                } else {
+                    // Try to find by full name or similar
+                    $users_by_name = Wo_GetUsersByName($recipient_query);
+                    if (!empty($users_by_name) && is_array($users_by_name)) {
+                        $user_id = $users_by_name[0]['user_id'];
+                    }
+                }
+            }
+        }
+
         $amount = (!empty($_POST['amount']) && is_numeric($_POST['amount'])) ? $_POST['amount'] : 0;
         $userdata = Wo_UserData($user_id);
         $wallet = $wo['user']['wallet'];
-        if (empty($user_id) || empty($amount) || empty($userdata) || empty(floatval($wallet)) || $amount < 0) {
+        if (empty($user_id)) {
+            $data['message'] = 'Không tìm thấy người nhận. Vui lòng nhập chính xác tên người dùng hoặc email.';
+        } else if (empty($userdata)) {
+            $data['message'] = 'Không tìm thấy thông tin người nhận.';
+        } else if (empty($amount) || $amount < 0) {
             $data['message'] = $wo['lang']['please_check_details'];
-        } else if ($wallet < $amount) {
+        } else if (empty(floatval($wallet)) || $wallet < $amount) {
             $data['message'] = $wo['lang']['amount_exceded'];
         } else {
             $amount = ($amount <= $wallet) ? $amount : $wallet;

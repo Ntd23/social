@@ -58,7 +58,7 @@ if (!empty($message['from_id'])) {
   </div>
 
   <div class="msg_rght_prt">
-    <div class="messages-last-sent <?php echo ($message_count == 0) ? '' : 'new_msg_lst_lsent'; ?> <?php echo Wo_RightToLeft('pull-right');?> time ajax-time" title="<?php echo date('c',$message['time']); ?>">
+    <div class="messages-last-sent <?php echo ($message_count == 0) ? '' : 'new_msg_lst_lsent'; ?> <?php echo Wo_RightToLeft('pull-right');?> time ajax-time" title="<?php echo (!empty($message['time'])) ? date('c',$message['time']) : ''; ?>">
       <?php echo (!empty($message['time'])) ? Wo_Time_Elapsed_String($message['time']) : '';?>
     </div>
 

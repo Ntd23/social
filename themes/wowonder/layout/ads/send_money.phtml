@@ -48,9 +48,9 @@
                     Quét QR
                   </button>
                 </label>
-                <input id="search" type="text" placeholder="Tìm kiếm bằng tên người dùng hoặc email">
-                <div class="dropdown">
-                  <ul class="dropdown-menu money-recipients-list"></ul>
+                <input id="search" name="recipient_query" type="text" placeholder="Tìm kiếm bằng tên người dùng hoặc email">
+                <div class="recipients-dropdown-container">
+                  <ul class="money-recipients-list"></ul>
                 </div>
               </div>
 
@@ -120,19 +120,48 @@
     font-weight: 500;
   }
 
-  #send_money_modal #send-money-form .dropdown {
-    position: relative;
+  .recipients-dropdown-container {
+    position: relative !important;
   }
 
-  #send_money_modal #send-money-form .dropdown.open > .money-recipients-list {
-    display: block;
-    visibility: visible;
-    opacity: 1;
-    transform: none;
-    z-index: 1065;
-    width: 100%;
-    max-height: 260px;
-    overflow-y: auto;
+  .recipients-dropdown-container .money-recipients-list {
+    display: none !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    z-index: 1065 !important;
+    width: 100% !important;
+    max-height: 260px !important;
+    overflow-y: auto !important;
+    background: #fff !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    margin-top: 5px !important;
+    padding: 6px 0 !important;
+    list-style: none !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  }
+
+  .recipients-dropdown-container.open .money-recipients-list {
+    display: block !important;
+  }
+
+  .money-recipients-list li {
+    padding: 10px 14px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    transition: background 0.2s !important;
+    text-align: left !important;
+  }
+
+  .money-recipients-list li:hover {
+    background-color: #f5f5f5 !important;
+  }
+
+  .money-recipients-list li.disabled {
+    cursor: not-allowed !important;
+    background-color: transparent !important;
+    color: #999 !important;
   }
 
   @media (max-width: 767px) {
@@ -246,7 +275,15 @@ jQuery(function ($) {
   let scanner = null; // Html5QrcodeScanner
 
   // ====== Utils
-  function debounce(fn, t){ let id; return function(){ clearTimeout(id); id=setTimeout(fn, t); }; }
+  function debounce(fn, t){
+    var id;
+    return function(){
+      var context = this;
+      var args = arguments;
+      clearTimeout(id);
+      id = setTimeout(function(){ fn.apply(context, args); }, t);
+    };
+  }
   function showFormAlert(msg, ok){
     $alertBox.html($('<div>', {class:'alert '+(ok?'alert-info':'alert-danger'), text: msg}));
   }
@@ -342,7 +379,7 @@ jQuery(function ($) {
   $(document).off('input.sendMoneySearch', '#send-money-form #search').on('input.sendMoneySearch', '#send-money-form #search', debounce(function(){
     const $form = $(this).closest('#send-money-form');
     const name = $.trim($(this).val());
-    const $dropdown = $form.find('.dropdown');
+    const $dropdown = $form.find('.recipients-dropdown-container');
     const $list = $dropdown.find('ul.money-recipients-list').empty();
     $('#recipient_user_id').val('');
     if (!name) {
@@ -374,7 +411,13 @@ jQuery(function ($) {
     e.preventDefault();
     $recipIdInp.val($(this).attr('id'));
     $searchInp.val($(this).text());
-    $sendForm.find('.dropdown').removeClass('open').find('ul').empty();
+    $sendForm.find('.recipients-dropdown-container').removeClass('open').find('ul').empty();
+  });
+
+  $(document).on('click', function(e) {
+    if (!$(e.target).closest('#send-money-form').length) {
+      $('.recipients-dropdown-container').removeClass('open');
+    }
   });
 
   // ====== Submit gửi tiền (AJAX)
@@ -387,8 +430,9 @@ jQuery(function ($) {
     url: ajaxUrl + '?f=wallet&s=send',
     type: 'POST',
     dataType: 'json',
-    beforeSubmit: function(){
+    beforeSubmit: function(arr, $form, options){
       syncSendMoneyAmount($amountDisplay.val());
+      arr.push({ name: 'recipient_query', value: $('#search').val() });
     },
     beforeSend: function(){
       $sendForm.find('.add_wow_loader').attr('disabled', true).addClass('btn-loading');
