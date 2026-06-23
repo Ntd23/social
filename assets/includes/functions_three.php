@@ -4867,7 +4867,11 @@ function Wo_GetMytransactions($args = array())
 			}
 
 			if ($fetched_data['kind'] == 'SENT') {
-				$fetched_data['notes'] = str_replace('{text}', $fetched_data['notes'], $wo['lang']['trans_money_sent_to']);
+				if (isset($wo['language']) && $wo['language'] == 'vietnamese') {
+					$fetched_data['notes'] = 'VNSEEA của bạn đã được gửi thành công đến ' . $fetched_data['notes'];
+				} else {
+					$fetched_data['notes'] = str_replace('{text}', $fetched_data['notes'], $wo['lang']['trans_money_sent_to']);
+				}
 			}
 			if ($fetched_data['kind'] == 'DONATE') {
 				$fetched_data['notes'] = str_replace('{text}', $fetched_data['notes'], $wo['lang']['trans_doanted_to']);
