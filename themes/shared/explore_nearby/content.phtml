@@ -1875,7 +1875,7 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 								<input type="text" placeholder="<?php echo $wo['lang']['keyword']; ?> / address / pages" id="nearby-username" autocomplete="off">
 								<div class="wo_explore_discovery_search_suggestions wo_explore_nearby_hidden" id="explore-nearby-search-suggestions"></div>
 							</div>
-							<button type="button" class="wo_explore_discovery_location_trigger" id="explore-nearby-location-trigger" onpointerdown="Wo_ExploreNearbyHandleLocationPromptAction(); return false;" onmousedown="Wo_ExploreNearbyHandleLocationPromptAction(); return false;" ontouchstart="Wo_ExploreNearbyHandleLocationPromptAction(); return false;" onclick="return false;">
+							<button type="button" class="wo_explore_discovery_location_trigger" id="explore-nearby-location-trigger" >
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 2v2.07A8.001 8.001 0 0 0 4.07 11H2v2h2.07A8.001 8.001 0 0 0 11 19.93V22h2v-2.07A8.001 8.001 0 0 0 19.93 13H22v-2h-2.07A8.001 8.001 0 0 0 13 4.07V2zm1 4a6 6 0 1 1 0 12a6 6 0 0 1 0-12m0 3a3 3 0 1 0 0 6a3 3 0 0 0 0-6"/></svg>
 								<span class="wo_explore_discovery_location_trigger_label"><?php echo htmlspecialchars((!empty($wo['lang']['use_my_location']) ? $wo['lang']['use_my_location'] : 'Use my location'), ENT_QUOTES, 'UTF-8'); ?></span>
 							</button>
@@ -4845,7 +4845,7 @@ function Wo_ExploreNearbyGetMapPromptHtml() {
 		'</div>' +
 		'<div class="wo_explore_discovery_map_prompt_title">' + Wo_ExploreNearbyEscapeHtml(Wo_ExploreNearbyGetMapPromptTitle()) + '</div>' +
 		'<div class="wo_explore_discovery_map_prompt_text">' + Wo_ExploreNearbyEscapeHtml(locationSearchHintText) + '</div>' +
-		'<button type="button" class="wo_explore_discovery_map_prompt_action" id="explore-nearby-map-prompt-action"' + actionDisabled + ' onpointerdown="Wo_ExploreNearbyHandleLocationPromptAction(); return false;" onmousedown="Wo_ExploreNearbyHandleLocationPromptAction(); return false;" ontouchstart="Wo_ExploreNearbyHandleLocationPromptAction(); return false;" onclick="return false;">' +
+		'<button type="button" class="wo_explore_discovery_map_prompt_action" id="explore-nearby-map-prompt-action"' + actionDisabled + ' >' +
 			'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 2v2.07A8.001 8.001 0 0 0 4.07 11H2v2h2.07A8.001 8.001 0 0 0 11 19.93V22h2v-2.07A8.001 8.001 0 0 0 19.93 13H22v-2h-2.07A8.001 8.001 0 0 0 13 4.07V2zm1 4a6 6 0 1 1 0 12a6 6 0 0 1 0-12m0 3a3 3 0 1 0 0 6a3 3 0 0 0 0-6"/></svg>' +
 			'<span>' + Wo_ExploreNearbyEscapeHtml(actionLabel) + '</span>' +
 		'</button>' +
