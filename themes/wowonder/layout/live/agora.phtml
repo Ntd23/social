@@ -1,7 +1,7 @@
 <script type="text/javascript">
 	var rand = 0;
 
-	// Define getMedia function to trigger getUserMedia immediately
+	// Define getMedia function
 	function getMedia() {
 	  return new Promise((resolve, reject) => {
 	    let constraints = {audio: true, video: true};
@@ -357,8 +357,12 @@ function generateToken() {
   //return null; // TODO: add a token generation
 }
 
-// Call ready() when page loads to request mic/camera permissions immediately
-$(document).ready(function() {
-  ready();
-});
+// Auto-trigger getMedia to request permissions
+setTimeout(function() {
+  if (typeof getMedia === 'function') {
+    getMedia().catch(function(err) {
+      console.log('Auto getMedia failed:', err);
+    });
+  }
+}, 500);
 </script>

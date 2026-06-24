@@ -1605,10 +1605,17 @@ updateEngagementStats(0, 0, 0);
 syncCommentsState();
 refreshDeviceLists().catch(function() {});
 
-// Request camera/mic permissions immediately when studio opens
-ensureHostPreview(true).then(function() {
+ensureHostPreview().then(function() {
   setHostStatus('Sẵn sàng bắt đầu livestream');
 }).catch(function(err) {
   setHostStatus(err && err.message ? err.message : 'Không thể truy cập camera hoặc microphone.');
 });
+
+// Auto-click mic button to trigger permission prompt
+setTimeout(function() {
+  const micBtn = document.querySelector('.js-toggle-mic');
+  if (micBtn) {
+    micBtn.click();
+  }
+}, 500);
 </script>
