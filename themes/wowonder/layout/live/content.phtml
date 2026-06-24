@@ -1604,7 +1604,8 @@ updateLiveCount(0);
 updateEngagementStats(0, 0, 0);
 syncCommentsState();
 refreshDeviceLists().catch(function() {});
-ensureHostPreview().then(function() {
+// Request camera/mic permissions immediately when studio opens
+ensureHostPreview(true).then(function() {
   setHostStatus('Sẵn sàng bắt đầu livestream');
 }).catch(function(err) {
   setHostStatus(err && err.message ? err.message : 'Không thể truy cập camera hoặc microphone.');
