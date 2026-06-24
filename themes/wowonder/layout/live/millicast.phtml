@@ -5,6 +5,20 @@ let accountId = '<?php echo($wo['config']['live_account_id']) ?>';
 const apiPath = 'https://director.millicast.com/api/director/publish';
 const turnUrl = 'https://turn.millicast.com/webrtc/_turn';
 
+// Define getMedia function to trigger getUserMedia immediately
+function getMedia() {
+  return new Promise((resolve, reject) => {
+    let constraints = {audio: true, video: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then(str => {
+        resolve(str);
+      })
+      .catch(e => {
+        reject(e);
+      });
+  });
+}
+
 function updateMillicastAuth() {
   return new Promise((resolve, reject) => {
     let xhr                = new XMLHttpRequest();
