@@ -2121,6 +2121,41 @@ var liveLocationRequestOptions = {
 	maximumAge: 0,
 	timeout: 20000
 };
+var isVietnamese = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese'), $json_flags); ?>;
+
+function Wo_ExploreNearbyShowLocationDeniedModal() {
+    var modalId = 'explore-nearby-location-denied-modal';
+    var modalHtml = 
+        '<div id="' + modalId + '" class="modal fade" role="dialog" style="z-index: 99999;">' +
+            '<div class="modal-dialog modal-sm">' +
+                '<div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">' +
+                    '<div class="modal-header" style="border-bottom: 1px solid #f0f2f5;">' +
+                        '<button type="button" class="close" data-dismiss="modal" style="font-size: 24px;">&times;</button>' +
+                        '<h4 class="modal-title" style="color: #11203b; font-weight: 800; font-size: 16px;">' + 
+                            (isVietnamese ? 'Quyền truy cập vị trí' : 'Location Permission Required') + 
+                        '</h4>' +
+                    '</div>' +
+                    '<div class="modal-body" style="padding: 20px;">' +
+                        '<p style="color: #62718a; font-size: 14px; line-height: 1.6; margin: 0;">' + 
+                            (isVietnamese ? 
+                                'Vui lòng cho phép quyền truy cập vị trí trong cài đặt trình duyệt hoặc thiết bị của bạn để tìm bạn bè và cửa hàng xung quanh.' : 
+                                'Please allow location permission in your browser or device settings to find nearby friends and shops.') + 
+                        '</p>' +
+                    '</div>' +
+                    '<div class="modal-footer" style="border-top: 1px solid #f0f2f5; padding: 10px 15px;">' +
+                        '<button type="button" class="btn btn-default" data-dismiss="modal" style="border-radius: 8px; font-weight: 600;">' + 
+                            (isVietnamese ? 'Đóng' : 'Close') + 
+                        '</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    
+    $('#' + modalId).remove();
+    $('body').append(modalHtml);
+    $('#' + modalId).modal('show');
+}
+
 var navigationUiLanguage = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'vi' : 'en', $json_flags); ?>;
 var navigationSpeechLanguage = <?php echo json_encode('vi-VN', $json_flags); ?>;
 var emptyUsersText = <?php echo json_encode($wo['lang']['no_users_found'], $json_flags); ?>;
@@ -7946,6 +7981,7 @@ function Wo_ExploreNearbyHandleLiveLocation(position) {
 }
 
 function Wo_ExploreNearbyHandleLocationError(error) {
+	var wasUserInitiated = WoExploreNearbyState.locationRequestPending;
 	WoExploreNearbyState.locationRequestPending = false;
 	if (!Wo_ExploreNearbyHasValidCoordinates(currentUserMapPoint.lat, currentUserMapPoint.lng) && !Wo_ExploreNearbyHasSearchCenter()) {
 		if (error && error.code === 1) {
@@ -7957,6 +7993,10 @@ function Wo_ExploreNearbyHandleLocationError(error) {
 	}
 
 	Wo_ExploreNearbyUpdateMapPrompt();
+
+	if (wasUserInitiated && error && error.code === 1) {
+		Wo_ExploreNearbyShowLocationDeniedModal();
+	}
 }
 
 function Wo_ExploreNearbyRequestCurrentUserLocation(userInitiated) {

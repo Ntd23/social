@@ -602,6 +602,9 @@ function Wo_intervalUpdates(force_update = 0, loop = 0) {
               Wo_PlayVideoCall('play');
             }
             document.title = 'New video call..';
+            if (document.visibilityState === 'hidden' || !document.hasFocus()) {
+              Wo_ShowIncomingCallNotification(data.caller_name, data.caller_avatar, data.call_id, 'video');
+            }
             setTimeout(function () {
               Wo_CloseModels();
               $('#re-calling-modal').addClass('calling');
@@ -629,6 +632,9 @@ function Wo_intervalUpdates(force_update = 0, loop = 0) {
               Wo_PlayVideoCall('play');
             }
             document.title = 'New audio call..';
+            if (document.visibilityState === 'hidden' || !document.hasFocus()) {
+              Wo_ShowIncomingCallNotification(data.caller_name, data.caller_avatar, data.call_id, 'audio');
+            }
             setTimeout(function () {
               if ($('#re-talking-modal').length == 0) {
                 Wo_CloseModels();
@@ -2747,6 +2753,31 @@ function Wo_NotifyMe(icon, title, notification_text, url) {
     };
   }
 }
+function Wo_ShowIncomingCallNotification(name, avatar, callId, type) {
+  if (!Notification || Notification.permission !== "granted") {
+    return;
+  }
+  var title = type === 'video' ? 'Cuộc gọi video đến từ ' + name : 'Cuộc gọi thoại đến từ ' + name;
+  var body = 'Nhấn để trả lời cuộc gọi';
+  
+  if (window.woActiveCallNotification) {
+    window.woActiveCallNotification.close();
+  }
+  
+  var notification = new Notification(title, {
+    icon: avatar,
+    body: body,
+    requireInteraction: true,
+    tag: 'incoming-call-' + callId
+  });
+  
+  window.woActiveCallNotification = notification;
+  
+  notification.onclick = function () {
+    window.focus();
+    notification.close();
+  };
+}
 function Wo_CheckForCallAnswer(id) {
   $.get(Wo_Ajax_Requests_File(), {f:'check_for_answer', id:id}, function (data1) {
     if (data1.status == 200) {
@@ -3014,6 +3045,10 @@ function Wo_PlayAudioCall(type) {
   } else {
     clearTimeout(window.playmusic_);
     document.getElementById('calling-sound').pause();
+    if (window.woActiveCallNotification) {
+      window.woActiveCallNotification.close();
+      window.woActiveCallNotification = null;
+    }
   }
 }
 function Wo_PlayVideoCall(type) {
@@ -3025,6 +3060,10 @@ function Wo_PlayVideoCall(type) {
   } else {
     clearTimeout(window.playmusic);
     document.getElementById('video-calling-sound').pause();
+    if (window.woActiveCallNotification) {
+      window.woActiveCallNotification.close();
+      window.woActiveCallNotification = null;
+    }
   }
 }
 function textAreaAdjust(o, h, n) {
