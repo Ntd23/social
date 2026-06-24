@@ -1,3 +1,4 @@
+<?php // Renders startup profile information form and advances onboarding. ?>
 <div class="row">
 	<div class="col-md-2"></div>
 	<div class="col-md-8">
@@ -83,14 +84,22 @@ function Wo_SubmitInfoForm() {
 $(function () {
 	$('form.setting-general-form').ajaxForm({
     url: Wo_Ajax_Requests_File() + '?f=update_user_information_startup',
+    dataType: 'json',
     beforeSend: function () {
       $('button').attr('disabled', true);
       $('button').text("<?php echo $wo['lang']['please_wait'];?>");
     },
     success: function (data) {
       if(data.status == 200) {
-      	window.location.href = '<?php echo Wo_SeoLink('index.php?link1=start-up');?>';
+      	window.location.href = data.location || '<?php echo Wo_SeoLink('index.php?link1=start-up');?>';
+        return;
       }
+      $('button').attr('disabled', false);
+      $('button').html('<?php echo addslashes($wo['lang']['start_up_continue']);?> <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>');
+    },
+    error: function () {
+      $('button').attr('disabled', false);
+      $('button').html('<?php echo addslashes($wo['lang']['start_up_continue']);?> <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>');
     }
   });
 });

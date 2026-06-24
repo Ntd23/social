@@ -1,5 +1,9 @@
 <?php
+// Updates user avatar media and advances startup onboarding when requested.
 if ($f == 'update_user_avatar_picture') {
+    $data = array(
+        'status' => 400
+    );
     $images = array(
         '1',
         '2',
@@ -37,9 +41,17 @@ if ($f == 'update_user_avatar_picture') {
         if ($wo['config']['ai_user_system'] == 1 && !empty($_POST['ai_post']) && $_POST['ai_post'] == 'on') {
             $ai_post = 1;
         }
-        $upload = Wo_UploadImage($_FILES["avatar"]["tmp_name"], $_FILES['avatar']['name'], 'avatar', $_FILES['avatar']['type'], $_POST['user_id'],'',$ai_post);
+        $target_user_id = !empty($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
+        $upload = Wo_UploadImage($_FILES["avatar"]["tmp_name"], $_FILES['avatar']['name'], 'avatar', $_FILES['avatar']['type'], $target_user_id, '', $ai_post);
         if ($upload === true) {
-            $img  = Wo_UserData($_POST['user_id']);
+            if (!empty($s) && $s == 'start' && $target_user_id > 0) {
+                Wo_UpdateUserData($target_user_id, array(
+                    'startup_image' => 1
+                ));
+                Wo_UpdateUserDetails($target_user_id, false, false, true);
+            }
+
+            $img  = Wo_UserData($target_user_id);
             $data = array(
                 'status' => 200,
                 'img' => $img['avatar'] . '?cache=' . rand(11, 22),
@@ -47,7 +59,8 @@ if ($f == 'update_user_avatar_picture') {
                 'avatar_full' => Wo_GetMedia($img['avatar_full']) . '?cache=' . rand(11, 22),
                 'avatar_full_or' => $img['avatar_full'],
                 'big_text' => $wo['lang']['looks_good'],
-                'small_text' => $wo['lang']['looks_good_des']
+                'small_text' => $wo['lang']['looks_good_des'],
+                'location' => (!empty($s) && $s == 'start') ? Wo_SeoLink('index.php?link1=start-up') : ''
             );
         } else {
             $data = $upload;

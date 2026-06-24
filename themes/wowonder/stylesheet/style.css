@@ -24690,7 +24690,7 @@ body .wo_chat_story_innr p {
 }
 
 .pub-focus .publisher-box textarea.postText {
-    padding: 16px 35px 10px 50px;
+    padding: 16px 35px 0px 50px;
 }
 
 .sun_pub_box {
@@ -24729,7 +24729,7 @@ body .wo_chat_story_innr p {
 .sun_pub_mid_foot {
     margin: 0 10px;
     border-top: 1px solid #f0f2f5;
-    padding: 8px 3px;
+    padding: 0px 3px;
     display: flex;
     align-items: center;
     position: relative;
