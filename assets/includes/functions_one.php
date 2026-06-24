@@ -3843,8 +3843,6 @@ if (!function_exists('Wo_GetFollowedMessageUsers')) {
       while($row=mysqli_fetch_assoc($res)){
         $u=Wo_UserData($row['conversation_user_id']); if(!$u) continue;
         $u['chat_time']=!empty($row['time'])?(int)$row['time']:0;
-        $u['follow_priority']=empty($row['time']) ? 1 : 0;
-        $u['follow_id']=!empty($row['follow_id']) ? (int)$row['follow_id'] : 0;
         $u['message']=['time'=>$u['chat_time']];
         $data[]=$u;
       }
@@ -3963,18 +3961,8 @@ function Wo_GetMessagesUsers($user_id, $searchQuery = '', $limit = 50, $new = fa
     }
     if (!empty($data)) {
         usort($data, function ($a, $b) {
-            $a_follow_priority = !empty($a['follow_priority']) ? (int) $a['follow_priority'] : 0;
-            $b_follow_priority = !empty($b['follow_priority']) ? (int) $b['follow_priority'] : 0;
             $a_time = !empty($a['chat_time']) ? (int) $a['chat_time'] : 0;
             $b_time = !empty($b['chat_time']) ? (int) $b['chat_time'] : 0;
-            $a_follow_id = !empty($a['follow_id']) ? (int) $a['follow_id'] : 0;
-            $b_follow_id = !empty($b['follow_id']) ? (int) $b['follow_id'] : 0;
-            if ($a_follow_priority !== $b_follow_priority) {
-                return ($a_follow_priority < $b_follow_priority) ? 1 : -1;
-            }
-            if ($a_follow_priority === 1 && $a_follow_id !== $b_follow_id) {
-                return ($a_follow_id < $b_follow_id) ? 1 : -1;
-            }
             if ($a_time === $b_time) {
                 return 0;
             }
