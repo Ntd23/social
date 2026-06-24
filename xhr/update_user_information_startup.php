@@ -1,8 +1,14 @@
 <?php
+// Updates startup profile information and returns the next onboarding location.
 if ($f == 'update_user_information_startup' && Wo_CheckSession($hash_id) === true) {
+    $data = array(
+        'status' => 400,
+        'location' => Wo_SeoLink('index.php?link1=start-up')
+    );
     if (isset($_POST['user_id']) && is_numeric($_POST['user_id']) && $_POST['user_id'] > 0) {
         $Userdata = Wo_UserData($_POST['user_id']);
         if (!empty($Userdata['user_id'])) {
+            $errors = array();
             $age_data = '00-00-0000';
             if (!empty($_POST['birthday']) && preg_match('@^\s*(3[01]|[12][0-9]|0?[1-9])\-(1[012]|0?[1-9])\-((?:19|20)\d{2})\s*$@', $_POST['birthday'])) {
                 $newDate  = date("Y-m-d", strtotime($_POST['birthday']));
@@ -23,9 +29,12 @@ if ($f == 'update_user_information_startup' && Wo_CheckSession($hash_id) === tru
                 'birthday' => $age_data,
                 'start_up_info' => 1
             );
-            if (Wo_UpdateUserData($_POST['user_id'], $Update_data)) {
+            if (empty($errors)) {
+                Wo_UpdateUserData($_POST['user_id'], $Update_data);
+                Wo_UpdateUserDetails($_POST['user_id'], false, false, true);
                 $data = array(
-                    'status' => 200
+                    'status' => 200,
+                    'location' => Wo_SeoLink('index.php?link1=start-up')
                 );
             }
         }

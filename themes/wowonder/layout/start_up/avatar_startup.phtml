@@ -1,3 +1,4 @@
+<?php // Renders startup avatar upload and advances to the next onboarding step. ?>
 <div class="row">
 	<div class="col-md-2"></div>
 	<div class="col-md-8">
@@ -56,6 +57,7 @@ $(function () {
   var status = $('#status');
 	$('form.profile-avatar-changer').ajaxForm({
     url: Wo_Ajax_Requests_File() + '?f=update_user_avatar_picture&s=start',
+    dataType: 'json',
 
     beforeSend: function () {
       var percentVal = '0%';
@@ -82,6 +84,9 @@ $(function () {
         $('[id^=updateImage-' + user_id + ']').attr("src", data.img);
         $('button').attr('disabled', false);
         $('.skip-step').addClass('vis');
+        setTimeout(function() {
+          window.location.href = data.location || '<?php echo Wo_SeoLink('index.php?link1=start-up');?>';
+        }, 450);
       }
       else{
       	if(data.invalid_file == 3){
@@ -91,6 +96,11 @@ $(function () {
           },3000);
         }
       }
+    },
+    error: function () {
+      $('#progress').slideUp(200);
+      $('button').attr('disabled', false);
+      $('.skip-step').addClass('vis');
     }
   });
 });
