@@ -43,8 +43,6 @@ if ($f == 'update_data') {
             $data['is_call']              = 1;
             $data['call_id']              = $wo['incall']['id'];
             $data['calls_html']           = Wo_LoadPage('modals/in_call');
-            $data['caller_name']          = $wo['incall']['in_call_user']['name'];
-            $data['caller_avatar']        = $wo['incall']['in_call_user']['avatar'];
         }
         $data['audio_calls']   = 0;
         $data['is_audio_call'] = 0;
@@ -56,8 +54,6 @@ if ($f == 'update_data') {
             $data['is_audio_call']        = 1;
             $data['call_id']              = $wo['incall']['id'];
             $data['audio_calls_html']     = Wo_LoadPage('modals/in_audio_call');
-            $data['caller_name']          = $wo['incall']['in_call_user']['name'];
-            $data['caller_avatar']        = $wo['incall']['in_call_user']['avatar'];
         }
         $data['followRequests']      = Wo_CountFollowRequests();
         $data['followRequests']      = $data['followRequests'] + Wo_CountGroupChatRequests();

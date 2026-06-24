@@ -38,11 +38,6 @@ if (!empty($_GET['url'])) {
     body.pub-focus .post.publisher-box textarea.postText {
         max-height: 120px !important;
     }
-    .sun_pub_privacy_menu {
-        top: auto !important;
-        bottom: 100% !important;
-        transform-origin: left bottom !important;
-    }
 }
 </style>
 <form action="#" method="post" class="post publisher-box" id="publisher-box-focus">
@@ -1684,9 +1679,11 @@ if (!empty($_GET['url'])) {
     }
     $(document).on('focus', '#publisher-box-focus',function(){
         $("body").addClass('pub-focus');
-        $(".publisher-box-footer").slideDown(100);
-        $(".add-emoticons").addClass('show_emo');
-        $(".postText").attr('opened', '1');
+        if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1){
+            $(".publisher-box-footer").slideDown(100);
+            $(".add-emoticons").addClass('show_emo');
+            $(".postText").attr('opened', '1');
+        }
     });
     $('#focus-overlay').on('click',function (){
         Wo_HidePosInfo();
@@ -1789,49 +1786,4 @@ if (!empty($_GET['url'])) {
                 })
         },100);
     }
-
-    function adjustPublisherBoxPosition() {
-        var box = document.querySelector(".post.publisher-box");
-        if (!box) return;
-        
-        if (window.innerWidth > 767) {
-            box.style.removeProperty('bottom');
-            box.style.removeProperty('max-height');
-            return;
-        }
-        
-        if (document.body.classList.contains('pub-focus')) {
-            if (window.visualViewport) {
-                var keyboardHeight = window.innerHeight - window.visualViewport.height - (window.visualViewport.offsetTop || 0);
-                if (keyboardHeight < 0) keyboardHeight = 0;
-                
-                box.style.setProperty('bottom', keyboardHeight + 'px', 'important');
-                box.style.setProperty('max-height', (window.visualViewport.height - 10) + 'px', 'important');
-            }
-        } else {
-            box.style.removeProperty('bottom');
-            box.style.removeProperty('max-height');
-        }
-    }
-
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', adjustPublisherBoxPosition);
-        window.visualViewport.addEventListener('scroll', adjustPublisherBoxPosition);
-    }
-
-    if (window.MutationObserver) {
-        var observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.attributeName === "class") {
-                    adjustPublisherBoxPosition();
-                }
-            });
-        });
-        observer.observe(document.body, {
-            attributes: true,
-            attributeFilter: ["class"]
-        });
-    }
-
-    adjustPublisherBoxPosition();
 </script>
