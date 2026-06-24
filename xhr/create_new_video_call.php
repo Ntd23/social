@@ -129,6 +129,26 @@ if ($f == 'create_new_video_call') {
                 );
                 Wo_SendPushNotification($send_array,'android_messenger');
             }
+            if (!empty($wo['calling_user']['web_device_id']) && $wo['config']['web_push'] == 1) {
+                $send_array = array(
+                    'send_to' => array(
+                        $wo['calling_user']['web_device_id']
+                    ),
+                    'notification' => array(
+                        'notification_content' => 'is calling you',
+                        'notification_title' => $wo['calling_user']['name'],
+                        'notification_image' => $wo['calling_user']['avatar'],
+                        'notification_data' => array(
+                            'call_type' => 'video',
+                            'access_token_2' => '',
+                            'room_name' => $room_script,
+                            'call_id' => $insertData,
+                            'url' => $wo['config']['site_url']
+                        )
+                    )
+                );
+                Wo_SendPushNotification($send_array, 'web');
+            }
             $data = array(
                 'status' => 200,
                 'access_token' => '',
@@ -230,6 +250,26 @@ if ($f == 'create_new_video_call') {
                 );
                 Wo_SendPushNotification($send_array,'android_messenger');
             }
+            if (!empty($wo['calling_user']['web_device_id']) && $wo['config']['web_push'] == 1) {
+                $send_array = array(
+                    'send_to' => array(
+                        $wo['calling_user']['web_device_id']
+                    ),
+                    'notification' => array(
+                        'notification_content' => 'is calling you',
+                        'notification_title' => $wo['calling_user']['name'],
+                        'notification_image' => $wo['calling_user']['avatar'],
+                        'notification_data' => array(
+                            'call_type' => 'video',
+                            'access_token_2' => $token_2,
+                            'room_name' => $room_script,
+                            'call_id' => $insertData,
+                            'url' => $wo['config']['site_url']
+                        )
+                    )
+                );
+                Wo_SendPushNotification($send_array, 'web');
+            }
             $data = array(
                 'status' => 200,
                 'access_token' => $token_,
@@ -314,6 +354,26 @@ if ($f == 'create_new_video_call') {
                     )
                 );
                 Wo_SendPushNotification($send_array,'android_messenger');
+            }
+            if (!empty($wo['calling_user']['web_device_id']) && $wo['config']['web_push'] == 1) {
+                $send_array = array(
+                    'send_to' => array(
+                        $wo['calling_user']['web_device_id']
+                    ),
+                    'notification' => array(
+                        'notification_content' => 'is calling you',
+                        'notification_title' => $wo['calling_user']['name'],
+                        'notification_image' => $wo['calling_user']['avatar'],
+                        'notification_data' => array(
+                            'call_type' => 'video',
+                            'access_token_2' => '',
+                            'room_name' => $room_script,
+                            'call_id' => $insertData,
+                            'url' => $wo['config']['site_url']
+                        )
+                    )
+                );
+                Wo_SendPushNotification($send_array, 'web');
             }
             $data = array(
                 'status' => 200,
