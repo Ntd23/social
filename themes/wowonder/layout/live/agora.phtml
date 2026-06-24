@@ -342,4 +342,9 @@ function generateToken() {
   return "<?php echo($wo['AgoraToken']); ?>";
   //return null; // TODO: add a token generation
 }
+
+// Call ready() when page loads to request mic/camera permissions immediately
+$(document).ready(function() {
+  ready();
+});
 </script>
