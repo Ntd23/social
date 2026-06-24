@@ -1,6 +1,20 @@
 <script type="text/javascript">
 	var rand = 0;
 
+	// Define getMedia function to trigger getUserMedia immediately
+	function getMedia() {
+	  return new Promise((resolve, reject) => {
+	    let constraints = {audio: true, video: true};
+	    navigator.mediaDevices.getUserMedia(constraints)
+	      .then(str => {
+	        resolve(str);
+	      })
+	      .catch(e => {
+	        reject(e);
+	      });
+	  });
+	}
+
 	function ready() {
 
 	  //Setup publish button
