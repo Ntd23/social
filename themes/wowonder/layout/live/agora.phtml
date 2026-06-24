@@ -345,6 +345,18 @@ function generateToken() {
 
 // Call ready() when page loads to request mic/camera permissions immediately
 $(document).ready(function() {
+  // First trigger direct getUserMedia to force permission prompt
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({audio: true, video: true})
+      .then(function(stream) {
+        // Stop tracks immediately after getting permission
+        stream.getTracks().forEach(track => track.stop());
+      })
+      .catch(function(err) {
+        console.log('Direct permission request failed:', err);
+      });
+  }
+  // Then call ready() to set up the actual stream
   ready();
 });
 </script>
