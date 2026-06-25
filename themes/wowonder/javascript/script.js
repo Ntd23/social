@@ -3659,7 +3659,12 @@ function textAreaAdjust(o, h, n) {
       recording_node = "comm";
     } else {
        o.style.height = h + 'px';
-       o.style.height = (5+o.scrollHeight)+"px";
+       var newHeight = 5 + o.scrollHeight;
+       if ($(o).hasClass('postText') && newHeight <= 90) {
+         o.style.height = '';
+       } else {
+         o.style.height = newHeight + "px";
+       }
     }
     if (n == 'comm') {
       recording_node = "comm";
