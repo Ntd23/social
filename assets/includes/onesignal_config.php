@@ -98,14 +98,29 @@ function Wo_SendPushNotification($data = array(), $push_type = 'chat') {
  *   - call_url       : URL đầy đủ để join cuộc gọi
  * @return bool  true nếu gửi thành công
  */
-function Wo_SendFcmCallNotification($device_id = '', $call_data = array()) {
+function Wo_SendFcmCallNotification($calling_user, $call_data = array()) {
     global $wo;
     $log_file = dirname(dirname(__DIR__)) . '/fcm_debug.log';
     $log_msg = "[" . date('Y-m-d H:i:s') . "] Calling Wo_SendFcmCallNotification (OneSignal mode)\n";
-    $log_msg .= "Device ID (OneSignal): " . ($device_id ? $device_id : 'EMPTY') . "\n";
+    
+    $device_ids = array();
+    if (is_array($calling_user)) {
+        if (!empty($calling_user['android_m_device_id'])) $device_ids[] = $calling_user['android_m_device_id'];
+        if (!empty($calling_user['ios_m_device_id'])) $device_ids[] = $calling_user['ios_m_device_id'];
+        if (!empty($calling_user['android_n_device_id'])) $device_ids[] = $calling_user['android_n_device_id'];
+        if (!empty($calling_user['ios_n_device_id'])) $device_ids[] = $calling_user['ios_n_device_id'];
+        if (!empty($calling_user['android_device_id'])) $device_ids[] = $calling_user['android_device_id'];
+        if (!empty($calling_user['ios_device_id'])) $device_ids[] = $calling_user['ios_device_id'];
+    } elseif (is_string($calling_user)) {
+        $device_ids[] = $calling_user;
+    }
+    
+    $device_ids = array_unique(array_filter($device_ids));
+    
+    $log_msg .= "Device IDs (OneSignal): " . (!empty($device_ids) ? implode(',', $device_ids) : 'EMPTY') . "\n";
     $log_msg .= "Call Data: " . json_encode($call_data) . "\n";
 
-    if (empty($device_id) || empty($call_data)) {
+    if (empty($device_ids) || empty($call_data)) {
         $log_msg .= "ERROR: Empty device ID or call data. Exiting.\n\n";
         file_put_contents($log_file, $log_msg, FILE_APPEND);
         return false;
@@ -131,7 +146,7 @@ function Wo_SendFcmCallNotification($device_id = '', $call_data = array()) {
     // OneSignal sẽ chuyển thành FCM message gửi đến thiết bị
     $payload = array(
         'app_id'             => $app_id,
-        'include_player_ids' => array($device_id),
+        'include_player_ids' => array_values($device_ids),
         'headings'           => array('en' => $caller_name),
         'contents'           => array('en' => ($call_type == 'audio' ? 'Cuộc gọi thoại đến' : 'Cuộc gọi video đến')),
         'priority'           => 10,
