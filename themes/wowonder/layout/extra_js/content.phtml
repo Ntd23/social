@@ -1309,6 +1309,10 @@ function NewAddress() {
   $('#add_address_modal').modal('show');
 }
 $(document).ready(function() {
+    $(document).on('touchstart', '.pac-item', function(e) {
+        e.stopPropagation();
+    });
+
     var isModalAddressSelected = false;
 
     <?php if ($wo['config']['google_map'] == 1) { ?>
@@ -1316,7 +1320,7 @@ $(document).ready(function() {
         var modalAddressInput = document.getElementById('modal_add_address');
         if (modalAddressInput) {
             var modalAutocomplete = new google.maps.places.Autocomplete(modalAddressInput, {
-                types: ['geocode', 'address']
+                types: ['geocode']
             });
 
             modalAutocomplete.addListener('place_changed', function() {
@@ -1328,10 +1332,6 @@ $(document).ready(function() {
 
                 isModalAddressSelected = true;
 
-                var streetNumber = '';
-                var route = '';
-                var neighborhood = '';
-                var sublocality = '';
                 var city = '';
                 var country = '';
 
@@ -1340,40 +1340,54 @@ $(document).ready(function() {
                         var component = place.address_components[i];
                         var addressType = component.types[0];
 
-                        if (addressType === 'street_number') {
-                            streetNumber = component.long_name;
-                        } else if (addressType === 'route') {
-                            route = component.long_name;
-                        } else if (addressType === 'neighborhood') {
-                            neighborhood = component.long_name;
-                        } else if (addressType === 'sublocality_level_1' || addressType === 'sublocality') {
-                            sublocality = component.long_name;
-                        } else if (addressType === 'locality' || addressType === 'administrative_area_level_2') {
+                        if (addressType === 'locality') {
                             if (!city) city = component.long_name;
                         } else if (addressType === 'administrative_area_level_1') {
-                            if (!city) city = component.long_name;
+                            city = component.long_name;
                         } else if (addressType === 'country') {
                             country = component.long_name;
                         }
                     }
                 }
 
+                country = country || 'Việt Nam';
                 $('#modal_add_country').val(country);
                 $('#modal_add_city').val(city);
 
-                var cleanAddress = (streetNumber ? streetNumber + ' ' : '') + route;
-                if (neighborhood) {
-                    cleanAddress += (cleanAddress ? ', ' : '') + neighborhood;
-                }
-                if (sublocality) {
-                    cleanAddress += (cleanAddress ? ', ' : '') + sublocality;
-                }
-
-                if (!cleanAddress) {
-                    cleanAddress = place.formatted_address || '';
+                var cleanAddress = place.formatted_address || place.name || '';
+                if (cleanAddress) {
+                    var escapeReg = function(string) {
+                        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    };
+                    
+                    if (country) {
+                        cleanAddress = cleanAddress.replace(new RegExp(',\\s*' + escapeReg(country) + '$', 'i'), '');
+                    }
+                    cleanAddress = cleanAddress.replace(/,\s*(Việt Nam|Vietnam)$/i, '');
+                    
+                    if (city) {
+                        cleanAddress = cleanAddress.replace(new RegExp(',\\s*' + escapeReg(city) + '$', 'i'), '');
+                    }
                 }
 
                 $('#modal_add_address').val(cleanAddress);
+
+                // Show card preview and hide input fields
+                $('#modal_preview_text').html(cleanAddress + (city ? ', ' + city : '') + (country ? ', ' + country : ''));
+                $('#modal_address_fields_wrapper').slideUp();
+                $('#modal_address_card_preview').slideDown();
+            });
+
+            $('#modal_change_address_btn').on('click', function() {
+                $('#modal_add_address').val('');
+                $('#modal_add_city').val('');
+                $('#modal_add_country').val('');
+                isModalAddressSelected = false;
+                $('#modal_address_card_preview').slideUp();
+                $('#modal_address_fields_wrapper').slideDown();
+                setTimeout(function() {
+                    $('#modal_add_address').focus();
+                }, 400);
             });
 
             $(modalAddressInput).on('input', function() {
