@@ -2530,6 +2530,24 @@ function Wo_RegisterFollow($following_id = 0, $followers_id = 0)
                     'url' => 'index.php?link1=timeline&u=' . $follower_data['username']
                 );
                 Wo_RegisterNotification($notification_data);
+                
+                // --- CUSTOM BUMP CHAT ---
+                $time = time();
+                $query_check1 = mysqli_query($sqlConnect, "SELECT COUNT(`id`) FROM " . T_U_CHATS . " WHERE `conversation_user_id` = '$following_id' AND `user_id` = '$follower_id'");
+                if (Wo_Sql_Result($query_check1, 0) == 0) {
+                    mysqli_query($sqlConnect, "INSERT INTO " . T_U_CHATS . " (`user_id`,`conversation_user_id`,`time`) VALUES ('$follower_id','$following_id','$time')");
+                } else {
+                    mysqli_query($sqlConnect, "UPDATE " . T_U_CHATS . " SET `time` = '$time' WHERE `conversation_user_id` = '$following_id' AND `user_id` = '$follower_id'");
+                }
+
+                $query_check2 = mysqli_query($sqlConnect, "SELECT COUNT(`id`) FROM " . T_U_CHATS . " WHERE `conversation_user_id` = '$follower_id' AND `user_id` = '$following_id'");
+                if (Wo_Sql_Result($query_check2, 0) == 0) {
+                    mysqli_query($sqlConnect, "INSERT INTO " . T_U_CHATS . " (`user_id`,`conversation_user_id`,`time`) VALUES ('$following_id','$follower_id','$time')");
+                } else {
+                    mysqli_query($sqlConnect, "UPDATE " . T_U_CHATS . " SET `time` = '$time' WHERE `conversation_user_id` = '$follower_id' AND `user_id` = '$following_id'");
+                }
+                // --- END CUSTOM BUMP CHAT ---
+                
                 $activity_data = array(
                     'user_id' => $follower_id,
                     'follow_id' => $following_id,
@@ -2722,6 +2740,25 @@ function Wo_AcceptFollowRequest($following_id = 0, $follower_id = 0)
             'type' => 'accepted_request',
             'url' => 'index.php?link1=timeline&u=' . $follower_data['username']
         );
+        Wo_RegisterNotification($notification_data);
+
+        // --- CUSTOM BUMP CHAT ---
+        $time = time();
+        $query_check1 = mysqli_query($sqlConnect, "SELECT COUNT(`id`) FROM " . T_U_CHATS . " WHERE `conversation_user_id` = '$following_id' AND `user_id` = '$follower_id'");
+        if (Wo_Sql_Result($query_check1, 0) == 0) {
+            mysqli_query($sqlConnect, "INSERT INTO " . T_U_CHATS . " (`user_id`,`conversation_user_id`,`time`) VALUES ('$follower_id','$following_id','$time')");
+        } else {
+            mysqli_query($sqlConnect, "UPDATE " . T_U_CHATS . " SET `time` = '$time' WHERE `conversation_user_id` = '$following_id' AND `user_id` = '$follower_id'");
+        }
+
+        $query_check2 = mysqli_query($sqlConnect, "SELECT COUNT(`id`) FROM " . T_U_CHATS . " WHERE `conversation_user_id` = '$follower_id' AND `user_id` = '$following_id'");
+        if (Wo_Sql_Result($query_check2, 0) == 0) {
+            mysqli_query($sqlConnect, "INSERT INTO " . T_U_CHATS . " (`user_id`,`conversation_user_id`,`time`) VALUES ('$following_id','$follower_id','$time')");
+        } else {
+            mysqli_query($sqlConnect, "UPDATE " . T_U_CHATS . " SET `time` = '$time' WHERE `conversation_user_id` = '$follower_id' AND `user_id` = '$following_id'");
+        }
+        // --- END CUSTOM BUMP CHAT ---
+        
         $activity_data = array(
             'user_id' => $follower_id,
             'follow_id' => $following_id,
