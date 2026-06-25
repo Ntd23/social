@@ -106,18 +106,6 @@ if ($f == 'create_new_audio_call') {
                 );
                 Wo_SendPushNotification($send_array,'android_messenger');
             }
-            // FCM data-only call notification (background/killed app)
-            if (true) {
-                Wo_SendFcmCallNotification($wo['calling_user'], array(
-                    'caller_name'   => $user_1['name'],
-                    'caller_avatar' => !empty($user_1['avatar']) ? $user_1['avatar'] : '',
-                    'caller_id'     => $_GET['user_id1'],
-                    'call_id'       => $insertData,
-                    'call_type'     => 'audio',
-                    'room_name'     => $room_script,
-                    'call_url'      => $wo['config']['site_url'] . '/call_livekit.php?room=' . urlencode($room_script) . '&type=audio&id=' . $insertData,
-                ));
-            }
             $data = array(
                 'status' => 200,
                 'access_token' => '',
@@ -194,18 +182,6 @@ if ($f == 'create_new_audio_call') {
                 );
                 Wo_SendPushNotification($send_array,'android_messenger');
             }
-            // FCM data-only call notification (background/killed app)
-            if (true) {
-                Wo_SendFcmCallNotification($wo['calling_user'], array(
-                    'caller_name'   => $user_1['name'],
-                    'caller_avatar' => !empty($user_1['avatar']) ? $user_1['avatar'] : '',
-                    'caller_id'     => $_GET['user_id1'],
-                    'call_id'       => $insertData,
-                    'call_type'     => 'audio',
-                    'room_name'     => $room_script,
-                    'call_url'      => $wo['config']['site_url'] . '/call_livekit.php?room=' . urlencode($room_script) . '&type=audio&id=' . $insertData,
-                ));
-            }
             $data = array(
                 'status' => 200,
                 'access_token' => $token_,
@@ -221,4 +197,3 @@ if ($f == 'create_new_audio_call') {
     echo json_encode($data);
     exit();
 }
-
