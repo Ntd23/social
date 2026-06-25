@@ -518,6 +518,7 @@ if ($f == 'products') {
                                 }
                                 $insert[$product['user_id']] = array();
                                 $insert[$product['user_id']][] = array('product_id' => $product['id'],
+                                                                       'product_name' => $product['name'],
                                                                        'price' => $f_price,
                                                                        'units' => $item->units);
                             }
@@ -527,6 +528,7 @@ if ($f == 'products') {
                                     $f_price = ($product['price'] / $wo['config']['exchange'][$wo['currencies'][$product['currency']]['text']]);
                                 }
                                 $insert[$product['user_id']][] = array('product_id' => $product['id'],
+                                                                       'product_name' => $product['name'],
                                                                        'price' => $f_price,
                                                                        'units' => $item->units);
                             }
@@ -538,12 +540,6 @@ if ($f == 'products') {
                             exit();
                         }
                     }
-                    if ($wo['user']['wallet'] < $total) {
-                        $data['message'] = $error_icon . $wo["lang"]["please_top_up_wallet"];
-                        header('Content-Type: application/json');
-                        echo json_encode($data);
-                        exit();
-                    }
 
                     if (!empty($insert)) {
                         foreach ($insert as $key => $value) {
@@ -551,6 +547,7 @@ if ($f == 'products') {
                             $total = 0;
                             $total_commission = 0;
                             $total_final_price = 0;
+                            $order_items_text = '';
                             foreach ($value as $key2 => $value2) {
                                 $db->where('id',$value2['product_id'])->update(T_PRODUCTS,array('units' => $db->dec($value2['units'])));
                                 $store_commission = 0;
@@ -572,11 +569,13 @@ if ($f == 'products') {
                                                            'status' => 'placed',
                                                            'address_id' => $address->id,
                                                            'time' => time()));
+
+                                // Build order items text for message
+                                $item_total = $wo['config']['currency_symbol_array'][$wo['config']['currency']] . number_format(($value2['price'] * $value2['units']), 2);
+                                $order_items_text .= "- " . $value2['product_name'] . " x" . $value2['units'] . " = " . $item_total . "\n";
                             }
-                            $db->where('user_id',$wo['user']['user_id'])->update(T_USERS,array('wallet' => $db->dec($total)));
 
                             cache($wo['user']['user_id'], 'users', 'delete');
-                            //$db->where('user_id',$key)->update(T_USERS,array('balance' => $db->inc($total_final_price)));
                             $notes = $wo['lang']['product_purchase'];
                             $notes_2 = $wo['lang']['product_sale'];
                             mysqli_query($sqlConnect, "INSERT INTO " . T_PAYMENT_TRANSACTIONS . " (`userid`, `kind`, `amount`, `notes`) VALUES ({$wo['user']['user_id']}, 'PURCHASE', {$total}, '{$notes}')");
@@ -596,6 +595,30 @@ if ($f == 'products') {
                                 'time' => time()
                             );
                             $db->insert(T_NOTIFICATION,$notification_data_array);
+
+                            // Send order info to seller via chat message
+                            $currency_symbol = $wo['config']['currency_symbol_array'][$wo['config']['currency']];
+                            $order_total_text = $currency_symbol . number_format($total, 2);
+                            $buyer_name = $wo['user']['name'];
+                            $buyer_phone = !empty($address->phone) ? $address->phone : $wo['user']['phone_number'];
+                            $address_text = $address->country . ', ' . $address->city . ', ' . $address->address;
+
+                            $message_text = "📦 ĐƠN HÀNG MỚI #" . $hash_id . "\n\n";
+                            $message_text .= "👤 Người đặt: " . $buyer_name . "\n";
+                            $message_text .= "📞 SĐT: " . $buyer_phone . "\n";
+                            $message_text .= "📍 Địa chỉ: " . $address_text . "\n\n";
+                            $message_text .= "🛒 Sản phẩm:\n" . $order_items_text . "\n";
+                            $message_text .= "💰 Tổng: " . $order_total_text;
+
+                            Wo_RegisterMessage(array(
+                                'from_id' => Wo_Secure($wo['user']['user_id']),
+                                'to_id' => Wo_Secure($key),
+                                'text' => Wo_Secure($message_text, 1),
+                                'media' => '',
+                                'mediaFileName' => '',
+                                'time' => time(),
+                                'stickers' => ''
+                            ));
                         }
 
                         $db->where('user_id',$wo['user']['user_id'])->delete(T_USERCARD);
@@ -771,8 +794,7 @@ if ($f == 'products') {
                     }
                     else{
                         if ($status == 'canceled') {
-                            $total = $db->where('hash_id',$hash_id)->getValue(T_USER_ORDERS,'SUM(price)');
-                            $db->where('user_id',$order->user_id)->update(T_USERS,array('wallet' => $db->inc($total)));
+                            // Wallet refund removed - no longer deducting from wallet on checkout
                         }
                         $notification_data_array = array(
                             'notifier_id' => $wo['user']['user_id'],

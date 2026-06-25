@@ -5,7 +5,7 @@ if ($f == "address") {
 			$id = $db->insert(T_USER_ADDRESS,array('name' => Wo_Secure($_POST['name']),
 		                                'phone' => Wo_Secure($_POST['phone']),
 		                                'city' => Wo_Secure($_POST['city']),
-		                                'zip' => Wo_Secure($_POST['zip']),
+		                                'zip' => Wo_Secure(isset($_POST['zip']) ? $_POST['zip'] : ''),
 		                                'address' => Wo_Secure($_POST['address']),
 		                                'user_id' => $wo['user']['user_id'],
 		                                'time' => time(),
@@ -45,7 +45,7 @@ if ($f == "address") {
 				$db->where('id',$address->id)->update(T_USER_ADDRESS,array('name' => Wo_Secure($_POST['name']),
 									                                'phone' => Wo_Secure($_POST['phone']),
 									                                'city' => Wo_Secure($_POST['city']),
-									                                'zip' => Wo_Secure($_POST['zip']),
+									                                'zip' => Wo_Secure(isset($_POST['zip']) ? $_POST['zip'] : ''),
 									                                'address' => Wo_Secure($_POST['address']),
 									                                'country' => Wo_Secure($_POST['country'])));
 				$data['status'] = 200;
