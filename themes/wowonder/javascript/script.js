@@ -159,6 +159,8 @@ $(document).on('click', '.postText', function(event) {
   textAreaAdjust(this, 70);
 });
 
+$('.postText').css('height', '');
+
 function Wo_RestoreCallScrollPosition() {
   try {
     var currentUrl = new URL(window.location.href);
