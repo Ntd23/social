@@ -42,28 +42,37 @@
 								<input name="phone" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['phone_number']; ?>" value="<?php echo($wo['user']['phone_number']) ?>">
 							</div>
 						</div>
-						<div class="col-md-6">
-							<div class="sun_input">
-								<label><?php echo $wo['lang']['country']; ?></label>
-								<input id="checkout_country" name="country" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['country']; ?>">
+						<div id="checkout_address_fields_wrapper">
+							<div class="col-md-6">
+								<div class="sun_input">
+									<label><?php echo $wo['lang']['country']; ?></label>
+									<input id="checkout_country" name="country" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['country']; ?>">
+								</div>
+							</div>
+							<div class="col-md-12">
+								<div class="sun_input">
+									<label><?php echo $wo['lang']['city']; ?></label>
+									<input id="checkout_city" name="city" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>">
+								</div>
+							</div>
+							<!-- <div class="col-md-6">
+								<div class="sun_input">
+									<label><?php echo $wo['lang']['zip']; ?></label>
+									<input id="zip" name="zip" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['zip']; ?>">
+								</div>
+							</div> -->
+							<div class="col-md-12">
+								<div class="sun_input">
+									<label><?php echo $wo['lang']['address']; ?></label>
+									<input id="checkout_address" name="address" type="text" class="form-control input-md" placeholder="<?php echo $wo['lang']['address']; ?>" autocomplete="off">
+								</div>
 							</div>
 						</div>
-						<div class="col-md-12">
-							<div class="sun_input">
-								<label><?php echo $wo['lang']['city']; ?></label>
-								<input id="checkout_city" name="city" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>">
-							</div>
-						</div>
-						<!-- <div class="col-md-6">
-							<div class="sun_input">
-								<label><?php echo $wo['lang']['zip']; ?></label>
-								<input id="zip" name="zip" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['zip']; ?>">
-							</div>
-						</div> -->
-						<div class="col-md-12">
-							<div class="sun_input">
-								<label><?php echo $wo['lang']['address']; ?></label>
-								<input id="checkout_address" name="address" type="text" class="form-control input-md" placeholder="<?php echo $wo['lang']['address']; ?>" autocomplete="off">
+						<div class="col-md-12" id="checkout_address_card_preview" style="display:none; margin-bottom:15px; margin-top:15px;">
+							<div style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+								<h5 style="margin-top: 0; color: #444; font-weight: 600;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px; color: #48B774;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>Địa chỉ giao hàng đã chọn</h5>
+								<p id="checkout_preview_text" style="font-size: 15px; margin-bottom: 10px; color: #333; line-height: 1.5; font-weight: 500;"></p>
+								<button type="button" id="checkout_change_address_btn" class="btn btn-default btn-sm" style="border: 1px solid #ccc; background: #fff; font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 4px; color: #666;">Thay đổi địa chỉ</button>
 							</div>
 						</div>
 					</div>
@@ -117,7 +126,7 @@ $(document).ready(function() {
         var checkoutAddressInput = document.getElementById('checkout_address');
         if (checkoutAddressInput) {
             var checkoutAutocomplete = new google.maps.places.Autocomplete(checkoutAddressInput, {
-                types: ['geocode', 'address']
+                types: ['geocode']
             });
 
             checkoutAutocomplete.addListener('place_changed', function() {
@@ -129,10 +138,6 @@ $(document).ready(function() {
 
                 isCheckoutAddressSelected = true;
 
-                var streetNumber = '';
-                var route = '';
-                var neighborhood = '';
-                var sublocality = '';
                 var city = '';
                 var country = '';
 
@@ -141,40 +146,54 @@ $(document).ready(function() {
                         var component = place.address_components[i];
                         var addressType = component.types[0];
 
-                        if (addressType === 'street_number') {
-                            streetNumber = component.long_name;
-                        } else if (addressType === 'route') {
-                            route = component.long_name;
-                        } else if (addressType === 'neighborhood') {
-                            neighborhood = component.long_name;
-                        } else if (addressType === 'sublocality_level_1' || addressType === 'sublocality') {
-                            sublocality = component.long_name;
-                        } else if (addressType === 'locality' || addressType === 'administrative_area_level_2') {
+                        if (addressType === 'locality') {
                             if (!city) city = component.long_name;
                         } else if (addressType === 'administrative_area_level_1') {
-                            if (!city) city = component.long_name;
+                            city = component.long_name;
                         } else if (addressType === 'country') {
                             country = component.long_name;
                         }
                     }
                 }
 
+                country = country || 'Việt Nam';
                 $('#checkout_country').val(country);
                 $('#checkout_city').val(city);
 
-                var cleanAddress = (streetNumber ? streetNumber + ' ' : '') + route;
-                if (neighborhood) {
-                    cleanAddress += (cleanAddress ? ', ' : '') + neighborhood;
-                }
-                if (sublocality) {
-                    cleanAddress += (cleanAddress ? ', ' : '') + sublocality;
-                }
-
-                if (!cleanAddress) {
-                    cleanAddress = place.formatted_address || '';
+                var cleanAddress = place.formatted_address || place.name || '';
+                if (cleanAddress) {
+                    var escapeReg = function(string) {
+                        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    };
+                    
+                    if (country) {
+                        cleanAddress = cleanAddress.replace(new RegExp(',\\s*' + escapeReg(country) + '$', 'i'), '');
+                    }
+                    cleanAddress = cleanAddress.replace(/,\s*(Việt Nam|Vietnam)$/i, '');
+                    
+                    if (city) {
+                        cleanAddress = cleanAddress.replace(new RegExp(',\\s*' + escapeReg(city) + '$', 'i'), '');
+                    }
                 }
 
                 $('#checkout_address').val(cleanAddress);
+
+                // Show card preview and hide input fields
+                $('#checkout_preview_text').html(cleanAddress + (city ? ', ' + city : '') + (country ? ', ' + country : ''));
+                $('#checkout_address_fields_wrapper').slideUp();
+                $('#checkout_address_card_preview').slideDown();
+            });
+
+            $('#checkout_change_address_btn').on('click', function() {
+                $('#checkout_address').val('');
+                $('#checkout_city').val('');
+                $('#checkout_country').val('');
+                isCheckoutAddressSelected = false;
+                $('#checkout_address_card_preview').slideUp();
+                $('#checkout_address_fields_wrapper').slideDown();
+                setTimeout(function() {
+                    $('#checkout_address').focus();
+                }, 400);
             });
 
             $(checkoutAddressInput).on('input', function() {
