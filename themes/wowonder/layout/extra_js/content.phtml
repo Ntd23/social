@@ -1396,7 +1396,7 @@ function BuyProducts(type = 'show',price) {
   }
   address_id = $('input[name=choose-address]:checked').val();
   if (type == 'hide') {
-        $('#buy_product_modal').find('.btn-mat').html("<?php echo $wo['lang']['pay'].' '.$wo['config']['currency_symbol_array'][$wo['config']['currency']]; ?>"+price);
+        $('#buy_product_modal').find('.btn-mat').html("Đặt hàng");
         $('#buy_product_modal').find('.btn-mat').attr('onclick', "BuyProducts('show','"+price+"')");
         $('#buy_product_modal').modal('show');
         return false;
@@ -1405,7 +1405,7 @@ function BuyProducts(type = 'show',price) {
     $('#buy_product_modal').find('.btn-mat').attr('disabled', "true");
   $.post(Wo_Ajax_Requests_File() + '?f=products&s=buy&hash=' + $('.main_session').val(),{address_id: address_id}, function(data, textStatus, xhr) {
     $('#buy_product_modal').find('.btn-mat').removeAttr('disabled');
-    $('#buy_product_modal').find('.btn-mat').text("<?php echo $wo['lang']['pay'].' '.$wo['config']['classified_currency_s']; ?>"+price);
+    $('#buy_product_modal').find('.btn-mat').text("Đặt hàng");
     if (data.status == 200) {
       <?php if ($wo['config']['node_socket_flow'] == 1) { ?>
         socket.emit("checkout_notification", {user_id: _getCookie("user_id"), type: "added",users: data.users });

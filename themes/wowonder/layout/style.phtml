@@ -279,8 +279,17 @@ a.unread-update {
 .hash {
     color: <?php echo $wo['config']['btn_background_color'];?>;
 }
-.message-text .hash {
+.chat-messages-wrapper .outgoing .message-text .hash,
+.text-sender-container .outgoing .message-model .message .hash,
+.messages-wrapper.pull-right.messages-text .hash,
+.message-contnaier.outgoing .message-text .hash {
     color: #fff !important;
+}
+.chat-messages-wrapper .incoming .message-text .hash,
+.text-sender-container .incoming .message-model .message .hash,
+.messages-wrapper.pull-left.messages-text .hash,
+.message-contnaier.incoming .message-text .hash {
+    color: <?php echo $wo['config']['btn_background_color'];?> !important;
 }
 .search-container .search-input {
     color: <?php echo $wo['config']['header_color'];?> !important;
