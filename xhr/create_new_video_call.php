@@ -129,6 +129,18 @@ if ($f == 'create_new_video_call') {
                 );
                 Wo_SendPushNotification($send_array,'android_messenger');
             }
+            // FCM data-only call notification (background/killed app)
+            if (!empty($wo['calling_user']['android_m_device_id'])) {
+                Wo_SendFcmCallNotification($wo['calling_user']['android_m_device_id'], array(
+                    'caller_name'   => $user_1['name'],
+                    'caller_avatar' => !empty($user_1['avatar']) ? $user_1['avatar'] : '',
+                    'caller_id'     => $_GET['user_id1'],
+                    'call_id'       => $insertData,
+                    'call_type'     => 'video',
+                    'room_name'     => $room_script,
+                    'call_url'      => $wo['config']['site_url'] . '/call_livekit.php?room=' . urlencode($room_script) . '&type=video&id=' . $insertData,
+                ));
+            }
             $data = array(
                 'status' => 200,
                 'access_token' => '',
@@ -230,6 +242,18 @@ if ($f == 'create_new_video_call') {
                 );
                 Wo_SendPushNotification($send_array,'android_messenger');
             }
+            // FCM data-only call notification (background/killed app)
+            if (!empty($wo['calling_user']['android_m_device_id'])) {
+                Wo_SendFcmCallNotification($wo['calling_user']['android_m_device_id'], array(
+                    'caller_name'   => $user_1['name'],
+                    'caller_avatar' => !empty($user_1['avatar']) ? $user_1['avatar'] : '',
+                    'caller_id'     => $_GET['user_id1'],
+                    'call_id'       => $insertData,
+                    'call_type'     => 'video',
+                    'room_name'     => $room_script,
+                    'call_url'      => $wo['config']['site_url'] . '/call_livekit.php?room=' . urlencode($room_script) . '&type=video&id=' . $insertData,
+                ));
+            }
             $data = array(
                 'status' => 200,
                 'access_token' => $token_,
@@ -314,6 +338,18 @@ if ($f == 'create_new_video_call') {
                     )
                 );
                 Wo_SendPushNotification($send_array,'android_messenger');
+            }
+            // FCM data-only call notification (background/killed app)
+            if (!empty($wo['calling_user']['android_m_device_id'])) {
+                Wo_SendFcmCallNotification($wo['calling_user']['android_m_device_id'], array(
+                    'caller_name'   => $user_1['name'],
+                    'caller_avatar' => !empty($user_1['avatar']) ? $user_1['avatar'] : '',
+                    'caller_id'     => $_GET['user_id1'],
+                    'call_id'       => $insertData,
+                    'call_type'     => 'video',
+                    'room_name'     => $room_script,
+                    'call_url'      => Wo_BuildCallJoinUrl($room_script, 'video', array('id' => $insertData, 'provider' => $provider)),
+                ));
             }
             $data = array(
                 'status' => 200,
