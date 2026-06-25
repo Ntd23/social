@@ -576,10 +576,6 @@ if ($f == 'products') {
                             }
 
                             cache($wo['user']['user_id'], 'users', 'delete');
-                            $notes = $wo['lang']['product_purchase'];
-                            $notes_2 = $wo['lang']['product_sale'];
-                            mysqli_query($sqlConnect, "INSERT INTO " . T_PAYMENT_TRANSACTIONS . " (`userid`, `kind`, `amount`, `notes`) VALUES ({$wo['user']['user_id']}, 'PURCHASE', {$total}, '{$notes}')");
-                            mysqli_query($sqlConnect, "INSERT INTO " . T_PAYMENT_TRANSACTIONS . " (`userid`, `kind`, `amount`, `notes`) VALUES ({$key}, 'SALE', {$total_final_price}, '{$notes_2}')");
                             $db->insert(T_PURCHAES,array('user_id' => $wo['user']['user_id'],
                                                              'order_hash_id' => $hash_id,
                                                              'price' => $total,
@@ -601,7 +597,7 @@ if ($f == 'products') {
                             $order_total_text = $currency_symbol . number_format($total, 2);
                             $buyer_name = $wo['user']['name'];
                             $buyer_phone = !empty($address->phone) ? $address->phone : $wo['user']['phone_number'];
-                            $address_text = $address->country . ', ' . $address->city . ', ' . $address->address;
+                            $address_text = $address->address . ', ' . $address->city . ', ' . $address->country;
 
                             $message_text = "📦 ĐƠN HÀNG MỚI #" . $hash_id . "\n\n";
                             $message_text .= "👤 Người đặt: " . $buyer_name . "\n";
