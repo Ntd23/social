@@ -1,0 +1,864 @@
+[2026-06-24 10:18:48] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1300,"call_type":"audio","room_name":"1a12c43ba83a5375168fcdd85a20ea836e4cf3e5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=1a12c43ba83a5375168fcdd85a20ea836e4cf3e5&type=audio&id=1300"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1300","call_type":"audio","room_name":"1a12c43ba83a5375168fcdd85a20ea836e4cf3e5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=1a12c43ba83a5375168fcdd85a20ea836e4cf3e5&type=audio&id=1300"},"android_channel_id":"","large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"errors":["Could not find android_channel_id"]}
+
+[2026-06-24 10:19:32] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1301,"call_type":"audio","room_name":"650f85fbcc93e96bbec7e6af477d0d65dca54dd3","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=650f85fbcc93e96bbec7e6af477d0d65dca54dd3&type=audio&id=1301"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1301","call_type":"audio","room_name":"650f85fbcc93e96bbec7e6af477d0d65dca54dd3","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=650f85fbcc93e96bbec7e6af477d0d65dca54dd3&type=audio&id=1301"},"android_channel_id":"","large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"errors":["Could not find android_channel_id"]}
+
+[2026-06-24 10:22:18] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1302,"call_type":"audio","room_name":"5cf28e2d8b71f45921975a019b6d85d540ea49ce","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=5cf28e2d8b71f45921975a019b6d85d540ea49ce&type=audio&id=1302"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1302","call_type":"audio","room_name":"5cf28e2d8b71f45921975a019b6d85d540ea49ce","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=5cf28e2d8b71f45921975a019b6d85d540ea49ce&type=audio&id=1302"},"android_channel_id":"","large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"errors":["Could not find android_channel_id"]}
+
+[2026-06-24 10:25:28] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1303,"call_type":"audio","room_name":"d8b3ed95af1ac1e833ef05f226ad513b776056bb","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=d8b3ed95af1ac1e833ef05f226ad513b776056bb&type=audio&id=1303"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1303","call_type":"audio","room_name":"d8b3ed95af1ac1e833ef05f226ad513b776056bb","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=d8b3ed95af1ac1e833ef05f226ad513b776056bb&type=audio&id=1303"},"android_channel_id":"","large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"errors":["Could not find android_channel_id"]}
+
+[2026-06-24 10:29:44] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1304,"call_type":"audio","room_name":"b81d9a75236bea2602d08d1b6ad88596037555ba","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b81d9a75236bea2602d08d1b6ad88596037555ba&type=audio&id=1304"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1304","call_type":"audio","room_name":"b81d9a75236bea2602d08d1b6ad88596037555ba","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b81d9a75236bea2602d08d1b6ad88596037555ba&type=audio&id=1304"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"336be596-2c2b-466a-84e2-206e39c46208","external_id":null}
+
+[2026-06-24 10:33:50] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1305,"call_type":"audio","room_name":"0ea80669769e32a5ee4856867d2875b5d0eb2dc6","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=0ea80669769e32a5ee4856867d2875b5d0eb2dc6&type=audio&id=1305"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1305","call_type":"audio","room_name":"0ea80669769e32a5ee4856867d2875b5d0eb2dc6","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=0ea80669769e32a5ee4856867d2875b5d0eb2dc6&type=audio&id=1305"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"ec2a8778-4e34-47f7-ad3f-b6481439bb53","external_id":null}
+
+[2026-06-24 10:40:32] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1306,"call_type":"audio","room_name":"59e1034065ce66f82d631110fefcf257245ab724","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=59e1034065ce66f82d631110fefcf257245ab724&type=audio&id=1306"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1306","call_type":"audio","room_name":"59e1034065ce66f82d631110fefcf257245ab724","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=59e1034065ce66f82d631110fefcf257245ab724&type=audio&id=1306"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"ab269593-6dbd-49fe-901b-91b1a3b6010d","external_id":null}
+
+[2026-06-24 10:41:03] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1307,"call_type":"audio","room_name":"0a65337f3af01a50806fb42a8970f7872e0eeae1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=0a65337f3af01a50806fb42a8970f7872e0eeae1&type=audio&id=1307"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1307","call_type":"audio","room_name":"0a65337f3af01a50806fb42a8970f7872e0eeae1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=0a65337f3af01a50806fb42a8970f7872e0eeae1&type=audio&id=1307"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"bbcb7909-6b89-4ae1-807f-91c44b7f52a0","external_id":null}
+
+[2026-06-24 10:41:22] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1308,"call_type":"audio","room_name":"2d6b9f7be80148429a01fc08495f7c3171069bf9","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=2d6b9f7be80148429a01fc08495f7c3171069bf9&type=audio&id=1308"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1308","call_type":"audio","room_name":"2d6b9f7be80148429a01fc08495f7c3171069bf9","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=2d6b9f7be80148429a01fc08495f7c3171069bf9&type=audio&id=1308"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"a9832bc0-2cb2-469c-a4ba-4ba0723860dd","external_id":null}
+
+[2026-06-24 10:42:18] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1309,"call_type":"audio","room_name":"764773e44f34c2f17450edf86ca83b4860d6a623","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=764773e44f34c2f17450edf86ca83b4860d6a623&type=audio&id=1309"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1309","call_type":"audio","room_name":"764773e44f34c2f17450edf86ca83b4860d6a623","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=764773e44f34c2f17450edf86ca83b4860d6a623&type=audio&id=1309"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"98272fec-8bb0-42ec-a301-68d7c7226d7b","external_id":null}
+
+[2026-06-24 10:49:08] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1310,"call_type":"audio","room_name":"d0bae395927f8ebe900f8acfa7328a874cbb270c","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=d0bae395927f8ebe900f8acfa7328a874cbb270c&type=audio&id=1310"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1310","call_type":"audio","room_name":"d0bae395927f8ebe900f8acfa7328a874cbb270c","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=d0bae395927f8ebe900f8acfa7328a874cbb270c&type=audio&id=1310"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"2fd13f95-4eab-49cf-bb5c-faec849a5efe","external_id":null}
+
+[2026-06-24 10:50:18] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":137,"call_type":"video","room_name":"81e22beaccb19b6580a08de51a859d342534c96e","call_url":"https:\/\/vnseea.vn\/call.php?room=81e22beaccb19b6580a08de51a859d342534c96e&provider=livekit&id=137"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi video \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"137","call_type":"video","room_name":"81e22beaccb19b6580a08de51a859d342534c96e","call_url":"https:\/\/vnseea.vn\/call.php?room=81e22beaccb19b6580a08de51a859d342534c96e&provider=livekit&id=137"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"4d9bc0ec-a466-4528-96ac-9ff325bd5a12","external_id":null}
+
+[2026-06-24 10:53:01] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1311,"call_type":"audio","room_name":"ff747e960ab23e1b5989752692c501d7f419cdec","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=ff747e960ab23e1b5989752692c501d7f419cdec&type=audio&id=1311"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1311","call_type":"audio","room_name":"ff747e960ab23e1b5989752692c501d7f419cdec","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=ff747e960ab23e1b5989752692c501d7f419cdec&type=audio&id=1311"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"e6db6422-34cd-43db-8135-071ce4d503be","external_id":null}
+
+[2026-06-25 03:04:13] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1314,"call_type":"audio","room_name":"e4dfd9dd358f39e31ff4dc01123cd6d02074f7b1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=e4dfd9dd358f39e31ff4dc01123cd6d02074f7b1&type=audio&id=1314"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1314","call_type":"audio","room_name":"e4dfd9dd358f39e31ff4dc01123cd6d02074f7b1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=e4dfd9dd358f39e31ff4dc01123cd6d02074f7b1&type=audio&id=1314"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"fcd66dd3-c8b0-4ee9-ba43-31db3978975d","external_id":null}
+
+[2026-06-25 03:07:17] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"dung1","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0","caller_id":"5","call_id":1315,"call_type":"audio","room_name":"c30ddd7227277dc2a0b038ca1c1ec037011451ee","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=c30ddd7227277dc2a0b038ca1c1ec037011451ee&type=audio&id=1315"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"dung1"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"dung1","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0","caller_id":"5","call_id":"1315","call_type":"audio","room_name":"c30ddd7227277dc2a0b038ca1c1ec037011451ee","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=c30ddd7227277dc2a0b038ca1c1ec037011451ee&type=audio&id=1315"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0"}
+Curl Error: None
+Response: {"id":"","errors":{"invalid_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"]}}
+
+[2026-06-25 03:09:33] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1316,"call_type":"audio","room_name":"8f132292f4f549192b3ebb8f41d285073d60178f","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=8f132292f4f549192b3ebb8f41d285073d60178f&type=audio&id=1316"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1316","call_type":"audio","room_name":"8f132292f4f549192b3ebb8f41d285073d60178f","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=8f132292f4f549192b3ebb8f41d285073d60178f&type=audio&id=1316"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"19ab77ed-129a-4644-b61a-51067f276679","external_id":null}
+
+[2026-06-25 03:10:14] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1317,"call_type":"audio","room_name":"4ad83f9d64238312c8f2dfc29bad2f7787fd5d0d","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=4ad83f9d64238312c8f2dfc29bad2f7787fd5d0d&type=audio&id=1317"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1317","call_type":"audio","room_name":"4ad83f9d64238312c8f2dfc29bad2f7787fd5d0d","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=4ad83f9d64238312c8f2dfc29bad2f7787fd5d0d&type=audio&id=1317"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"12ebd73c-379d-4c62-969f-a714010448c0","external_id":null}
+
+[2026-06-25 03:10:33] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1318,"call_type":"audio","room_name":"f6b48669f7cfbd006d310443d249381f36e879d1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=f6b48669f7cfbd006d310443d249381f36e879d1&type=audio&id=1318"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1318","call_type":"audio","room_name":"f6b48669f7cfbd006d310443d249381f36e879d1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=f6b48669f7cfbd006d310443d249381f36e879d1&type=audio&id=1318"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"12e15861-bf1d-4654-9c95-0c547d7bc22f","external_id":null}
+
+[2026-06-25 03:11:10] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1319,"call_type":"audio","room_name":"78a7fd32c4709831a8e53c0bf46936d82276f1f1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=78a7fd32c4709831a8e53c0bf46936d82276f1f1&type=audio&id=1319"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1319","call_type":"audio","room_name":"78a7fd32c4709831a8e53c0bf46936d82276f1f1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=78a7fd32c4709831a8e53c0bf46936d82276f1f1&type=audio&id=1319"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"17242cd0-e36c-49aa-ac76-484d56b0eac4","external_id":null}
+
+[2026-06-25 03:50:44] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1320,"call_type":"audio","room_name":"aa0d62f106bf615fe661b09b198a9491c7c40b46","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=aa0d62f106bf615fe661b09b198a9491c7c40b46&type=audio&id=1320"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1320","call_type":"audio","room_name":"aa0d62f106bf615fe661b09b198a9491c7c40b46","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=aa0d62f106bf615fe661b09b198a9491c7c40b46&type=audio&id=1320"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"7eccfa08-1736-4f86-8092-9e8ee1dda34a","external_id":null}
+
+[2026-06-25 03:55:40] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1321,"call_type":"audio","room_name":"20ce85ce80b41e69a63a3c5c1296bb80d025029f","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=20ce85ce80b41e69a63a3c5c1296bb80d025029f&type=audio&id=1321"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1321","call_type":"audio","room_name":"20ce85ce80b41e69a63a3c5c1296bb80d025029f","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=20ce85ce80b41e69a63a3c5c1296bb80d025029f&type=audio&id=1321"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"d23c9181-06b2-40a1-9533-0284651b7ea2","external_id":null}
+
+[2026-06-25 03:57:06] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1322,"call_type":"audio","room_name":"bd97297937807b72a3b06cb41738c3a99a47d1fc","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=bd97297937807b72a3b06cb41738c3a99a47d1fc&type=audio&id=1322"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1322","call_type":"audio","room_name":"bd97297937807b72a3b06cb41738c3a99a47d1fc","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=bd97297937807b72a3b06cb41738c3a99a47d1fc&type=audio&id=1322"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"d74c30cd-79a8-499e-9126-e19581b7a324","external_id":null}
+
+[2026-06-25 03:58:00] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1323,"call_type":"audio","room_name":"787579ca1150c23067aa5d0cf2484bed68a5ae3c","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=787579ca1150c23067aa5d0cf2484bed68a5ae3c&type=audio&id=1323"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1323","call_type":"audio","room_name":"787579ca1150c23067aa5d0cf2484bed68a5ae3c","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=787579ca1150c23067aa5d0cf2484bed68a5ae3c&type=audio&id=1323"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"b47b8464-bbcd-4f23-b424-c935c84fea60","external_id":null}
+
+[2026-06-25 04:00:26] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1324,"call_type":"audio","room_name":"fdd4f2bdb7de6038885ba6631f5ba1f6cedaab83","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=fdd4f2bdb7de6038885ba6631f5ba1f6cedaab83&type=audio&id=1324"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1324","call_type":"audio","room_name":"fdd4f2bdb7de6038885ba6631f5ba1f6cedaab83","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=fdd4f2bdb7de6038885ba6631f5ba1f6cedaab83&type=audio&id=1324"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"df4485dd-b355-41a8-a826-e4596f433afc","external_id":null}
+
+[2026-06-25 04:02:59] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1325,"call_type":"audio","room_name":"5cd00348cf5d7de950c908d2dc8dde9224443f6e","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=5cd00348cf5d7de950c908d2dc8dde9224443f6e&type=audio&id=1325"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1325","call_type":"audio","room_name":"5cd00348cf5d7de950c908d2dc8dde9224443f6e","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=5cd00348cf5d7de950c908d2dc8dde9224443f6e&type=audio&id=1325"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"0f2eb9e7-48c7-464a-8b09-d80ece9e0fc5","external_id":null}
+
+[2026-06-25 04:06:21] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1326,"call_type":"audio","room_name":"40c172bbe1ef381b56c55ac873385bcc5dbef4bb","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=40c172bbe1ef381b56c55ac873385bcc5dbef4bb&type=audio&id=1326"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1326","call_type":"audio","room_name":"40c172bbe1ef381b56c55ac873385bcc5dbef4bb","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=40c172bbe1ef381b56c55ac873385bcc5dbef4bb&type=audio&id=1326"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"85516664-5029-43dd-a46c-d244fe064328","external_id":null}
+
+[2026-06-25 04:14:20] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1327,"call_type":"audio","room_name":"0e8c991686f5eb353cd823827fe97f99628898b0","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=0e8c991686f5eb353cd823827fe97f99628898b0&type=audio&id=1327"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1327","call_type":"audio","room_name":"0e8c991686f5eb353cd823827fe97f99628898b0","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=0e8c991686f5eb353cd823827fe97f99628898b0&type=audio&id=1327"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"64db2cb5-b20a-4f6f-b12e-0d31b5d81b58","external_id":null}
+
+[2026-06-25 04:21:25] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1328,"call_type":"audio","room_name":"813acf2ca6789dbb265f6fd178041c54ae968541","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=813acf2ca6789dbb265f6fd178041c54ae968541&type=audio&id=1328"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1328","call_type":"audio","room_name":"813acf2ca6789dbb265f6fd178041c54ae968541","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=813acf2ca6789dbb265f6fd178041c54ae968541&type=audio&id=1328"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"dfffd289-dfea-4070-8950-a3021a385642","external_id":null}
+
+[2026-06-25 04:21:37] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1329,"call_type":"audio","room_name":"ca57380078439a46a36a6719e494d5478ad1efd5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=ca57380078439a46a36a6719e494d5478ad1efd5&type=audio&id=1329"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1329","call_type":"audio","room_name":"ca57380078439a46a36a6719e494d5478ad1efd5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=ca57380078439a46a36a6719e494d5478ad1efd5&type=audio&id=1329"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"ae3f6afc-8abf-4e1b-9dae-940b39eb8076","external_id":null}
+
+[2026-06-25 04:23:37] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1330,"call_type":"audio","room_name":"a1098cf3d88a2898e8b335a029c1ba7bfcaeebab","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=a1098cf3d88a2898e8b335a029c1ba7bfcaeebab&type=audio&id=1330"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1330","call_type":"audio","room_name":"a1098cf3d88a2898e8b335a029c1ba7bfcaeebab","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=a1098cf3d88a2898e8b335a029c1ba7bfcaeebab&type=audio&id=1330"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"eb6a0e9e-9526-40e8-a5d3-335c449c20f8","external_id":null}
+
+[2026-06-25 04:26:40] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1331,"call_type":"audio","room_name":"f67cde7947651d5d6c8f52c87a3203b2264fbdb2","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=f67cde7947651d5d6c8f52c87a3203b2264fbdb2&type=audio&id=1331"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1331","call_type":"audio","room_name":"f67cde7947651d5d6c8f52c87a3203b2264fbdb2","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=f67cde7947651d5d6c8f52c87a3203b2264fbdb2&type=audio&id=1331"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"1e7315a1-5826-4870-8464-525d0eb156b8","external_id":null}
+
+[2026-06-25 04:42:46] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1332,"call_type":"audio","room_name":"defee9f0f229f8f01b063d5605282b3219a57786","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=defee9f0f229f8f01b063d5605282b3219a57786&type=audio&id=1332"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1332","call_type":"audio","room_name":"defee9f0f229f8f01b063d5605282b3219a57786","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=defee9f0f229f8f01b063d5605282b3219a57786&type=audio&id=1332"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"1d438ab7-f077-462d-88fa-def5f78a8d65","external_id":null}
+
+[2026-06-25 04:43:10] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1333,"call_type":"audio","room_name":"67aae8304f62f0cd139ac41379b4f3bd21149220","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=67aae8304f62f0cd139ac41379b4f3bd21149220&type=audio&id=1333"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1333","call_type":"audio","room_name":"67aae8304f62f0cd139ac41379b4f3bd21149220","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=67aae8304f62f0cd139ac41379b4f3bd21149220&type=audio&id=1333"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"eea89e9b-5b3d-482b-b4d3-7dffa024707d","external_id":null}
+
+[2026-06-25 04:43:29] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1334,"call_type":"audio","room_name":"071f5155c12c26933c07259e5ebc7d444cc32b60","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=071f5155c12c26933c07259e5ebc7d444cc32b60&type=audio&id=1334"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1334","call_type":"audio","room_name":"071f5155c12c26933c07259e5ebc7d444cc32b60","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=071f5155c12c26933c07259e5ebc7d444cc32b60&type=audio&id=1334"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"aca60352-b68b-4ddb-9043-889daedc7373","external_id":null}
+
+[2026-06-25 04:44:12] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1335,"call_type":"audio","room_name":"140c13d71ffd830b266c1abb2cfdb8cd414f2fd3","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=140c13d71ffd830b266c1abb2cfdb8cd414f2fd3&type=audio&id=1335"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1335","call_type":"audio","room_name":"140c13d71ffd830b266c1abb2cfdb8cd414f2fd3","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=140c13d71ffd830b266c1abb2cfdb8cd414f2fd3&type=audio&id=1335"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"b69e73be-72c5-41ac-b704-d0a63b535572","external_id":null}
+
+[2026-06-25 04:58:44] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1336,"call_type":"audio","room_name":"1e9ae06d45f5c63888a168b13ee92500e367bfe5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=1e9ae06d45f5c63888a168b13ee92500e367bfe5&type=audio&id=1336"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1336","call_type":"audio","room_name":"1e9ae06d45f5c63888a168b13ee92500e367bfe5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=1e9ae06d45f5c63888a168b13ee92500e367bfe5&type=audio&id=1336"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"354fe79a-6916-4899-b4e6-82e813643e5c","external_id":null}
+
+[2026-06-25 04:59:12] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1337,"call_type":"audio","room_name":"b33da39bc82793dd432ecfbc03af8e9ba6324b6d","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b33da39bc82793dd432ecfbc03af8e9ba6324b6d&type=audio&id=1337"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1337","call_type":"audio","room_name":"b33da39bc82793dd432ecfbc03af8e9ba6324b6d","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b33da39bc82793dd432ecfbc03af8e9ba6324b6d&type=audio&id=1337"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"a9da1305-d119-47fe-83e5-8119b86166d3","external_id":null}
+
+[2026-06-25 04:59:32] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1338,"call_type":"audio","room_name":"9d10012064586ac98d0eb7f68ab5388fe43670ed","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=9d10012064586ac98d0eb7f68ab5388fe43670ed&type=audio&id=1338"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1338","call_type":"audio","room_name":"9d10012064586ac98d0eb7f68ab5388fe43670ed","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=9d10012064586ac98d0eb7f68ab5388fe43670ed&type=audio&id=1338"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"cba3367a-48cb-42da-9e01-0387273e6297","external_id":null}
+
+[2026-06-25 05:00:11] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1339,"call_type":"audio","room_name":"37d91fdc12e4d736cd744995fc198c66e8568ea2","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=37d91fdc12e4d736cd744995fc198c66e8568ea2&type=audio&id=1339"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1339","call_type":"audio","room_name":"37d91fdc12e4d736cd744995fc198c66e8568ea2","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=37d91fdc12e4d736cd744995fc198c66e8568ea2&type=audio&id=1339"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"61bd1686-cb15-41d4-b504-b1c59958f719","external_id":null}
+
+[2026-06-25 05:01:01] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1340,"call_type":"audio","room_name":"c3c229d0960d81c7455d7caf67693a051113a448","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=c3c229d0960d81c7455d7caf67693a051113a448&type=audio&id=1340"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1340","call_type":"audio","room_name":"c3c229d0960d81c7455d7caf67693a051113a448","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=c3c229d0960d81c7455d7caf67693a051113a448&type=audio&id=1340"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"d01c95df-1439-47b4-8ccd-0ec0999c43e2","external_id":null}
+
+[2026-06-25 05:01:08] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1341,"call_type":"audio","room_name":"576b0da80597a69d9dd0f7b01e0dca27884f14b2","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=576b0da80597a69d9dd0f7b01e0dca27884f14b2&type=audio&id=1341"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1341","call_type":"audio","room_name":"576b0da80597a69d9dd0f7b01e0dca27884f14b2","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=576b0da80597a69d9dd0f7b01e0dca27884f14b2&type=audio&id=1341"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"60c0645b-440b-4c73-ac91-21316eeba34d","external_id":null}
+
+[2026-06-25 05:04:24] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1342,"call_type":"audio","room_name":"4a7e45828c331496aeef204dc97bf7953b7d45b6","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=4a7e45828c331496aeef204dc97bf7953b7d45b6&type=audio&id=1342"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1342","call_type":"audio","room_name":"4a7e45828c331496aeef204dc97bf7953b7d45b6","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=4a7e45828c331496aeef204dc97bf7953b7d45b6&type=audio&id=1342"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"e96b6f93-e250-4bed-a614-4fcb60c48617","external_id":null}
+
+[2026-06-25 05:05:01] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1343,"call_type":"audio","room_name":"c72fe781120911a122e4ae48a2a1944f62a3fe2f","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=c72fe781120911a122e4ae48a2a1944f62a3fe2f&type=audio&id=1343"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1343","call_type":"audio","room_name":"c72fe781120911a122e4ae48a2a1944f62a3fe2f","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=c72fe781120911a122e4ae48a2a1944f62a3fe2f&type=audio&id=1343"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"2cb47785-d53b-4f6d-ade1-1aa3ef4506fa","external_id":null}
+
+[2026-06-25 05:09:31] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1344,"call_type":"audio","room_name":"013c455479c61ab94b5aafd00ec4158ef7783730","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=013c455479c61ab94b5aafd00ec4158ef7783730&type=audio&id=1344"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1344","call_type":"audio","room_name":"013c455479c61ab94b5aafd00ec4158ef7783730","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=013c455479c61ab94b5aafd00ec4158ef7783730&type=audio&id=1344"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"a18dabe0-500e-4236-9ecc-44ae563a166e","external_id":null}
+
+[2026-06-25 05:16:13] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1345,"call_type":"audio","room_name":"7d4b07cb0dc1175e2b5569acd981bd5dd2450ff6","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=7d4b07cb0dc1175e2b5569acd981bd5dd2450ff6&type=audio&id=1345"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1345","call_type":"audio","room_name":"7d4b07cb0dc1175e2b5569acd981bd5dd2450ff6","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=7d4b07cb0dc1175e2b5569acd981bd5dd2450ff6&type=audio&id=1345"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"24c50d56-bfe5-43b1-8d16-5f6a00a569cb","external_id":null}
+
+[2026-06-25 05:16:46] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1346,"call_type":"audio","room_name":"cfecb8385564fe4f5660272565b18f3ccee76e82","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=cfecb8385564fe4f5660272565b18f3ccee76e82&type=audio&id=1346"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1346","call_type":"audio","room_name":"cfecb8385564fe4f5660272565b18f3ccee76e82","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=cfecb8385564fe4f5660272565b18f3ccee76e82&type=audio&id=1346"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"f5882719-cfdb-4fa0-b620-898859999211","external_id":null}
+
+[2026-06-25 05:23:12] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1347,"call_type":"audio","room_name":"f73d93a8676ff5e21c4b95791a413ed8f55969f0","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=f73d93a8676ff5e21c4b95791a413ed8f55969f0&type=audio&id=1347"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1347","call_type":"audio","room_name":"f73d93a8676ff5e21c4b95791a413ed8f55969f0","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=f73d93a8676ff5e21c4b95791a413ed8f55969f0&type=audio&id=1347"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"ce41e217-b4fe-4c18-922b-f26866aa3b94","external_id":null}
+
+[2026-06-25 05:28:11] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1348,"call_type":"audio","room_name":"95bab8bd8d39e9fe5d5077c8713875862c231076","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=95bab8bd8d39e9fe5d5077c8713875862c231076&type=audio&id=1348"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1348","call_type":"audio","room_name":"95bab8bd8d39e9fe5d5077c8713875862c231076","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=95bab8bd8d39e9fe5d5077c8713875862c231076&type=audio&id=1348"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"52154fd6-e3a2-4b69-ac7c-0d3fca3491a0","external_id":null}
+
+[2026-06-25 05:30:15] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1349,"call_type":"audio","room_name":"661549777fdfbca032861ac91ff4d3df9e6513d1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=661549777fdfbca032861ac91ff4d3df9e6513d1&type=audio&id=1349"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1349","call_type":"audio","room_name":"661549777fdfbca032861ac91ff4d3df9e6513d1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=661549777fdfbca032861ac91ff4d3df9e6513d1&type=audio&id=1349"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"740ff5aa-8a42-49dd-9e1e-33974ffe79b6","external_id":null}
+
+[2026-06-25 05:30:25] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1350,"call_type":"audio","room_name":"d674982cbf030f7b9b356b565f6513466f9b89f3","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=d674982cbf030f7b9b356b565f6513466f9b89f3&type=audio&id=1350"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1350","call_type":"audio","room_name":"d674982cbf030f7b9b356b565f6513466f9b89f3","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=d674982cbf030f7b9b356b565f6513466f9b89f3&type=audio&id=1350"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"384673b5-a241-4d11-a43d-2d20be993302","external_id":null}
+
+[2026-06-25 05:31:04] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1351,"call_type":"audio","room_name":"258280954132c9943693afd94af87d40e3f1a9c1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=258280954132c9943693afd94af87d40e3f1a9c1&type=audio&id=1351"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1351","call_type":"audio","room_name":"258280954132c9943693afd94af87d40e3f1a9c1","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=258280954132c9943693afd94af87d40e3f1a9c1&type=audio&id=1351"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"6fc9d15f-0ecd-42e4-b916-43c7cbcd0321","external_id":null}
+
+[2026-06-25 05:32:19] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1352,"call_type":"audio","room_name":"b477de3122a7879b97a198a9d29b2957ebf0bd3a","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b477de3122a7879b97a198a9d29b2957ebf0bd3a&type=audio&id=1352"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1352","call_type":"audio","room_name":"b477de3122a7879b97a198a9d29b2957ebf0bd3a","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b477de3122a7879b97a198a9d29b2957ebf0bd3a&type=audio&id=1352"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"c719913d-7b3b-42da-9e81-ead4203b079f","external_id":null}
+
+[2026-06-25 05:33:06] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1353,"call_type":"audio","room_name":"21e35c447fc83b881a5b220f329e3b358cb945e3","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=21e35c447fc83b881a5b220f329e3b358cb945e3&type=audio&id=1353"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1353","call_type":"audio","room_name":"21e35c447fc83b881a5b220f329e3b358cb945e3","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=21e35c447fc83b881a5b220f329e3b358cb945e3&type=audio&id=1353"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"11b8a371-94ca-400d-93e6-40e5e0f6d75e","external_id":null}
+
+[2026-06-25 05:33:54] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1354,"call_type":"audio","room_name":"6889209cba67288fb1dfee9717ea3bbefb424efe","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=6889209cba67288fb1dfee9717ea3bbefb424efe&type=audio&id=1354"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1354","call_type":"audio","room_name":"6889209cba67288fb1dfee9717ea3bbefb424efe","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=6889209cba67288fb1dfee9717ea3bbefb424efe&type=audio&id=1354"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"8e6d45d3-67df-4e6f-9f9d-d79896faa40a","external_id":null}
+
+[2026-06-25 05:38:02] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1355,"call_type":"audio","room_name":"903b8a8e8b2a58d639671df3714b80bc2b8c1996","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=903b8a8e8b2a58d639671df3714b80bc2b8c1996&type=audio&id=1355"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1355","call_type":"audio","room_name":"903b8a8e8b2a58d639671df3714b80bc2b8c1996","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=903b8a8e8b2a58d639671df3714b80bc2b8c1996&type=audio&id=1355"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"58977a62-4a7b-4bcf-887a-ab7792eece22","external_id":null}
+
+[2026-06-25 05:43:45] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1356,"call_type":"audio","room_name":"152ac06d6fc7e51f6751dc9da7f77fcf1d03dae7","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=152ac06d6fc7e51f6751dc9da7f77fcf1d03dae7&type=audio&id=1356"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1356","call_type":"audio","room_name":"152ac06d6fc7e51f6751dc9da7f77fcf1d03dae7","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=152ac06d6fc7e51f6751dc9da7f77fcf1d03dae7&type=audio&id=1356"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"51670597-f08d-49a7-961e-6fcbc66fabf8","external_id":null}
+
+[2026-06-25 05:44:40] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1357,"call_type":"audio","room_name":"e9da4ad435815dda18e6d81fd87a069e7d0071d8","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=e9da4ad435815dda18e6d81fd87a069e7d0071d8&type=audio&id=1357"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1357","call_type":"audio","room_name":"e9da4ad435815dda18e6d81fd87a069e7d0071d8","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=e9da4ad435815dda18e6d81fd87a069e7d0071d8&type=audio&id=1357"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"3c8066e9-5ee4-43b0-b7a5-881604be21d7","external_id":null}
+
+[2026-06-25 05:48:17] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1358,"call_type":"audio","room_name":"e230407f64e268b84d706323fdda62667eb41679","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=e230407f64e268b84d706323fdda62667eb41679&type=audio&id=1358"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1358","call_type":"audio","room_name":"e230407f64e268b84d706323fdda62667eb41679","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=e230407f64e268b84d706323fdda62667eb41679&type=audio&id=1358"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"e7df7496-43d4-4ba9-95f9-016570256c35","external_id":null}
+
+[2026-06-25 08:40:40] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1359,"call_type":"audio","room_name":"af0cae954b1369dc94e14c90c81b9af15e41b7a4","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=af0cae954b1369dc94e14c90c81b9af15e41b7a4&type=audio&id=1359"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1359","call_type":"audio","room_name":"af0cae954b1369dc94e14c90c81b9af15e41b7a4","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=af0cae954b1369dc94e14c90c81b9af15e41b7a4&type=audio&id=1359"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"9705aa30-c51a-4b06-89a1-cc9b61acaccb","external_id":null}
+
+[2026-06-25 08:42:42] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1360,"call_type":"audio","room_name":"fff5fac1e6e7c1e174ae0e67d09d708ce5125282","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=fff5fac1e6e7c1e174ae0e67d09d708ce5125282&type=audio&id=1360"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1360","call_type":"audio","room_name":"fff5fac1e6e7c1e174ae0e67d09d708ce5125282","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=fff5fac1e6e7c1e174ae0e67d09d708ce5125282&type=audio&id=1360"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"e8408ef6-f0bb-4956-9042-83e1ac7a1bbb","external_id":null}
+
+[2026-06-25 08:43:47] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1361,"call_type":"audio","room_name":"e394d04c1187ae7a71e2ab3c15769c09db75886f","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=e394d04c1187ae7a71e2ab3c15769c09db75886f&type=audio&id=1361"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1361","call_type":"audio","room_name":"e394d04c1187ae7a71e2ab3c15769c09db75886f","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=e394d04c1187ae7a71e2ab3c15769c09db75886f&type=audio&id=1361"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"887b9e50-830c-4be6-bba3-39b2e962a8a4","external_id":null}
+
+[2026-06-25 08:44:01] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1362,"call_type":"audio","room_name":"c96871ca1e12380cb6cc2eceefe53027c93b18b7","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=c96871ca1e12380cb6cc2eceefe53027c93b18b7&type=audio&id=1362"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1362","call_type":"audio","room_name":"c96871ca1e12380cb6cc2eceefe53027c93b18b7","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=c96871ca1e12380cb6cc2eceefe53027c93b18b7&type=audio&id=1362"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"d78f3687-a2aa-475d-b517-ca9c395aac23","external_id":null}
+
+[2026-06-25 08:52:44] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1363,"call_type":"audio","room_name":"cedc29712af18a41e183f3642b1d5b0073656446","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=cedc29712af18a41e183f3642b1d5b0073656446&type=audio&id=1363"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1363","call_type":"audio","room_name":"cedc29712af18a41e183f3642b1d5b0073656446","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=cedc29712af18a41e183f3642b1d5b0073656446&type=audio&id=1363"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"e37e346a-54ae-4680-ac26-9f76c86b95cb","external_id":null}
+
+[2026-06-25 08:53:35] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1364,"call_type":"audio","room_name":"5bd53855aaed484175d3ff5c0a24476ee0dbb8e0","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=5bd53855aaed484175d3ff5c0a24476ee0dbb8e0&type=audio&id=1364"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1364","call_type":"audio","room_name":"5bd53855aaed484175d3ff5c0a24476ee0dbb8e0","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=5bd53855aaed484175d3ff5c0a24476ee0dbb8e0&type=audio&id=1364"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"4dd5183a-da5f-4160-9b86-4dd30b0b1b60","external_id":null}
+
+[2026-06-25 08:54:14] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":139,"call_type":"video","room_name":"8a60800b28c0fae8bdbb6e486e9b157b140fd99f","call_url":"https:\/\/vnseea.vn\/call.php?room=8a60800b28c0fae8bdbb6e486e9b157b140fd99f&provider=livekit&id=139"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi video \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"139","call_type":"video","room_name":"8a60800b28c0fae8bdbb6e486e9b157b140fd99f","call_url":"https:\/\/vnseea.vn\/call.php?room=8a60800b28c0fae8bdbb6e486e9b157b140fd99f&provider=livekit&id=139"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"c0638ca3-4e8c-41f5-ae4d-b6e0fe16dbf5","external_id":null}
+
+[2026-06-25 08:55:08] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1365,"call_type":"audio","room_name":"76625edb40af308f82ae02cc7cb8db9195518446","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=76625edb40af308f82ae02cc7cb8db9195518446&type=audio&id=1365"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1365","call_type":"audio","room_name":"76625edb40af308f82ae02cc7cb8db9195518446","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=76625edb40af308f82ae02cc7cb8db9195518446&type=audio&id=1365"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"abbf92ac-3875-4aeb-982c-f02706a2c5e3","external_id":null}
+
+[2026-06-25 09:00:27] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1366,"call_type":"audio","room_name":"f463094f559e205ea809071af308435ce895606f","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=f463094f559e205ea809071af308435ce895606f&type=audio&id=1366"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1366","call_type":"audio","room_name":"f463094f559e205ea809071af308435ce895606f","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=f463094f559e205ea809071af308435ce895606f&type=audio&id=1366"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"9bef3c3a-66a9-4d9e-8af6-12442392ea79","external_id":null}
+
+[2026-06-25 09:01:24] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1367,"call_type":"audio","room_name":"95610ab5043eb2666cff96ad1979a9fd589714b9","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=95610ab5043eb2666cff96ad1979a9fd589714b9&type=audio&id=1367"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1367","call_type":"audio","room_name":"95610ab5043eb2666cff96ad1979a9fd589714b9","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=95610ab5043eb2666cff96ad1979a9fd589714b9&type=audio&id=1367"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"c6127616-67cb-4882-b937-77bc93e60c06","external_id":null}
+
+[2026-06-25 09:01:56] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1368,"call_type":"audio","room_name":"31600c7c12f15c9fd1c4beeb431ac0158679ea31","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=31600c7c12f15c9fd1c4beeb431ac0158679ea31&type=audio&id=1368"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1368","call_type":"audio","room_name":"31600c7c12f15c9fd1c4beeb431ac0158679ea31","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=31600c7c12f15c9fd1c4beeb431ac0158679ea31&type=audio&id=1368"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"cf34bc85-457d-4e05-bec5-13749a744d70","external_id":null}
+
+[2026-06-25 09:03:18] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1369,"call_type":"audio","room_name":"0c891a6b44eec2b5aa838c3abc42c19423735c88","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=0c891a6b44eec2b5aa838c3abc42c19423735c88&type=audio&id=1369"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1369","call_type":"audio","room_name":"0c891a6b44eec2b5aa838c3abc42c19423735c88","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=0c891a6b44eec2b5aa838c3abc42c19423735c88&type=audio&id=1369"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"1597e573-ecf2-41ec-9e23-106f767cd935","external_id":null}
+
+[2026-06-25 09:10:19] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1370,"call_type":"audio","room_name":"1af360b7fcbf0bd924a99ce40b9718bd559ceb99","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=1af360b7fcbf0bd924a99ce40b9718bd559ceb99&type=audio&id=1370"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1370","call_type":"audio","room_name":"1af360b7fcbf0bd924a99ce40b9718bd559ceb99","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=1af360b7fcbf0bd924a99ce40b9718bd559ceb99&type=audio&id=1370"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"07c4333c-4d0e-4fe6-b416-54dd88ed1230","external_id":null}
+
+[2026-06-25 09:11:52] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1371,"call_type":"audio","room_name":"a44cf996cb5e2eec28d8640723f7e4b76a239acb","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=a44cf996cb5e2eec28d8640723f7e4b76a239acb&type=audio&id=1371"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1371","call_type":"audio","room_name":"a44cf996cb5e2eec28d8640723f7e4b76a239acb","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=a44cf996cb5e2eec28d8640723f7e4b76a239acb&type=audio&id=1371"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"1559674f-6f2e-435c-b810-69e6542449b7","external_id":null}
+
+[2026-06-25 09:18:28] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1372,"call_type":"audio","room_name":"c025d3b115059ef2baffb2b20f8e50ad2bbbd881","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=c025d3b115059ef2baffb2b20f8e50ad2bbbd881&type=audio&id=1372"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1372","call_type":"audio","room_name":"c025d3b115059ef2baffb2b20f8e50ad2bbbd881","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=c025d3b115059ef2baffb2b20f8e50ad2bbbd881&type=audio&id=1372"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"bda5c215-3744-4bd3-8422-808837f6110d","external_id":null}
+
+[2026-06-25 09:20:09] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1373,"call_type":"audio","room_name":"b317fd34bcbd13004699ca5caa9bb52f928e1326","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b317fd34bcbd13004699ca5caa9bb52f928e1326&type=audio&id=1373"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1373","call_type":"audio","room_name":"b317fd34bcbd13004699ca5caa9bb52f928e1326","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b317fd34bcbd13004699ca5caa9bb52f928e1326&type=audio&id=1373"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"7678bb1f-092b-4711-8834-cf302937fc72","external_id":null}
+
+[2026-06-25 09:27:07] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1374,"call_type":"audio","room_name":"2c704797cf4cc6059d72d6c070d5ebd3a352bfce","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=2c704797cf4cc6059d72d6c070d5ebd3a352bfce&type=audio&id=1374"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1374","call_type":"audio","room_name":"2c704797cf4cc6059d72d6c070d5ebd3a352bfce","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=2c704797cf4cc6059d72d6c070d5ebd3a352bfce&type=audio&id=1374"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"7848cb19-8c90-426c-8472-1e6e0798110b","external_id":null}
+
+[2026-06-25 09:27:45] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1375,"call_type":"audio","room_name":"e3b550bca155e40789f63551454d2dacec5b99b5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=e3b550bca155e40789f63551454d2dacec5b99b5&type=audio&id=1375"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1375","call_type":"audio","room_name":"e3b550bca155e40789f63551454d2dacec5b99b5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=e3b550bca155e40789f63551454d2dacec5b99b5&type=audio&id=1375"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"6dddbb01-7346-4547-9ccf-910cb05c9d94","external_id":null}
+
+[2026-06-25 09:31:13] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1376,"call_type":"audio","room_name":"2c7876dad3d57252916e2ea7de255873e598f606","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=2c7876dad3d57252916e2ea7de255873e598f606&type=audio&id=1376"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1376","call_type":"audio","room_name":"2c7876dad3d57252916e2ea7de255873e598f606","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=2c7876dad3d57252916e2ea7de255873e598f606&type=audio&id=1376"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"5109fbe6-94d2-4f54-a364-0e0d9295c412","external_id":null}
+
+[2026-06-25 09:31:50] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1377,"call_type":"audio","room_name":"aa10b9654c14a8a1756ee24d166c6d3c8a288ced","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=aa10b9654c14a8a1756ee24d166c6d3c8a288ced&type=audio&id=1377"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1377","call_type":"audio","room_name":"aa10b9654c14a8a1756ee24d166c6d3c8a288ced","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=aa10b9654c14a8a1756ee24d166c6d3c8a288ced&type=audio&id=1377"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"dfecbdf0-5ccc-459e-ac18-be0c1b0ed7d5","external_id":null}
+
+[2026-06-25 09:38:57] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1378,"call_type":"audio","room_name":"359e851097300f3b0c7723144b3a24cc10a0c822","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=359e851097300f3b0c7723144b3a24cc10a0c822&type=audio&id=1378"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1378","call_type":"audio","room_name":"359e851097300f3b0c7723144b3a24cc10a0c822","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=359e851097300f3b0c7723144b3a24cc10a0c822&type=audio&id=1378"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"ae758853-e61d-422f-b5a4-222ae62e9d69","external_id":null}
+
+[2026-06-25 09:46:19] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1379,"call_type":"audio","room_name":"72c4b1e99db1e8063fa0273e3ccc713a10e298bc","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=72c4b1e99db1e8063fa0273e3ccc713a10e298bc&type=audio&id=1379"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1379","call_type":"audio","room_name":"72c4b1e99db1e8063fa0273e3ccc713a10e298bc","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=72c4b1e99db1e8063fa0273e3ccc713a10e298bc&type=audio&id=1379"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"deaf2dac-ee1e-43ed-bde6-a31ad3edd80f","external_id":null}
+
+[2026-06-25 09:54:01] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1380,"call_type":"audio","room_name":"11449d69bed5ec1615cb8e78c9680e83f8a44568","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=11449d69bed5ec1615cb8e78c9680e83f8a44568&type=audio&id=1380"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1380","call_type":"audio","room_name":"11449d69bed5ec1615cb8e78c9680e83f8a44568","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=11449d69bed5ec1615cb8e78c9680e83f8a44568&type=audio&id=1380"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"17a0bf6b-e138-4252-92fd-4b7e1a98b0a2","external_id":null}
+
+[2026-06-25 09:54:14] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1381,"call_type":"audio","room_name":"b3e7fac04ceea2f71d0eb4724dda02bb1a265895","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b3e7fac04ceea2f71d0eb4724dda02bb1a265895&type=audio&id=1381"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1381","call_type":"audio","room_name":"b3e7fac04ceea2f71d0eb4724dda02bb1a265895","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b3e7fac04ceea2f71d0eb4724dda02bb1a265895&type=audio&id=1381"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"95e65d2f-18f0-4f2b-90a3-c973b15b79aa","external_id":null}
+
+[2026-06-25 09:54:47] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1382,"call_type":"audio","room_name":"b8d33e8f43524d89d8a9c91c1271e16192b483ae","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b8d33e8f43524d89d8a9c91c1271e16192b483ae&type=audio&id=1382"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1382","call_type":"audio","room_name":"b8d33e8f43524d89d8a9c91c1271e16192b483ae","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=b8d33e8f43524d89d8a9c91c1271e16192b483ae&type=audio&id=1382"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"ede3b933-9d60-40f6-b9b2-d845cd524d8d","external_id":null}
+
+[2026-06-25 09:57:41] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1383,"call_type":"audio","room_name":"7c891e90e1fa551c378bc499dc458e92766b8d17","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=7c891e90e1fa551c378bc499dc458e92766b8d17&type=audio&id=1383"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1383","call_type":"audio","room_name":"7c891e90e1fa551c378bc499dc458e92766b8d17","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=7c891e90e1fa551c378bc499dc458e92766b8d17&type=audio&id=1383"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"4fa1839a-4d64-4ff1-92c3-476c0eacd254","external_id":null}
+
+[2026-06-25 09:58:03] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":140,"call_type":"video","room_name":"59c4409fbf9f2f58fe0ec241bd08f1671fc2b75f","call_url":"https:\/\/vnseea.vn\/call.php?room=59c4409fbf9f2f58fe0ec241bd08f1671fc2b75f&provider=livekit&id=140"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi video \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"140","call_type":"video","room_name":"59c4409fbf9f2f58fe0ec241bd08f1671fc2b75f","call_url":"https:\/\/vnseea.vn\/call.php?room=59c4409fbf9f2f58fe0ec241bd08f1671fc2b75f&provider=livekit&id=140"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"82bd0e38-d082-4287-991f-3ec254a7e78b","external_id":null}
+
+[2026-06-25 10:01:15] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1384,"call_type":"audio","room_name":"0b2b7c948dd92fcb2dc6e168f57fe3a70adb28c0","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=0b2b7c948dd92fcb2dc6e168f57fe3a70adb28c0&type=audio&id=1384"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1384","call_type":"audio","room_name":"0b2b7c948dd92fcb2dc6e168f57fe3a70adb28c0","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=0b2b7c948dd92fcb2dc6e168f57fe3a70adb28c0&type=audio&id=1384"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"d73a1695-e69e-4d76-980e-fcc1cacdab12","external_id":null}
+
+[2026-06-25 10:11:16] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1385,"call_type":"audio","room_name":"2c2747175f20d6bbb1b60aba8cfcdd5e95658099","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=2c2747175f20d6bbb1b60aba8cfcdd5e95658099&type=audio&id=1385"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1385","call_type":"audio","room_name":"2c2747175f20d6bbb1b60aba8cfcdd5e95658099","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=2c2747175f20d6bbb1b60aba8cfcdd5e95658099&type=audio&id=1385"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"397ff473-4217-4a16-9da6-8cbd7a298dfc","external_id":null}
+
+[2026-06-25 10:16:55] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1386,"call_type":"audio","room_name":"cc6c8822fc22d56a28a954e8798f3ff610489cd5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=cc6c8822fc22d56a28a954e8798f3ff610489cd5&type=audio&id=1386"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1386","call_type":"audio","room_name":"cc6c8822fc22d56a28a954e8798f3ff610489cd5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=cc6c8822fc22d56a28a954e8798f3ff610489cd5&type=audio&id=1386"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"e89c5c4f-e688-401b-a467-90a8fcfd079b","external_id":null}
+
+[2026-06-25 10:21:40] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":1387,"call_type":"audio","room_name":"021fd11721edd1bd9434e989610f4f403974e8b9","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=021fd11721edd1bd9434e989610f4f403974e8b9&type=audio&id=1387"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"1387","call_type":"audio","room_name":"021fd11721edd1bd9434e989610f4f403974e8b9","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=021fd11721edd1bd9434e989610f4f403974e8b9&type=audio&id=1387"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"359e2de1-f797-430e-9061-63fbc414c517","external_id":null}
+
+[2026-06-25 10:23:59] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":141,"call_type":"video","room_name":"9f365828c9c4b7edfba711ef9acf58f8c31195ed","call_url":"https:\/\/vnseea.vn\/call.php?room=9f365828c9c4b7edfba711ef9acf58f8c31195ed&provider=livekit&id=141"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi video \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"141","call_type":"video","room_name":"9f365828c9c4b7edfba711ef9acf58f8c31195ed","call_url":"https:\/\/vnseea.vn\/call.php?room=9f365828c9c4b7edfba711ef9acf58f8c31195ed&provider=livekit&id=141"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"fabf042f-703e-4fef-b7ab-c406de062522","external_id":null}
+
+[2026-06-25 10:25:02] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":142,"call_type":"video","room_name":"f74cbf412e27eb3ee36821554a6f55a9d70f33a0","call_url":"https:\/\/vnseea.vn\/call.php?room=f74cbf412e27eb3ee36821554a6f55a9d70f33a0&provider=livekit&id=142"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi video \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"142","call_type":"video","room_name":"f74cbf412e27eb3ee36821554a6f55a9d70f33a0","call_url":"https:\/\/vnseea.vn\/call.php?room=f74cbf412e27eb3ee36821554a6f55a9d70f33a0&provider=livekit&id=142"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"fc546881-0e9b-4e83-9422-68ad487b2ad7","external_id":null}
+
+[2026-06-25 10:26:02] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":143,"call_type":"video","room_name":"5842ec697c6141201a5882aa8d8e78a41321df00","call_url":"https:\/\/vnseea.vn\/call.php?room=5842ec697c6141201a5882aa8d8e78a41321df00&provider=livekit&id=143"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi video \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"143","call_type":"video","room_name":"5842ec697c6141201a5882aa8d8e78a41321df00","call_url":"https:\/\/vnseea.vn\/call.php?room=5842ec697c6141201a5882aa8d8e78a41321df00&provider=livekit&id=143"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"8891fd68-cc25-4f21-a4d9-cf08485f41d9","external_id":null}
+
+[2026-06-25 10:27:00] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 1bbb4397-4d5d-47ca-8b19-67ba68c3218d
+Call Data: {"caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":144,"call_type":"video","room_name":"feee716e1668ab3f14544c035262ce308ef7cc95","call_url":"https:\/\/vnseea.vn\/call.php?room=feee716e1668ab3f14544c035262ce308ef7cc95&provider=livekit&id=144"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["1bbb4397-4d5d-47ca-8b19-67ba68c3218d"],"headings":{"en":"Qu\u1ea3n tr\u1ecb vi\u00ean"},"contents":{"en":"Cu\u1ed9c g\u1ecdi video \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"Qu\u1ea3n tr\u1ecb vi\u00ean","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0","caller_id":"1","call_id":"144","call_type":"video","room_name":"feee716e1668ab3f14544c035262ce308ef7cc95","call_url":"https:\/\/vnseea.vn\/call.php?room=feee716e1668ab3f14544c035262ce308ef7cc95&provider=livekit&id=144"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/2026\/06\/vvokMfdTBo7udc8MIqgj_22_57a058bed08cdc324439f4a4b0680378_avatar.png?cache=0"}
+Curl Error: None
+Response: {"id":"41c5d183-4f42-4845-9f69-db6f6298f198","external_id":null}
+
+[2026-06-25 10:27:45] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"dung1","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0","caller_id":"5","call_id":1388,"call_type":"audio","room_name":"86566b6e09ef23c7d00fc295c0a322f163c806d5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=86566b6e09ef23c7d00fc295c0a322f163c806d5&type=audio&id=1388"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"dung1"},"contents":{"en":"Cu\u1ed9c g\u1ecdi tho\u1ea1i \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"dung1","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0","caller_id":"5","call_id":"1388","call_type":"audio","room_name":"86566b6e09ef23c7d00fc295c0a322f163c806d5","call_url":"https:\/\/vnseea.vn\/call_livekit.php?room=86566b6e09ef23c7d00fc295c0a322f163c806d5&type=audio&id=1388"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0"}
+Curl Error: None
+Response: {"id":"","errors":{"invalid_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"]}}
+
+[2026-06-25 11:17:32] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"dung1","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0","caller_id":"5","call_id":146,"call_type":"video","room_name":"108168a926c8c52feeef54f1e3a9305e8c6bf4ff","call_url":"https:\/\/vnseea.vn\/call.php?room=108168a926c8c52feeef54f1e3a9305e8c6bf4ff&provider=livekit&id=146"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"dung1"},"contents":{"en":"Cu\u1ed9c g\u1ecdi video \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"dung1","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0","caller_id":"5","call_id":"146","call_type":"video","room_name":"108168a926c8c52feeef54f1e3a9305e8c6bf4ff","call_url":"https:\/\/vnseea.vn\/call.php?room=108168a926c8c52feeef54f1e3a9305e8c6bf4ff&provider=livekit&id=146"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0"}
+Curl Error: None
+Response: {"id":"","errors":{"invalid_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"]}}
+
+[2026-06-25 11:17:56] Calling Wo_SendFcmCallNotification (OneSignal mode)
+Device ID (OneSignal): 46bd21f6-3d64-48de-8f67-02c3ed0fff62
+Call Data: {"caller_name":"dung1","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0","caller_id":"5","call_id":147,"call_type":"video","room_name":"b5bd56b2e781ac74f852f5c86a15b2601bdb4a9b","call_url":"https:\/\/vnseea.vn\/call.php?room=b5bd56b2e781ac74f852f5c86a15b2601bdb4a9b&provider=livekit&id=147"}
+OneSignal App ID: f97566fc-b9c...
+OneSignal API Key: os_v2_app_7f2wn...
+OneSignal Payload: {"app_id":"f97566fc-b9c0-4fb8-b355-ae9d4e2145e8","include_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"],"headings":{"en":"dung1"},"contents":{"en":"Cu\u1ed9c g\u1ecdi video \u0111\u1ebfn"},"priority":10,"ttl":30,"buttons":[{"id":"accept","text":"Nghe"},{"id":"decline","text":"T\u1eeb ch\u1ed1i"}],"data":{"type":"incoming_call","caller_name":"dung1","caller_avatar":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0","caller_id":"5","call_id":"147","call_type":"video","room_name":"b5bd56b2e781ac74f852f5c86a15b2601bdb4a9b","call_url":"https:\/\/vnseea.vn\/call.php?room=b5bd56b2e781ac74f852f5c86a15b2601bdb4a9b&provider=livekit&id=147"},"large_icon":"https:\/\/vnseea.vn\/upload\/photos\/d-avatar.jpg?cache=0"}
+Curl Error: None
+Response: {"id":"","errors":{"invalid_player_ids":["46bd21f6-3d64-48de-8f67-02c3ed0fff62"]}}
+

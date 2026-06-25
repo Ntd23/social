@@ -138,8 +138,39 @@ if (!empty($callSource)) {
         exit();
     }
     if ($is_receiver_join && ($call_active !== 1 || $call_status !== 'answered' || $call_claimed_by !== $call_claim_id)) {
-        header("Location: " . $redirectTarget);
-        exit();
+        if (isset($_GET['source']) && $_GET['source'] === 'app' && ($call_status === '' || $call_status === 'calling')) {
+            $id = $callMeta['id'];
+            $provider = 'livekit';
+            if ($callType == 'audio') {
+                mysqli_query($sqlConnect, "UPDATE " . T_AUDIO_CALLES . " SET `active` = 1, `status` = 'answered', `called` = '{$call_claim_id}' WHERE `id` = '$id' AND `to_id` = '$user_id'");
+                if (mysqli_affected_rows($sqlConnect) <= 0) {
+                    mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `active` = 1, `status` = 'answered', `called` = '{$call_claim_id}' WHERE `id` = '$id' AND `to_id` = '$user_id' AND `type` = 'audio'");
+                }
+            } else {
+                mysqli_query($sqlConnect, "UPDATE " . T_VIDEOS_CALLES . " SET `active` = 1, `status` = 'answered', `called` = '{$call_claim_id}' WHERE `id` = '$id' AND `to_id` = '$user_id'");
+                if (mysqli_affected_rows($sqlConnect) <= 0) {
+                    mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `active` = 1, `status` = 'answered', `called` = '{$call_claim_id}' WHERE `id` = '$id' AND `to_id` = '$user_id' AND (`type` = 'video' OR `type` = '' OR `type` IS NULL)");
+                }
+            }
+            if (mysqli_affected_rows($sqlConnect) > 0) {
+                Wo_UpdateCallLog($id, $callType, 'answered', array(
+                    'provider' => $provider,
+                    'started_at' => time(),
+                    'status_by' => $user_id
+                ));
+                // Reload callSource
+                $callSource = Wo_GetCallSourceById($id, $callType);
+                $call_status = 'answered';
+                $call_active = 1;
+                $call_claimed_by = $call_claim_id;
+            } else {
+                header("Location: " . $redirectTarget);
+                exit();
+            }
+        } else {
+            header("Location: " . $redirectTarget);
+            exit();
+        }
     }
 }
 $callLogPayload = array();
