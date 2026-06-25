@@ -107,8 +107,8 @@ if ($f == 'create_new_audio_call') {
                 Wo_SendPushNotification($send_array,'android_messenger');
             }
             // FCM data-only call notification (background/killed app)
-            if (true) {
-                Wo_SendFcmCallNotification($wo['calling_user'], array(
+            if (!empty($wo['calling_user']['android_m_device_id'])) {
+                Wo_SendFcmCallNotification($wo['calling_user']['android_m_device_id'], array(
                     'caller_name'   => $user_1['name'],
                     'caller_avatar' => !empty($user_1['avatar']) ? $user_1['avatar'] : '',
                     'caller_id'     => $_GET['user_id1'],
@@ -195,8 +195,8 @@ if ($f == 'create_new_audio_call') {
                 Wo_SendPushNotification($send_array,'android_messenger');
             }
             // FCM data-only call notification (background/killed app)
-            if (true) {
-                Wo_SendFcmCallNotification($wo['calling_user'], array(
+            if (!empty($wo['calling_user']['android_m_device_id'])) {
+                Wo_SendFcmCallNotification($wo['calling_user']['android_m_device_id'], array(
                     'caller_name'   => $user_1['name'],
                     'caller_avatar' => !empty($user_1['avatar']) ? $user_1['avatar'] : '',
                     'caller_id'     => $_GET['user_id1'],
@@ -221,4 +221,3 @@ if ($f == 'create_new_audio_call') {
     echo json_encode($data);
     exit();
 }
-
