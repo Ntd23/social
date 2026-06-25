@@ -1309,10 +1309,92 @@ function NewAddress() {
   $('#add_address_modal').modal('show');
 }
 $(document).ready(function() {
+    var isModalAddressSelected = false;
+
+    <?php if ($wo['config']['google_map'] == 1) { ?>
+    if (typeof google === 'object' && typeof google.maps === 'object' && typeof google.maps.places === 'object') {
+        var modalAddressInput = document.getElementById('modal_add_address');
+        if (modalAddressInput) {
+            var modalAutocomplete = new google.maps.places.Autocomplete(modalAddressInput, {
+                types: ['geocode', 'address']
+            });
+
+            modalAutocomplete.addListener('place_changed', function() {
+                var place = modalAutocomplete.getPlace();
+                if (!place.geometry) {
+                    isModalAddressSelected = false;
+                    return;
+                }
+
+                isModalAddressSelected = true;
+
+                var streetNumber = '';
+                var route = '';
+                var neighborhood = '';
+                var sublocality = '';
+                var city = '';
+                var country = '';
+
+                if (place.address_components) {
+                    for (var i = 0; i < place.address_components.length; i++) {
+                        var component = place.address_components[i];
+                        var addressType = component.types[0];
+
+                        if (addressType === 'street_number') {
+                            streetNumber = component.long_name;
+                        } else if (addressType === 'route') {
+                            route = component.long_name;
+                        } else if (addressType === 'neighborhood') {
+                            neighborhood = component.long_name;
+                        } else if (addressType === 'sublocality_level_1' || addressType === 'sublocality') {
+                            sublocality = component.long_name;
+                        } else if (addressType === 'locality' || addressType === 'administrative_area_level_2') {
+                            if (!city) city = component.long_name;
+                        } else if (addressType === 'administrative_area_level_1') {
+                            if (!city) city = component.long_name;
+                        } else if (addressType === 'country') {
+                            country = component.long_name;
+                        }
+                    }
+                }
+
+                $('#modal_add_country').val(country);
+                $('#modal_add_city').val(city);
+
+                var cleanAddress = (streetNumber ? streetNumber + ' ' : '') + route;
+                if (neighborhood) {
+                    cleanAddress += (cleanAddress ? ', ' : '') + neighborhood;
+                }
+                if (sublocality) {
+                    cleanAddress += (cleanAddress ? ', ' : '') + sublocality;
+                }
+
+                if (!cleanAddress) {
+                    cleanAddress = place.formatted_address || '';
+                }
+
+                $('#modal_add_address').val(cleanAddress);
+            });
+
+            $(modalAddressInput).on('input', function() {
+                isModalAddressSelected = false;
+            });
+        }
+    }
+    <?php } ?>
+
     var options = {
       url: Wo_Ajax_Requests_File() + '?f=address&s=add&hash=' + $('.main_session').val(),
         beforeSubmit:  function () {
           $('.modal_add_address_modal_alert').empty();
+
+          <?php if ($wo['config']['google_map'] == 1) { ?>
+          if ($('#modal_add_address').length > 0 && !isModalAddressSelected) {
+              $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger">Vui lòng nhập và chọn địa chỉ từ gợi ý của Google</div>');
+              return false;
+          }
+          <?php } ?>
+
           $("#add_address_modal").find('.btn-mat').attr('disabled', 'true');
           $("#add_address_modal").find('.btn-mat').text("<?php echo($wo['lang']['please_wait']) ?>");
         },
@@ -1346,9 +1428,8 @@ $(document).ready(function() {
           }
         }
     };
-    $('.address_form').ajaxForm(options);
+    $('#add_address_modal .address_form').ajaxForm(options);
 });
-
 
   function NewMonetization() {
       $('.modal_add_monetization_modal_alert').empty();

@@ -15,7 +15,7 @@
 							<input type="radio" name="choose-address" id="choose_adrs_<?php echo($address->id) ?>" value="<?php echo($address->id) ?>" class="payment_address">
 							<label for="choose_adrs_<?php echo($address->id) ?>">
 								<p><b><?php echo($address->name) ?></b>&nbsp;<?php echo($address->phone) ?></p>
-								<p><?php echo($address->country) ?>, <?php echo($address->city) ?> - <?php echo($address->zip) ?></p>
+								<p><?php echo($address->address) ?>, <?php echo($address->city) ?>, <?php echo($address->country) ?></p>
 							</label>
 						</li>
 					<?php  } } ?>
@@ -45,13 +45,13 @@
 						<div class="col-md-6">
 							<div class="sun_input">
 								<label><?php echo $wo['lang']['country']; ?></label>
-								<input id="country" name="country" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['country']; ?>">
+								<input id="checkout_country" name="country" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['country']; ?>">
 							</div>
 						</div>
 						<div class="col-md-12">
 							<div class="sun_input">
 								<label><?php echo $wo['lang']['city']; ?></label>
-								<input id="city" name="city" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>">
+								<input id="checkout_city" name="city" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>">
 							</div>
 						</div>
 						<!-- <div class="col-md-6">
@@ -63,7 +63,7 @@
 						<div class="col-md-12">
 							<div class="sun_input">
 								<label><?php echo $wo['lang']['address']; ?></label>
-								<textarea class="form-control input-md" placeholder="<?php echo $wo['lang']['address']; ?>" name="address"></textarea>
+								<input id="checkout_address" name="address" type="text" class="form-control input-md" placeholder="<?php echo $wo['lang']['address']; ?>" autocomplete="off">
 							</div>
 						</div>
 					</div>
@@ -110,10 +110,92 @@
 
 <script>
 $(document).ready(function() {
+    var isCheckoutAddressSelected = false;
+
+    <?php if ($wo['config']['google_map'] == 1) { ?>
+    if (typeof google === 'object' && typeof google.maps === 'object' && typeof google.maps.places === 'object') {
+        var checkoutAddressInput = document.getElementById('checkout_address');
+        if (checkoutAddressInput) {
+            var checkoutAutocomplete = new google.maps.places.Autocomplete(checkoutAddressInput, {
+                types: ['geocode', 'address']
+            });
+
+            checkoutAutocomplete.addListener('place_changed', function() {
+                var place = checkoutAutocomplete.getPlace();
+                if (!place.geometry) {
+                    isCheckoutAddressSelected = false;
+                    return;
+                }
+
+                isCheckoutAddressSelected = true;
+
+                var streetNumber = '';
+                var route = '';
+                var neighborhood = '';
+                var sublocality = '';
+                var city = '';
+                var country = '';
+
+                if (place.address_components) {
+                    for (var i = 0; i < place.address_components.length; i++) {
+                        var component = place.address_components[i];
+                        var addressType = component.types[0];
+
+                        if (addressType === 'street_number') {
+                            streetNumber = component.long_name;
+                        } else if (addressType === 'route') {
+                            route = component.long_name;
+                        } else if (addressType === 'neighborhood') {
+                            neighborhood = component.long_name;
+                        } else if (addressType === 'sublocality_level_1' || addressType === 'sublocality') {
+                            sublocality = component.long_name;
+                        } else if (addressType === 'locality' || addressType === 'administrative_area_level_2') {
+                            if (!city) city = component.long_name;
+                        } else if (addressType === 'administrative_area_level_1') {
+                            if (!city) city = component.long_name;
+                        } else if (addressType === 'country') {
+                            country = component.long_name;
+                        }
+                    }
+                }
+
+                $('#checkout_country').val(country);
+                $('#checkout_city').val(city);
+
+                var cleanAddress = (streetNumber ? streetNumber + ' ' : '') + route;
+                if (neighborhood) {
+                    cleanAddress += (cleanAddress ? ', ' : '') + neighborhood;
+                }
+                if (sublocality) {
+                    cleanAddress += (cleanAddress ? ', ' : '') + sublocality;
+                }
+
+                if (!cleanAddress) {
+                    cleanAddress = place.formatted_address || '';
+                }
+
+                $('#checkout_address').val(cleanAddress);
+            });
+
+            $(checkoutAddressInput).on('input', function() {
+                isCheckoutAddressSelected = false;
+            });
+        }
+    }
+    <?php } ?>
+
     var options = {
       url: Wo_Ajax_Requests_File() + '?f=address&s=add&hash=' + $('.main_session').val(),
         beforeSubmit:  function () {
           $('.modal_add_address_modal_alert').empty();
+
+          <?php if ($wo['config']['google_map'] == 1) { ?>
+          if (!isCheckoutAddressSelected) {
+              $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger">Vui lòng nhập và chọn địa chỉ từ gợi ý của Google</div>');
+              return false;
+          }
+          <?php } ?>
+
           $(".address_form").find('.btn-mat').attr('disabled', 'true');
           $(".address_form").find('.btn-mat').text("<?php echo($wo['lang']['please_wait']) ?>");
         },
