@@ -2530,6 +2530,24 @@ function Wo_RegisterFollow($following_id = 0, $followers_id = 0)
                     'url' => 'index.php?link1=timeline&u=' . $follower_data['username']
                 );
                 Wo_RegisterNotification($notification_data);
+                
+                // --- CUSTOM BUMP CHAT ---
+                $time = time();
+                $query_check1 = mysqli_query($sqlConnect, "SELECT COUNT(`id`) FROM " . T_U_CHATS . " WHERE `conversation_user_id` = '$following_id' AND `user_id` = '$follower_id'");
+                if (Wo_Sql_Result($query_check1, 0) == 0) {
+                    mysqli_query($sqlConnect, "INSERT INTO " . T_U_CHATS . " (`user_id`,`conversation_user_id`,`time`) VALUES ('$follower_id','$following_id','$time')");
+                } else {
+                    mysqli_query($sqlConnect, "UPDATE " . T_U_CHATS . " SET `time` = '$time' WHERE `conversation_user_id` = '$following_id' AND `user_id` = '$follower_id'");
+                }
+
+                $query_check2 = mysqli_query($sqlConnect, "SELECT COUNT(`id`) FROM " . T_U_CHATS . " WHERE `conversation_user_id` = '$follower_id' AND `user_id` = '$following_id'");
+                if (Wo_Sql_Result($query_check2, 0) == 0) {
+                    mysqli_query($sqlConnect, "INSERT INTO " . T_U_CHATS . " (`user_id`,`conversation_user_id`,`time`) VALUES ('$following_id','$follower_id','$time')");
+                } else {
+                    mysqli_query($sqlConnect, "UPDATE " . T_U_CHATS . " SET `time` = '$time' WHERE `conversation_user_id` = '$follower_id' AND `user_id` = '$following_id'");
+                }
+                // --- END CUSTOM BUMP CHAT ---
+                
                 $activity_data = array(
                     'user_id' => $follower_id,
                     'follow_id' => $following_id,
@@ -2722,6 +2740,25 @@ function Wo_AcceptFollowRequest($following_id = 0, $follower_id = 0)
             'type' => 'accepted_request',
             'url' => 'index.php?link1=timeline&u=' . $follower_data['username']
         );
+        Wo_RegisterNotification($notification_data);
+
+        // --- CUSTOM BUMP CHAT ---
+        $time = time();
+        $query_check1 = mysqli_query($sqlConnect, "SELECT COUNT(`id`) FROM " . T_U_CHATS . " WHERE `conversation_user_id` = '$following_id' AND `user_id` = '$follower_id'");
+        if (Wo_Sql_Result($query_check1, 0) == 0) {
+            mysqli_query($sqlConnect, "INSERT INTO " . T_U_CHATS . " (`user_id`,`conversation_user_id`,`time`) VALUES ('$follower_id','$following_id','$time')");
+        } else {
+            mysqli_query($sqlConnect, "UPDATE " . T_U_CHATS . " SET `time` = '$time' WHERE `conversation_user_id` = '$following_id' AND `user_id` = '$follower_id'");
+        }
+
+        $query_check2 = mysqli_query($sqlConnect, "SELECT COUNT(`id`) FROM " . T_U_CHATS . " WHERE `conversation_user_id` = '$follower_id' AND `user_id` = '$following_id'");
+        if (Wo_Sql_Result($query_check2, 0) == 0) {
+            mysqli_query($sqlConnect, "INSERT INTO " . T_U_CHATS . " (`user_id`,`conversation_user_id`,`time`) VALUES ('$following_id','$follower_id','$time')");
+        } else {
+            mysqli_query($sqlConnect, "UPDATE " . T_U_CHATS . " SET `time` = '$time' WHERE `conversation_user_id` = '$follower_id' AND `user_id` = '$following_id'");
+        }
+        // --- END CUSTOM BUMP CHAT ---
+        
         $activity_data = array(
             'user_id' => $follower_id,
             'follow_id' => $following_id,
@@ -3843,8 +3880,6 @@ if (!function_exists('Wo_GetFollowedMessageUsers')) {
       while($row=mysqli_fetch_assoc($res)){
         $u=Wo_UserData($row['conversation_user_id']); if(!$u) continue;
         $u['chat_time']=!empty($row['time'])?(int)$row['time']:0;
-        $u['follow_priority']=empty($row['time']) ? 1 : 0;
-        $u['follow_id']=!empty($row['follow_id']) ? (int)$row['follow_id'] : 0;
         $u['message']=['time'=>$u['chat_time']];
         $data[]=$u;
       }
@@ -3963,18 +3998,8 @@ function Wo_GetMessagesUsers($user_id, $searchQuery = '', $limit = 50, $new = fa
     }
     if (!empty($data)) {
         usort($data, function ($a, $b) {
-            $a_follow_priority = !empty($a['follow_priority']) ? (int) $a['follow_priority'] : 0;
-            $b_follow_priority = !empty($b['follow_priority']) ? (int) $b['follow_priority'] : 0;
             $a_time = !empty($a['chat_time']) ? (int) $a['chat_time'] : 0;
             $b_time = !empty($b['chat_time']) ? (int) $b['chat_time'] : 0;
-            $a_follow_id = !empty($a['follow_id']) ? (int) $a['follow_id'] : 0;
-            $b_follow_id = !empty($b['follow_id']) ? (int) $b['follow_id'] : 0;
-            if ($a_follow_priority !== $b_follow_priority) {
-                return ($a_follow_priority < $b_follow_priority) ? 1 : -1;
-            }
-            if ($a_follow_priority === 1 && $a_follow_id !== $b_follow_id) {
-                return ($a_follow_id < $b_follow_id) ? 1 : -1;
-            }
             if ($a_time === $b_time) {
                 return 0;
             }
@@ -12541,3 +12566,4 @@ function Wo_PayPointOrSend($owner_id=null,$point=0,$to_user_id=null){
 //     }
 //     return $countriesData;
 // }
+

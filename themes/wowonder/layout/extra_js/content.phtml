@@ -1309,10 +1309,106 @@ function NewAddress() {
   $('#add_address_modal').modal('show');
 }
 $(document).ready(function() {
+    $(document).on('touchstart', '.pac-item', function(e) {
+        e.stopPropagation();
+    });
+
+    var isModalAddressSelected = false;
+
+    <?php if ($wo['config']['google_map'] == 1) { ?>
+    if (typeof google === 'object' && typeof google.maps === 'object' && typeof google.maps.places === 'object') {
+        var modalAddressInput = document.getElementById('modal_add_address');
+        if (modalAddressInput) {
+            var modalAutocomplete = new google.maps.places.Autocomplete(modalAddressInput, {
+                types: ['geocode']
+            });
+
+            modalAutocomplete.addListener('place_changed', function() {
+                var place = modalAutocomplete.getPlace();
+                if (!place.geometry) {
+                    isModalAddressSelected = false;
+                    return;
+                }
+
+                isModalAddressSelected = true;
+
+                var city = '';
+                var country = '';
+
+                if (place.address_components) {
+                    for (var i = 0; i < place.address_components.length; i++) {
+                        var component = place.address_components[i];
+                        var addressType = component.types[0];
+
+                        if (addressType === 'locality') {
+                            if (!city) city = component.long_name;
+                        } else if (addressType === 'administrative_area_level_1') {
+                            city = component.long_name;
+                        } else if (addressType === 'country') {
+                            country = component.long_name;
+                        }
+                    }
+                }
+
+                country = country || 'Việt Nam';
+                $('#modal_add_country').val(country);
+                $('#modal_add_city').val(city);
+
+                var cleanAddress = place.formatted_address || place.name || '';
+                if (cleanAddress) {
+                    var escapeReg = function(string) {
+                        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    };
+                    
+                    if (country) {
+                        cleanAddress = cleanAddress.replace(new RegExp(',\\s*' + escapeReg(country) + '$', 'i'), '');
+                    }
+                    cleanAddress = cleanAddress.replace(/,\s*(Việt Nam|Vietnam)$/i, '');
+                    
+                    if (city) {
+                        cleanAddress = cleanAddress.replace(new RegExp(',\\s*' + escapeReg(city) + '$', 'i'), '');
+                    }
+                }
+
+                $('#modal_add_address').val(cleanAddress);
+
+                // Show card preview and hide input fields
+                $('#modal_preview_text').html(cleanAddress + (city ? ', ' + city : '') + (country ? ', ' + country : ''));
+                $('#modal_address_fields_wrapper').slideUp();
+                $('#modal_address_card_preview').slideDown();
+            });
+
+            $('#modal_change_address_btn').on('click', function() {
+                $('#modal_add_address').val('');
+                $('#modal_add_city').val('');
+                $('#modal_add_country').val('');
+                isModalAddressSelected = false;
+                $('#modal_address_card_preview').slideUp();
+                $('#modal_address_fields_wrapper').slideDown();
+                setTimeout(function() {
+                    $('#modal_add_address').focus();
+                }, 400);
+            });
+
+            $(modalAddressInput).on('input', function() {
+                isModalAddressSelected = false;
+            });
+        }
+    }
+    <?php } ?>
+
     var options = {
       url: Wo_Ajax_Requests_File() + '?f=address&s=add&hash=' + $('.main_session').val(),
         beforeSubmit:  function () {
           $('.modal_add_address_modal_alert').empty();
+
+          <?php if ($wo['config']['google_map'] == 1) { ?>
+          if ($('#modal_add_address').length > 0 && !isModalAddressSelected) {
+              $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger">Vui lòng nhập và chọn địa chỉ từ gợi ý của Google</div>');
+              return false;
+          }
+          <?php } ?>
+
           $("#add_address_modal").find('.btn-mat').attr('disabled', 'true');
           $("#add_address_modal").find('.btn-mat').text("<?php echo($wo['lang']['please_wait']) ?>");
         },
@@ -1346,9 +1442,8 @@ $(document).ready(function() {
           }
         }
     };
-    $('.address_form').ajaxForm(options);
+    $('#add_address_modal .address_form').ajaxForm(options);
 });
-
 
   function NewMonetization() {
       $('.modal_add_monetization_modal_alert').empty();
@@ -1396,7 +1491,7 @@ function BuyProducts(type = 'show',price) {
   }
   address_id = $('input[name=choose-address]:checked').val();
   if (type == 'hide') {
-        $('#buy_product_modal').find('.btn-mat').html("<?php echo $wo['lang']['pay'].' '.$wo['config']['currency_symbol_array'][$wo['config']['currency']]; ?>"+price);
+        $('#buy_product_modal').find('.btn-mat').html("Đặt hàng");
         $('#buy_product_modal').find('.btn-mat').attr('onclick', "BuyProducts('show','"+price+"')");
         $('#buy_product_modal').modal('show');
         return false;
@@ -1405,7 +1500,7 @@ function BuyProducts(type = 'show',price) {
     $('#buy_product_modal').find('.btn-mat').attr('disabled', "true");
   $.post(Wo_Ajax_Requests_File() + '?f=products&s=buy&hash=' + $('.main_session').val(),{address_id: address_id}, function(data, textStatus, xhr) {
     $('#buy_product_modal').find('.btn-mat').removeAttr('disabled');
-    $('#buy_product_modal').find('.btn-mat').text("<?php echo $wo['lang']['pay'].' '.$wo['config']['classified_currency_s']; ?>"+price);
+    $('#buy_product_modal').find('.btn-mat').text("Đặt hàng");
     if (data.status == 200) {
       <?php if ($wo['config']['node_socket_flow'] == 1) { ?>
         socket.emit("checkout_notification", {user_id: _getCookie("user_id"), type: "added",users: data.users });

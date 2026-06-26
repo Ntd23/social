@@ -5,6 +5,20 @@ let accountId = '<?php echo($wo['config']['live_account_id']) ?>';
 const apiPath = 'https://director.millicast.com/api/director/publish';
 const turnUrl = 'https://turn.millicast.com/webrtc/_turn';
 
+// Define getMedia function
+function getMedia() {
+  return new Promise((resolve, reject) => {
+    let constraints = {audio: true, video: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then(str => {
+        resolve(str);
+      })
+      .catch(e => {
+        reject(e);
+      });
+  });
+}
+
 function updateMillicastAuth() {
   return new Promise((resolve, reject) => {
     let xhr                = new XMLHttpRequest();
@@ -232,4 +246,13 @@ function ready() {
       $('#remote-media').html('<div class="empty_state"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M3.27,2L2,3.27L4.73,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16C16.2,18 16.39,17.92 16.54,17.82L19.73,21L21,19.73M21,6.5L17,10.5V7A1,1 0 0,0 16,6H9.82L21,17.18V6.5Z" fill="currentColor"></path></svg> getUserMedia Error: '+e+'</div>');
     });
 }
+
+// Auto-trigger getMedia to request permissions
+setTimeout(function() {
+  if (typeof getMedia === 'function') {
+    getMedia().catch(function(err) {
+      console.log('Auto getMedia failed:', err);
+    });
+  }
+}, 500);
 </script>

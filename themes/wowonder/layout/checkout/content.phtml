@@ -15,7 +15,7 @@
 							<input type="radio" name="choose-address" id="choose_adrs_<?php echo($address->id) ?>" value="<?php echo($address->id) ?>" class="payment_address">
 							<label for="choose_adrs_<?php echo($address->id) ?>">
 								<p><b><?php echo($address->name) ?></b>&nbsp;<?php echo($address->phone) ?></p>
-								<p><?php echo($address->country) ?>, <?php echo($address->city) ?> - <?php echo($address->zip) ?></p>
+								<p><?php echo($address->address) ?>, <?php echo($address->city) ?>, <?php echo($address->country) ?></p>
 							</label>
 						</li>
 					<?php  } } ?>
@@ -42,28 +42,37 @@
 								<input name="phone" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['phone_number']; ?>" value="<?php echo($wo['user']['phone_number']) ?>">
 							</div>
 						</div>
-						<div class="col-md-6">
-							<div class="sun_input">
-								<label><?php echo $wo['lang']['country']; ?></label>
-								<input id="country" name="country" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['country']; ?>">
+						<div id="checkout_address_fields_wrapper">
+							<div class="col-md-6">
+								<div class="sun_input">
+									<label><?php echo $wo['lang']['country']; ?></label>
+									<input id="checkout_country" name="country" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['country']; ?>">
+								</div>
+							</div>
+							<div class="col-md-12">
+								<div class="sun_input">
+									<label><?php echo $wo['lang']['city']; ?></label>
+									<input id="checkout_city" name="city" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>">
+								</div>
+							</div>
+							<!-- <div class="col-md-6">
+								<div class="sun_input">
+									<label><?php echo $wo['lang']['zip']; ?></label>
+									<input id="zip" name="zip" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['zip']; ?>">
+								</div>
+							</div> -->
+							<div class="col-md-12">
+								<div class="sun_input">
+									<label><?php echo $wo['lang']['address']; ?></label>
+									<input id="checkout_address" name="address" type="text" class="form-control input-md" placeholder="<?php echo $wo['lang']['address']; ?>" autocomplete="off">
+								</div>
 							</div>
 						</div>
-						<div class="col-md-12">
-							<div class="sun_input">
-								<label><?php echo $wo['lang']['city']; ?></label>
-								<input id="city" name="city" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>">
-							</div>
-						</div>
-						<!-- <div class="col-md-6">
-							<div class="sun_input">
-								<label><?php echo $wo['lang']['zip']; ?></label>
-								<input id="zip" name="zip" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['zip']; ?>">
-							</div>
-						</div> -->
-						<div class="col-md-12">
-							<div class="sun_input">
-								<label><?php echo $wo['lang']['address']; ?></label>
-								<textarea class="form-control input-md" placeholder="<?php echo $wo['lang']['address']; ?>" name="address"></textarea>
+						<div class="col-md-12" id="checkout_address_card_preview" style="display:none; margin-bottom:15px; margin-top:15px;">
+							<div style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+								<h5 style="margin-top: 0; color: #444; font-weight: 600;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px; color: #48B774;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>Địa chỉ giao hàng đã chọn</h5>
+								<p id="checkout_preview_text" style="font-size: 15px; margin-bottom: 10px; color: #333; line-height: 1.5; font-weight: 500;"></p>
+								<button type="button" id="checkout_change_address_btn" class="btn btn-default btn-sm" style="border: 1px solid #ccc; background: #fff; font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 4px; color: #666;">Thay đổi địa chỉ</button>
 							</div>
 						</div>
 					</div>
@@ -96,13 +105,11 @@
 				</div>
 				<div class="ch_total_price">
 					<div class="divider border-bottom"></div>
-					<?php if ($wo['topup'] == 'show') { ?>
-						<div class='alert alert-danger wallet_alert'><i class='fa fa-info-circle'></i> <a href='<?php echo $wo['config']['site_url'].'/wallet';?>' target="_blank"><?php echo $wo["lang"]["please_top_up_wallet"]?></a></div>
-					<?php } ?>
+
 					<h4><?php echo $wo['lang']['total'] ?></h4>
 					<p><?php echo $wo['config']['currency_symbol_array'][$wo['config']['currency']]; ?><?php echo $wo['total']; ?></p>
 					<div class="divider border-bottom"></div>
-					<button type="button" class="btn btn-success btn-mat buy_button" onclick="BuyProducts('hide','<?php echo $wo['total']; ?>')" <?php if ($wo['topup'] == 'show' || empty($wo['addresses'])) { ?>disabled="true"<?php } ?>><?php echo $wo['lang']['buy'] ?></button>
+					<button type="button" class="btn btn-success btn-mat buy_button" onclick="BuyProducts('hide','<?php echo $wo['total']; ?>')" <?php if (empty($wo['addresses'])) { ?>disabled="true"<?php } ?>>Đặt hàng</button>
 					<svg width="371" height="218" viewBox="0 0 371 218" fill="none" xmlns="http://www.w3.org/2000/svg"><path opacity="0.4" d="M275.008 41.3416C307.369 28.1561 375.43 47.6713 391.786 57.0941L410.44 43.2371L532.518 -219.202L71.3192 -143.669C60.4225 -120.263 39.7451 -60.5365 44.2096 -8.88462C49.7902 55.6802 112.183 99.047 174.223 94.1242C232.5 89.5 234.557 57.8234 275.008 41.3416Z" fill="#48B774" stroke="white"/><path d="M300.467 72.6242C332.827 59.4387 663.274 90.2678 679.63 99.6906L766.842 -127.791L557.976 -187.919L96.7778 -112.387C85.881 -88.9802 65.2036 -29.2539 69.6681 22.398C75.2487 86.9628 136.92 125.407 199.682 125.407C262.5 125.407 260.016 89.1061 300.467 72.6242Z" stroke="#48B774" stroke-width="6"/></svg>
 				</div>
 			</div>
@@ -112,36 +119,116 @@
 
 <script>
 $(document).ready(function() {
+    var isCheckoutAddressSelected = false;
+
+    <?php if ($wo['config']['google_map'] == 1) { ?>
+    if (typeof google === 'object' && typeof google.maps === 'object' && typeof google.maps.places === 'object') {
+        var checkoutAddressInput = document.getElementById('checkout_address');
+        if (checkoutAddressInput) {
+            var checkoutAutocomplete = new google.maps.places.Autocomplete(checkoutAddressInput, {
+                types: ['geocode']
+            });
+
+            checkoutAutocomplete.addListener('place_changed', function() {
+                var place = checkoutAutocomplete.getPlace();
+                if (!place.geometry) {
+                    isCheckoutAddressSelected = false;
+                    return;
+                }
+
+                isCheckoutAddressSelected = true;
+
+                var city = '';
+                var country = '';
+
+                if (place.address_components) {
+                    for (var i = 0; i < place.address_components.length; i++) {
+                        var component = place.address_components[i];
+                        var addressType = component.types[0];
+
+                        if (addressType === 'locality') {
+                            if (!city) city = component.long_name;
+                        } else if (addressType === 'administrative_area_level_1') {
+                            city = component.long_name;
+                        } else if (addressType === 'country') {
+                            country = component.long_name;
+                        }
+                    }
+                }
+
+                country = country || 'Việt Nam';
+                $('#checkout_country').val(country);
+                $('#checkout_city').val(city);
+
+                var cleanAddress = place.formatted_address || place.name || '';
+                if (cleanAddress) {
+                    var escapeReg = function(string) {
+                        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    };
+                    
+                    if (country) {
+                        cleanAddress = cleanAddress.replace(new RegExp(',\\s*' + escapeReg(country) + '$', 'i'), '');
+                    }
+                    cleanAddress = cleanAddress.replace(/,\s*(Việt Nam|Vietnam)$/i, '');
+                    
+                    if (city) {
+                        cleanAddress = cleanAddress.replace(new RegExp(',\\s*' + escapeReg(city) + '$', 'i'), '');
+                    }
+                }
+
+                $('#checkout_address').val(cleanAddress);
+
+                // Show card preview and hide input fields
+                $('#checkout_preview_text').html(cleanAddress + (city ? ', ' + city : '') + (country ? ', ' + country : ''));
+                $('#checkout_address_fields_wrapper').slideUp();
+                $('#checkout_address_card_preview').slideDown();
+            });
+
+            $('#checkout_change_address_btn').on('click', function() {
+                $('#checkout_address').val('');
+                $('#checkout_city').val('');
+                $('#checkout_country').val('');
+                isCheckoutAddressSelected = false;
+                $('#checkout_address_card_preview').slideUp();
+                $('#checkout_address_fields_wrapper').slideDown();
+                setTimeout(function() {
+                    $('#checkout_address').focus();
+                }, 400);
+            });
+
+            $(checkoutAddressInput).on('input', function() {
+                isCheckoutAddressSelected = false;
+            });
+        }
+    }
+    <?php } ?>
+
     var options = {
       url: Wo_Ajax_Requests_File() + '?f=address&s=add&hash=' + $('.main_session').val(),
         beforeSubmit:  function () {
           $('.modal_add_address_modal_alert').empty();
-          $("#add_address_modal").find('.btn-mat').attr('disabled', 'true');
-          $("#add_address_modal").find('.btn-mat').text("<?php echo($wo['lang']['please_wait']) ?>");
+
+          <?php if ($wo['config']['google_map'] == 1) { ?>
+          if (!isCheckoutAddressSelected) {
+              $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger">Vui lòng nhập và chọn địa chỉ từ gợi ý của Google</div>');
+              return false;
+          }
+          <?php } ?>
+
+          $(".address_form").find('.btn-mat').attr('disabled', 'true');
+          $(".address_form").find('.btn-mat').text("<?php echo($wo['lang']['please_wait']) ?>");
         },
         success: function (data) {
-          $("#add_address_modal").find('.btn-mat').text("<?php echo $wo['lang']['add'] ?>");
-          $("#add_address_modal").find('.btn-mat').removeAttr('disabled')
+          $(".address_form").find('.btn-mat').text("<?php echo $wo['lang']['add'] ?>");
+          $(".address_form").find('.btn-mat').removeAttr('disabled');
           if (data.status == 200) {
             $('.modal_add_address_modal_alert').html('<div class="alert alert-success bg-success"><i class="fa fa-check"></i> '+
               data.message
               +'</div>');
-              if (data.url && data.url != '') {
-                if ($('#setting_address_page').length > 0) {
-                  setTimeout(function () {
-                    location.href = data.url;
-                  },2000);
-                }
-                else{
-                  setTimeout(function () {
-                    $('.modal_add_address_modal_alert').empty();
-              $("#add_address_modal").find('.btn-mat').removeAttr('disabled')
-              $("#add_address_modal").find('.btn-mat').text("<?php echo $wo['lang']['add'] ?>");
-              $('#add_address_modal').modal('hide');
-              $('#load_checkout').click();
-                  },2000);
-                }
-              }
+              setTimeout(function () {
+                $('.modal_add_address_modal_alert').empty();
+                location.reload();
+              },2000);
           } else {
             $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger"> '+
             data.message
@@ -151,17 +238,4 @@ $(document).ready(function() {
     };
     $('.address_form').ajaxForm(options);
 });
-    <?php if ($wo['topup'] == 'show') { ?>
-    var check_wallet = setInterval(function(){
-        $.post(Wo_Ajax_Requests_File() + '?f=products&s=check_wallet&hash=' + $('.main_session').val(), function(data, textStatus, xhr) {
-            if (data.status == 200) {
-                if (data.topup == 'hide') {
-                    $('.wallet_alert').remove();
-                    $('.buy_button').removeAttr('disabled');
-                    clearInterval(check_wallet);
-                }
-            }
-        });
-     }, 3000);
-    <?php } ?>
 </script>

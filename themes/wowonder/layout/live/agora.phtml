@@ -1,6 +1,20 @@
 <script type="text/javascript">
 	var rand = 0;
 
+	// Define getMedia function
+	function getMedia() {
+	  return new Promise((resolve, reject) => {
+	    let constraints = {audio: true, video: true};
+	    navigator.mediaDevices.getUserMedia(constraints)
+	      .then(str => {
+	        resolve(str);
+	      })
+	      .catch(e => {
+	        reject(e);
+	      });
+	  });
+	}
+
 	function ready() {
 
 	  //Setup publish button
@@ -342,4 +356,13 @@ function generateToken() {
   return "<?php echo($wo['AgoraToken']); ?>";
   //return null; // TODO: add a token generation
 }
+
+// Auto-trigger getMedia to request permissions
+setTimeout(function() {
+  if (typeof getMedia === 'function') {
+    getMedia().catch(function(err) {
+      console.log('Auto getMedia failed:', err);
+    });
+  }
+}, 500);
 </script>

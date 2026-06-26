@@ -990,7 +990,14 @@
       <?php if ($wo['loggedin'] == true) {?>
       <?php if ($wo['config']['google_map'] == 1) { ?>
       <script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $wo['config']['google_map_api'];?>&libraries=places,geometry"></script>
-    
+      <style>
+      .pac-container {
+          z-index: 999999 !important;
+      }
+      .address_form input, .address_form textarea {
+          font-size: 15px !important;
+      }
+      </style>
       <?php } ?>
       <script src="<?php echo $wo['config']['theme_url'];?>/javascript/audioRecord/recorder.js?version=<?php echo $wo['config']['version']; ?>"></script>
       <script src="<?php echo $wo['config']['theme_url'];?>/javascript/audioRecord/record.js?version=<?php echo $wo['config']['version']; ?>"></script>
@@ -1992,30 +1999,39 @@
   									<input id="phone" name="phone" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['phone_number']; ?>" value="<?php echo($wo['user']['phone_number']) ?>">
   								</div>
   							</div>
-  							<div class="col-md-6">
-  								<div class="wow_form_fields">
-  									<label for="country"><?php echo $wo['lang']['country']; ?></label>
-  									<input id="country" name="country" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['country']; ?>">
-  								</div>
-  							</div>
-  							<div class="col-md-6">
-  								<div class="wow_form_fields">
-  									<label for="city"><?php echo $wo['lang']['city']; ?></label>
-  									<input id="city" name="city" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>">
-  								</div>
-  							</div>
-  							<div class="col-md-6">
-  								<div class="wow_form_fields">
-  									<label for="zip"><?php echo $wo['lang']['zip']; ?></label>
-  									<input id="zip" name="zip" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['zip']; ?>">
-  								</div>
-  							</div>
-  							<div class="col-md-12">
-  								<div class="wow_form_fields">
-  									<label for="address"><?php echo $wo['lang']['name']; ?></label>
-  									<textarea id="address" placeholder="<?php echo $wo['lang']['address']; ?>" name="address" rows="3"></textarea>
-  								</div>
-  							</div>
+  							<div id="modal_address_fields_wrapper" style="width: 100%;">
+								<div class="col-md-6">
+									<div class="wow_form_fields">
+										<label for="modal_add_country"><?php echo $wo['lang']['country']; ?></label>
+										<input id="modal_add_country" name="country" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['country']; ?>">
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="wow_form_fields">
+										<label for="modal_add_city"><?php echo $wo['lang']['city']; ?></label>
+										<input id="modal_add_city" name="city" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>">
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="wow_form_fields">
+										<label for="zip"><?php echo $wo['lang']['zip']; ?></label>
+										<input id="zip" name="zip" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['zip']; ?>">
+									</div>
+								</div>
+								<div class="col-md-12">
+									<div class="wow_form_fields">
+										<label for="modal_add_address"><?php echo $wo['lang']['address']; ?></label>
+										<input id="modal_add_address" name="address" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['address']; ?>">
+									</div>
+								</div>
+							</div>
+							<div class="col-md-12" id="modal_address_card_preview" style="display:none; margin-bottom:15px; margin-top:15px;">
+								<div style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+									<h5 style="margin-top: 0; color: #444; font-weight: 600;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px; color: #48B774;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>Địa chỉ đã chọn</h5>
+									<p id="modal_preview_text" style="font-size: 15px; margin-bottom: 10px; color: #333; line-height: 1.5; font-weight: 500;"></p>
+									<button type="button" id="modal_change_address_btn" class="btn btn-default btn-sm" style="border: 1px solid #ccc; background: #fff; font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 4px; color: #666;">Thay đổi địa chỉ</button>
+								</div>
+							</div>
   						</div>
   						<div class="clear"></div>
   					</div>
