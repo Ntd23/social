@@ -11,12 +11,15 @@
 						if (!empty($wo['addresses'])) {
 							foreach ($wo['addresses'] as $key => $address) {
 								?>
-						<li>
+						<li style="position: relative;" id="address_item_<?php echo($address->id) ?>">
 							<input type="radio" name="choose-address" id="choose_adrs_<?php echo($address->id) ?>" value="<?php echo($address->id) ?>" class="payment_address">
-							<label for="choose_adrs_<?php echo($address->id) ?>">
+							<label for="choose_adrs_<?php echo($address->id) ?>" style="padding-right: 45px;">
 								<p><b><?php echo($address->name) ?></b>&nbsp;<?php echo($address->phone) ?></p>
 								<p><?php echo($address->address) ?>, <?php echo($address->city) ?>, <?php echo($address->country) ?></p>
 							</label>
+							<span class="pointer delete-address-btn" onclick="Wo_DeleteCheckoutAddress(<?php echo($address->id) ?>)" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); z-index: 5; color: #f44336; padding: 5px; cursor: pointer;">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+							</span>
 						</li>
 					<?php  } } ?>
 				</ul>
@@ -119,101 +122,37 @@
 
 <script>
 $(document).ready(function() {
-    var isCheckoutAddressSelected = false;
-
-    <?php if ($wo['config']['google_map'] == 1) { ?>
-    if (typeof google === 'object' && typeof google.maps === 'object' && typeof google.maps.places === 'object') {
-        var checkoutAddressInput = document.getElementById('checkout_address');
-        if (checkoutAddressInput) {
-            var checkoutAutocomplete = new google.maps.places.Autocomplete(checkoutAddressInput, {
-                types: ['geocode']
-            });
-
-            checkoutAutocomplete.addListener('place_changed', function() {
-                var place = checkoutAutocomplete.getPlace();
-                if (!place.geometry) {
-                    isCheckoutAddressSelected = false;
-                    return;
-                }
-
-                isCheckoutAddressSelected = true;
-
-                var city = '';
-                var country = '';
-
-                if (place.address_components) {
-                    for (var i = 0; i < place.address_components.length; i++) {
-                        var component = place.address_components[i];
-                        var addressType = component.types[0];
-
-                        if (addressType === 'locality') {
-                            if (!city) city = component.long_name;
-                        } else if (addressType === 'administrative_area_level_1') {
-                            city = component.long_name;
-                        } else if (addressType === 'country') {
-                            country = component.long_name;
-                        }
-                    }
-                }
-
-                country = country || 'Việt Nam';
-                $('#checkout_country').val(country);
-                $('#checkout_city').val(city);
-
-                var cleanAddress = place.formatted_address || place.name || '';
-                if (cleanAddress) {
-                    var escapeReg = function(string) {
-                        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    };
-                    
-                    if (country) {
-                        cleanAddress = cleanAddress.replace(new RegExp(',\\s*' + escapeReg(country) + '$', 'i'), '');
-                    }
-                    cleanAddress = cleanAddress.replace(/,\s*(Việt Nam|Vietnam)$/i, '');
-                    
-                    if (city) {
-                        cleanAddress = cleanAddress.replace(new RegExp(',\\s*' + escapeReg(city) + '$', 'i'), '');
-                    }
-                }
-
-                $('#checkout_address').val(cleanAddress);
-
-                // Show card preview and hide input fields
-                $('#checkout_preview_text').html(cleanAddress + (city ? ', ' + city : '') + (country ? ', ' + country : ''));
-                $('#checkout_address_fields_wrapper').slideUp();
-                $('#checkout_address_card_preview').slideDown();
-            });
-
-            $('#checkout_change_address_btn').on('click', function() {
-                $('#checkout_address').val('');
-                $('#checkout_city').val('');
-                $('#checkout_country').val('');
-                isCheckoutAddressSelected = false;
-                $('#checkout_address_card_preview').slideUp();
-                $('#checkout_address_fields_wrapper').slideDown();
-                setTimeout(function() {
-                    $('#checkout_address').focus();
-                }, 400);
-            });
-
-            $(checkoutAddressInput).on('input', function() {
-                isCheckoutAddressSelected = false;
-            });
-        }
-    }
-    <?php } ?>
-
     var options = {
       url: Wo_Ajax_Requests_File() + '?f=address&s=add&hash=' + $('.main_session').val(),
         beforeSubmit:  function () {
           $('.modal_add_address_modal_alert').empty();
 
-          <?php if ($wo['config']['google_map'] == 1) { ?>
-          if (!isCheckoutAddressSelected) {
-              $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger">Vui lòng nhập và chọn địa chỉ từ gợi ý của Google</div>');
+          var name = $.trim($('.address_form input[name="name"]').val());
+          var phone = $.trim($('.address_form input[name="phone"]').val());
+          var country = $.trim($('#checkout_country').val());
+          var city = $.trim($('#checkout_city').val());
+          var address = $.trim($('#checkout_address').val());
+
+          if (!name) {
+              $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger">Vui lòng nhập họ tên người nhận.</div>');
               return false;
           }
-          <?php } ?>
+          if (!phone) {
+              $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger">Vui lòng nhập số điện thoại.</div>');
+              return false;
+          }
+          if (!country) {
+              $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger">Vui lòng nhập quốc gia.</div>');
+              return false;
+          }
+          if (!city) {
+              $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger">Vui lòng nhập tỉnh / thành phố.</div>');
+              return false;
+          }
+          if (!address) {
+              $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger">Vui lòng nhập địa chỉ cụ thể.</div>');
+              return false;
+          }
 
           $(".address_form").find('.btn-mat').attr('disabled', 'true');
           $(".address_form").find('.btn-mat').text("<?php echo($wo['lang']['please_wait']) ?>");
@@ -238,4 +177,23 @@ $(document).ready(function() {
     };
     $('.address_form').ajaxForm(options);
 });
+
+function Wo_DeleteCheckoutAddress(id) {
+	if (!id) return false;
+	if (!confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
+		return false;
+	}
+	$.post(Wo_Ajax_Requests_File() + '?f=address&s=delete&hash=' + $('.main_session').val(), {id: id}, function(data) {
+		if (data.status == 200) {
+			$('#address_item_' + id).slideUp(300, function() {
+				$(this).remove();
+				if ($('.cart_chos_addrs li').length === 0) {
+					location.reload();
+				}
+			});
+		} else {
+			alert(data.message || "Đã xảy ra lỗi khi xóa địa chỉ.");
+		}
+	}, 'json');
+}
 </script>

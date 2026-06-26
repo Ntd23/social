@@ -9,9 +9,14 @@ if ($f == 'load_poke') {
         $query         = " SELECT * FROM " . T_POKES . " WHERE `received_user_id` = {$user_id} AND `id` < {$id} ORDER BY `id` DESC LIMIT 10";
         $sql_query = mysqli_query($sqlConnect, $query);
         while ($fetched_data = mysqli_fetch_assoc($sql_query)) {
-            $wo['poke']   = Wo_UserData($fetched_data['send_user_id']);
-            $wo['poke']['poke_id']   = $fetched_data['id'];
-            $html .= "<div class='wo_pokes_cont'>" . Wo_LoadPage('poke/poke-list') . "</div>";
+            $user = Wo_UserData($fetched_data['send_user_id']);
+            if (!empty($user) && is_array($user)) {
+                $wo['poke']   = $user;
+                $wo['poke']['poke_id']   = $fetched_data['id'];
+                $html .= "<div class='wo_pokes_cont'>" . Wo_LoadPage('poke/poke-list') . "</div>";
+            } else {
+                mysqli_query($sqlConnect, "DELETE FROM " . T_POKES . " WHERE `id` = {$fetched_data['id']}");
+            }
         }
         $data['status'] = 200;
         $data['html'] = $html;

@@ -268,12 +268,11 @@ $(function() {
 
 // --- Profile Location Autocomplete (Google Maps) ---
 function Wo_SetProfileCoordinates(lat, lng) {
-	$('#lat-profile').val(lat || '');
-	$('#lng-profile').val(lng || '');
+	Wo_SetProfileLocationCoordinates(lat, lng);
 }
 var woProfilePlaceAutocompleteElement = null;
 function Wo_GetProfileLocationField() {
-	return document.getElementById('location');
+	return document.getElementById('profile_location_input');
 }
 function Wo_ReadProfileLocationValue() {
 	var locationField = Wo_GetProfileLocationField();
@@ -308,6 +307,141 @@ function Wo_GetProfileLocationLanguage() {
 }
 function Wo_ProfileGoogleAutocompleteAvailable() {
 	return (typeof google !== 'undefined' && google.maps && typeof google.maps.importLibrary === 'function');
+}
+
+function Wo_IsVietnameseProfileLocation() {
+	var language = Wo_GetProfileLocationLanguage();
+	return language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1;
+}
+function Wo_NormalizeProfileLocationPart(value) {
+	return (value || '')
+		.toLowerCase()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/[^a-z0-9]+/g, ' ')
+		.trim();
+}
+function Wo_GetProfileLocationCanonicalPart(value) {
+	return Wo_NormalizeProfileLocationPart(value)
+		.replace(/^(phuong|xa|quan|huyen|tinh|thanh pho|tp)\s+/i, '')
+		.replace(/\s+(ward|district|province|city)$/i, '')
+		.trim();
+}
+function Wo_LocalizeVietnameseProfileLocationPart(value) {
+	if (!value) {
+		return '';
+	}
+
+	var localizedValue = value.trim();
+	localizedValue = localizedValue.replace(/^(.+?)\s+Road$/i, 'Duong $1');
+	localizedValue = localizedValue.replace(/^(.+?)\s+Street$/i, '$1');
+	localizedValue = localizedValue.replace(/^(.+?)\s+Ward$/i, 'Phuong $1');
+	localizedValue = localizedValue.replace(/^Ward\s+(.+)$/i, 'Phuong $1');
+	localizedValue = localizedValue.replace(/^District\s+(.+)$/i, 'Quan $1');
+	localizedValue = localizedValue.replace(/^Province\s+(.+)$/i, 'Tinh $1');
+	localizedValue = localizedValue.replace(/^City\s+(.+)$/i, 'Thanh pho $1');
+	localizedValue = localizedValue.replace(/^Vietnam$/i, 'Viet Nam');
+	localizedValue = localizedValue.replace(/^Ha Noi$/i, 'Ha Noi');
+	localizedValue = localizedValue.replace(/^Ho Chi Minh City$/i, 'TP Ho Chi Minh');
+
+	return localizedValue;
+}
+function Wo_GetProfileLocationText(item, queryValue) {
+	if (item && item.google_prediction === true) {
+		return item.display_name || item.description || '';
+	}
+	if (!item || !item.address) {
+		return item && (item.display_name || item.name) ? (item.display_name || item.name) : '';
+	}
+
+	var address = item.address;
+	var isVietnamese = Wo_IsVietnameseProfileLocation();
+	var parts = [];
+	var firstLine = [];
+	var houseNumber = address.house_number || address.house_name || '';
+	var road = address.road || address.pedestrian || address.footway || address.cycleway || '';
+	var normalizedQuery = Wo_NormalizeProfileLocationPart(queryValue || '');
+	var normalizedRoad = Wo_NormalizeProfileLocationPart(road);
+
+	if (isVietnamese && normalizedQuery && normalizedRoad) {
+		if (normalizedQuery.indexOf(normalizedRoad) !== -1 || normalizedRoad.indexOf(normalizedQuery) !== -1) {
+			road = queryValue;
+		}
+	}
+
+	if (houseNumber) {
+		firstLine.push(houseNumber);
+	}
+	if (road) {
+		firstLine.push(isVietnamese ? Wo_LocalizeVietnameseProfileLocationPart(road) : road);
+	}
+	if (firstLine.length > 0) {
+		parts.push(firstLine.join(' '));
+	}
+
+	[
+		address.suburb,
+		address.neighbourhood,
+		address.quarter,
+		address.city_district,
+		address.county,
+		address.district,
+		address.city,
+		address.town,
+		address.municipality,
+		address.state_district,
+		address.state,
+		address.country
+	].forEach(function(value) {
+		if (!value) {
+			return;
+		}
+		var localizedValue = isVietnamese ? Wo_LocalizeVietnameseProfileLocationPart(value) : value;
+		var compareValue = Wo_GetProfileLocationCanonicalPart(localizedValue);
+		var alreadyExists = parts.some(function(existingValue) {
+			return Wo_GetProfileLocationCanonicalPart(existingValue) === compareValue;
+		});
+		if (!alreadyExists) {
+			parts.push(localizedValue);
+		}
+	});
+
+	return parts.join(', ');
+}
+function Wo_GetProfileLocationSearchUrl(locationValue, limit) {
+	var params = new URLSearchParams({
+		format: 'jsonv2',
+		addressdetails: '1',
+		limit: String(limit || 10),
+		'accept-language': Wo_GetProfileLocationLanguage(),
+		q: locationValue
+	});
+	if (Wo_IsVietnameseProfileLocation()) {
+		params.set('countrycodes', 'vn');
+	}
+	return 'https://nominatim.openstreetmap.org/search?' + params.toString();
+}
+function Wo_FallbackProfileLocationSuggestions(normalizedLocationValue, requestToken) {
+	fetch(Wo_GetProfileLocationSearchUrl(normalizedLocationValue, 5), {
+		headers: {
+			'Accept': 'application/json'
+		}
+	}).then(function(response) {
+		if (!response.ok) {
+			throw new Error('Profile location suggestion request failed');
+		}
+		return response.json();
+	}).then(function(results) {
+		if (requestToken !== woProfileLocRequest) {
+			return;
+		}
+		Wo_RenderProfileLocationSuggestions(results, normalizedLocationValue);
+	}).catch(function() {
+		if (requestToken !== woProfileLocRequest) {
+			return;
+		}
+		Wo_RenderProfileLocationSuggestions([], normalizedLocationValue);
+	});
 }
 
 function Wo_ApplyGoogleProfilePlace(place) {
@@ -367,6 +501,8 @@ function Wo_SearchProfileLocationSuggestions(val) {
 				Wo_RenderProfileLocationSuggestions(mapped);
 			});
 		});
+	} else {
+		Wo_FallbackProfileLocationSuggestions(nval, reqId);
 	}
 }
 function Wo_SetProfileLocationCoordinates(lat, lng) {
@@ -450,13 +586,15 @@ function Wo_RenderProfileLocationSuggestions(items, queryValue) {
 		box.empty().hide();
 		return;
 	}
+	var seen = {};
 	var html = '';
 	items.forEach(function(item) {
 		var dn = Wo_GetProfileLocationText(item, queryValue);
 		var ndn = Wo_NormalizeProfileLocationPart(dn);
 		if (!dn || seen[ndn]) return;
 		seen[ndn] = true;
-		html += '<p class="pointer product_location_suggestion_item profile_location_suggestion_item" data-location="' + escapeHtml(dn) + '" data-lat="' + escapeHtml(String(item.lat || '')) + '" data-lng="' + escapeHtml(String(item.lon || item.lng || '')) + '">' + escapeHtml(dn) + '</p>';
+		var pid = item.place_id || '';
+		html += '<p class="pointer product_location_suggestion_item profile_location_suggestion_item" data-place-id="' + escapeHtml(String(pid)) + '" data-location="' + escapeHtml(dn) + '" data-lat="' + escapeHtml(String(item.lat || '')) + '" data-lng="' + escapeHtml(String(item.lon || item.lng || '')) + '">' + escapeHtml(dn) + '</p>';
 	});
 	box.html(html).show();
 }
@@ -593,11 +731,14 @@ $(function() {
 		var loc = $(this).attr('data-location') || '';
 		var lat = $(this).attr('data-lat') || '';
 		var lng = $(this).attr('data-lng') || '';
+		var pid = $(this).attr('data-place-id') || '';
 		$('#profile_location_input').val(loc);
 		$('#profile_address_value').val(loc);
 		Wo_SetProfileLocationCoordinates(lat, lng);
 		Wo_RenderProfileLocationSuggestions([]);
-		Wo_GeocodeProfilePlaceId(pid);
+		if (pid) {
+			Wo_GeocodeProfilePlaceId(pid);
+		}
 	});
 });
 </script>

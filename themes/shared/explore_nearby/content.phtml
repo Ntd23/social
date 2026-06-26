@@ -7804,8 +7804,7 @@ function Wo_ExploreNearbyPersistCurrentUserLocation(lat, lng) {
 	}
 
 	WoExploreNearbyState.lastSavedLivePosition = nextPosition;
-	return $.post(Wo_Ajax_Requests_File(), {
-		f: 'save_user_location',
+	return $.post(Wo_Ajax_Requests_File() + '?f=save_user_location', {
 		lat: nextPosition.lat,
 		lng: nextPosition.lng
 	}).then(function() {
