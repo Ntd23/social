@@ -1384,7 +1384,19 @@ async function startHostLive() {
     await hostRoom.connect(livekitHostSession.ws_url, livekitHostSession.token);
 
     for (let i = 0; i < tracks.length; i += 1) {
-      await hostRoom.localParticipant.publishTrack(tracks[i]);
+      const track = tracks[i];
+      if (track.kind === 'video') {
+        await hostRoom.localParticipant.publishTrack(track, {
+          simulcast: true,
+          videoCodec: 'h264',
+          videoEncoding: {
+            maxBitrate: 1500000,
+            maxFramerate: 30
+          }
+        });
+      } else {
+        await hostRoom.localParticipant.publishTrack(track);
+      }
     }
 
     const response = await $.ajax({
