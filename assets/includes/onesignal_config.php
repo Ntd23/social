@@ -1,4 +1,5 @@
 <?php
+// English description: Sends OneSignal notifications and normalizes incoming call payloads for native mobile call UI.
 function Wo_SendPushNotification($data = array(), $push_type = 'chat') {
     global $sqlConnect, $wo;
     if (empty($data)) {
@@ -33,9 +34,92 @@ function Wo_SendPushNotification($data = array(), $push_type = 'chat') {
     }
     $data['notification']['notification_content'] = Wo_EmoPhone($data['notification']['notification_content']);
     $data['notification']['notification_content'] = Wo_EditMarkup($data['notification']['notification_content']);
+    if (!empty($data['notification']['notification_data']) && is_array($data['notification']['notification_data'])) {
+        $notification_data = $data['notification']['notification_data'];
+        $call_type = !empty($notification_data['call_type']) ? (string) $notification_data['call_type'] : '';
+        $room_name = !empty($notification_data['room_name']) ? (string) $notification_data['room_name'] : '';
+        $call_id = !empty($notification_data['call_id']) ? (string) $notification_data['call_id'] : '';
+        if (($call_type == 'audio' || $call_type == 'video') && !empty($room_name) && !empty($call_id)) {
+            if (empty($notification_data['type'])) {
+                $notification_data['type'] = 'incoming_call';
+            }
+            if ((!empty($notification_data['from_id'])) && (empty($notification_data['caller_name']) || empty($notification_data['caller_avatar']))) {
+                $caller_data = Wo_UserData($notification_data['from_id']);
+                if (!empty($caller_data)) {
+                    if (empty($notification_data['caller_name'])) {
+                        $notification_data['caller_name'] = !empty($caller_data['name']) ? (string) $caller_data['name'] : '';
+                    }
+                    if (empty($notification_data['caller_avatar'])) {
+                        $notification_data['caller_avatar'] = !empty($caller_data['avatar']) ? (string) $caller_data['avatar'] : '';
+                    }
+                }
+            }
+            if (empty($notification_data['caller_name'])) {
+                $notification_data['caller_name'] = !empty($data['notification']['notification_title']) ? (string) $data['notification']['notification_title'] : '';
+            }
+            if (empty($notification_data['caller_avatar'])) {
+                $notification_data['caller_avatar'] = !empty($data['notification']['notification_image']) ? (string) $data['notification']['notification_image'] : '';
+            }
+            if (empty($notification_data['call_url']) && !empty($wo['config']['site_url'])) {
+                $notification_data['call_url'] = rtrim($wo['config']['site_url'], '/') . '/call_livekit.php?room=' . rawurlencode($room_name) . '&type=' . rawurlencode($call_type) . '&id=' . rawurlencode($call_id);
+            }
+            $data['notification']['notification_data'] = $notification_data;
+        }
+    }
     $final_request_data                           = array(
         'app_id' => $app_id,
-        'include_player_ids' => $data['send_to'],
+        'include_subscription_ids' => $data['send_to'],
+        'send_after' => new \DateTime('1 second'),
+        'isChrome' => false,
+        'contents' => array(
+            'en' => $data['notification']['notification_content']
+        ),
+        'headings' => array(
+            'en' => $data['notification']['notification_title']
+        ),
+        'android_led_color' => 'FF0000FF',
+        'priority' => 10
+    );
+    if (!empty($data['notification']['notification_data'])) {
+        $final_request_data['data'] = $data['notification']['notification_data'];
+    }
+    if (!empty($data['notification']['notification_image'])) {
+        $final_request_data['large_icon'] = $data['notification']['notification_image'];
+    }
+    $fields = json_encode($final_request_data);
+    $ch     = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json; charset=utf-8',
+        'Authorization: Basic ' . $app_key
+    ));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    curl_setopt($ch, CURLOPT_HEADER, FALSE);
+    curl_setopt($ch, CURLOPT_POST, TRUE);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+    $response = curl_exec($ch);
+    curl_close($ch);
+    $response = json_decode($response);
+    if ($response->id) {
+        return $response->id;
+    }
+    return false;
+}
+
+/**
+ * Gửi call notification đến thiết bị Android/iOS qua OneSignal REST API.
+ * Dùng cho cuộc gọi đến (incoming call) để Flutter app hiển thị
+ * thông báo cuộc gọi khi app đang ở foreground, background hoặc bị kill.
+ *
+ * LƯU Ý: android_m_push_key chứa OneSignal REST API key (os_v2_app_...),
+ * KHÔNG phải Firebase Server Key. Nên phải gửi qua OneSignal API,
+ * không gửi trực tiếp qua fcm.googleapis.com.
+ *
+ * @param string $device_id  OneSignal Subscription ID (Player ID) của người nhận
+ * @param array  $call_data  Thông tin cuộc gọi:
+        'app_id' => $app_id,
+        'include_subscription_ids' => $data['send_to'],
         'send_after' => new \DateTime('1 second'),
         'isChrome' => false,
         'contents' => array(
@@ -103,7 +187,7 @@ function Wo_SendFcmCallNotification($device_id = '', $call_data = array()) {
 
     if (empty($device_id) || empty($call_data)) {
         $log_msg .= "ERROR: Empty device ID or call data. Exiting.\n\n";
-        file_put_contents($log_file, $log_msg, FILE_APPEND);
+        @file_put_contents($log_file, $log_msg, FILE_APPEND);
         return false;
     }
 
@@ -116,7 +200,7 @@ function Wo_SendFcmCallNotification($device_id = '', $call_data = array()) {
 
     if (empty($app_id) || empty($api_key)) {
         $log_msg .= "ERROR: OneSignal App ID or API Key is empty. Exiting.\n\n";
-        file_put_contents($log_file, $log_msg, FILE_APPEND);
+        @file_put_contents($log_file, $log_msg, FILE_APPEND);
         return false;
     }
 
@@ -127,10 +211,11 @@ function Wo_SendFcmCallNotification($device_id = '', $call_data = array()) {
     // OneSignal sẽ chuyển thành FCM message gửi đến thiết bị
     $payload = array(
         'app_id'             => $app_id,
-        'include_player_ids' => array($device_id),
+        'include_subscription_ids' => array($device_id),
         'headings'           => array('en' => $caller_name),
         'contents'           => array('en' => ($call_type == 'audio' ? 'Cuộc gọi thoại đến' : 'Cuộc gọi video đến')),
         'priority'           => 10,
+        'content_available'  => true,
         'ttl'                => 30,
         'data'               => array(
             'type'          => 'incoming_call',
@@ -143,7 +228,7 @@ function Wo_SendFcmCallNotification($device_id = '', $call_data = array()) {
             'call_url'      => !empty($call_data['call_url'])      ? (string) $call_data['call_url']      : '',
         ),
         // Android: hiển thị notification ngay cả khi app bị kill
-        'android_channel_id' => '',  // Dùng default channel
+          // Dùng default channel
     );
 
     if (!empty($call_data['caller_avatar'])) {
@@ -169,7 +254,7 @@ function Wo_SendFcmCallNotification($device_id = '', $call_data = array()) {
 
     $log_msg .= "Curl Error: " . ($curl_error ? $curl_error : 'None') . "\n";
     $log_msg .= "Response: " . ($response ? $response : 'EMPTY') . "\n\n";
-    file_put_contents($log_file, $log_msg, FILE_APPEND);
+    @file_put_contents($log_file, $log_msg, FILE_APPEND);
 
     $decoded = json_decode($response, true);
     return !empty($decoded['id']);

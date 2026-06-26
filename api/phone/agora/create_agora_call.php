@@ -1,4 +1,5 @@
 <?php
+// English description: Creates Agora call records and sends mobile call notifications to the recipient.
 // +------------------------------------------------------------------------+
 // | @author Deen Doughouz (DoughouzForest)
 // | @author_url 1: http://www.hisotechgroup.com
@@ -132,7 +133,7 @@ if ($type == 'create_agora_call') {
                             'notification_title' => $wo['calling_user']['name'],
                             'notification_image' => $wo['calling_user']['avatar'],
                             'notification_data' => array(
-                                'call_type' => 'video',
+                                'call_type' => $call_type,
                                 'from_id' => Wo_Secure($user_id),
                                 'to_id' => Wo_Secure($recipient_id),
                                 'room_name' => $room_script,
@@ -152,7 +153,7 @@ if ($type == 'create_agora_call') {
                             'notification_title' => $wo['calling_user']['name'],
                             'notification_image' => $wo['calling_user']['avatar'],
                             'notification_data' => array(
-                                'call_type' => 'video',
+                                'call_type' => $call_type,
                                 'from_id' => Wo_Secure($user_id),
                                 'to_id' => Wo_Secure($recipient_id),
                                 'room_name' => $room_script,

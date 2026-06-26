@@ -124,6 +124,39 @@ if (!empty($callSource)) {
     $isAudioCall = ($callType === 'audio');
 }
 
+// Auto-answer call if recipient visits directly from mobile app
+$is_receiver_join = (!empty($callSource) && intval($callSource['to_id']) === $user_id);
+if ($is_receiver_join) {
+    $call_status = isset($callSource['status']) ? $callSource['status'] : '';
+    $call_declined = intval(!empty($callSource['declined']) ? $callSource['declined'] : 0);
+    $call_active = intval(!empty($callSource['active']) ? $callSource['active'] : 0);
+    $call_claimed_by = intval(!empty($callSource['called']) ? $callSource['called'] : 0);
+    $call_claim_id = Wo_GetCallSessionClaim($user_id);
+
+    if ($call_declined !== 1 && ($call_active !== 1 || $call_status !== 'answered' || $call_claimed_by !== $call_claim_id)) {
+        $id = intval($callSource['id']);
+        $table = ($callType === 'audio') ? T_AUDIO_CALLES : T_VIDEOS_CALLES;
+        $provider = Wo_GetActiveCallProvider($callType);
+        
+        $query = mysqli_query($sqlConnect, "UPDATE " . $table . " SET `active` = 1, `status` = 'answered', `called` = '{$call_claim_id}' WHERE `id` = '$id' AND `to_id` = '$user_id'");
+        if (mysqli_affected_rows($sqlConnect) <= 0) {
+            $query = mysqli_query($sqlConnect, "UPDATE " . T_AGORA . " SET `active` = 1, `status` = 'answered', `called` = '{$call_claim_id}' WHERE `id` = '$id' AND `to_id` = '$user_id'");
+            if (mysqli_affected_rows($sqlConnect) > 0) {
+                $provider = 'agora';
+            }
+        }
+        if (mysqli_affected_rows($sqlConnect) > 0) {
+            Wo_UpdateCallLog($id, $callType, 'answered', array(
+                'provider' => $provider,
+                'started_at' => time(),
+                'status_by' => $user_id
+            ));
+            // Reload updated call source
+            $callSource = Wo_GetCallSourceById($id, $callType);
+        }
+    }
+}
+
 if (!empty($callSource)) {
     $call_status = isset($callSource['status']) ? $callSource['status'] : '';
     $call_declined = intval(!empty($callSource['declined']) ? $callSource['declined'] : 0);

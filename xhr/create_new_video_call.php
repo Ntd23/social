@@ -1,4 +1,5 @@
-<?php 
+<?php
+// English description: Creates video call records, returns caller modal data, and sends mobile call notifications.
 use Twilio\Jwt\AccessToken;
 use Twilio\Jwt\Grants\VideoGrant;
 if ($f == 'create_new_video_call') {
@@ -103,6 +104,8 @@ if ($f == 'create_new_video_call') {
                         'notification_data' => array(
                             'call_type' => 'video',
                             'access_token_2' => '',
+                            'from_id' => Wo_Secure($_GET['user_id1']),
+                            'to_id' => Wo_Secure($_GET['user_id2']),
                             'room_name' => $room_script,
                             'call_id' => $insertData
                         )
@@ -122,6 +125,8 @@ if ($f == 'create_new_video_call') {
                         'notification_data' => array(
                             'call_type' => 'video',
                             'access_token_2' => '',
+                            'from_id' => Wo_Secure($_GET['user_id1']),
+                            'to_id' => Wo_Secure($_GET['user_id2']),
                             'room_name' => $room_script,
                             'call_id' => $insertData
                         )
@@ -216,6 +221,8 @@ if ($f == 'create_new_video_call') {
                         'notification_data' => array(
                             'call_type' => 'video',
                             'access_token_2' => $token_2,
+                            'from_id' => Wo_Secure($_GET['user_id1']),
+                            'to_id' => Wo_Secure($_GET['user_id2']),
                             'room_name' => $room_script,
                             'call_id' => $insertData
                         )
@@ -235,6 +242,8 @@ if ($f == 'create_new_video_call') {
                         'notification_data' => array(
                             'call_type' => 'video',
                             'access_token_2' => $token_2,
+                            'from_id' => Wo_Secure($_GET['user_id1']),
+                            'to_id' => Wo_Secure($_GET['user_id2']),
                             'room_name' => $room_script,
                             'call_id' => $insertData
                         )
@@ -313,6 +322,8 @@ if ($f == 'create_new_video_call') {
                         'notification_data' => array(
                             'call_type' => 'video',
                             'access_token_2' => '',
+                            'from_id' => Wo_Secure($_GET['user_id1']),
+                            'to_id' => Wo_Secure($_GET['user_id2']),
                             'room_name' => $room_script,
                             'call_id' => $insertData
                         )
@@ -332,6 +343,8 @@ if ($f == 'create_new_video_call') {
                         'notification_data' => array(
                             'call_type' => 'video',
                             'access_token_2' => '',
+                            'from_id' => Wo_Secure($_GET['user_id1']),
+                            'to_id' => Wo_Secure($_GET['user_id2']),
                             'room_name' => $room_script,
                             'call_id' => $insertData
                         )
