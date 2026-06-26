@@ -113,6 +113,13 @@ $fields = Wo_GetWelcomeFileds();
 							<?php } ?>
 						</select>
 					</div>
+					<div class="wow_form_fields">
+						<label for="is_shop"><?php echo $wo['lang']['is_shop'] ?></label>
+						<select name="is_shop" id="is_shop">
+							<option value="0">Không</option>
+							<option value="1">Có</option>
+						</select>
+					</div>
 					<?php if ($wo['config']['sms_or_email'] == 'sms') { ?>
 						<div class="wow_form_fields">
 							<label for="phone_num_ex"><?php echo $wo['lang']['phone_num_ex'] ?></label>
@@ -236,19 +243,6 @@ $fields = Wo_GetWelcomeFileds();
 							<input type="hidden" name="last_url" value="<?php echo urldecode(Wo_Secure($_GET['last_url'])); ?>">
 						</div>
 					<?php } ?>
-					<!-- <div class="terms">
-						<input type="checkbox" name="is_shop" id="is_shop" value="1">
-						<label for="is_shop">
-							<?php echo $wo['lang']['is_shop']; ?>
-							<a href="<?php echo Wo_SeoLink('index.php?link1=terms&type=terms'); ?>" class="main">
-								<?php echo $wo['lang']['terms_of_use']; ?>
-							</a> &
-							<a href="<?php echo Wo_SeoLink('index.php?link1=terms&type=privacy-policy'); ?>" class="main">
-								<?php echo $wo['lang']['privacy_policy']; ?>
-							</a>
-						</label>
-						<div class="clear"></div>
-					</div> -->
 
 					<div class="terms">
 						<input type="checkbox" name="accept_terms" id="accept_terms" onchange="activateButton(this)">
@@ -468,6 +462,45 @@ $fields = Wo_GetWelcomeFileds();
 		color: red !important;
 		font-weight: bold;
 		display: inline-block;
+	}
+
+	/* Dropdown is_shop */
+	#is_shop {
+		width: 100%;
+		padding: 12px 15px;
+		border: 1px solid #ddd;
+		border-radius: 8px;
+		background-color: #fff;
+		font-size: 14px;
+		color: #333;
+		cursor: pointer;
+		transition: border-color 0.3s ease, box-shadow 0.3s ease;
+		appearance: none;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 15px center;
+	}
+
+	#is_shop:focus {
+		outline: none;
+		border-color: #4db3f6;
+		box-shadow: 0 0 0 3px rgba(77, 179, 246, 0.1);
+	}
+
+	#is_shop:hover {
+		border-color: #bbb;
+	}
+
+	/* ẩn checkbox/box trước label is_shop */
+	.terms label[for="is_shop"]::before,
+	.terms label[for="is_shop"]::after {
+		display: none !important;
+	}
+
+	.terms label[for="is_shop"] {
+		display: block;
+		margin-bottom: 8px;
+		font-weight: 600;
 	}
 
 	/* Ô mật khẩu có icon mắt */
