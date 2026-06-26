@@ -10,8 +10,12 @@ $query     = " SELECT * FROM " . T_POKES . " WHERE `received_user_id` = {$user_i
 $sql_query = mysqli_query($sqlConnect, $query);
 while ($fetched_data = mysqli_fetch_assoc($sql_query)) {
     $user            = Wo_UserData($fetched_data['send_user_id']);
-    $user['poke_id'] = $fetched_data['id'];
-    $data[]          = $user;
+    if (!empty($user) && is_array($user)) {
+        $user['poke_id'] = $fetched_data['id'];
+        $data[]          = $user;
+    } else {
+        mysqli_query($sqlConnect, "DELETE FROM " . T_POKES . " WHERE `id` = {$fetched_data['id']}");
+    }
 }
 $wo['poke']        = $data;
 $wo['description'] = '';

@@ -4840,7 +4840,7 @@ function Wo_GetMytransactions($args = array())
 	if ($offset > 0) {
 		$query_one .= " AND `id` < {$offset} AND `id` <> {$offset} ";
 	}
-	$sql   = "SELECT * FROM " . T_PAYMENT_TRANSACTIONS . " WHERE `userid` = '$user_id' ORDER BY `id` DESC LIMIT 30";
+	$sql   = "SELECT * FROM " . T_PAYMENT_TRANSACTIONS . " WHERE `userid` = '$user_id' AND `kind` <> 'SALE' AND (`kind` <> 'PURCHASE' OR (`extra` IS NOT NULL AND `extra` LIKE '%monetization_subscription%')) ORDER BY `id` DESC LIMIT 30";
 	$query = mysqli_query($sqlConnect, $sql);
 	if (mysqli_num_rows($query)) {
 		while ($fetched_data = mysqli_fetch_assoc($query)) {

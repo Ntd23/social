@@ -57,8 +57,10 @@ if (!empty($_POST['type']) && in_array($_POST['type'], $required_fields)) {
                 Wo_RegisterNotification($notification_data_array);
             }
             $poke = Wo_GetPokeById($poke_id);
-            foreach ($non_allowed as $key => $value) {
-                unset($poke['user_data'][$value]);
+            if (!empty($poke) && is_array($poke) && !empty($poke['user_data']) && is_array($poke['user_data'])) {
+                foreach ($non_allowed as $key => $value) {
+                    unset($poke['user_data'][$value]);
+                }
             }
             $response_data = array(
                                 'api_status' => 200,
@@ -101,12 +103,14 @@ if (!empty($_POST['type']) && in_array($_POST['type'], $required_fields)) {
         while ($fetched_data = mysqli_fetch_assoc($sql_query)) {
             if (!empty($fetched_data)) {
                 $fetched_data['user_data'] = Wo_UserData($fetched_data['send_user_id']);
-                foreach ($non_allowed as $key => $value) {
-                    unset($fetched_data['user_data'][$value]);
-                }
-                if (!empty($fetched_data['user_data'])) {
+                if (!empty($fetched_data['user_data']) && is_array($fetched_data['user_data'])) {
+                    foreach ($non_allowed as $key => $value) {
+                        unset($fetched_data['user_data'][$value]);
+                    }
                     $fetched_data['user_data']['is_following'] = (Wo_IsFollowing($fetched_data['user_data']['user_id'], $wo['user']['user_id'])) ? 1 : 0;
                     $pokes[] = $fetched_data;
+                } else {
+                    mysqli_query($sqlConnect, "DELETE FROM " . T_POKES . " WHERE `id` = {$fetched_data['id']}");
                 }
             }
         }
