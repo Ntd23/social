@@ -1799,5 +1799,51 @@
             </div>
 		</div>
 	</div>
+   <?php if ($wo['loggedin'] == true) { ?>
+   <script type="text/javascript">
+   (function() {
+       function updateDeviceToken(token) {
+           if (window.__last_sent_device_token === token) {
+               return;
+           }
+           $.ajax({
+               url: Wo_Ajax_Requests_File() + '?f=update_device_token',
+               type: 'POST',
+               data: { token: token },
+               dataType: 'json',
+               success: function(data) {
+                   if (data.status === 200) {
+                       window.__last_sent_device_token = token;
+                       console.log('[PushBridge] Device token updated successfully on server');
+                   } else {
+                       console.error('[PushBridge] Failed to update device token:', data.error);
+                   }
+               },
+               error: function(err) {
+                   console.error('[PushBridge] AJAX error updating device token:', err);
+               }
+           });
+       }
+
+       window.addEventListener('angel-native-push-state', function(e) {
+           var pushState = e.detail;
+           if (pushState && pushState.token) {
+               console.log('[PushBridge] Received state via event:', pushState);
+               updateDeviceToken(pushState.token);
+           }
+       });
+
+       $(document).ready(function() {
+           setTimeout(function() {
+               if (window.__ANGEL_PUSH_STATE__ && window.__ANGEL_PUSH_STATE__.token) {
+                   console.log('[PushBridge] Found initial token in state:', window.__ANGEL_PUSH_STATE__.token);
+                   updateDeviceToken(window.__ANGEL_PUSH_STATE__.token);
+               }
+           }, 500);
+       });
+   })();
+   </script>
+   <?php } ?>
+
    </body>
 </html>

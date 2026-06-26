@@ -51,7 +51,8 @@ $allow_array = array(
     'tags',
     'sepay',
     'family',
-    'qrcode'
+    'qrcode',
+    'update_device_token'
 );
 if ($f == 'certification' && $s == 'download_user_certification' && !empty($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {
     $allow_array[] = 'certification';
