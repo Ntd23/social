@@ -124,9 +124,7 @@ if (!empty($_GET['url'])) {
 					<input name="videocount" type="text" class="form-control bg_read_input" readonly>
 				</span> -->
                     <?php if ($wo['config']['ffmpeg_system'] != 'on') { ?>
-                        <span class="pull-right pointer video-custom-thumb">
-					<?php echo $wo['lang']['custom_thumbnail']; ?>&nbsp;<i class="fa fa-caret-down"></i>
-				</span>
+                        <!-- Custom thumbnail removed -->
                     <?php } ?>
                 </div>
                <div id="video-upload-alert" class="alert alert-danger" style="display:none; margin-top:10px;"></div>
@@ -938,8 +936,7 @@ if (!empty($_GET['url'])) {
     var filename = $(this).val().replace(/C:\\fakepath\\/i, '');
     var file     = this.files[0];
 
-    // hiện tên file
-    $("#video-form input[type='text']").val(filename);
+    // hiện tên file - removed
     $("#video-form").slideDown(200);
 
     // validate định dạng như cũ
@@ -951,7 +948,7 @@ if (!empty($_GET['url'])) {
 
         // reset input + preview
         $("#publisher-video").val('');
-        $("#video-form input[type='text']").val('');
+        // $("#video-form input[type='text']").val('');
         $("#video-preview-wrapper").slideUp(200);
         $("#video-preview").attr("src", "");
         $("#video-form").slideUp(200);
@@ -1014,21 +1011,21 @@ if (!empty($_GET['url'])) {
             $("#publisher-video").val('');
             $("#publisher-reels").val('');
             $("#custom-video-thumb").val('');
-            $("#video-form input[type='text']").val('');
+            // $("#video-form input[type='text']").val('');
             $("#video-form input[name='reels']").remove();
             $("#video-preview-wrapper").slideUp(200);
             $video.attr("src", "");
                $("#video-form .video-poster-image").hide(10, function() {
                 $(this).find('.preview').show(10);
                 $(this).find('.image').empty().hide(10);
-                 $("#video-form .video-custom-thumb").find('i').removeClass('rotate-90d');
+                 // $("#video-form .video-custom-thumb").find('i').removeClass('rotate-90d');
             });
             $("#video-form").slideUp(200);
         });
 
         $("#publisher-reels").change(function () {
             var filename = $(this).val().replace(/C:\\fakepath\\/i, '');
-            $("#video-form input[type='text']").val(filename);
+            // $("#video-form input[type='text']").val(filename);
             $("#video-form").append('<input type="hidden" name="reels" value="true">');
             $("#video-form").slideDown(200);
             if (Wo_IsFileAllowedToUpload(filename, allowed) == false) {
@@ -1037,7 +1034,7 @@ if (!empty($_GET['url'])) {
                     $("#file_not_supported").modal('hide');
                 },3000);
                 $("#publisher-video").val('');
-                $("#video-form input[type='text']").val('');
+                // $("#video-form input[type='text']").val('');
                 $("#video-form").slideUp(200);
                 return false;
             }
@@ -1161,20 +1158,19 @@ if (!empty($_GET['url'])) {
             });;
         });
 
-        $(".video-custom-thumb").click(function(event) {
-            $(this).find('i').toggleClass('rotate-90d');
+        // $(".video-custom-thumb").click(function(event) {
+        //     $(this).find('i').toggleClass('rotate-90d');
 
-            $('.video-poster-image').slideToggle(100,function () {
-                var display_stat = $(this).css('display');
+        //     $('.video-poster-image').slideToggle(100,function () {
+        //         var display_stat = $(this).css('display');
 
-                if (display_stat == 'none') {
-                    $(".video-poster-image").find('.preview').show(10);
-                    $(".video-poster-image").find('.image').empty().hide(10);
-                    $("#custom-video-thumb").val('');
-                }
-
-            });
-        });
+        //         if (display_stat == 'none') {
+        //             $(".video-poster-image").find('.preview').show(10);
+        //             $(".video-poster-image").find('.image').empty().hide(10);
+        //             $("#custom-video-thumb").val('');
+        //         }
+        //     });
+        // });
 
         $(document).on('click', '.rads-views', function(event) {
             var self  = $(this);
@@ -1274,7 +1270,7 @@ if (!empty($_GET['url'])) {
                     $(".video-poster-image").hide(10, function() {
                         $(this).find('.preview').show(10);
                         $(this).find('.image').empty().hide(10);
-                        $(".video-custom-thumb").find('i').removeClass('rotate-90d');
+                        // $(".video-custom-thumb").find('i').removeClass('rotate-90d');
                     });
                     $("body").removeClass('pub-focus');
                     Wo_RemoveFetchedUrl();
@@ -1330,7 +1326,7 @@ if (!empty($_GET['url'])) {
                     $(".video-poster-image").hide(10, function() {
                         $(this).find('.preview').show(10);
                         $(this).find('.image').empty().hide(10);
-                        $(".video-custom-thumb").find('i').removeClass('rotate-90d');
+                        // $(".video-custom-thumb").find('i').removeClass('rotate-90d');
                     });
                     $("body").removeClass('pub-focus');
                     Wo_RemoveFetchedUrl();
