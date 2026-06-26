@@ -1098,6 +1098,14 @@ function syncCommentsState() {
 }
 
 function getHostTrack(kind) {
+  if (liveCreated && hostRoom && hostRoom.localParticipant) {
+    const publications = kind === 'video' 
+      ? Array.from(hostRoom.localParticipant.videoTrackPublications.values())
+      : Array.from(hostRoom.localParticipant.audioTrackPublications.values());
+    if (publications.length > 0 && publications[0].track) {
+      return publications[0].track;
+    }
+  }
   for (let i = 0; i < hostTracks.length; i += 1) {
     if (hostTracks[i] && hostTracks[i].kind === kind) {
       return hostTracks[i];
@@ -1141,6 +1149,31 @@ function renderHostPreview() {
   element.playsInline = true;
   stage.appendChild(element);
   emptyState.classList.add('wo-hidden');
+
+  // Handle front/back camera mirroring
+  const trackSettings = videoTrack.mediaStreamTrack ? videoTrack.mediaStreamTrack.getSettings() : {};
+  const facingMode = trackSettings.facingMode || '';
+  let isBackCamera = facingMode === 'environment' || facingMode === 'left' || facingMode === 'right';
+
+  if (!isBackCamera && selectedDevices.videoId) {
+    navigator.mediaDevices.enumerateDevices().then(function(devices) {
+      const activeCamera = devices.find(function(d) {
+        return d.kind === 'videoinput' && d.deviceId === selectedDevices.videoId;
+      });
+      if (activeCamera) {
+        const label = (activeCamera.label || '').toLowerCase();
+        if (label.includes('back') || label.includes('rear') || label.includes('sau') || label.includes('environment')) {
+          element.style.transform = 'scaleX(1)';
+        } else {
+          element.style.transform = 'scaleX(-1)';
+        }
+      }
+    }).catch(function() {});
+  } else if (isBackCamera) {
+    element.style.transform = 'scaleX(1)';
+  } else {
+    element.style.transform = 'scaleX(-1)';
+  }
 }
 
 function updateTrackButtons() {
@@ -1255,6 +1288,21 @@ async function ensureHostPreview(forceRecreate) {
 
 async function changePreviewDevice(kind, deviceId) {
   if (liveCreated) {
+    if (hostRoom) {
+      try {
+        const livekitKind = kind === 'video' ? 'videoinput' : 'audioinput';
+        await hostRoom.switchActiveDevice(livekitKind, deviceId);
+        if (kind === 'video') {
+          selectedDevices.videoId = deviceId || '';
+        } else {
+          selectedDevices.audioId = deviceId || '';
+        }
+        renderHostPreview();
+        setHostStatus('Đã cập nhật thiết bị phát');
+      } catch (err) {
+        setHostStatus(err && err.message ? err.message : 'Không thể chuyển thiết bị khi đang phát.');
+      }
+    }
     return;
   }
   if (kind === 'video') {
