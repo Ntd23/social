@@ -1138,6 +1138,12 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		border-color: rgba(47, 109, 246, 0.38);
 		box-shadow: 0 0 0 4px rgba(47, 109, 246, 0.12), 0 22px 42px rgba(47, 109, 246, 0.16);
 	}
+	.wo_explore_discovery_card_media_stack {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+	}
 	.wo_explore_discovery_card_media {
 		position: relative;
 		width: 82px;
@@ -1247,9 +1253,13 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 	.wo_explore_discovery_card_distance {
 		display: inline-flex;
 		align-items: center;
+		justify-content: center;
+		width: 100%;
+		max-width: 92px;
+		min-height: 36px;
 		padding: 6px 10px;
-		border-radius: 999px;
-		background: rgba(47, 109, 246, 0.08);
+		border-radius: 14px;
+		background: rgba(47, 109, 246, 0.1);
 		color: var(--nearby-accent);
 		font-size: 12px;
 		font-weight: 800;
@@ -1265,6 +1275,17 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 		line-height: 1.16;
 		font-weight: 800;
 		color: var(--nearby-text);
+	}
+	.wo_explore_discovery_card_title_link {
+		color: inherit;
+		text-decoration: none;
+		transition: color .18s ease;
+	}
+	.wo_explore_discovery_card_title_link:hover,
+	.wo_explore_discovery_card_title_link:focus {
+		color: var(--nearby-accent);
+		text-decoration: none;
+		outline: none;
 	}
 	.wo_explore_discovery_card_identity_row {
 		display: flex;
@@ -2140,6 +2161,7 @@ var mapZoomInLabel = <?php echo json_encode((!empty($wo['lang']['zoom_in']) ? $w
 var mapZoomOutLabel = <?php echo json_encode((!empty($wo['lang']['zoom_out']) ? $wo['lang']['zoom_out'] : 'Zoom out'), $json_flags); ?>;
 var cardMyLocationLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Vị trí của tôi' : 'My location', $json_flags); ?>;
 var cardDirectionsLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Chỉ đường' : 'Directions', $json_flags); ?>;
+var cardStartGoingLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Bắt đầu đi' : 'Start going', $json_flags); ?>;
 var cardShareLabel = <?php echo json_encode((!empty($wo['lang']['share']) ? $wo['lang']['share'] : ((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Chia sẻ' : 'Share')), $json_flags); ?>;
 var cardShareCopiedLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đã chép link' : 'Link copied', $json_flags); ?>;
 var navigationStatusActiveLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đang dẫn đường' : 'Navigating', $json_flags); ?>;
@@ -8045,9 +8067,13 @@ function Wo_ExploreNearbyRenderCardHtml(item) {
 	var directionsActionHtml = '';
 	var shareActionHtml = '';
 	var cardActionsHtml = '';
+	var titleHtml = safeTitle;
+	var profileUrl = $.trim(item.url || '');
+	var profileAjaxUrl = $.trim(item.ajax_url || '');
 	var cardClassName = 'wo_explore_discovery_card is-' + Wo_ExploreNearbyEscapeHtml(item.type) + (isPinned ? ' is-pinned' : '');
 	var canStartNavigation = Wo_ExploreNearbyCanStartInAppNavigationForItem(item);
-	var directionsTitle = canStartNavigation ? cardDirectionsLabel : navigationGoogleRequiredLabel;
+	var directionsLabel = isNavigationActive ? cardStartGoingLabel : cardDirectionsLabel;
+	var directionsTitle = canStartNavigation ? directionsLabel : navigationGoogleRequiredLabel;
 	var shareDisabled = $.trim(Wo_ExploreNearbyGetShareUrl(item)) ? '' : ' disabled';
 	var audioButtonDisabled = '';
 	var audioButtonClassName = 'wo_explore_discovery_card_audio_button';
@@ -8079,9 +8105,12 @@ function Wo_ExploreNearbyRenderCardHtml(item) {
 			'<span>' + safeLocation + '</span>' +
 		'</div>';
 	}
+	if ((item.type === 'shop' || item.type === 'page') && profileUrl) {
+		titleHtml = '<a class="wo_explore_discovery_card_title_link" href="' + Wo_ExploreNearbyEscapeHtml(profileUrl) + '"' + (profileAjaxUrl ? ' data-ajax="' + Wo_ExploreNearbyEscapeHtml(profileAjaxUrl) + '"' : '') + '>' + safeTitle + '</a>';
+	}
 
 	myLocationActionHtml = '<button type="button" class="wo_explore_discovery_card_my_location">' + Wo_ExploreNearbyEscapeHtml(cardMyLocationLabel) + '</button>';
-	directionsActionHtml = '<button type="button" class="wo_explore_discovery_directions" data-point-key="' + safeKey + '"' + (canStartNavigation ? '' : ' disabled') + ' title="' + Wo_ExploreNearbyEscapeHtml(directionsTitle) + '" aria-label="' + Wo_ExploreNearbyEscapeHtml(directionsTitle) + '">' + Wo_ExploreNearbyEscapeHtml(cardDirectionsLabel) + '</button>';
+	directionsActionHtml = '<button type="button" class="wo_explore_discovery_directions" data-point-key="' + safeKey + '"' + (canStartNavigation ? '' : ' disabled') + ' title="' + Wo_ExploreNearbyEscapeHtml(directionsTitle) + '" aria-label="' + Wo_ExploreNearbyEscapeHtml(directionsTitle) + '">' + Wo_ExploreNearbyEscapeHtml(directionsLabel) + '</button>';
 	shareActionHtml = '<button type="button" class="wo_explore_discovery_share" data-point-key="' + safeKey + '"' + shareDisabled + '>' + Wo_ExploreNearbyEscapeHtml(cardShareLabel) + '</button>';
 	cardActionsHtml = '<div class="wo_explore_discovery_card_actions">' +
 		myLocationActionHtml +
@@ -8090,14 +8119,14 @@ function Wo_ExploreNearbyRenderCardHtml(item) {
 	'</div>';
 
 	return '<article class="' + cardClassName + '" data-point-key="' + safeKey + '">' +
-		'<div class="wo_explore_discovery_card_media">' + mediaHtml + pinnedMediaBadgeHtml + '</div>' +
+		'<div class="wo_explore_discovery_card_media_stack">' +
+			'<div class="wo_explore_discovery_card_media">' + mediaHtml + pinnedMediaBadgeHtml + '</div>' +
+			distanceHtml +
+		'</div>' +
 		'<div class="wo_explore_discovery_card_body">' +
-			'<div class="wo_explore_discovery_card_head">' +
-				distanceHtml +
-			'</div>' +
 			'<div class="wo_explore_discovery_card_identity_row">' +
 				'<div class="wo_explore_discovery_card_identity">' +
-					'<h3 class="wo_explore_discovery_card_title">' + safeTitle + '</h3>' +
+					'<h3 class="wo_explore_discovery_card_title">' + titleHtml + '</h3>' +
 					locationHtml +
 				'</div>' +
 				audioActionHtml +
@@ -12473,6 +12502,7 @@ jQuery(document).ready(function($) {
 		}
 
 		var pointKey = $.trim($(this).attr('data-point-key') || '');
+		$(this).text(cardStartGoingLabel).attr('title', cardStartGoingLabel).attr('aria-label', cardStartGoingLabel);
 		Wo_ExploreNearbyStartRouteToPointByKey(pointKey, true, true);
 	});
 
