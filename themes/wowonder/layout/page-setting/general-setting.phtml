@@ -82,7 +82,7 @@
 			<label for="nearby_pinned"><?php echo htmlspecialchars((!empty($wo['lang']['show_on_map']) ? $wo['lang']['show_on_map'] : 'Xuất hiện trên bản đồ'), ENT_QUOTES, 'UTF-8'); ?></label>
 			<div class="round-check">
 				<input type="checkbox" name="nearby_pinned" id="nearby_pinned" value="1"<?php echo $nearby_pinned_checked; ?>>
-				<label for="nearby_pinned"><?php echo htmlspecialchars((!empty($wo['lang']['show_on_map_description']) ? $wo['lang']['show_on_map_description'] : 'Hiển thị page này nổi bật trên bản đồ Explore Nearby.'), ENT_QUOTES, 'UTF-8'); ?></label>
+				<label for="nearby_pinned"><?php echo htmlspecialchars((!empty($wo['lang']['show_on_map_description']) ? $wo['lang']['show_on_map_description'] : 'Hiển thị page này trên bản đồ.'), ENT_QUOTES, 'UTF-8'); ?></label>
 			</div>
 		</div>
 		<?php $fields = Wo_GetCustomFields('page');
