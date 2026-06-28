@@ -101,6 +101,9 @@ if ($f == 'pages') {
             if (Wo_PageColumnExists('place_id')) {
                 $re_page_data['place_id'] = !empty($_POST['page_place_id']) ? Wo_Secure($_POST['page_place_id']) : '';
             }
+            if (Wo_PageColumnExists('nearby_pinned')) {
+                $re_page_data['nearby_pinned'] = !empty($_POST['nearby_pinned']) ? 1 : 0;
+            }
             $fields       = Wo_GetCustomFields('page');
             if (!empty($fields)) {
                 foreach ($fields as $key => $field) {
@@ -332,6 +335,9 @@ if ($f == 'pages') {
                             'call_action_type' => $call_action_type,
                             'call_action_type_url' => $_POST['call_action_type_url']
                         );
+                        if (Wo_PageColumnExists('nearby_pinned')) {
+                            $Update_data['nearby_pinned'] = !empty($_POST['nearby_pinned']) ? 1 : 0;
+                        }
                         $array       = array(
                             'verified' => 1,
                             'notVerified' => 0

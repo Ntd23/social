@@ -1,3 +1,4 @@
+// Provides shared WoWonder frontend interactions, AJAX helpers, and media controls.
 current_notification_number = 0;
 current_notification_number = 0;
 current_messages_number = 0;
@@ -841,6 +842,7 @@ console.log("WoWonder Debug: after_post_id =", after_post_id);
   posts_count = 0;
   if ($('#posts').find('div.post[data-post-id]').length > 0) {
     posts_count = $('#posts').find('div.post[data-post-id]').length;
+  }
 
   if ($(".user-ad-container").length > 0) {
     ad_id = $(".user-ad-container").last().attr('id');
