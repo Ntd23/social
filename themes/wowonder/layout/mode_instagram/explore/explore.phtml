@@ -40,7 +40,9 @@ $(window).scroll(function () {
 		}, function (data) {
 			if (data.status == 200) {
 				if (data.html && data.html != '') {
-					scrolled = 0;
+					setTimeout(function () {
+						scrolled = 0;
+					}, 800);
 					$('.user_media_list_section').append(data.html);
 				}
 				else{

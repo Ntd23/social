@@ -123,7 +123,7 @@ function Wo_SetupAutoLoadPostsObserver() {
   }
 
   if (window.wo_auto_load_posts_observer) {
-    window.wo_auto_load_posts_observer.disconnect();
+     window.wo_auto_load_posts_observer.disconnect();
   }
 
   window.wo_auto_load_posts_observer = new IntersectionObserver(function(entries) {
@@ -253,10 +253,10 @@ $(function () {
       } else {
         $('.sidebar-sticky').removeClass('Stick');
       }
-      var nearToBottom = 100;
-      if($('#posts').length > 0) {
+          var nearToBottom = 150;
+      if($('#posts').length > 0 && $('#load-more-posts[data-auto-load-only="1"]').length === 0) {
           if ($(window).scrollTop() + $(window).height() > $(document).height() - nearToBottom) {
-            if (scrolled == 0) {
+            if (scrolled == 0 && !$('body').attr('no-more-posts')) {
                scrolled = 1;
                Wo_GetMorePosts();
             }
@@ -809,7 +809,8 @@ function Wo_GetNewPosts() {
 function Wo_GetMorePosts() {
   var more_posts = $('#load-more-posts');
   var filter_by_more = $('#load-more-filter').find('.filter-by-more').attr('data-filter-by');
-  var after_post_id = $('div.post:last').attr('data-post-id');
+    var after_post_id = $('#posts').find('div.post[data-post-id]:last').attr('data-post-id');
+console.log("WoWonder Debug: after_post_id =", after_post_id);
   var page_id = 0;
   var user_id = 0;
   var group_id = 0;
@@ -838,9 +839,8 @@ function Wo_GetMorePosts() {
   $('.loading-status').hide().html('<div class="wo_loading_post"><div class="lightui1-shimmer"> <div class="_2iwr"></div> <div class="_2iws"></div> <div class="_2iwt"></div> <div class="_2iwu"></div> <div class="_2iwv"></div> <div class="_2iww"></div> <div class="_2iwx"></div> <div class="_2iwy"></div> <div class="_2iwz"></div> <div class="_2iw-"></div> <div class="_2iw_"></div> <div class="_2ix0"></div> </div></div>').removeClass('hidden').show();
   Wo_progressIconLoader($('#load-more-posts'));
   posts_count = 0;
-  if ($('.post').length > 0) {
-    posts_count = $('.post').length;
-  }
+  if ($('#posts').find('div.post[data-post-id]').length > 0) {
+    posts_count = $('#posts').find('div.post[data-post-id]').length;
 
   if ($(".user-ad-container").length > 0) {
     ad_id = $(".user-ad-container").last().attr('id');
@@ -880,6 +880,7 @@ function Wo_GetMorePosts() {
     ad_id: ad_id,
     story_id:story_id
   }, function (data) {
+  console.log("WoWonder Debug: AJAX success, response length = ", data.length);
     if (data.length == 0) {
       $('body').attr('no-more-posts', "true");
       $('#load-more-posts').html('<div class="white-loading list-group"><div class="cs-loader"><div class="no-more-posts-to-show">' + $('#get_no_posts_name').val() + '</div></div>');
@@ -896,10 +897,12 @@ function Wo_GetMorePosts() {
     }
     $('#load-more-posts').show();
     Wo_UpdateAutoLoadTriggerState();
-    Wo_SetupAutoLoadPostsObserver();
     $('.loading-status').remove();
     Wo_progressIconLoader($('#load-more-posts'));
-    scrolled = 0;
+    setTimeout(function () {
+      scrolled = 0;
+     Wo_SetupAutoLoadPostsObserver();
+    }, 800);
   });
 }
 

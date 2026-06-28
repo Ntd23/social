@@ -1156,7 +1156,7 @@ if ($f == 'posts') {
             }
             $postsData = array(
                 'filter_by' => Wo_Secure($_GET['filter_by_more']),
-                'limit' => 6,
+                'limit' => 10,
                 'publisher_id' => $user_id,
                 'group_id' => $group_id,
                 'page_id' => $page_id,
