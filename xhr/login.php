@@ -1,5 +1,11 @@
 <?php
+// Handles login requests and returns a normalized JSON response for the welcome form.
 if ($f == 'login') {
+    $errors = array();
+    $data = array(
+        'status' => 400,
+        'errors' => array($wo['lang']['incorrect_username_or_password_label'])
+    );
     $sessionUserId = null;
     if (!empty($_SESSION['user_id'])) {
         $sessionUserId = $_SESSION['user_id'];
@@ -149,6 +155,7 @@ if ($f == 'login') {
     header("Content-type: application/json");
     if (!empty($errors)) {
         echo json_encode(array(
+            'status' => 400,
             'errors' => $errors
         ));
     } else if (!empty($data_)) {

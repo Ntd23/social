@@ -1,4 +1,5 @@
 <?php
+// Provides shared helper functions for discovery, pages, media, and platform features.
 // +------------------------------------------------------------------------+
 // | @author Deen Doughouz (DoughouzForest)
 // | @author_url 1: http://www.hisotechgroup.com
@@ -6963,6 +6964,85 @@ function Wo_GetNearbyPinnedPageNames($value = null)
 
 	return $page_names;
 }
+function Wo_NearbyPageColumnExists($column_name = '')
+{
+	global $sqlConnect;
+	static $page_columns = null;
+
+	if (empty($column_name)) {
+		return false;
+	}
+
+	if ($page_columns === null) {
+		$page_columns = array();
+		$columns_query = mysqli_query($sqlConnect, "SHOW COLUMNS FROM " . T_PAGES);
+		if ($columns_query) {
+			while ($column = mysqli_fetch_assoc($columns_query)) {
+				if (!empty($column['Field'])) {
+					$page_columns[$column['Field']] = true;
+				}
+			}
+		}
+	}
+
+	return !empty($page_columns[$column_name]);
+}
+function Wo_GetNearbySelfPinnedPageIds()
+{
+	global $sqlConnect;
+	$page_ids = array();
+
+	if (!Wo_NearbyPageColumnExists('nearby_pinned')) {
+		return $page_ids;
+	}
+
+	$query = mysqli_query($sqlConnect, "SELECT `page_id` FROM " . T_PAGES . " WHERE `active` = '1' AND `nearby_pinned` = '1' ORDER BY `page_id` DESC LIMIT 500");
+	if ($query) {
+		while ($row = mysqli_fetch_assoc($query)) {
+			if (!empty($row['page_id']) && is_numeric($row['page_id'])) {
+				$page_ids[] = (int) $row['page_id'];
+			}
+		}
+	}
+
+	return $page_ids;
+}
+function Wo_GetNearbyPinnedPageIds($page_names = array())
+{
+	$page_ids = array();
+	$lookup   = array();
+
+	foreach ((array) $page_names as $page_name) {
+		$page_name = trim((string) $page_name);
+		if ($page_name === '') {
+			continue;
+		}
+
+		$page_id = Wo_PageIdFromPagename($page_name);
+		if (empty($page_id) || !is_numeric($page_id) || $page_id < 1) {
+			continue;
+		}
+
+		$page_id = (int) $page_id;
+		if (!empty($lookup[$page_id])) {
+			continue;
+		}
+
+		$lookup[$page_id] = true;
+		$page_ids[]      = $page_id;
+	}
+
+	foreach (Wo_GetNearbySelfPinnedPageIds() as $page_id) {
+		if (!empty($lookup[$page_id])) {
+			continue;
+		}
+
+		$lookup[$page_id] = true;
+		$page_ids[]      = $page_id;
+	}
+
+	return $page_ids;
+}
 function Wo_GetNearbyPinnedPages($args = array())
 {
 	global $sqlConnect;
@@ -6975,27 +7055,18 @@ function Wo_GetNearbyPinnedPages($args = array())
 	);
 	$args         = array_merge($options, (array) $args);
 	$page_names   = !empty($args['page_names']) ? $args['page_names'] : Wo_GetNearbyPinnedPageNames();
+	$page_ids     = Wo_GetNearbyPinnedPageIds($page_names);
 	$search_center = Wo_GetNearbySearchCenter($args);
 	$user_lat     = $search_center['lat'];
 	$user_lng     = $search_center['lng'];
 	$measure_distance = Wo_IsNearbyCoordinateValid($user_lat, $user_lng);
 	$data         = array();
 
-	if (empty($page_names)) {
+	if (empty($page_ids)) {
 		return $data;
 	}
 
-	foreach ($page_names as $page_name) {
-		$page_name = trim($page_name);
-		if ($page_name === '') {
-			continue;
-		}
-
-		$page_id = Wo_PageIdFromPagename($page_name);
-		if (empty($page_id) || !is_numeric($page_id) || $page_id < 1) {
-			continue;
-		}
-
+	foreach ($page_ids as $page_id) {
 		$page_id   = (int) $page_id;
 		$page_data = Wo_PageData($page_id);
 		if (empty($page_data) || !is_array($page_data) || empty($page_data['active']) || $page_data['active'] != '1') {

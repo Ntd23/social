@@ -1,3 +1,4 @@
+<?php // Renders the guest welcome login page and handles login responses. ?>
 <div class="wrapper">
    <div class="login">
       <div class="login_left_combo_parent">
@@ -230,6 +231,55 @@
 var working = false;
 var $this = $('#login');
 var $state = $this.find('.errors');
+var welcomeFallbackErrorText = 'Please check your login details.';
+
+function Wo_GetWelcomeErrorText(data) {
+  if (!data) {
+    return welcomeFallbackErrorText;
+  }
+  if (Array.isArray(data.errors)) {
+    return data.errors.join("<br>");
+  }
+  if (typeof data.errors === 'string' && data.errors.length) {
+    return data.errors;
+  }
+  if (typeof data.message === 'string' && data.message.length) {
+    return data.message;
+  }
+  if (typeof data.error === 'string' && data.error.length) {
+    return data.error;
+  }
+
+  return welcomeFallbackErrorText;
+}
+
+function Wo_ParseWelcomeLoginResponse(response) {
+  var text = '';
+  var firstBrace = -1;
+  var lastBrace = -1;
+
+  if (response && typeof response === 'object') {
+    return response;
+  }
+  if (typeof response !== 'string') {
+    return null;
+  }
+
+  text = response.trim();
+  try {
+    return JSON.parse(text);
+  } catch (error) {}
+
+  firstBrace = text.indexOf('{');
+  lastBrace = text.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    try {
+      return JSON.parse(text.slice(firstBrace, lastBrace + 1));
+    } catch (error) {}
+  }
+
+  return null;
+}
 
 <?php if($wo['config']['googleLogin'] != 0): ?>
 function handleCredentialResponse(response) {
@@ -265,13 +315,21 @@ window.onload = function () {
 $(function() {
   $('#login').ajaxForm({
     url: Wo_Ajax_Requests_File() + '?f=login',
+    dataType: 'json',
     beforeSend: function() {
       working = true;
       $this.find('button').attr("disabled", true);
       $this.find('.add_wow_loader').addClass('btn-loading');
     },
     success: function(data) {
-      console.log(data)
+      data = Wo_ParseWelcomeLoginResponse(data);
+      if (!data) {
+        $this.find('button').attr("disabled", false);
+        $this.find('.add_wow_loader').removeClass('btn-loading');
+        $state.html(welcomeFallbackErrorText);
+        working = false;
+        return;
+      }
       if (data.status == 200 || data.status == 600) {
         $state.removeClass('alert-danger');
         $state.addClass('alert-success');
@@ -281,11 +339,30 @@ $(function() {
           window.location.href = data.location;
         }, 1000);
       } else {
-        var errors = data.errors.join("<br>");
+        var errors = Wo_GetWelcomeErrorText(data);
         $this.find('button').attr("disabled", false);
         $this.find('.add_wow_loader').removeClass('btn-loading');
         $state.html(errors);
       }
+      working = false;
+    },
+    error: function(xhr) {
+      var data = Wo_ParseWelcomeLoginResponse(xhr && xhr.responseText ? xhr.responseText : '');
+      if (data && (data.status == 200 || data.status == 600)) {
+        $state.removeClass('alert-danger');
+        $state.addClass('alert-success');
+        $state.html('<?php echo $wo['lang']['welcome_back'] ?>');
+        $this.find('.add_wow_loader').removeClass('btn-loading');
+        setTimeout(function () {
+          window.location.href = data.location;
+        }, 1000);
+        working = false;
+        return;
+      }
+
+      $this.find('button').attr("disabled", false);
+      $this.find('.add_wow_loader').removeClass('btn-loading');
+      $state.html(Wo_GetWelcomeErrorText(data));
       working = false;
     }
   });

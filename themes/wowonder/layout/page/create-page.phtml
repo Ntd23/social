@@ -1,3 +1,5 @@
+<?php // Renders the create page form, including map visibility controls. 
+?>
 <div class="page-margin">
 	<div class="row">
 		<div class="col-md-2 leftcol"><?php echo Wo_LoadPage("sidebar/left-sidebar"); ?></div>
@@ -5,58 +7,61 @@
 			<div class="page-margin wow_content mt-0">
 				<div class="wo_page_hdng pag_neg_padd pag_alone">
 					<div class="wo_page_hdng_innr">
-						<span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M17,14H19V17H22V19H19V22H17V19H14V17H17V14M12.4,5H18V12C15.78,12 13.84,13.21 12.8,15H11L10.6,13H5V20H3V3H12L12.4,5Z"></path></svg></span> <?php echo $wo['lang']['create_new_page'];?>
+						<span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+								<path fill="currentColor" d="M17,14H19V17H22V19H19V22H17V19H14V17H17V14M12.4,5H18V12C15.78,12 13.84,13.21 12.8,15H11L10.6,13H5V20H3V3H12L12.4,5Z"></path>
+							</svg></span> <?php echo $wo['lang']['create_new_page']; ?>
 					</div>
 				</div>
 			</div>
-			
-            <div class="page-margin wow_content wow_sett_content">
+
+			<div class="page-margin wow_content wow_sett_content">
 				<form class="create-page-form form-horizontal" method="post" autocomplete="off">
 					<input type="text" name="fake_page_title" autocomplete="username" tabindex="-1" style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;">
 					<input type="password" name="fake_page_password" autocomplete="new-password" tabindex="-1" style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;">
 					<div class="wow_form_fields">
 						<label for="page_title"><?php echo $wo['lang']['page_name']; ?></label>
 						<input id="page_title" name="page_title" type="text">
-						<span class="help-block"><?php echo $wo['lang']['your_page_title'];?></span>
+						<span class="help-block"><?php echo $wo['lang']['your_page_title']; ?></span>
 					</div>
 					<div class="wow_form_fields">
-    <label for="page_name"><?php echo $wo['lang']['page'];?> URL</label>
-    <div class="input-group">
-        <span class="input-group-addon"><?php echo $wo['config']['site_url'];?>/</span>
-        <input id="page_name" name="page_name" type="text" readonly>
-    </div>
+						<label for="page_name"><?php echo $wo['lang']['page']; ?> URL</label>
+						<div class="input-group">
+							<span class="input-group-addon"><?php echo $wo['config']['site_url']; ?>/</span>
+							<input id="page_name" name="page_name" type="text" readonly>
+						</div>
 
-    <!-- Preview đường dẫn đầy đủ -->
-    <small class="form-text text-muted mt-1">
-        Link trang: 
-        <span id="page_url_preview"><?php echo $wo['config']['site_url'];?>/</span>
-    </small>
-</div>
+						<!-- Preview đường dẫn đầy đủ -->
+						<small class="form-text text-muted mt-1">
+							Link trang:
+							<span id="page_url_preview"><?php echo $wo['config']['site_url']; ?>/</span>
+						</small>
+					</div>
 
 					<div class="wow_form_fields">
 						<label for="page_category"><?php echo $wo['lang']['page_category']; ?></label>
 						<select name="page_category" id="page_category" onchange="GetPageSubCategory(this)">
-							<?php foreach ($wo['page_categories'] as $category_id => $category_name) {?>
-								<option value="<?php echo $category_id?>"><?php echo $category_name; ?></option>
+							<?php foreach ($wo['page_categories'] as $category_id => $category_name) { ?>
+								<option value="<?php echo $category_id ?>"><?php echo $category_name; ?></option>
 							<?php } ?>
 						</select>
 					</div>
 					<?php if (!empty($wo['page_sub_categories'])) { ?>
-					<div class="wow_form_fields">
-						<label for="page_sub_category"><?php echo $wo['lang']['sub_category']; ?></label>
-						<select name="page_sub_category" id="page_sub_category">
-							<?php
-							if (!empty($wo['page_sub_categories'][array_keys($wo['page_categories'])[0]])) {
-							foreach ($wo['page_sub_categories'][array_keys($wo['page_categories'])[0]] as $id => $sub_category) { ?>
-								<option value="<?php echo $sub_category['id']?>"><?php echo $sub_category['lang']; ?></option>
-							<?php } } ?>
-						</select>
-					</div>
-				    <?php } ?>
+						<div class="wow_form_fields">
+							<label for="page_sub_category"><?php echo $wo['lang']['sub_category']; ?></label>
+							<select name="page_sub_category" id="page_sub_category">
+								<?php
+								if (!empty($wo['page_sub_categories'][array_keys($wo['page_categories'])[0]])) {
+									foreach ($wo['page_sub_categories'][array_keys($wo['page_categories'])[0]] as $id => $sub_category) { ?>
+										<option value="<?php echo $sub_category['id'] ?>"><?php echo $sub_category['lang']; ?></option>
+								<?php }
+								} ?>
+							</select>
+						</div>
+					<?php } ?>
 					<div class="wow_form_fields">
 						<label for="page_description"><?php echo $wo['lang']['page_description']; ?></label>
 						<textarea name="page_description" id="page_description" rows="3"></textarea>
-						<span class="help-block"><?php echo $wo['lang']['page_description_info'];?></span>
+						<span class="help-block"><?php echo $wo['lang']['page_description_info']; ?></span>
 					</div>
 					<div class="wow_form_fields page_location_field page_location_field_wrapper">
 						<label for="page_location_input"><?php echo $wo['lang']['location']; ?></label>
@@ -68,754 +73,815 @@
 						<input id="page_lng_value" name="page_lng" type="hidden">
 						<input id="page_place_id_value" name="page_place_id" type="hidden">
 					</div>
-					<?php $fields = Wo_GetCustomFields('page'); 
+					<div class="wow_form_fields wo_page_map_visibility_field">
+						<label for="nearby_pinned"><?php echo htmlspecialchars((!empty($wo['lang']['show_on_map']) ? $wo['lang']['show_on_map'] : 'Xuất hiện trên bản đồ'), ENT_QUOTES, 'UTF-8'); ?></label>
+						<div class="round-check">
+							<input type="checkbox" name="nearby_pinned" id="nearby_pinned" value="1">
+							<label for="nearby_pinned"><?php echo htmlspecialchars((!empty($wo['lang']['show_on_map_description']) ? $wo['lang']['show_on_map_description'] : 'Hiển thị page này trên bản đồ.'), ENT_QUOTES, 'UTF-8'); ?></label>
+						</div>
+					</div>
+					<?php $fields = Wo_GetCustomFields('page');
 					if (!empty($fields)) {
 						foreach ($fields as $key => $wo['field']) {
 							echo Wo_LoadPage('page/fields');
 						}
 					}
 					?>
-				  	<div class="app-general-alert setting-update-alert"></div>
+					<div class="app-general-alert setting-update-alert"></div>
 					<div class="text-center">
-						<a class="btn btn-mat" data-ajax="?link1=pages" href="<?php echo Wo_SeoLink('index.php?link1=pages');?>">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"></path></svg> <?php echo $wo['lang']['go_back'];?>
+						<a class="btn btn-mat" data-ajax="?link1=pages" href="<?php echo Wo_SeoLink('index.php?link1=pages'); ?>">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+								<path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"></path>
+							</svg> <?php echo $wo['lang']['go_back']; ?>
 						</a>
 						<button class="btn btn-main btn-mat btn-mat-raised add_wow_loader" type="submit"><?php echo $wo['lang']['create']; ?></button>
 					</div>
-					<input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+					<input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession(); ?>">
 				</form>
 			</div>
 		</div>
 		<!-- .col-md-8 -->
-		<?php echo Wo_LoadPage('sidebar/content');?>
+		<?php echo Wo_LoadPage('sidebar/content'); ?>
 	</div>
-   <!-- .row -->
+	<!-- .row -->
 </div>
 <style>
 	/* Nhóm field URL trong form tạo page */
-.create-page-form .wow_form_fields .input-group {
-    display: flex;
-    align-items: stretch;
-    width: 100%;
-}
+	.create-page-form .wow_form_fields .input-group {
+		display: flex;
+		align-items: stretch;
+		width: 100%;
+	}
 
-/* Phần prefix: https://vnseeea.vn/ */
-.create-page-form .wow_form_fields .input-group-addon {
-    background: #f5f5f5;
-    border: 1px solid #ced4da;
-    border-right: 0;
-    border-radius: 4px 0 0 4px;
-    padding: 0 12px;
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    font-size: 14px;
-    width: auto !important;       /* không cho full width */
-    box-shadow: none;
-}
+	/* Phần prefix: https://vnseeea.vn/ */
+	.create-page-form .wow_form_fields .input-group-addon {
+		background: #f5f5f5;
+		border: 1px solid #ced4da;
+		border-right: 0;
+		border-radius: 4px 0 0 4px;
+		padding: 0 12px;
+		display: flex;
+		align-items: center;
+		white-space: nowrap;
+		font-size: 14px;
+		width: auto !important;
+		/* không cho full width */
+		box-shadow: none;
+	}
 
-/* Ô nhập slug */
-.create-page-form .wow_form_fields #page_name {
-    border: 1px solid #ced4da;
-    border-left: 0;
-    border-radius: 0 4px 4px 0;
-    flex: 1 1 auto;
-    padding: 8px 12px;
-    height: 40px;
-    box-shadow: none;
-}
+	/* Ô nhập slug */
+	.create-page-form .wow_form_fields #page_name {
+		border: 1px solid #ced4da;
+		border-left: 0;
+		border-radius: 0 4px 4px 0;
+		flex: 1 1 auto;
+		padding: 8px 12px;
+		height: 40px;
+		box-shadow: none;
+	}
 
-/* Nhỏ nhỏ cho dòng preview link bên dưới */
-.create-page-form .wow_form_fields .form-text {
-    display: block;
-    margin-top: 4px;
-    font-size: 12px;
-    color: #6c757d;
-}
+	/* Nhỏ nhỏ cho dòng preview link bên dưới */
+	.create-page-form .wow_form_fields .form-text {
+		display: block;
+		margin-top: 4px;
+		font-size: 12px;
+		color: #6c757d;
+	}
 
-.create-page-form .wow_form_fields #page_url_preview {
-    font-weight: 500;
-}
-.wo_place_autocomplete_host {
-	width: 100%;
-}
-.wo_place_autocomplete_host gmp-place-autocomplete {
-	display: block;
-	width: 100%;
-}
-.wo_place_autocomplete_host .wo_page_location_inline_input {
-	width: 100%;
-}
-.page_create_location_suggestions {
-	position: absolute;
-	top: 100% !important;
-	left: 0;
-	right: 0;
-	margin-top: 2px;
-	background: var(--wo-input-bg, #fff);
-	border: 1px solid var(--wo-input-border, #e0e0e0);
-	border-radius: 4px;
-	z-index: 1051;
-	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-	max-height: 250px;
-	overflow-y: auto;
-}
-.page_location_field_wrapper {
-	position: relative !important;
-	overflow: visible !important;
-	display: block;
-}
-.page_location_suggestion_item {
-	padding: 14px 16px;
-	margin: 0 !important;
-	border-bottom: 1px solid #f0f0f0;
-	font-size: 15px;
-	line-height: 1.4;
-	color: var(--wo-input-color, #333);
-	cursor: pointer;
-	-webkit-tap-highlight-color: transparent;
-}
-.page_location_suggestion_item:last-child { border-bottom: none; }
-.page_location_suggestion_item:active { background-color: #eee; }
-</style>	
+	.create-page-form .wow_form_fields #page_url_preview {
+		font-weight: 500;
+	}
+
+	.wo_place_autocomplete_host {
+		width: 100%;
+	}
+
+	.wo_place_autocomplete_host gmp-place-autocomplete {
+		display: block;
+		width: 100%;
+	}
+
+	.wo_place_autocomplete_host .wo_page_location_inline_input {
+		width: 100%;
+	}
+
+	.page_create_location_suggestions {
+		position: absolute;
+		top: 100% !important;
+		left: 0;
+		right: 0;
+		margin-top: 2px;
+		background: var(--wo-input-bg, #fff);
+		border: 1px solid var(--wo-input-border, #e0e0e0);
+		border-radius: 4px;
+		z-index: 1051;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		max-height: 250px;
+		overflow-y: auto;
+	}
+
+	.page_location_field_wrapper {
+		position: relative !important;
+		overflow: visible !important;
+		display: block;
+	}
+
+	.page_location_suggestion_item {
+		padding: 14px 16px;
+		margin: 0 !important;
+		border-bottom: 1px solid #f0f0f0;
+		font-size: 15px;
+		line-height: 1.4;
+		color: var(--wo-input-color, #333);
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.page_location_suggestion_item:last-child {
+		border-bottom: none;
+	}
+
+	.page_location_suggestion_item:active {
+		background-color: #eee;
+	}
+</style>
 <!-- .page-margin -->
 <script type="text/javascript">
-	<?php 
-$js_array = json_encode($wo['page_sub_categories']);
-echo "var sub_categories_array = ". $js_array . ";\n";
-?>
+	<?php
+	$js_array = json_encode($wo['page_sub_categories']);
+	echo "var sub_categories_array = " . $js_array . ";\n";
+	?>
+
 	function GetPageSubCategory(self) {
 		id = $(self).val();
 		var text = "";
 		if (typeof(sub_categories_array[id]) == 'undefined') {
-		    $('#page_sub_category').html('');
-		}
-		else{
-		   	sub_categories_array[id].forEach(function(entry) {
-				text = text + "<option value='"+entry.id+"'>"+entry.lang+"</option>";
+			$('#page_sub_category').html('');
+		} else {
+			sub_categories_array[id].forEach(function(entry) {
+				text = text + "<option value='" + entry.id + "'>" + entry.lang + "</option>";
 			});
-		    $('#page_sub_category').html(text);
+			$('#page_sub_category').html(text);
 		}
 	}
-var woPageLocationSuggestionTimer = null;
-var woPageLocationSuggestionRequest = 0;
-var woPageGooglePredictionCache = {};
-var woPageGoogleSessionToken = null;
-var woPageUseGoogleMobileSuggestions = true;
-var woPageLocationLocale = <?php echo json_encode(strtolower($wo['language'])); ?>;
-function Wo_ShouldUseInlinePageLocationInput() {
-	return window.matchMedia('(max-width: 768px)').matches || /Android|webOS|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent || '');
-}
-function Wo_GetPageLocationLanguage() {
-	return (woPageLocationLocale || document.documentElement.lang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
-}
-function Wo_GetPageLocationGoogleLanguage() {
-	var language = Wo_GetPageLocationLanguage();
-	if (!language) {
-		return 'en';
-	}
-	if (language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1) {
-		return 'vi';
-	}
-	if (language.indexOf('en') === 0 || language.indexOf('english') !== -1) {
-		return 'en';
-	}
-	var normalizedLanguage = language.split(/[_-]/)[0];
-	if (/^[a-z]{2}$/.test(normalizedLanguage)) {
-		return normalizedLanguage;
-	}
-	return 'en';
-}
-function Wo_IsVietnamesePageLocation() {
-	var language = Wo_GetPageLocationLanguage();
-	return language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1;
-}
-function Wo_NormalizePageLocationPart(value) {
-	return (value || '')
-		.toLowerCase()
-		.normalize('NFD')
-		.replace(/[\u0300-\u036f]/g, '')
-		.replace(/[^a-z0-9]+/g, ' ')
-		.trim();
-}
-function Wo_GetPageLocationCanonicalPart(value) {
-	return Wo_NormalizePageLocationPart(value)
-		.replace(/^(phuong|xa|quan|huyen|tinh|thanh pho|tp)\s+/i, '')
-		.replace(/\s+(ward|district|province|city)$/i, '')
-		.trim();
-}
-function Wo_LocalizeVietnamesePageLocationPart(value) {
-	if (!value) {
-		return '';
+	var woPageLocationSuggestionTimer = null;
+	var woPageLocationSuggestionRequest = 0;
+	var woPageGooglePredictionCache = {};
+	var woPageGoogleSessionToken = null;
+	var woPageUseGoogleMobileSuggestions = true;
+	var woPageLocationLocale = <?php echo json_encode(strtolower($wo['language'])); ?>;
+
+	function Wo_ShouldUseInlinePageLocationInput() {
+		return window.matchMedia('(max-width: 768px)').matches || /Android|webOS|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent || '');
 	}
 
-	var localizedValue = value.trim();
-	localizedValue = localizedValue.replace(/^(.+?)\s+Road$/i, 'Đường $1');
-	localizedValue = localizedValue.replace(/^(.+?)\s+Street$/i, '$1');
-	localizedValue = localizedValue.replace(/^(.+?)\s+Ward$/i, 'Phường $1');
-	localizedValue = localizedValue.replace(/^Ward\s+(.+)$/i, 'Phường $1');
-	localizedValue = localizedValue.replace(/^District\s+(.+)$/i, 'Quận $1');
-	localizedValue = localizedValue.replace(/^Province\s+(.+)$/i, 'Tỉnh $1');
-	localizedValue = localizedValue.replace(/^City\s+(.+)$/i, 'Thành phố $1');
-	localizedValue = localizedValue.replace(/^Vietnam$/i, 'Việt Nam');
-	localizedValue = localizedValue.replace(/^Ha Noi$/i, 'Hà Nội');
-	localizedValue = localizedValue.replace(/^Ho Chi Minh City$/i, 'TP Hồ Chí Minh');
-
-	return localizedValue;
-}
-function Wo_GetPageLocationText(item, queryValue) {
-	if (item && item.google_prediction === true) {
-		return item.display_name || item.description || '';
-	}
-	if (!item || !item.address) {
-		return item && (item.display_name || item.name) ? (item.display_name || item.name) : '';
+	function Wo_GetPageLocationLanguage() {
+		return (woPageLocationLocale || document.documentElement.lang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
 	}
 
-	var address = item.address;
-	var isVietnamese = Wo_IsVietnamesePageLocation();
-	var parts = [];
-	var firstLine = [];
-	var houseNumber = address.house_number || address.house_name || '';
-	var road = address.road || address.pedestrian || address.footway || address.cycleway || '';
-	var normalizedQuery = Wo_NormalizePageLocationPart(queryValue || '');
-	var normalizedRoad = Wo_NormalizePageLocationPart(road);
-
-	if (isVietnamese && normalizedQuery && normalizedRoad) {
-		if (normalizedQuery.indexOf(normalizedRoad) !== -1 || normalizedRoad.indexOf(normalizedQuery) !== -1) {
-			road = queryValue;
+	function Wo_GetPageLocationGoogleLanguage() {
+		var language = Wo_GetPageLocationLanguage();
+		if (!language) {
+			return 'en';
 		}
+		if (language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1) {
+			return 'vi';
+		}
+		if (language.indexOf('en') === 0 || language.indexOf('english') !== -1) {
+			return 'en';
+		}
+		var normalizedLanguage = language.split(/[_-]/)[0];
+		if (/^[a-z]{2}$/.test(normalizedLanguage)) {
+			return normalizedLanguage;
+		}
+		return 'en';
 	}
 
-	if (houseNumber) {
-		firstLine.push(houseNumber);
-	}
-	if (road) {
-		firstLine.push(isVietnamese ? Wo_LocalizeVietnamesePageLocationPart(road) : road);
-	}
-	if (firstLine.length > 0) {
-		parts.push(firstLine.join(' '));
+	function Wo_IsVietnamesePageLocation() {
+		var language = Wo_GetPageLocationLanguage();
+		return language.indexOf('vi') === 0 || language.indexOf('vietnam') !== -1;
 	}
 
-	[
-		address.suburb,
-		address.neighbourhood,
-		address.quarter,
-		address.city_district,
-		address.county,
-		address.district,
-		address.city,
-		address.town,
-		address.municipality,
-		address.state_district,
-		address.state,
-		address.country
-	].forEach(function(value) {
+	function Wo_NormalizePageLocationPart(value) {
+		return (value || '')
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.replace(/[^a-z0-9]+/g, ' ')
+			.trim();
+	}
+
+	function Wo_GetPageLocationCanonicalPart(value) {
+		return Wo_NormalizePageLocationPart(value)
+			.replace(/^(phuong|xa|quan|huyen|tinh|thanh pho|tp)\s+/i, '')
+			.replace(/\s+(ward|district|province|city)$/i, '')
+			.trim();
+	}
+
+	function Wo_LocalizeVietnamesePageLocationPart(value) {
 		if (!value) {
-			return;
+			return '';
 		}
-		var localizedValue = isVietnamese ? Wo_LocalizeVietnamesePageLocationPart(value) : value;
-		var compareValue = Wo_GetPageLocationCanonicalPart(localizedValue);
-		var alreadyExists = parts.some(function(existingValue) {
-			return Wo_GetPageLocationCanonicalPart(existingValue) === compareValue;
+
+		var localizedValue = value.trim();
+		localizedValue = localizedValue.replace(/^(.+?)\s+Road$/i, 'Đường $1');
+		localizedValue = localizedValue.replace(/^(.+?)\s+Street$/i, '$1');
+		localizedValue = localizedValue.replace(/^(.+?)\s+Ward$/i, 'Phường $1');
+		localizedValue = localizedValue.replace(/^Ward\s+(.+)$/i, 'Phường $1');
+		localizedValue = localizedValue.replace(/^District\s+(.+)$/i, 'Quận $1');
+		localizedValue = localizedValue.replace(/^Province\s+(.+)$/i, 'Tỉnh $1');
+		localizedValue = localizedValue.replace(/^City\s+(.+)$/i, 'Thành phố $1');
+		localizedValue = localizedValue.replace(/^Vietnam$/i, 'Việt Nam');
+		localizedValue = localizedValue.replace(/^Ha Noi$/i, 'Hà Nội');
+		localizedValue = localizedValue.replace(/^Ho Chi Minh City$/i, 'TP Hồ Chí Minh');
+
+		return localizedValue;
+	}
+
+	function Wo_GetPageLocationText(item, queryValue) {
+		if (item && item.google_prediction === true) {
+			return item.display_name || item.description || '';
+		}
+		if (!item || !item.address) {
+			return item && (item.display_name || item.name) ? (item.display_name || item.name) : '';
+		}
+
+		var address = item.address;
+		var isVietnamese = Wo_IsVietnamesePageLocation();
+		var parts = [];
+		var firstLine = [];
+		var houseNumber = address.house_number || address.house_name || '';
+		var road = address.road || address.pedestrian || address.footway || address.cycleway || '';
+		var normalizedQuery = Wo_NormalizePageLocationPart(queryValue || '');
+		var normalizedRoad = Wo_NormalizePageLocationPart(road);
+
+		if (isVietnamese && normalizedQuery && normalizedRoad) {
+			if (normalizedQuery.indexOf(normalizedRoad) !== -1 || normalizedRoad.indexOf(normalizedQuery) !== -1) {
+				road = queryValue;
+			}
+		}
+
+		if (houseNumber) {
+			firstLine.push(houseNumber);
+		}
+		if (road) {
+			firstLine.push(isVietnamese ? Wo_LocalizeVietnamesePageLocationPart(road) : road);
+		}
+		if (firstLine.length > 0) {
+			parts.push(firstLine.join(' '));
+		}
+
+		[
+			address.suburb,
+			address.neighbourhood,
+			address.quarter,
+			address.city_district,
+			address.county,
+			address.district,
+			address.city,
+			address.town,
+			address.municipality,
+			address.state_district,
+			address.state,
+			address.country
+		].forEach(function(value) {
+			if (!value) {
+				return;
+			}
+			var localizedValue = isVietnamese ? Wo_LocalizeVietnamesePageLocationPart(value) : value;
+			var compareValue = Wo_GetPageLocationCanonicalPart(localizedValue);
+			var alreadyExists = parts.some(function(existingValue) {
+				return Wo_GetPageLocationCanonicalPart(existingValue) === compareValue;
+			});
+			if (!alreadyExists) {
+				parts.push(localizedValue);
+			}
 		});
-		if (!alreadyExists) {
-			parts.push(localizedValue);
-		}
-	});
 
-	return parts.join(', ');
-}
-function Wo_GetPageLocationSearchUrl(locationValue, limit) {
-	var params = new URLSearchParams({
-		format: 'jsonv2',
-		addressdetails: '1',
-		limit: String(limit || 10),
-		'accept-language': Wo_GetPageLocationLanguage(),
-		q: locationValue
-	});
-	if (Wo_IsVietnamesePageLocation()) {
-		params.set('countrycodes', 'vn');
-	}
-	return 'https://nominatim.openstreetmap.org/search?' + params.toString();
-}
-function Wo_GetGooglePagePredictionLabel(prediction) {
-	if (!prediction) {
-		return '';
+		return parts.join(', ');
 	}
 
-	if (prediction.text && typeof prediction.text.toString === 'function') {
-		return prediction.text.toString();
-	}
-
-	var mainText = '';
-	var secondaryText = '';
-	if (prediction.mainText && typeof prediction.mainText.toString === 'function') {
-		mainText = prediction.mainText.toString();
-	}
-	if (prediction.secondaryText && typeof prediction.secondaryText.toString === 'function') {
-		secondaryText = prediction.secondaryText.toString();
-	}
-
-	if (mainText && secondaryText) {
-		return mainText + ', ' + secondaryText;
-	}
-
-	return mainText || secondaryText || prediction.description || '';
-}
-function Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken) {
-	fetch(Wo_GetPageLocationSearchUrl(normalizedLocationValue, 5), {
-		headers: {
-			'Accept': 'application/json'
-		}
-	}).then(function(response) {
-		if (!response.ok) {
-			throw new Error('Page location suggestion request failed');
-		}
-		return response.json();
-	}).then(function(results) {
-		if (requestToken !== woPageLocationSuggestionRequest) {
-			return;
-		}
-		Wo_RenderPageLocationSuggestions(results, normalizedLocationValue);
-	}).catch(function() {
-		if (requestToken !== woPageLocationSuggestionRequest) {
-			return;
-		}
-		Wo_RenderPageLocationSuggestions([], normalizedLocationValue);
-	});
-}
-function escapeHtml(text) {
-	if (!text) return '';
-	var map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-	return String(text).replace(/[&<>"']/g, function (m) { return map[m]; });
-}
-function Wo_RenderPageLocationSuggestions(items, queryValue) {
-	var suggestionBox = $('.page_create_location_suggestions');
-	if (!Array.isArray(items) || items.length === 0) {
-		suggestionBox.empty().hide();
-		return;
-	}
-
-	var seen = {};
-	var html = '';
-	items.forEach(function(item) {
-		var displayName = item.display_name || Wo_GetPageLocationText(item, queryValue);
-		var normalizedDisplayName = Wo_NormalizePageLocationPart(displayName);
-		if (!displayName || seen[normalizedDisplayName]) {
-			return;
-		}
-		seen[normalizedDisplayName] = true;
-		var pid = item.place_id || '';
-		html += '<div class="pointer page_location_suggestion_item" data-place-id="' + escapeHtml(String(pid)) + '" data-name="' + escapeHtml(displayName) + '">' + escapeHtml(displayName) + '</div>';
-	});
-
-	if (!html) {
-		suggestionBox.empty().hide();
-		return;
-	}
-	suggestionBox.html(html).show();
-}
-function Wo_SetPageCoordinates(lat, lng) {
-	$('#page_lat_value').val(lat || '');
-	$('#page_lng_value').val(lng || '');
-}
-function Wo_SetPagePlaceId(placeId) {
-	$('#page_place_id_value').val(placeId || '');
-}
-var woPagePlaceAutocompleteElement = null;
-function Wo_GetPageLocationField() {
-	return document.getElementById('page_location_input');
-}
-function Wo_ReadPageLocationValue() {
-	var locationField = Wo_GetPageLocationField();
-	if (!locationField) {
-		return '';
-	}
-	if (woPagePlaceAutocompleteElement && typeof woPagePlaceAutocompleteElement.value === 'string') {
-		locationField.value = woPagePlaceAutocompleteElement.value;
-	}
-	return locationField.value || '';
-}
-function Wo_WritePageLocationValue(value) {
-	var normalizedValue = value || '';
-	var locationField = Wo_GetPageLocationField();
-	if (locationField) {
-		locationField.value = normalizedValue;
-	}
-	if (woPagePlaceAutocompleteElement && typeof woPagePlaceAutocompleteElement.value !== 'undefined') {
-		woPagePlaceAutocompleteElement.value = normalizedValue;
-	}
-}
-function Wo_ClearPageLocationMeta() {
-	Wo_SetPageCoordinates('', '');
-	Wo_SetPagePlaceId('');
-}
-function Wo_PageGoogleAutocompleteAvailable() {
-	return (typeof google !== 'undefined' &&
-		google.maps &&
-		typeof google.maps.importLibrary === 'function');
-}
-function Wo_ReadPageCoordinateValue(locationObject, axis) {
-	if (!locationObject) {
-		return '';
-	}
-	if (typeof locationObject[axis] === 'function') {
-		return locationObject[axis]();
-	}
-	if (typeof locationObject[axis] === 'number') {
-		return locationObject[axis];
-	}
-	return '';
-}
-function Wo_ApplyGooglePagePlace(place) {
-	if (!place) {
-		return false;
-	}
-
-	var locationObject = place.location || (place.geometry && place.geometry.location ? place.geometry.location : null);
-	var displayName = '';
-	if (place.displayName) {
-		displayName = typeof place.displayName === 'string' ? place.displayName : (place.displayName.text || '');
-	}
-	var formattedAddress = place.formattedAddress || place.formatted_address || displayName || place.name || $.trim(Wo_ReadPageLocationValue());
-	var lat = Wo_ReadPageCoordinateValue(locationObject, 'lat');
-	var lng = Wo_ReadPageCoordinateValue(locationObject, 'lng');
-	var placeId = place.id || place.place_id || '';
-
-	Wo_WritePageLocationValue(formattedAddress);
-	$('#address_value').val(formattedAddress);
-	Wo_SetPageCoordinates(lat, lng);
-	Wo_SetPagePlaceId(placeId);
-
-	return true;
-}
-async function Wo_InitGooglePageAutocomplete() {
-	var input = Wo_GetPageLocationField();
-	var host = document.getElementById('page_location_autocomplete_host');
-	if (!input || !host) {
-		return;
-	}
-	// Dọn dẹp để tránh chồng chéo các ô input cũ
-	host.innerHTML = '';
-	host.dataset.pageGoogleAutocompleteReady = '1';
-
-	if (Wo_ShouldUseInlinePageLocationInput()) {
-		if (Wo_PageGoogleAutocompleteAvailable()) {
-			try {
-				await google.maps.importLibrary('places');
-			} catch (err) {}
-		}
-		host.dataset.pageGoogleAutocompleteReady = '1';
-		host.innerHTML = '';
-		var inlineInput = document.createElement('input');
-		inlineInput.type = 'text';
-		inlineInput.className = 'wo_page_location_inline_input';
-		inlineInput.autocomplete = 'off';
-		inlineInput.autocorrect = 'off';
-		inlineInput.autocapitalize = 'off';
-		inlineInput.spellcheck = false;
-		inlineInput.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
-		host.appendChild(inlineInput);
-
-		// Thêm giá trị ban đầu nếu có
-		inlineInput.value = input.value || '';
-		inlineInput.addEventListener('input', function() {
-			var locationValue = inlineInput.value || '';
-			Wo_WritePageLocationValue(locationValue);
-			$('#address_value').val(locationValue);
-			Wo_ClearPageLocationMeta();
-			clearTimeout(woPageLocationSuggestionTimer);
-			woPageLocationSuggestionTimer = setTimeout(function() {
-				Wo_SearchPageLocationSuggestions(locationValue);
-			}, 220);
+	function Wo_GetPageLocationSearchUrl(locationValue, limit) {
+		var params = new URLSearchParams({
+			format: 'jsonv2',
+			addressdetails: '1',
+			limit: String(limit || 10),
+			'accept-language': Wo_GetPageLocationLanguage(),
+			q: locationValue
 		});
-		inlineInput.addEventListener('change', function() {
-			var locationValue = inlineInput.value || '';
-			Wo_WritePageLocationValue(locationValue);
-			$('#address_value').val(locationValue);
-		});
-		inlineInput.addEventListener('blur', function() {
-			setTimeout(function() {
-				Wo_RenderPageLocationSuggestions([]);
-			}, 150);
-		});
-		return;
+		if (Wo_IsVietnamesePageLocation()) {
+			params.set('countrycodes', 'vn');
+		}
+		return 'https://nominatim.openstreetmap.org/search?' + params.toString();
 	}
 
-	if (!Wo_PageGoogleAutocompleteAvailable()) {
-		return;
-	}
-
-	await google.maps.importLibrary('places');
-	if (!google.maps.places || typeof google.maps.places.PlaceAutocompleteElement !== 'function') {
-		return;
-	}
-
-	host.dataset.pageGoogleAutocompleteReady = '1';
-	host.innerHTML = '';
-	woPagePlaceAutocompleteElement = new google.maps.places.PlaceAutocompleteElement({});
-	woPagePlaceAutocompleteElement.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
-	if (typeof woPagePlaceAutocompleteElement.value !== 'undefined') {
-		woPagePlaceAutocompleteElement.value = input.value || '';
-	}
-	host.appendChild(woPagePlaceAutocompleteElement);
-
-	woPagePlaceAutocompleteElement.addEventListener('input', function() {
-		var locationValue = woPagePlaceAutocompleteElement.value || '';
-		Wo_WritePageLocationValue(locationValue);
-		$('#address_value').val(locationValue);
-		Wo_ClearPageLocationMeta();
-		Wo_RenderPageLocationSuggestions([]);
-	});
-
-	woPagePlaceAutocompleteElement.addEventListener('change', function() {
-		var locationValue = woPagePlaceAutocompleteElement.value || '';
-		Wo_WritePageLocationValue(locationValue);
-		$('#address_value').val(locationValue);
-	});
-
-	woPagePlaceAutocompleteElement.addEventListener('gmp-select', async function(event) {
-		var placePrediction = event.placePrediction || (event.detail && event.detail.placePrediction) || null;
-		if (!placePrediction || typeof placePrediction.toPlace !== 'function') {
-			return;
+	function Wo_GetGooglePagePredictionLabel(prediction) {
+		if (!prediction) {
+			return '';
 		}
 
-		var place = placePrediction.toPlace();
-		await place.fetchFields({
-			fields: ['displayName', 'formattedAddress', 'location', 'id']
-		});
-		Wo_RenderPageLocationSuggestions([]);
-		Wo_ApplyGooglePagePlace(place);
-	});
-}
-function Wo_SearchPageLocationSuggestions(locationValue) {
-	var normalizedLocationValue = (locationValue || '').trim();
-	woPageLocationSuggestionRequest++;
-	var requestToken = woPageLocationSuggestionRequest;
+		if (prediction.text && typeof prediction.text.toString === 'function') {
+			return prediction.text.toString();
+		}
 
-	if (!normalizedLocationValue || normalizedLocationValue.length < 2) {
-		Wo_RenderPageLocationSuggestions([], normalizedLocationValue);
-		return;
+		var mainText = '';
+		var secondaryText = '';
+		if (prediction.mainText && typeof prediction.mainText.toString === 'function') {
+			mainText = prediction.mainText.toString();
+		}
+		if (prediction.secondaryText && typeof prediction.secondaryText.toString === 'function') {
+			secondaryText = prediction.secondaryText.toString();
+		}
+
+		if (mainText && secondaryText) {
+			return mainText + ', ' + secondaryText;
+		}
+
+		return mainText || secondaryText || prediction.description || '';
 	}
 
-	if (woPageUseGoogleMobileSuggestions && Wo_PageGoogleAutocompleteAvailable()) {
-		google.maps.importLibrary('places').then(function() {
+	function Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken) {
+		fetch(Wo_GetPageLocationSearchUrl(normalizedLocationValue, 5), {
+			headers: {
+				'Accept': 'application/json'
+			}
+		}).then(function(response) {
+			if (!response.ok) {
+				throw new Error('Page location suggestion request failed');
+			}
+			return response.json();
+		}).then(function(results) {
 			if (requestToken !== woPageLocationSuggestionRequest) {
 				return;
 			}
-			var placesLib = google.maps.places || {};
-			if (!placesLib.AutocompleteSuggestion || typeof placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions !== 'function') {
-				Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+			Wo_RenderPageLocationSuggestions(results, normalizedLocationValue);
+		}).catch(function() {
+			if (requestToken !== woPageLocationSuggestionRequest) {
+				return;
+			}
+			Wo_RenderPageLocationSuggestions([], normalizedLocationValue);
+		});
+	}
+
+	function escapeHtml(text) {
+		if (!text) return '';
+		var map = {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			"'": '&#039;'
+		};
+		return String(text).replace(/[&<>"']/g, function(m) {
+			return map[m];
+		});
+	}
+
+	function Wo_RenderPageLocationSuggestions(items, queryValue) {
+		var suggestionBox = $('.page_create_location_suggestions');
+		if (!Array.isArray(items) || items.length === 0) {
+			suggestionBox.empty().hide();
+			return;
+		}
+
+		var seen = {};
+		var html = '';
+		items.forEach(function(item) {
+			var displayName = item.display_name || Wo_GetPageLocationText(item, queryValue);
+			var normalizedDisplayName = Wo_NormalizePageLocationPart(displayName);
+			if (!displayName || seen[normalizedDisplayName]) {
+				return;
+			}
+			seen[normalizedDisplayName] = true;
+			var pid = item.place_id || '';
+			html += '<div class="pointer page_location_suggestion_item" data-place-id="' + escapeHtml(String(pid)) + '" data-name="' + escapeHtml(displayName) + '">' + escapeHtml(displayName) + '</div>';
+		});
+
+		if (!html) {
+			suggestionBox.empty().hide();
+			return;
+		}
+		suggestionBox.html(html).show();
+	}
+
+	function Wo_SetPageCoordinates(lat, lng) {
+		$('#page_lat_value').val(lat || '');
+		$('#page_lng_value').val(lng || '');
+	}
+
+	function Wo_SetPagePlaceId(placeId) {
+		$('#page_place_id_value').val(placeId || '');
+	}
+	var woPagePlaceAutocompleteElement = null;
+
+	function Wo_GetPageLocationField() {
+		return document.getElementById('page_location_input');
+	}
+
+	function Wo_ReadPageLocationValue() {
+		var locationField = Wo_GetPageLocationField();
+		if (!locationField) {
+			return '';
+		}
+		if (woPagePlaceAutocompleteElement && typeof woPagePlaceAutocompleteElement.value === 'string') {
+			locationField.value = woPagePlaceAutocompleteElement.value;
+		}
+		return locationField.value || '';
+	}
+
+	function Wo_WritePageLocationValue(value) {
+		var normalizedValue = value || '';
+		var locationField = Wo_GetPageLocationField();
+		if (locationField) {
+			locationField.value = normalizedValue;
+		}
+		if (woPagePlaceAutocompleteElement && typeof woPagePlaceAutocompleteElement.value !== 'undefined') {
+			woPagePlaceAutocompleteElement.value = normalizedValue;
+		}
+	}
+
+	function Wo_ClearPageLocationMeta() {
+		Wo_SetPageCoordinates('', '');
+		Wo_SetPagePlaceId('');
+	}
+
+	function Wo_PageGoogleAutocompleteAvailable() {
+		return (typeof google !== 'undefined' &&
+			google.maps &&
+			typeof google.maps.importLibrary === 'function');
+	}
+
+	function Wo_ReadPageCoordinateValue(locationObject, axis) {
+		if (!locationObject) {
+			return '';
+		}
+		if (typeof locationObject[axis] === 'function') {
+			return locationObject[axis]();
+		}
+		if (typeof locationObject[axis] === 'number') {
+			return locationObject[axis];
+		}
+		return '';
+	}
+
+	function Wo_ApplyGooglePagePlace(place) {
+		if (!place) {
+			return false;
+		}
+
+		var locationObject = place.location || (place.geometry && place.geometry.location ? place.geometry.location : null);
+		var displayName = '';
+		if (place.displayName) {
+			displayName = typeof place.displayName === 'string' ? place.displayName : (place.displayName.text || '');
+		}
+		var formattedAddress = place.formattedAddress || place.formatted_address || displayName || place.name || $.trim(Wo_ReadPageLocationValue());
+		var lat = Wo_ReadPageCoordinateValue(locationObject, 'lat');
+		var lng = Wo_ReadPageCoordinateValue(locationObject, 'lng');
+		var placeId = place.id || place.place_id || '';
+
+		Wo_WritePageLocationValue(formattedAddress);
+		$('#address_value').val(formattedAddress);
+		Wo_SetPageCoordinates(lat, lng);
+		Wo_SetPagePlaceId(placeId);
+
+		return true;
+	}
+	async function Wo_InitGooglePageAutocomplete() {
+		var input = Wo_GetPageLocationField();
+		var host = document.getElementById('page_location_autocomplete_host');
+		if (!input || !host) {
+			return;
+		}
+		// Dọn dẹp để tránh chồng chéo các ô input cũ
+		host.innerHTML = '';
+		host.dataset.pageGoogleAutocompleteReady = '1';
+
+		if (Wo_ShouldUseInlinePageLocationInput()) {
+			if (Wo_PageGoogleAutocompleteAvailable()) {
+				try {
+					await google.maps.importLibrary('places');
+				} catch (err) {}
+			}
+			host.dataset.pageGoogleAutocompleteReady = '1';
+			host.innerHTML = '';
+			var inlineInput = document.createElement('input');
+			inlineInput.type = 'text';
+			inlineInput.className = 'wo_page_location_inline_input';
+			inlineInput.autocomplete = 'off';
+			inlineInput.autocorrect = 'off';
+			inlineInput.autocapitalize = 'off';
+			inlineInput.spellcheck = false;
+			inlineInput.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
+			host.appendChild(inlineInput);
+
+			// Thêm giá trị ban đầu nếu có
+			inlineInput.value = input.value || '';
+			inlineInput.addEventListener('input', function() {
+				var locationValue = inlineInput.value || '';
+				Wo_WritePageLocationValue(locationValue);
+				$('#address_value').val(locationValue);
+				Wo_ClearPageLocationMeta();
+				clearTimeout(woPageLocationSuggestionTimer);
+				woPageLocationSuggestionTimer = setTimeout(function() {
+					Wo_SearchPageLocationSuggestions(locationValue);
+				}, 220);
+			});
+			inlineInput.addEventListener('change', function() {
+				var locationValue = inlineInput.value || '';
+				Wo_WritePageLocationValue(locationValue);
+				$('#address_value').val(locationValue);
+			});
+			inlineInput.addEventListener('blur', function() {
+				setTimeout(function() {
+					Wo_RenderPageLocationSuggestions([]);
+				}, 150);
+			});
+			return;
+		}
+
+		if (!Wo_PageGoogleAutocompleteAvailable()) {
+			return;
+		}
+
+		await google.maps.importLibrary('places');
+		if (!google.maps.places || typeof google.maps.places.PlaceAutocompleteElement !== 'function') {
+			return;
+		}
+
+		host.dataset.pageGoogleAutocompleteReady = '1';
+		host.innerHTML = '';
+		woPagePlaceAutocompleteElement = new google.maps.places.PlaceAutocompleteElement({});
+		woPagePlaceAutocompleteElement.placeholder = <?php echo json_encode($wo['lang']['location']); ?>;
+		if (typeof woPagePlaceAutocompleteElement.value !== 'undefined') {
+			woPagePlaceAutocompleteElement.value = input.value || '';
+		}
+		host.appendChild(woPagePlaceAutocompleteElement);
+
+		woPagePlaceAutocompleteElement.addEventListener('input', function() {
+			var locationValue = woPagePlaceAutocompleteElement.value || '';
+			Wo_WritePageLocationValue(locationValue);
+			$('#address_value').val(locationValue);
+			Wo_ClearPageLocationMeta();
+			Wo_RenderPageLocationSuggestions([]);
+		});
+
+		woPagePlaceAutocompleteElement.addEventListener('change', function() {
+			var locationValue = woPagePlaceAutocompleteElement.value || '';
+			Wo_WritePageLocationValue(locationValue);
+			$('#address_value').val(locationValue);
+		});
+
+		woPagePlaceAutocompleteElement.addEventListener('gmp-select', async function(event) {
+			var placePrediction = event.placePrediction || (event.detail && event.detail.placePrediction) || null;
+			if (!placePrediction || typeof placePrediction.toPlace !== 'function') {
 				return;
 			}
 
-			if (!woPageGoogleSessionToken && typeof placesLib.AutocompleteSessionToken === 'function') {
-				woPageGoogleSessionToken = new placesLib.AutocompleteSessionToken();
-			}
+			var place = placePrediction.toPlace();
+			await place.fetchFields({
+				fields: ['displayName', 'formattedAddress', 'location', 'id']
+			});
+			Wo_RenderPageLocationSuggestions([]);
+			Wo_ApplyGooglePagePlace(place);
+		});
+	}
 
-			var suggestionRequest = {
-				input: normalizedLocationValue
-			};
-			if (woPageGoogleSessionToken) {
-				suggestionRequest.sessionToken = woPageGoogleSessionToken;
-			}
-			var googleLanguage = Wo_GetPageLocationGoogleLanguage();
-			if (googleLanguage) {
-				suggestionRequest.language = googleLanguage;
-			}
+	function Wo_SearchPageLocationSuggestions(locationValue) {
+		var normalizedLocationValue = (locationValue || '').trim();
+		woPageLocationSuggestionRequest++;
+		var requestToken = woPageLocationSuggestionRequest;
 
-			return placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions(suggestionRequest).then(function(response) {
+		if (!normalizedLocationValue || normalizedLocationValue.length < 2) {
+			Wo_RenderPageLocationSuggestions([], normalizedLocationValue);
+			return;
+		}
+
+		if (woPageUseGoogleMobileSuggestions && Wo_PageGoogleAutocompleteAvailable()) {
+			google.maps.importLibrary('places').then(function() {
 				if (requestToken !== woPageLocationSuggestionRequest) {
 					return;
 				}
-
-				var suggestions = (response && Array.isArray(response.suggestions)) ? response.suggestions : [];
-				if (!suggestions.length) {
+				var placesLib = google.maps.places || {};
+				if (!placesLib.AutocompleteSuggestion || typeof placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions !== 'function') {
 					Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
 					return;
 				}
 
-				var mappedPredictions = suggestions.map(function(suggestion) {
-					var placePrediction = suggestion.placePrediction || suggestion;
-					var placeId = placePrediction.placeId || placePrediction.place_id || '';
-					if (placeId) {
-						woPageGooglePredictionCache[placeId] = placePrediction;
+				if (!woPageGoogleSessionToken && typeof placesLib.AutocompleteSessionToken === 'function') {
+					woPageGoogleSessionToken = new placesLib.AutocompleteSessionToken();
+				}
+
+				var suggestionRequest = {
+					input: normalizedLocationValue
+				};
+				if (woPageGoogleSessionToken) {
+					suggestionRequest.sessionToken = woPageGoogleSessionToken;
+				}
+				var googleLanguage = Wo_GetPageLocationGoogleLanguage();
+				if (googleLanguage) {
+					suggestionRequest.language = googleLanguage;
+				}
+
+				return placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions(suggestionRequest).then(function(response) {
+					if (requestToken !== woPageLocationSuggestionRequest) {
+						return;
 					}
 
-					return {
-						google_prediction: true,
-						display_name: Wo_GetGooglePagePredictionLabel(placePrediction),
-						place_id: placeId
-					};
+					var suggestions = (response && Array.isArray(response.suggestions)) ? response.suggestions : [];
+					if (!suggestions.length) {
+						Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
+						return;
+					}
+
+					var mappedPredictions = suggestions.map(function(suggestion) {
+						var placePrediction = suggestion.placePrediction || suggestion;
+						var placeId = placePrediction.placeId || placePrediction.place_id || '';
+						if (placeId) {
+							woPageGooglePredictionCache[placeId] = placePrediction;
+						}
+
+						return {
+							google_prediction: true,
+							display_name: Wo_GetGooglePagePredictionLabel(placePrediction),
+							place_id: placeId
+						};
+					});
+					Wo_RenderPageLocationSuggestions(mappedPredictions, normalizedLocationValue);
 				});
-				Wo_RenderPageLocationSuggestions(mappedPredictions, normalizedLocationValue);
+			}).catch(function() {
+				woPageUseGoogleMobileSuggestions = false;
+				Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
 			});
-		}).catch(function() {
-			woPageUseGoogleMobileSuggestions = false;
-			Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
-		});
-		return;
+			return;
+		}
+
+		Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
 	}
 
-	Wo_FallbackPageLocationSuggestions(normalizedLocationValue, requestToken);
-}
-function Wo_GeocodePageLocation(locationValue) {
-	if (!locationValue) {
+	function Wo_GeocodePageLocation(locationValue) {
+		if (!locationValue) {
+			Wo_ClearPageLocationMeta();
+			return Promise.resolve(false);
+		}
+
+		if (Wo_PageGoogleAutocompleteAvailable() && google.maps && typeof google.maps.Geocoder === 'function') {
+			return new Promise(function(resolve) {
+				var geocoder = new google.maps.Geocoder();
+				geocoder.geocode({
+					address: locationValue
+				}, function(results, status) {
+					if (status === 'OK' && Array.isArray(results) && results[0]) {
+						resolve(Wo_ApplyGooglePagePlace(results[0]));
+						return;
+					}
+
+					Wo_ClearPageLocationMeta();
+					resolve(false);
+				});
+			});
+		}
+
 		Wo_ClearPageLocationMeta();
 		return Promise.resolve(false);
 	}
 
-	if (Wo_PageGoogleAutocompleteAvailable() && google.maps && typeof google.maps.Geocoder === 'function') {
+	function Wo_GeocodePagePlaceId(placeId) {
+		if (!placeId) {
+			return Promise.resolve(false);
+		}
+
+		var cachedPrediction = woPageGooglePredictionCache[placeId];
+		if (cachedPrediction && typeof cachedPrediction.toPlace === 'function') {
+			return new Promise(function(resolve) {
+				var place = cachedPrediction.toPlace();
+				place.fetchFields({
+					fields: ['displayName', 'formattedAddress', 'location', 'id']
+				}).then(function() {
+					resolve(Wo_ApplyGooglePagePlace(place));
+				}).catch(function() {
+					resolve(false);
+				});
+			}).then(function(resolved) {
+				if (resolved && window.google && google.maps && google.maps.places && typeof google.maps.places.AutocompleteSessionToken === 'function') {
+					woPageGoogleSessionToken = new google.maps.places.AutocompleteSessionToken();
+				}
+				return resolved;
+			});
+		}
+
+		if (!(window.google && google.maps && typeof google.maps.Geocoder === 'function')) {
+			return Promise.resolve(false);
+		}
+
 		return new Promise(function(resolve) {
 			var geocoder = new google.maps.Geocoder();
-			geocoder.geocode({ address: locationValue }, function(results, status) {
+			geocoder.geocode({
+				placeId: placeId
+			}, function(results, status) {
 				if (status === 'OK' && Array.isArray(results) && results[0]) {
 					resolve(Wo_ApplyGooglePagePlace(results[0]));
 					return;
 				}
-
-				Wo_ClearPageLocationMeta();
 				resolve(false);
 			});
 		});
 	}
 
-	Wo_ClearPageLocationMeta();
-	return Promise.resolve(false);
-}
-function Wo_GeocodePagePlaceId(placeId) {
-	if (!placeId) {
-		return Promise.resolve(false);
+	function Wo_PageHasCoordinates() {
+		return $.trim($('#page_lat_value').val()) !== '' && $.trim($('#page_lng_value').val()) !== '';
 	}
 
-	var cachedPrediction = woPageGooglePredictionCache[placeId];
-	if (cachedPrediction && typeof cachedPrediction.toPlace === 'function') {
-		return new Promise(function(resolve) {
-			var place = cachedPrediction.toPlace();
-			place.fetchFields({
-				fields: ['displayName', 'formattedAddress', 'location', 'id']
-			}).then(function() {
-				resolve(Wo_ApplyGooglePagePlace(place));
-			}).catch(function() {
-				resolve(false);
-			});
-		}).then(function(resolved) {
-			if (resolved && window.google && google.maps && google.maps.places && typeof google.maps.places.AutocompleteSessionToken === 'function') {
-				woPageGoogleSessionToken = new google.maps.places.AutocompleteSessionToken();
-			}
-			return resolved;
+	function Wo_ResolvePageLocation(callback) {
+		var locationValue = $.trim(Wo_ReadPageLocationValue());
+		if (!locationValue) {
+			Wo_ClearPageLocationMeta();
+			callback();
+			return;
+		}
+
+		if (Wo_PageHasCoordinates() || $.trim($('#page_place_id_value').val()) !== '') {
+			callback();
+			return;
+		}
+
+		Wo_GeocodePageLocation(locationValue).then(function() {
+			callback();
 		});
 	}
-
-	if (!(window.google && google.maps && typeof google.maps.Geocoder === 'function')) {
-		return Promise.resolve(false);
-	}
-
-	return new Promise(function(resolve) {
-		var geocoder = new google.maps.Geocoder();
-		geocoder.geocode({ placeId: placeId }, function(results, status) {
-			if (status === 'OK' && Array.isArray(results) && results[0]) {
-				resolve(Wo_ApplyGooglePagePlace(results[0]));
-				return;
+	$(function() {
+		Wo_InitGooglePageAutocomplete();
+		$(document).on('mousedown ontouchstart', '.page_create_location_suggestions .page_location_suggestion_item', function(e) {
+			e.preventDefault();
+			var pid = $(this).attr('data-place-id');
+			var name = $(this).attr('data-name');
+			Wo_WritePageLocationValue(name);
+			$('#address_value').val(name);
+			var inlineInput = document.querySelector('.wo_page_location_inline_input');
+			if (inlineInput) inlineInput.value = name;
+			Wo_RenderPageLocationSuggestions([]);
+			Wo_GeocodePagePlaceId(pid);
+		});
+		$('form.create-page-form').ajaxForm({
+			url: Wo_Ajax_Requests_File() + '?f=pages&s=create_page',
+			beforeSend: function() {
+				$('.create-page-form').find('.add_wow_loader').addClass('btn-loading');
+			},
+			beforeSubmit: function(arr, form, options) {
+				if ($(form).data('page-create-geocode-ready') === true) {
+					$(form).removeData('page-create-geocode-ready');
+					return true;
+				}
+				$('#address_value').val(Wo_ReadPageLocationValue());
+				Wo_ResolvePageLocation(function() {
+					$(form).data('page-create-geocode-ready', true);
+					$(form).ajaxSubmit(options);
+				});
+				return false;
+			},
+			success: function(data) {
+				scrollToTop();
+				if (data.status == 200) {
+					window.location.href = data.location;
+				} else {
+					var errors = data.errors.join("<br>");
+					$('.app-general-alert').html('<div class="alert alert-danger">' + errors + '</div>');
+					$('.alert-danger').fadeIn(300);
+				}
+				$('.create-page-form').find('.add_wow_loader').removeClass('btn-loading');
 			}
-			resolve(false);
 		});
 	});
-}
-function Wo_PageHasCoordinates() {
-	return $.trim($('#page_lat_value').val()) !== '' && $.trim($('#page_lng_value').val()) !== '';
-}
-function Wo_ResolvePageLocation(callback) {
-	var locationValue = $.trim(Wo_ReadPageLocationValue());
-	if (!locationValue) {
-		Wo_ClearPageLocationMeta();
-		callback();
-		return;
-	}
-
-	if (Wo_PageHasCoordinates() || $.trim($('#page_place_id_value').val()) !== '') {
-		callback();
-		return;
-	}
-
-	Wo_GeocodePageLocation(locationValue).then(function() {
-		callback();
-	});
-}
-   $(function() {
-     Wo_InitGooglePageAutocomplete();
-     $(document).on('mousedown ontouchstart', '.page_create_location_suggestions .page_location_suggestion_item', function(e) {
-     	e.preventDefault();
-     	var pid = $(this).attr('data-place-id');
-     	var name = $(this).attr('data-name');
-     	Wo_WritePageLocationValue(name);
-     	$('#address_value').val(name);
-     	var inlineInput = document.querySelector('.wo_page_location_inline_input');
-     	if (inlineInput) inlineInput.value = name;
-     	Wo_RenderPageLocationSuggestions([]);
-     	Wo_GeocodePagePlaceId(pid);
-     });
-     $('form.create-page-form').ajaxForm({
-       url: Wo_Ajax_Requests_File() + '?f=pages&s=create_page',
-       beforeSend: function() {
-         $('.create-page-form').find('.add_wow_loader').addClass('btn-loading');
-       },
-       beforeSubmit: function(arr, form, options) {
-         if ($(form).data('page-create-geocode-ready') === true) {
-         	$(form).removeData('page-create-geocode-ready');
-         	return true;
-         }
-         $('#address_value').val(Wo_ReadPageLocationValue());
-         Wo_ResolvePageLocation(function() {
-         	$(form).data('page-create-geocode-ready', true);
-         	$(form).ajaxSubmit(options);
-         });
-         return false;
-       },
-       success: function(data) {
-         scrollToTop();
-         if (data.status == 200) {
-           window.location.href = data.location;
-         } else {
-             var errors = data.errors.join("<br>");
-             $('.app-general-alert').html('<div class="alert alert-danger">' + errors + '</div>');
-             $('.alert-danger').fadeIn(300);
-         }
-         $('.create-page-form').find('.add_wow_loader').removeClass('btn-loading');
-       }
-     });
-   });
 </script>
 <script>
-    function slugify(str) {
-        str = str.toLowerCase().trim();
+	function slugify(str) {
+		str = str.toLowerCase().trim();
 
-        // bỏ dấu tiếng Việt
-        var from = "áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ";
-        var to   = "aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyd";
+		// bỏ dấu tiếng Việt
+		var from = "áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ";
+		var to = "aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyd";
 
-        for (var i = 0; i < from.length; i++) {
-            str = str.replace(new RegExp(from[i], 'g'), to[i]);
-        }
+		for (var i = 0; i < from.length; i++) {
+			str = str.replace(new RegExp(from[i], 'g'), to[i]);
+		}
 
-        // chỉ giữ a-z, 0-9, space, dấu -
-        str = str
-            .replace(/[^a-z0-9\s-]/g, '')  // bỏ ký tự lạ
-            .replace(/\s+/g, '_')          // space -> -
-            .replace(/-+/g, '_');          // gộp --- thành -
+		// chỉ giữ a-z, 0-9, space, dấu -
+		str = str
+			.replace(/[^a-z0-9\s-]/g, '') // bỏ ký tự lạ
+			.replace(/\s+/g, '_') // space -> -
+			.replace(/-+/g, '_'); // gộp --- thành -
 
-        return str;
-    }
+		return str;
+	}
 
-    $(document).ready(function () {
-        $('#page_title').on('keyup blur', function () {
-            var title = $(this).val();
-            var slug  = slugify(title);
+	$(document).ready(function() {
+		$('#page_title').on('keyup blur', function() {
+			var title = $(this).val();
+			var slug = slugify(title);
 
-            $('#page_name').val(slug);
+			$('#page_name').val(slug);
 
-            // cập nhật preview
-            $('#page_url_preview').text('<?php echo $wo['config']['site_url'];?>/' + slug);
-        });
-    });
+			// cập nhật preview
+			$('#page_url_preview').text('<?php echo $wo['config']['site_url']; ?>/' + slug);
+		});
+	});
 </script>
