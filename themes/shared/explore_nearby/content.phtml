@@ -2142,6 +2142,16 @@ var liveLocationRequestOptions = {
 	maximumAge: 0,
 	timeout: 20000
 };
+var liveLocationFallbackRequestOptions = {
+	enableHighAccuracy: false,
+	maximumAge: 300000,
+	timeout: 30000
+};
+var liveLocationWatchOptions = {
+	enableHighAccuracy: false,
+	maximumAge: 10000,
+	timeout: 30000
+};
 var navigationUiLanguage = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'vi' : 'en', $json_flags); ?>;
 var navigationSpeechLanguage = <?php echo json_encode('vi-VN', $json_flags); ?>;
 var emptyUsersText = <?php echo json_encode($wo['lang']['no_users_found'], $json_flags); ?>;
@@ -7980,6 +7990,23 @@ function Wo_ExploreNearbyHandleLocationError(error) {
 	Wo_ExploreNearbyUpdateMapPrompt();
 }
 
+function Wo_ExploreNearbyShouldRetryLocationWithFallback(error) {
+	if (!error) {
+		return true;
+	}
+
+	// Permission denied is final. Timeout/unavailable often succeeds with network-based location.
+	return error.code !== 1;
+}
+
+function Wo_ExploreNearbyRequestBrowserLocation(successCallback, errorCallback, options) {
+	navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {
+		enableHighAccuracy: options.enableHighAccuracy === true,
+		maximumAge: Math.max(0, parseInt(options.maximumAge, 10) || 0),
+		timeout: Math.max(1000, parseInt(options.timeout, 10) || 20000)
+	});
+}
+
 function Wo_ExploreNearbyRequestCurrentUserLocation(userInitiated) {
 	var shouldShowPendingState = (userInitiated === true);
 	if (shouldShowPendingState) {
@@ -7996,11 +8023,14 @@ function Wo_ExploreNearbyRequestCurrentUserLocation(userInitiated) {
 		return;
 	}
 
-	navigator.geolocation.getCurrentPosition(Wo_ExploreNearbyHandleLiveLocation, Wo_ExploreNearbyHandleLocationError, {
-		enableHighAccuracy: liveLocationRequestOptions.enableHighAccuracy,
-		maximumAge: liveLocationRequestOptions.maximumAge,
-		timeout: liveLocationRequestOptions.timeout
-	});
+	Wo_ExploreNearbyRequestBrowserLocation(Wo_ExploreNearbyHandleLiveLocation, function(error) {
+		if (!Wo_ExploreNearbyShouldRetryLocationWithFallback(error)) {
+			Wo_ExploreNearbyHandleLocationError(error);
+			return;
+		}
+
+		Wo_ExploreNearbyRequestBrowserLocation(Wo_ExploreNearbyHandleLiveLocation, Wo_ExploreNearbyHandleLocationError, liveLocationFallbackRequestOptions);
+	}, liveLocationRequestOptions);
 }
 
 function Wo_ExploreNearbyStartLiveLocationTracking() {
@@ -8009,7 +8039,7 @@ function Wo_ExploreNearbyStartLiveLocationTracking() {
 	}
 
 	Wo_ExploreNearbyRequestCurrentUserLocation(false);
-	WoExploreNearbyState.liveLocationWatchId = navigator.geolocation.watchPosition(Wo_ExploreNearbyHandleLiveLocation, Wo_ExploreNearbyHandleLocationError, liveLocationRequestOptions);
+	WoExploreNearbyState.liveLocationWatchId = navigator.geolocation.watchPosition(Wo_ExploreNearbyHandleLiveLocation, Wo_ExploreNearbyHandleLocationError, liveLocationWatchOptions);
 }
 
 function Wo_ExploreNearbyHasCurrentUserPoint() {

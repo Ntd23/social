@@ -31,7 +31,7 @@ if ($f == 'register') {
     $birthday    = '0000-00-00';
     
     // Intercept phone number in the email field
-    if (!empty($_POST['email']) && preg_match('/^\+?[0-9]{8,15}$/', str_replace(' ', '', $_POST['email']))) {
+    if (!empty($_POST['email']) && in_array($wo['config']['sms_or_email'], array('sms', 'both')) && preg_match('/^\+?[0-9]{8,15}$/', str_replace(' ', '', $_POST['email']))) {
         $_POST['email'] = str_replace(' ', '', $_POST['email']);
         $_POST['phone_num'] = $_POST['email'];
         $clean_site_name = preg_replace('/[^a-zA-Z0-9]/', '', $wo['config']['siteName']);
@@ -137,9 +137,8 @@ if ($f == 'register') {
 
         $is_shop = (isset($_POST['is_shop']) && $_POST['is_shop'] == '1') ? 1 : 0;
         $activate = ($wo['config']['emailValidation'] == '1') ? '0' : '1';
-        if (!empty($_POST['phone_num'])) {
-            $activate = '1';
-        }
+        $requires_sms_verification = ($activate != 1 && !empty($_POST['phone_num']) && in_array($wo['config']['sms_or_email'], array('sms', 'both')));
+        $requires_email_verification = ($activate != 1 && !$requires_sms_verification);
         $code     = md5(rand(1111, 9999) . time());
         $re_data  = array(
             'email' => Wo_Secure($_POST['email'], 0),
@@ -197,7 +196,9 @@ if ($f == 'register') {
             $re_data['phone_number'] = Wo_Secure($_POST['phone_num']);
         }
         $in_code = (isset($_POST['invited'])) ? Wo_Secure($_POST['invited']) : false;
-        if (empty($_POST['phone_num'])) {
+        if ($requires_sms_verification) {
+            $register = true;
+        } else if (empty($_POST['phone_num'])) {
             $register = Wo_RegisterUser($re_data, $in_code);
         } else {
             if ($activate == 1) {
@@ -208,10 +209,10 @@ if ($f == 'register') {
         }
         if ($register === true) {
             $r_id = Wo_UserIdFromUsername($_POST['username']);
-            if (!empty($re_data['referrer']) && is_numeric($wo['config']['affiliate_level']) && $wo['config']['affiliate_level'] > 1) {
+            if (!empty($r_id) && !empty($re_data['referrer']) && is_numeric($wo['config']['affiliate_level']) && $wo['config']['affiliate_level'] > 1) {
                 AddNewRef($re_data['referrer'], $r_id, $wo['config']['amount_ref']);
             }
-            if ($activate == 1 || ($wo['config']['sms_or_email'] == 'mail' && $activate != 1)) {
+            if ($activate == 1 || $requires_email_verification) {
                 $wo['user'] = Wo_UserData($r_id);
                 if ($wo['config']['auto_username'] == 1) {
                     $_POST['username'] = $_POST['username'] . "_" . $r_id;
@@ -245,7 +246,7 @@ if ($f == 'register') {
                 if ($wo['config']['membership_system'] == 1) {
                     $data['location'] = Wo_SeoLink('index.php?link1=go-pro');
                 }
-            } else if ($wo['config']['sms_or_email'] == 'mail') {
+            } else if ($requires_email_verification) {
                 $wo['code']        = $code;
                 $body              = Wo_LoadPage('emails/activate');
                 $send_message_data = array(
@@ -260,12 +261,15 @@ if ($f == 'register') {
                 );
                 $send              = Wo_SendMessage($send_message_data);
                 $errors            = $success_icon . $wo['lang']['successfully_joined_verify_label'];
-            } else if ($wo['config']['sms_or_email'] == 'sms' && !empty($_POST['phone_num'])) {
+            } else if ($requires_sms_verification) {
                 $random_activation = Wo_Secure(rand(11111, 99999));
                 $message           = "Your confirmation code is: {$random_activation}";
                 if (Wo_SendSMSMessage($_POST['phone_num'], $message) === true) {
                     $register = Wo_RegisterUser($re_data, $in_code);
-                    if ($wo['config']['auto_username'] == 1) {
+                    if ($register !== true) {
+                        $errors = $error_icon . $wo['lang']['please_check_details'];
+                    }
+                    if (empty($errors) && $wo['config']['auto_username'] == 1) {
                         $r_id              = Wo_UserIdFromUsername($_POST['username']);
                         $_POST['username'] = $_POST['username'] . "_" . $r_id;
                         $db->where('user_id', $r_id)->update(T_USERS, array(
@@ -273,19 +277,22 @@ if ($f == 'register') {
                         ));
                         cache($r_id, 'users', 'delete');
                     }
-                    $user_id = Wo_UserIdFromUsername($_POST['username']);
-                    $query   = mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `sms_code` = '{$random_activation}' WHERE `user_id` = {$user_id}");
-                    cache($user_id, 'users', 'delete');
-                    $data    = array(
-                        'status' => 300,
-                        'location' => Wo_SeoLink('index.php?link1=confirm-sms?code=' . $code)
-                    );
+                    if (empty($errors)) {
+                        $user_id = Wo_UserIdFromUsername($_POST['username']);
+                        $time_code_sent = time() + (60 * 60 * 12);
+                        $query   = mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `sms_code` = '{$random_activation}', `time_code_sent` = '{$time_code_sent}' WHERE `user_id` = {$user_id}");
+                        cache($user_id, 'users', 'delete');
+                        $data    = array(
+                            'status' => 300,
+                            'location' => Wo_SeoLink('index.php?link1=confirm-sms?code=' . $code)
+                        );
+                    }
                 } else {
                     $errors = $error_icon . $wo['lang']['failed_to_send_code_email'];
                 }
             }
         }
-        if (!empty($field_data)) {
+        if (empty($errors) && !empty($field_data)) {
             $user_id = Wo_UserIdFromUsername($_POST['username']);
             $insert  = Wo_UpdateUserCustomData($user_id, $field_data, false);
         }

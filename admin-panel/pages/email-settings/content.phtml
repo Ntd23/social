@@ -97,6 +97,7 @@
                           <option value="bulksms" <?php if($wo['config']['sms_provider'] == 'bulksms'){echo 'selected';};?> >BulkSMS</option>
                           <option value="infobip" <?php if($wo['config']['sms_provider'] == 'infobip'){echo 'selected';};?> >Infobip</option>
                           <option value="msg91" <?php if($wo['config']['sms_provider'] == 'msg91'){echo 'selected';};?> >Msg91</option>
+                          <option value="speedsms" <?php if($wo['config']['sms_provider'] == 'speedsms'){echo 'selected';};?> >SpeedSMS</option>
                         </select>
                         <small class="admin-info">Chọn nhà cung cấp dịch vụ SMS mà bạn muốn sử dụng, bạn chỉ có thể sử dụng một nhà cung cấp cùng một lúc.</small>
                         <div class="clearfix"></div>
@@ -160,6 +161,45 @@
                             <div class="form-line">
                                 <label class="form-label">Infobip URL cơ sở </label>
                                 <input type="text" id="infobip_base_url" name="infobip_base_url" class="form-control" value="<?php echo $wo['config']['infobip_base_url'];?>">
+                            </div>
+                        </div>
+                        <hr>
+                        <label  class="main-label">Cấu hình SpeedSMS</label><br><br>
+                        <div class="float-left">
+                            <label for="speedsms_dry_run" class="main-label">SpeedSMS Dry Run</label>
+                            <br><small class="admin-info">Bật để test luồng OTP mà không gọi API SpeedSMS, không mất credit.</small>
+                        </div>
+                        <div class="form-group float-right switcher">
+                            <input type="hidden" name="speedsms_dry_run" value="0" />
+                            <input type="checkbox" name="speedsms_dry_run" id="chck-speedsms_dry_run" value="1" <?php echo (!empty($wo['config']['speedsms_dry_run']) && $wo['config']['speedsms_dry_run'] == 1) ? 'checked': '';?>>
+                            <label for="chck-speedsms_dry_run" class="check-trail"><span class="check-handler"></span></label>
+                        </div>
+                        <div class="clearfix"></div>
+                        <hr>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">SpeedSMS Access Token</label>
+                                <input type="text" id="speedsms_access_token" name="speedsms_access_token" class="form-control" value="<?php echo !empty($wo['config']['speedsms_access_token']) ? $wo['config']['speedsms_access_token'] : '';?>">
+                            </div>
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">SpeedSMS Sender</label>
+                                <input type="text" id="speedsms_sender" name="speedsms_sender" class="form-control" value="<?php echo !empty($wo['config']['speedsms_sender']) ? $wo['config']['speedsms_sender'] : '';?>">
+                                <small class="admin-info">Để trống nếu tài khoản SpeedSMS không dùng brandname/sender.</small>
+                            </div>
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">SpeedSMS SMS Type</label>
+                                <input type="text" id="speedsms_sms_type" name="speedsms_sms_type" class="form-control" value="<?php echo !empty($wo['config']['speedsms_sms_type']) ? $wo['config']['speedsms_sms_type'] : '2';?>">
+                            </div>
+                        </div>
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">SpeedSMS Webhook Secret</label>
+                                <input type="text" id="speedsms_webhook_secret" name="speedsms_webhook_secret" class="form-control" value="<?php echo !empty($wo['config']['speedsms_webhook_secret']) ? $wo['config']['speedsms_webhook_secret'] : '';?>">
+                                <small class="admin-info">Dùng URL webhook dạng /requests.php?f=speedsms_webhook&secret=SECRET.</small>
                             </div>
                         </div>
                         <hr>

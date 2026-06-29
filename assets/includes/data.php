@@ -679,6 +679,8 @@ $wo['encryptedKeys'] = [
         'smtp_password',
         'infobip_api_key',
         'msg91_authKey',
+        'speedsms_access_token',
+        'speedsms_webhook_secret',
         'video_apiKeySecret',
         'agora_chat_customer_certificate',
         'agora_chat_app_certificate',

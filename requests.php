@@ -15,6 +15,11 @@ if (isset($_GET['f'], $_GET['s']) && $_GET['f'] === 'sepay' && $_GET['s'] === 'w
     mysqli_close($sqlConnect);
     exit();
 }
+if (isset($_GET['f']) && $_GET['f'] === 'speedsms_webhook') {
+    include 'xhr/speedsms_webhook.php';
+    mysqli_close($sqlConnect);
+    exit();
+}
 $hash_id = '';
 if (!empty($_POST['hash_id'])) {
     $hash_id = $_POST['hash_id'];

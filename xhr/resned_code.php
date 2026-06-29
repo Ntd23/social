@@ -17,7 +17,8 @@ if ($f == 'resned_code') {
             $random_activation = Wo_Secure(rand(11111, 99999));
             $message           = "Your confirmation code is: {$random_activation}";
             $user_id           = $_POST['user_id'];
-            $query             = mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `sms_code` = '{$random_activation}' WHERE `user_id` = {$user_id}");
+            $time_code_sent    = time() + (60 * 60 * 12);
+            $query             = mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `sms_code` = '{$random_activation}', `time_code_sent` = '{$time_code_sent}' WHERE `user_id` = {$user_id}");
             if ($query) {
                 cache($user_id, 'users', 'delete');
                 if (Wo_SendSMSMessage($_POST['phone_number'], $message) === true) {

@@ -118,8 +118,9 @@ if ($f == "update_general_settings") {
                     if (!Wo_IsAdmin()) {
                         $code      = rand(111111, 999999);
                         $hash_code = md5($code);
+                        $time_code_sent = time() + (60 * 60 * 12);
                         $message   = "Your confirmation code is: $code";
-                        if ($_POST['email'] != $wo['user']['email'] && $wo['config']['sms_or_email'] == 'mail' && $wo['config']['emailValidation'] == 1) {
+                        if ($_POST['email'] != $wo['user']['email'] && in_array($wo['config']['sms_or_email'], array('mail', 'both')) && $wo['config']['emailValidation'] == 1) {
                             $send_message_data = array(
                                 'from_email' => $wo['config']['siteEmail'],
                                 'from_name' => $wo['config']['siteName'],
@@ -134,6 +135,7 @@ if ($f == "update_general_settings") {
                             if ($send) {
                                 $update_code    = $db->where('user_id', $wo['user']['user_id'])->update(T_USERS, array(
                                     'email_code' => $hash_code,
+                                    'time_code_sent' => $time_code_sent,
                                     'new_email' => Wo_Secure($_POST['email'], 0)
                                 ));
                                 cache($wo['user']['user_id'], 'users', 'delete');
@@ -141,7 +143,7 @@ if ($f == "update_general_settings") {
                                 $data['type']   = 'email';
                                 $data['status'] = 200;
                             }
-                        } elseif (!empty($_POST['phone_number']) && $_POST['phone_number'] != $wo['user']['phone_number'] && $wo['config']['sms_or_email'] == 'sms' && $wo['config']['emailValidation'] == 1) {
+                        } elseif (!empty($_POST['phone_number']) && $_POST['phone_number'] != $wo['user']['phone_number'] && in_array($wo['config']['sms_or_email'], array('sms', 'both')) && $wo['config']['emailValidation'] == 1) {
                             preg_match_all('/\+(9[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|
                                     2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|
                                     4[987654310]|3[9643210]|2[70]|7|1)\d{1,14}$/', $_POST['phone_number'], $matches);
@@ -152,6 +154,7 @@ if ($f == "update_general_settings") {
                                 if ($send) {
                                     $update_code    = $db->where('user_id', $wo['user']['user_id'])->update(T_USERS, array(
                                         'email_code' => $hash_code,
+                                        'time_code_sent' => $time_code_sent,
                                         'new_phone' => Wo_Secure($_POST['phone_number'])
                                     ));
                                     cache($wo['user']['user_id'], 'users', 'delete');

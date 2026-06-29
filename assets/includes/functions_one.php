@@ -264,7 +264,7 @@ function Wo_SaveConfig($update_name, $value)
         return false;
     }
     if (!array_key_exists($update_name, $config)) {
-        if (!in_array($update_name, array('register_vnseea_bonus', 'google_maps_map_id'))) {
+        if (!in_array($update_name, array('register_vnseea_bonus', 'google_maps_map_id', 'speedsms_access_token', 'speedsms_sender', 'speedsms_sms_type', 'speedsms_webhook_secret', 'speedsms_dry_run'))) {
             return false;
         }
         $update_name = Wo_Secure($update_name);
