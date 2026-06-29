@@ -5327,6 +5327,18 @@ function Wo_SendSMSMessage($to, $message) {
     if (empty($to)) {
         return false;
     }
+    if (!empty($wo["config"]["speedsms_dry_run"])) {
+        $dry_run_to = Wo_NormalizePhoneNumberForSMS($to, true);
+        if (empty($dry_run_to) || empty($message)) {
+            return false;
+        }
+        error_log('SpeedSMS dry run: ' . json_encode(array(
+            'to' => $dry_run_to,
+            'message' => $message,
+            'time' => time()
+        )));
+        return true;
+    }
     if ($wo["config"]["sms_provider"] == "twilio" && !empty($wo["config"]["sms_twilio_username"]) && !empty($wo["config"]["sms_twilio_password"]) && !empty($wo["config"]["sms_t_phone_number"])) {
         $account_sid = $wo["config"]["sms_twilio_username"];
         $auth_token  = $wo["config"]["sms_twilio_password"];
@@ -5356,18 +5368,13 @@ function Wo_SendSMSMessage($to, $message) {
             }
         }
         return false;
-    } elseif ($wo["config"]["sms_provider"] == "speedsms" && (!empty($wo["config"]["speedsms_access_token"]) || !empty($wo["config"]["speedsms_dry_run"]))) {
+    } elseif ($wo["config"]["sms_provider"] == "speedsms") {
+        if (empty($wo["config"]["speedsms_access_token"])) {
+            return 'SpeedSMS access token is missing or SpeedSMS Dry Run is not enabled.';
+        }
         $to = Wo_NormalizePhoneNumberForSMS($to, true);
         if (empty($to) || empty($message)) {
             return false;
-        }
-        if (!empty($wo["config"]["speedsms_dry_run"])) {
-            error_log('SpeedSMS dry run: ' . json_encode(array(
-                'to' => $to,
-                'message' => $message,
-                'time' => time()
-            )));
-            return true;
         }
 
         $sms_type = !empty($wo["config"]["speedsms_sms_type"]) ? (int) $wo["config"]["speedsms_sms_type"] : 2;
