@@ -3326,7 +3326,7 @@ if ($f == 'admin_setting' AND (Wo_IsAdmin() || Wo_IsModerator())) {
                     $value = '';
                 }
             }
-            if (isset($wo['config'][$key]) || $key == 'googleAnalytics_en' || $key == 'google_maps_map_id') {
+            if (isset($wo['config'][$key]) || $key == 'googleAnalytics_en' || $key == 'google_maps_map_id' || in_array($key, array('speedsms_access_token', 'speedsms_sender', 'speedsms_sms_type', 'speedsms_webhook_secret', 'speedsms_dry_run'))) {
                 if ($key == 'yandex_translate') {
                     if ($value == 1) {
                         $saveSetting = Wo_SaveConfig('google_translate', 0);
