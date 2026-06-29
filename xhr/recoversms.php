@@ -19,14 +19,16 @@ if ($f == 'recoversms') {
         $query             = mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `sms_code` = '{$random_activation}', `email_code` = '$code' , `time_code_sent` = '".$time."' WHERE `user_id` = {$user_id}");
         if ($query) {
             cache($user_id, 'users', 'delete');
-            if (Wo_SendSMSMessage($_POST['recoverphone'], $message) === true) {
+            $send_sms = Wo_SendSMSMessage($_POST['recoverphone'], $message);
+            if ($send_sms === true) {
                 $data = array(
                     'status' => 200,
                     'message' => $success_icon . $wo['lang']['recoversms_sent'],
                     'location' => Wo_SeoLink('index.php?link1=confirm-sms-password?code=' . $code)
                 );
             } else {
-                $errors = $error_icon . $wo['lang']['failed_to_send_code_email'];
+                $sms_error = is_string($send_sms) && $send_sms !== '' ? $send_sms : $wo['lang']['failed_to_send_code_email'];
+                $errors = $error_icon . $sms_error;
             }
         }
     }

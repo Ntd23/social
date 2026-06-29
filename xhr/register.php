@@ -264,7 +264,8 @@ if ($f == 'register') {
             } else if ($requires_sms_verification) {
                 $random_activation = Wo_Secure(rand(11111, 99999));
                 $message           = "Your confirmation code is: {$random_activation}";
-                if (Wo_SendSMSMessage($_POST['phone_num'], $message) === true) {
+                $send_sms = Wo_SendSMSMessage($_POST['phone_num'], $message);
+                if ($send_sms === true) {
                     $register = Wo_RegisterUser($re_data, $in_code);
                     if ($register !== true) {
                         $errors = $error_icon . $wo['lang']['please_check_details'];
@@ -288,7 +289,8 @@ if ($f == 'register') {
                         );
                     }
                 } else {
-                    $errors = $error_icon . $wo['lang']['failed_to_send_code_email'];
+                    $sms_error = is_string($send_sms) && $send_sms !== '' ? $send_sms : $wo['lang']['failed_to_send_code_email'];
+                    $errors = $error_icon . $sms_error;
                 }
             }
         }
