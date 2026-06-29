@@ -179,6 +179,10 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 	<?php echo Wo_LoadPage('common_things/leaflet-muted-map-config'); ?>
 	<style>
 	html, body {
+		position: fixed !important;
+		width: 100% !important;
+		height: 100% !important;
+		overflow: hidden !important;
 		overscroll-behavior-y: none !important;
 		overscroll-behavior-x: none !important;
 	}
@@ -12681,16 +12685,10 @@ jQuery(document).ready(function($) {
 	}
 
 	var touchStartY = 0;
-	var touchStartX = 0;
-	var isVerticalSwipe = false;
-	var isFirstTouchMove = false;
 
 	document.addEventListener('touchstart', function(e) {
 		if (e.touches && e.touches[0]) {
 			touchStartY = e.touches[0].clientY;
-			touchStartX = e.touches[0].clientX;
-			isVerticalSwipe = false;
-			isFirstTouchMove = true;
 		}
 	}, { passive: true });
 
@@ -12700,57 +12698,44 @@ jQuery(document).ready(function($) {
 		}
 
 		var touchY = e.touches[0].clientY;
-		var touchX = e.touches[0].clientX;
 		var deltaY = touchY - touchStartY;
-		var deltaX = touchX - touchStartX;
-
-		if (isFirstTouchMove) {
-			isFirstTouchMove = false;
-			if (Math.abs(deltaY) > Math.abs(deltaX)) {
-				isVerticalSwipe = true;
-			}
-		}
-
 		touchStartY = touchY;
-		touchStartX = touchX;
 
-		if (isVerticalSwipe) {
-			var $scrollable = $(e.target).closest('.is-scrollable, .wo_explore_discovery_search_suggestions, .wo_explore_discovery_sheet_body');
-			if ($scrollable.length > 0) {
-				var el = $scrollable[0];
-				var scrollTop = el.scrollTop;
-				var scrollHeight = el.scrollHeight;
-				var clientHeight = el.clientHeight;
-				var maxScrollTop = scrollHeight - clientHeight;
+		var $scrollable = $(e.target).closest('.is-scrollable, .wo_explore_discovery_search_suggestions, .wo_explore_discovery_sheet_body');
+		if ($scrollable.length > 0) {
+			var el = $scrollable[0];
+			var scrollTop = el.scrollTop;
+			var scrollHeight = el.scrollHeight;
+			var clientHeight = el.clientHeight;
+			var maxScrollTop = scrollHeight - clientHeight;
 
-				if (deltaY > 0) { // Swiping down (scrolling up)
-					if (scrollTop <= 0) {
-						if (e.cancelable) {
-							e.preventDefault();
-						}
-					} else if (scrollTop - deltaY < 0) {
-						el.scrollTop = 0;
-						if (e.cancelable) {
-							e.preventDefault();
-						}
-					}
-				} else if (deltaY < 0) { // Swiping up (scrolling down)
-					if (scrollTop >= maxScrollTop - 1) {
-						if (e.cancelable) {
-							e.preventDefault();
-						}
-					} else if (scrollTop - deltaY > maxScrollTop - 1) {
-						el.scrollTop = maxScrollTop;
-						if (e.cancelable) {
-							e.preventDefault();
-						}
-					}
-				}
-			} else {
-				if ($(e.target).closest('#map, input, textarea').length === 0) {
+			if (deltaY > 0) { // Swiping down (scrolling up)
+				if (scrollTop <= 0) {
 					if (e.cancelable) {
 						e.preventDefault();
 					}
+				} else if (scrollTop - deltaY < 0) {
+					el.scrollTop = 0;
+					if (e.cancelable) {
+						e.preventDefault();
+					}
+				}
+			} else if (deltaY < 0) { // Swiping up (scrolling down)
+				if (scrollTop >= maxScrollTop - 2) {
+					if (e.cancelable) {
+						e.preventDefault();
+					}
+				} else if (scrollTop - deltaY > maxScrollTop - 2) {
+					el.scrollTop = maxScrollTop;
+					if (e.cancelable) {
+						e.preventDefault();
+					}
+				}
+			}
+		} else {
+			if ($(e.target).closest('#map, .leaflet-container, input, textarea, button, a').length === 0) {
+				if (e.cancelable) {
+					e.preventDefault();
 				}
 			}
 		}
