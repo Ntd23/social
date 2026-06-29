@@ -5322,6 +5322,22 @@ function Wo_NormalizePhoneNumberForSMS($phone, $strip_plus = false) {
     return $strip_plus ? ltrim($phone, '+') : $phone;
 }
 
+function Wo_LogSpeedSMSDryRun($to, $message) {
+    // Writes SpeedSMS dry-run OTP payloads to a stable local log file for testing.
+    $log_dir = 'xhr/logs';
+    $log_file = $log_dir . '/speedsms_dry_run.log';
+    if (!is_dir($log_dir)) {
+        @mkdir($log_dir, 0755, true);
+    }
+
+    $line = json_encode(array(
+        'time' => date('c'),
+        'to' => $to,
+        'message' => $message
+    ));
+    @file_put_contents($log_file, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+}
+
 function Wo_SendSMSMessage($to, $message) {
     global $wo, $sqlConnect;
     if (empty($to)) {
@@ -5332,11 +5348,7 @@ function Wo_SendSMSMessage($to, $message) {
         if (empty($dry_run_to) || empty($message)) {
             return false;
         }
-        error_log('SpeedSMS dry run: ' . json_encode(array(
-            'to' => $dry_run_to,
-            'message' => $message,
-            'time' => time()
-        )));
+        Wo_LogSpeedSMSDryRun($dry_run_to, $message);
         return true;
     }
     if ($wo["config"]["sms_provider"] == "twilio" && !empty($wo["config"]["sms_twilio_username"]) && !empty($wo["config"]["sms_twilio_password"]) && !empty($wo["config"]["sms_t_phone_number"])) {
