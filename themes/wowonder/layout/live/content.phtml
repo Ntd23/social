@@ -877,6 +877,7 @@ let deletingLive = false;
 let studioMode = 'setup';
 let liveTimerInterval = null;
 let selectedDevices = {videoId: '', audioId: ''};
+let selectedCameraFacingMode = '';
 let liveMeta = {
   title: '',
   description: '',
@@ -888,6 +889,46 @@ let liveMeta = {
   shares: 0,
   clips: 0
 };
+
+function Wo_LivekitGetCameraFacingFromLabel(label) {
+  var normalizedLabel = String(label || '').toLowerCase();
+  if (!normalizedLabel) {
+    return '';
+  }
+  if (/(back|rear|environment|world|sau|mặt sau|mat sau)/i.test(normalizedLabel)) {
+    return 'environment';
+  }
+  if (/(front|user|face|facetime|trước|truoc|mặt trước|mat truoc)/i.test(normalizedLabel)) {
+    return 'user';
+  }
+  return '';
+}
+
+function Wo_LivekitGetTrackFacingMode(videoTrack) {
+  var mediaTrack = videoTrack && videoTrack.mediaStreamTrack ? videoTrack.mediaStreamTrack : null;
+  var settings = mediaTrack && typeof mediaTrack.getSettings === 'function' ? mediaTrack.getSettings() : {};
+  var settingFacingMode = String((settings && settings.facingMode) || '').toLowerCase();
+
+  if (settingFacingMode === 'environment' || settingFacingMode === 'left' || settingFacingMode === 'right') {
+    return 'environment';
+  }
+  if (settingFacingMode === 'user') {
+    return 'user';
+  }
+
+  return Wo_LivekitGetCameraFacingFromLabel(mediaTrack ? mediaTrack.label : '');
+}
+
+function Wo_LivekitApplyLocalVideoMirror(videoElement, videoTrack) {
+  var facingMode = Wo_LivekitGetTrackFacingMode(videoTrack);
+
+  if (facingMode) {
+    selectedCameraFacingMode = facingMode;
+  }
+  if (videoElement) {
+    videoElement.style.transform = facingMode === 'environment' ? 'scaleX(1)' : 'scaleX(-1)';
+  }
+}
 
 function setStudioMode(mode) {
   studioMode = mode === 'live' ? 'live' : 'setup';
@@ -1150,30 +1191,7 @@ function renderHostPreview() {
   stage.appendChild(element);
   emptyState.classList.add('wo-hidden');
 
-  // Handle front/back camera mirroring
-  const trackSettings = videoTrack.mediaStreamTrack ? videoTrack.mediaStreamTrack.getSettings() : {};
-  const facingMode = trackSettings.facingMode || '';
-  let isBackCamera = facingMode === 'environment' || facingMode === 'left' || facingMode === 'right';
-
-  if (!isBackCamera && selectedDevices.videoId) {
-    navigator.mediaDevices.enumerateDevices().then(function(devices) {
-      const activeCamera = devices.find(function(d) {
-        return d.kind === 'videoinput' && d.deviceId === selectedDevices.videoId;
-      });
-      if (activeCamera) {
-        const label = (activeCamera.label || '').toLowerCase();
-        if (label.includes('back') || label.includes('rear') || label.includes('sau') || label.includes('environment')) {
-          element.style.transform = 'scaleX(1)';
-        } else {
-          element.style.transform = 'scaleX(-1)';
-        }
-      }
-    }).catch(function() {});
-  } else if (isBackCamera) {
-    element.style.transform = 'scaleX(1)';
-  } else {
-    element.style.transform = 'scaleX(-1)';
-  }
+  Wo_LivekitApplyLocalVideoMirror(element, videoTrack);
 }
 
 function updateTrackButtons() {
@@ -1211,6 +1229,7 @@ async function refreshDeviceLists() {
       const option = document.createElement('option');
       option.value = device.deviceId;
       option.textContent = device.label || ('Camera ' + (index + 1));
+      option.setAttribute('data-facing-mode', Wo_LivekitGetCameraFacingFromLabel(device.label || ''));
       cameraSelect.appendChild(option);
     });
     if (!selectedDevices.videoId && cameras[0]) {
@@ -1244,7 +1263,7 @@ async function createLocalPreviewTracks() {
   }
   return LivekitClient.createLocalTracks({
     audio: selectedDevices.audioId ? {deviceId: {exact: selectedDevices.audioId}} : true,
-    video: selectedDevices.videoId ? {deviceId: {exact: selectedDevices.videoId}} : true
+    video: selectedCameraFacingMode ? {facingMode: {ideal: selectedCameraFacingMode}} : (selectedDevices.videoId ? {deviceId: {exact: selectedDevices.videoId}} : true)
   });
 }
 
@@ -1294,6 +1313,11 @@ async function changePreviewDevice(kind, deviceId) {
         await hostRoom.switchActiveDevice(livekitKind, deviceId);
         if (kind === 'video') {
           selectedDevices.videoId = deviceId || '';
+          selectedCameraFacingMode = '';
+          if (deviceId && cameraSelect) {
+            var selectedOption = cameraSelect.querySelector('option[value="' + String(deviceId).replace(/"/g, '\\"') + '"]');
+            selectedCameraFacingMode = selectedOption ? (selectedOption.getAttribute('data-facing-mode') || '') : '';
+          }
         } else {
           selectedDevices.audioId = deviceId || '';
         }
@@ -1307,6 +1331,11 @@ async function changePreviewDevice(kind, deviceId) {
   }
   if (kind === 'video') {
     selectedDevices.videoId = deviceId || '';
+    selectedCameraFacingMode = '';
+    if (deviceId && cameraSelect) {
+      var selectedOption = cameraSelect.querySelector('option[value="' + String(deviceId).replace(/"/g, '\\"') + '"]');
+      selectedCameraFacingMode = selectedOption ? (selectedOption.getAttribute('data-facing-mode') || '') : '';
+    }
   } else {
     selectedDevices.audioId = deviceId || '';
   }
@@ -1591,6 +1620,32 @@ $('#wo-livekit-mic-select').on('change', function() {
 
 // Mobile camera flip function
 async function Wo_LivekitFlipCamera() {
+  const videoTrack = getHostTrack('video');
+  const currentFacingMode = Wo_LivekitGetTrackFacingMode(videoTrack) || selectedCameraFacingMode || 'user';
+  const nextFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+
+  if (videoTrack && typeof videoTrack.restartTrack === 'function') {
+    try {
+      await videoTrack.restartTrack({facingMode: {ideal: nextFacingMode}});
+      selectedDevices.videoId = '';
+      selectedCameraFacingMode = nextFacingMode;
+      await refreshDeviceLists();
+      renderHostPreview();
+      return;
+    }
+    catch (error) {
+      try {
+        await videoTrack.restartTrack({facingMode: nextFacingMode});
+        selectedDevices.videoId = '';
+        selectedCameraFacingMode = nextFacingMode;
+        await refreshDeviceLists();
+        renderHostPreview();
+        return;
+      }
+      catch (fallbackError) {}
+    }
+  }
+
   if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
     return;
   }
@@ -1607,6 +1662,7 @@ async function Wo_LivekitFlipCamera() {
   if (camSelect) {
     camSelect.value = nextDeviceId;
   }
+  selectedCameraFacingMode = Wo_LivekitGetCameraFacingFromLabel(cameras[nextIndex].label || '');
   await changePreviewDevice('video', nextDeviceId);
 }
 

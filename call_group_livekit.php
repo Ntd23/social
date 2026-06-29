@@ -1,4 +1,5 @@
 <?php
+// English description: Renders and controls LiveKit group audio/video calls.
 require_once('assets/init.php');
 
 if ($wo['loggedin'] == false) {
@@ -270,6 +271,43 @@ if ($livekitConfigured) {
         let participantState = {};
         const gridCountClasses = ['gcall-grid-count-1', 'gcall-grid-count-2', 'gcall-grid-count-3', 'gcall-grid-count-4', 'gcall-grid-count-5', 'gcall-grid-count-6', 'gcall-grid-many'];
 
+        function getCameraFacingFromLabel(label) {
+            const normalizedLabel = String(label || '').toLowerCase();
+            if (!normalizedLabel) {
+                return '';
+            }
+            if (/(back|rear|environment|world|sau|mặt sau|mat sau)/i.test(normalizedLabel)) {
+                return 'environment';
+            }
+            if (/(front|user|face|facetime|trước|truoc|mặt trước|mat truoc)/i.test(normalizedLabel)) {
+                return 'user';
+            }
+            return '';
+        }
+
+        function getTrackFacingMode(track) {
+            const mediaTrack = track && track.mediaStreamTrack ? track.mediaStreamTrack : null;
+            const settings = mediaTrack && typeof mediaTrack.getSettings === 'function' ? mediaTrack.getSettings() : {};
+            const facingMode = String((settings && settings.facingMode) || '').toLowerCase();
+            if (facingMode === 'environment' || facingMode === 'left' || facingMode === 'right') {
+                return 'environment';
+            }
+            if (facingMode === 'user') {
+                return 'user';
+            }
+            return getCameraFacingFromLabel(mediaTrack ? mediaTrack.label : '');
+        }
+
+        function applyLocalVideoMirror(videoElement, track) {
+            const facingMode = getTrackFacingMode(track);
+            if (facingMode) {
+                currentFacingMode = facingMode;
+            }
+            if (videoElement) {
+                videoElement.style.transform = facingMode === 'environment' ? 'scaleX(1)' : 'scaleX(-1)';
+            }
+        }
+
         function setMenuOpen(isOpen) {
             if (!btnMore || !toolbarPopover) {
                 return;
@@ -482,6 +520,11 @@ if ($livekitConfigured) {
                         participant.videoElement = participant.videoTrack.attach();
                     }
                     if (participant.videoElement) {
+                        if (participant.isLocal) {
+                            applyLocalVideoMirror(participant.videoElement, participant.videoTrack);
+                        } else {
+                            participant.videoElement.style.transform = 'scaleX(1)';
+                        }
                         bindVideoAspect(participant.videoElement);
                         media.appendChild(participant.videoElement);
                     }
@@ -630,13 +673,15 @@ if ($livekitConfigured) {
                 await cameraTrack.restartTrack({
                     facingMode: { ideal: nextFacingMode }
                 });
-                currentFacingMode = nextFacingMode;
+                currentFacingMode = getTrackFacingMode(cameraTrack) || nextFacingMode;
+                renderParticipantGrid();
             } catch (err) {
                 try {
                     await cameraTrack.restartTrack({
                         facingMode: nextFacingMode
                     });
-                    currentFacingMode = nextFacingMode;
+                    currentFacingMode = getTrackFacingMode(cameraTrack) || nextFacingMode;
+                    renderParticipantGrid();
                 } catch (restartErr) {
                     showToast('Could not switch camera.');
                 }
