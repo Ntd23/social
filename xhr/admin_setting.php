@@ -4149,6 +4149,9 @@ if ($f == 'admin_setting' AND (Wo_IsAdmin() || Wo_IsModerator())) {
         $saveSetting = false;
         foreach ($_POST as $key => $value) {
             if ($key != 'hash_id') {
+                if (!empty($value) && in_array($key, $wo['encryptedKeys'])) {
+                    $value = '$Ap1_'.openssl_encrypt($value, "AES-128-ECB", $siteEncryptKey);
+                }
                 $saveSetting = Wo_SaveConfig($key, $value);
             }
         }

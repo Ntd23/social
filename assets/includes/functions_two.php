@@ -5303,6 +5303,25 @@ function Wo_CheckBirthdays($user_id = 0) {
     return $data;
 }
 
+function Wo_NormalizePhoneNumberForSMS($phone, $strip_plus = false) {
+    $phone = preg_replace('/[\s\-\(\)\.]/', '', (string) $phone);
+    if ($phone === '') {
+        return '';
+    }
+
+    if (strpos($phone, '00') === 0) {
+        $phone = '+' . substr($phone, 2);
+    }
+    if (strpos($phone, '0') === 0) {
+        $phone = '+84' . substr($phone, 1);
+    }
+    if ($phone[0] !== '+') {
+        $phone = '+' . $phone;
+    }
+
+    return $strip_plus ? ltrim($phone, '+') : $phone;
+}
+
 function Wo_SendSMSMessage($to, $message) {
     global $wo, $sqlConnect;
     if (empty($to)) {
@@ -5335,6 +5354,56 @@ function Wo_SendSMSMessage($to, $message) {
             if (!empty($result->Message) && !empty($result->Message->Status)) {
                 return true;
             }
+        }
+        return false;
+    } elseif ($wo["config"]["sms_provider"] == "speedsms" && (!empty($wo["config"]["speedsms_access_token"]) || !empty($wo["config"]["speedsms_dry_run"]))) {
+        $to = Wo_NormalizePhoneNumberForSMS($to, true);
+        if (empty($to) || empty($message)) {
+            return false;
+        }
+        if (!empty($wo["config"]["speedsms_dry_run"])) {
+            error_log('SpeedSMS dry run: ' . json_encode(array(
+                'to' => $to,
+                'message' => $message,
+                'time' => time()
+            )));
+            return true;
+        }
+
+        $sms_type = !empty($wo["config"]["speedsms_sms_type"]) ? (int) $wo["config"]["speedsms_sms_type"] : 2;
+        $postData = array(
+            'to' => array($to),
+            'content' => (string) $message,
+            'sms_type' => $sms_type
+        );
+        if (!empty($wo["config"]["speedsms_sender"])) {
+            $postData['sender'] = $wo["config"]["speedsms_sender"];
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://api.speedsms.vn/index.php/sms/send');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+        curl_setopt($ch, CURLOPT_USERPWD, $wo["config"]["speedsms_access_token"] . ':x');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Accept: application/json'
+        ));
+        $result = curl_exec($ch);
+        if (curl_errno($ch)) {
+            $error = curl_error($ch);
+            curl_close($ch);
+            return $error;
+        }
+        curl_close($ch);
+
+        $result = json_decode($result, true);
+        if (!empty($result) && ((!empty($result['status']) && strtolower($result['status']) == 'success') || (!empty($result['code']) && $result['code'] == '00'))) {
+            return true;
+        }
+        if (!empty($result['message'])) {
+            return $result['message'];
         }
         return false;
     } elseif ($wo["config"]["sms_provider"] == "infobip" && !empty($wo["config"]["infobip_api_key"]) && !empty($wo["config"]["infobip_base_url"])) {
@@ -5500,11 +5569,12 @@ function Wo_ConfirmUser($user_id, $code) {
     if (!is_numeric($user_id) || $user_id <= 0) {
         return false;
     }
-    $query  = mysqli_query($sqlConnect, " SELECT COUNT(`user_id`)  FROM " . T_USERS . "  WHERE `sms_code` = '{$code}' AND `user_id` = '{$user_id}' AND `active` = '0'");
+    $time   = time();
+    $query  = mysqli_query($sqlConnect, " SELECT COUNT(`user_id`)  FROM " . T_USERS . "  WHERE `sms_code` = '{$code}' AND `user_id` = '{$user_id}' AND `active` = '0' AND (`time_code_sent` = '0' OR `time_code_sent` = '' OR `time_code_sent` >= '{$time}')");
     $result = Wo_Sql_Result($query, 0);
     if ($result == 1) {
         $email_code = md5(rand(1111, 9999) . time());
-        $query_two  = mysqli_query($sqlConnect, " UPDATE " . T_USERS . "  SET `active` = '1', `email_code` = '$email_code' WHERE `user_id` = '{$user_id}' ");
+        $query_two  = mysqli_query($sqlConnect, " UPDATE " . T_USERS . "  SET `active` = '1', `email_code` = '$email_code', `time_code_sent` = '0' WHERE `user_id` = '{$user_id}' ");
         if ($query_two) {
             Wo_GrantRegisterVnseeaBonus($user_id);
             return true;
@@ -5523,11 +5593,12 @@ function Wo_ConfirmSMSUser($user_id, $code, $email_code = "") {
     if (!is_numeric($user_id) || $user_id <= 0) {
         return false;
     }
-    $query  = mysqli_query($sqlConnect, " SELECT COUNT(`user_id`)  FROM " . T_USERS . "  WHERE `sms_code` = '{$code}' AND `user_id` = '{$user_id}'");
+    $time   = time();
+    $query  = mysqli_query($sqlConnect, " SELECT COUNT(`user_id`)  FROM " . T_USERS . "  WHERE `sms_code` = '{$code}' AND `user_id` = '{$user_id}' AND (`time_code_sent` = '0' OR `time_code_sent` = '' OR `time_code_sent` >= '{$time}')");
     $result = Wo_Sql_Result($query, 0);
     if ($result == 1) {
         $email_code = md5(rand(1111, 9999) . time());
-        $query_two  = mysqli_query($sqlConnect, " UPDATE " . T_USERS . "  SET `active` = '1', `email_code` = '$email_code' WHERE `user_id` = '{$user_id}' ");
+        $query_two  = mysqli_query($sqlConnect, " UPDATE " . T_USERS . "  SET `active` = '1', `email_code` = '$email_code', `time_code_sent` = '0' WHERE `user_id` = '{$user_id}' ");
         if ($query_two) {
             return true;
         }
