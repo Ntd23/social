@@ -190,6 +190,8 @@ $(document).ready(function() {
               setTimeout(function () {
                 $('.modal_add_address_modal_alert').empty();
                 $('#checkout_add_address_modal').modal('hide');
+                $('body').removeClass('modal-open');
+                $('.modal-backdrop').remove();
                 $('#load_checkout').click();
               }, 1500);
           } else {
