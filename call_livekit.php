@@ -1,4 +1,5 @@
 <?php
+// English description: Renders and controls one-to-one LiveKit audio/video calls.
 require_once('assets/init.php');
 
 if ($wo['loggedin'] == false) {
@@ -466,6 +467,43 @@ if ($livekitConfigured) {
         const flipCamButtons = [btnFlipCam, btnFlipCamMenu].filter(Boolean);
 
         function logCallDebug() {}
+
+        function getCameraFacingFromLabel(label) {
+            const normalizedLabel = String(label || '').toLowerCase();
+            if (!normalizedLabel) {
+                return '';
+            }
+            if (/(back|rear|environment|world|sau|mặt sau|mat sau)/i.test(normalizedLabel)) {
+                return 'environment';
+            }
+            if (/(front|user|face|facetime|trước|truoc|mặt trước|mat truoc)/i.test(normalizedLabel)) {
+                return 'user';
+            }
+            return '';
+        }
+
+        function getTrackFacingMode(track) {
+            const mediaTrack = track && track.mediaStreamTrack ? track.mediaStreamTrack : null;
+            const settings = mediaTrack && typeof mediaTrack.getSettings === 'function' ? mediaTrack.getSettings() : {};
+            const facingMode = String((settings && settings.facingMode) || '').toLowerCase();
+            if (facingMode === 'environment' || facingMode === 'left' || facingMode === 'right') {
+                return 'environment';
+            }
+            if (facingMode === 'user') {
+                return 'user';
+            }
+            return getCameraFacingFromLabel(mediaTrack ? mediaTrack.label : '');
+        }
+
+        function applyLocalVideoMirror(videoElement, track) {
+            const facingMode = getTrackFacingMode(track);
+            if (facingMode) {
+                currentFacingMode = facingMode;
+            }
+            if (videoElement) {
+                videoElement.style.transform = facingMode === 'environment' ? 'scaleX(1)' : 'scaleX(-1)';
+            }
+        }
 
         function updateDebugPanel() {}
 
@@ -1059,14 +1097,16 @@ if ($livekitConfigured) {
                 await cameraTrack.restartTrack({
                     facingMode: { ideal: nextFacingMode }
                 });
-                currentFacingMode = nextFacingMode;
+                currentFacingMode = getTrackFacingMode(cameraTrack) || nextFacingMode;
+                refreshLocalPreview();
                 showToast(nextFacingMode === 'environment' ? 'Da chuyen sang camera sau' : 'Da chuyen sang camera truoc');
             } catch (err) {
                 try {
                     await cameraTrack.restartTrack({
                         facingMode: nextFacingMode
                     });
-                    currentFacingMode = nextFacingMode;
+                    currentFacingMode = getTrackFacingMode(cameraTrack) || nextFacingMode;
+                    refreshLocalPreview();
                     showToast(nextFacingMode === 'environment' ? 'Da chuyen sang camera sau' : 'Da chuyen sang camera truoc');
                 } catch (restartErr) {
                     showToast('Khong the xoay camera tren thiet bi nay.');
@@ -1148,6 +1188,11 @@ if ($livekitConfigured) {
                 element.style.height = '100%';
                 element.style.background = '#020617';
                 element.style.objectFit = isSelf ? 'cover' : 'contain';
+                if (isSelf) {
+                    applyLocalVideoMirror(element, track);
+                } else {
+                    element.style.transform = 'scaleX(1)';
+                }
                 // Keep a single rendered video per tile to avoid split/duplicate frames 
                 // Keep a single rendered video per tile to avoid split/duplicate frames
                 // when LiveKit republishes or restarts the camera track.
