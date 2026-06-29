@@ -12,6 +12,7 @@ if ($f == "address") {
 		                                'country' => Wo_Secure($_POST['country'])));
 			if (!empty($id)) {
 				$data['status'] = 200;
+				$data['address_id'] = $id;
 				$data['url'] = $wo['config']['site_url'].'/setting/'.$wo['user']['username'].'/addresses';
 				$data['message'] = $wo['lang']['address_added'];
 			}
