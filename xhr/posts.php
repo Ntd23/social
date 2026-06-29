@@ -1690,6 +1690,7 @@ if ($f == 'posts') {
                 $data          = array(
                     'status' => 200,
                     'html' => $html,
+                    'comment_id' => $R_Comment,
                     'comments_num' => Wo_CountPostComment($_POST['post_id']),
                     'mention' => array()
                 );

@@ -978,6 +978,51 @@ function Wo_OpenShareBtns(post_id) {
   post_wrapper = $('#post-' + post_id);
   post_wrapper.find('.post-share').slideToggle(200);
 }
+function Wo_EmitCommentNotifications(data, post_id, post_owner_id) {
+  try {
+    if (typeof node_socket_flow !== "undefined" && node_socket_flow == "1" && typeof socket !== "undefined" && socket && typeof socket.emit === "function" && socket.connected) {
+      var sessionHash = String(_getCookie("user_id"));
+      var currentNumericId = String(typeof _getSession === 'function' ? _getSession() : "");
+      var postOwnerId = String(post_owner_id);
+      var notifiedUsers = [];
+
+      // Emit post_notification only for the post owner (excluding self-comments)
+      if (data && data.status == 200 && postOwnerId && postOwnerId !== currentNumericId) {
+        socket.emit("post_notification", { post_id: post_id, user_id: sessionHash, type: "added" });
+        notifiedUsers.push(postOwnerId);
+      }
+
+      // Emit user_notification for unique mentioned users (excluding self and excluding post owner if already notified)
+      if (data && data.status == 200 && data.mention && Array.isArray(data.mention)) {
+        var uniqueMentions = data.mention.filter(function (item, pos, self) {
+          return self.indexOf(item) === pos;
+        });
+
+        $.each(uniqueMentions, function (index, mentionedUserId) {
+          var mId = String(mentionedUserId);
+          if (mId !== currentNumericId && notifiedUsers.indexOf(mId) === -1) {
+            socket.emit("user_notification", { to_id: mId, user_id: sessionHash });
+            notifiedUsers.push(mId);
+          }
+        });
+      }
+
+      // Emit new_comment event to broadcast the new comment to all other clients viewing the same post in real-time
+      if (data && data.status == 200 && data.comment_id && data.html) {
+        socket.emit("new_comment", {
+          post_id: post_id,
+          comment_id: data.comment_id,
+          html: data.html,
+          comments_num: data.comments_num,
+          user_id: sessionHash
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Error emitting comment notifications: ", e);
+  }
+}
+
 // register post comment
 function Wo_RegisterCommentClick(text, post_id, user_id, page_id, type) {
     post_wrapper = $('[id=post-' + post_id + ']');
@@ -997,6 +1042,7 @@ function Wo_RegisterCommentClick(text, post_id, user_id, page_id, type) {
       page_id: page_id
     }, function (data) {
       if(data.status == 200) {
+        Wo_EmitCommentNotifications(data, post_id, user_id);
         post_wrapper.find('.comment-container:first-child').before(data.html);
         post_wrapper.find('[id=comments]').html(data.comments_num);
       }
@@ -1026,6 +1072,7 @@ function Wo_LightBoxComment(text, post_id, user_id, event, page_id) {
       page_id: page_id
     }, function (data) {
       if(data.status == 200) {
+        Wo_EmitCommentNotifications(data, post_id, user_id);
         post_wrapper.find('.comment-container:first-child').before(data.html);
         post_wrapper.find('#comments').html(data.comments_num);
       }

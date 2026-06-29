@@ -22,7 +22,7 @@ const ReplyNotificationController = async (ctx, data, io,socket) => {
   if (data.type == 'removed') {
       notification_type = "new_notification_removed";
   }
-  if (replyData.user_id !== user_id) {
+  if (replyData && replyData.user_id !== user_id) {
       await io.to(replyData.user_id).emit(notification_type, { reply_id: reply_id });
   }
 };

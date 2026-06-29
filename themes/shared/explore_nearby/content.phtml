@@ -2777,9 +2777,7 @@ function Wo_ExploreNearbyIsNavigationCardActive(item) {
 		return false;
 	}
 
-	return WoExploreNearbyState.navigationActive === true ||
-		WoExploreNearbyState.navigationStatus === 'starting' ||
-		WoExploreNearbyState.navigationStatus === 'rerouting';
+	return true;
 }
 
 function Wo_ExploreNearbyRefreshSpeechAvailability() {
@@ -7911,6 +7909,24 @@ function Wo_ExploreNearbyRefreshLoadedItemDistances() {
 	return hasChanges;
 }
 
+function Wo_ExploreNearbyUpdateRealtimeDistances() {
+	$('.wo_explore_discovery_card').each(function() {
+		var $card = $(this);
+		var pointKey = $card.attr('data-point-key');
+		if (!pointKey) return;
+		var item = Wo_ExploreNearbyResolvePointByKey(pointKey, false) || Wo_ExploreNearbyResolveCanonicalPointByKey(pointKey, false);
+		if (item && item.distance_text) {
+			var $distanceSpan = $card.find('.wo_explore_discovery_card_distance');
+			if ($distanceSpan.length) {
+				$distanceSpan.text(item.distance_text).removeClass('wo_explore_nearby_hidden');
+			} else {
+				var distanceHtml = '<span class="wo_explore_discovery_card_distance">' + Wo_ExploreNearbyEscapeHtml(item.distance_text) + '</span>';
+				$card.find('.wo_explore_discovery_card_media_stack').append(distanceHtml);
+			}
+		}
+	});
+}
+
 function Wo_ExploreNearbyHandleLiveLocation(position) {
 	if (!position || !position.coords) {
 		WoExploreNearbyState.locationRequestPending = false;
@@ -7948,6 +7964,7 @@ function Wo_ExploreNearbyHandleLiveLocation(position) {
 	Wo_ExploreNearbyRefreshCurrentUserDynamicLocation();
 	Wo_ExploreNearbyUpdateMapPrompt();
 	distancesChanged = Wo_ExploreNearbyRefreshLoadedItemDistances();
+	Wo_ExploreNearbyUpdateRealtimeDistances();
 
 	if (!WoExploreNearbyState.lastReloadLivePosition || Wo_ExploreNearbyGetDistanceKm(WoExploreNearbyState.lastReloadLivePosition, nextPosition) >= liveLocationReloadThresholdKm) {
 		shouldReloadNearby = true;
@@ -12640,5 +12657,53 @@ jQuery(document).ready(function($) {
 			}
 		}, { passive: false });
 	}
+
+	var touchStartY = 0;
+	var touchStartX = 0;
+
+	document.addEventListener('touchstart', function(e) {
+		if (e.touches && e.touches[0]) {
+			touchStartY = e.touches[0].clientY;
+			touchStartX = e.touches[0].clientX;
+		}
+	}, { passive: true });
+
+	document.addEventListener('touchmove', function(e) {
+		if (!e.touches || !e.touches[0]) {
+			return;
+		}
+
+		var touchY = e.touches[0].clientY;
+		var touchX = e.touches[0].clientX;
+		var deltaY = touchY - touchStartY;
+		var deltaX = touchX - touchStartX;
+
+		if (Math.abs(deltaY) > Math.abs(deltaX)) {
+			var $scrollable = $(e.target).closest('.is-scrollable, .wo_explore_discovery_search_suggestions, .wo_explore_discovery_sheet_body');
+			if ($scrollable.length > 0) {
+				var el = $scrollable[0];
+				var scrollTop = el.scrollTop;
+				var scrollHeight = el.scrollHeight;
+				var clientHeight = el.clientHeight;
+
+				if (deltaY > 0 && scrollTop <= 0) {
+					if (e.cancelable) {
+						e.preventDefault();
+					}
+				}
+				else if (deltaY < 0 && (scrollTop + clientHeight >= scrollHeight - 1)) {
+					if (e.cancelable) {
+						e.preventDefault();
+					}
+				}
+			} else {
+				if ($(e.target).closest('#map, input, textarea').length === 0) {
+					if (e.cancelable) {
+						e.preventDefault();
+					}
+				}
+			}
+		}
+	}, { passive: false });
 });
 </script>

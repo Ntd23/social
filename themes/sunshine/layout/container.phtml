@@ -731,6 +731,31 @@
           socket.on("load_comment_replies", (data) => {
              Wo_ViewMoreReplies(data.comment_id);
           });
+          socket.on("new_comment", (data) => {
+             var post_wrapper = $('[id=post-' + data.post_id + ']');
+             if (post_wrapper.length > 0) {
+                 if (post_wrapper.find('[data-comment-id="' + data.comment_id + '"]').length == 0 && post_wrapper.find('#comment_' + data.comment_id).length == 0) {
+                     post_wrapper.find('.comment-container:first-child').before(data.html);
+                     var comments_count = post_wrapper.find('[id=comments]');
+                     if (comments_count.length > 0) {
+                         var count = parseInt(comments_count.text()) || 0;
+                         comments_count.html(count + 1);
+                     }
+                 }
+             }
+             var lightbox_wrapper = $('#lightbox-post-' + data.post_id);
+             if (lightbox_wrapper.length > 0) {
+                 if (lightbox_wrapper.find('[data-comment-id="' + data.comment_id + '"]').length == 0 && lightbox_wrapper.find('#comment_' + data.comment_id).length == 0) {
+                     lightbox_wrapper.find('.comment-container:first-child').before(data.html);
+                     var lightbox_comments_count = lightbox_wrapper.find('#comments');
+                     if (lightbox_comments_count.length > 0) {
+                         var count = parseInt(lightbox_comments_count.text()) || 0;
+                         lightbox_comments_count.html(count + 1);
+                     }
+                     lightbox_wrapper.find('.lightbox-no-comments').remove();
+                 }
+             }
+          });
 
 
         socket.on("color-change", (data)=>{

@@ -84,7 +84,36 @@
 	</div>
 	<!-- .row -->
 </div>
-<!-- .page-margin -->
+<style>
+	.create-group-form .wow_form_fields .input-group {
+		display: flex;
+		align-items: stretch;
+		width: 100%;
+	}
+	.create-group-form .wow_form_fields .input-group-addon {
+		background: #f5f5f5;
+		border: 1px solid #ced4da;
+		border-right: 0;
+		border-radius: 4px 0 0 4px;
+		padding: 0 12px;
+		display: flex;
+		align-items: center;
+		white-space: nowrap;
+		font-size: 14px;
+		width: auto !important;
+		box-shadow: none;
+	}
+	.create-group-form .wow_form_fields #group_name {
+		border: 1px solid #ced4da;
+		border-left: 0;
+		border-radius: 0 4px 4px 0;
+		flex: 1 1 auto;
+		padding: 8px 12px;
+		height: 40px;
+		box-shadow: none;
+		margin: 0 !important;
+	}
+</style>
 <script type="text/javascript">
 	<?php 
 $js_array = json_encode($wo['group_sub_categories']);

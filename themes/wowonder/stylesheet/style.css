@@ -27273,11 +27273,11 @@ body .navbar-default .dropdown-switch-account>.dropdown-menu .user-avatar>svg {
     }
 
     .leftcol {
-        width: 18.666667%
+        width: 25%;
     }
 
     .middlecol {
-        width: 56.333333%;
+        width: 50%;
     }
 
     .rightcol {
@@ -27293,7 +27293,7 @@ body .navbar-default .dropdown-switch-account>.dropdown-menu .user-avatar>svg {
     }
 
     .singlecol {
-        width: 81.333333%
+        width: 75%;
     }
 
     .singlecol-guest {

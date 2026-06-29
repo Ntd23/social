@@ -43,11 +43,11 @@ const CommentNotificationController = async (ctx, data, io,socket) => {
               }
           }
       } 
-      if (commentData.user_id !== user_id && !sentUsers.includes(commentData.user_id)) {
+      if (commentData && commentData.user_id !== user_id && !sentUsers.includes(commentData.user_id)) {
           await io.to(commentData.user_id).emit(notification_type, { comment_id: comment_id });
       }
   } else {
-      if (commentData.user_id !== user_id) {
+      if (commentData && commentData.user_id !== user_id) {
           await io.to(commentData.user_id).emit(notification_type, { comment_id: comment_id });
       }
   }
