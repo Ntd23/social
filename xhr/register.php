@@ -31,7 +31,7 @@ if ($f == 'register') {
     $birthday    = '0000-00-00';
     
     // Intercept phone number in the email field
-    if (!empty($_POST['email']) && in_array($wo['config']['sms_or_email'], array('sms', 'both')) && preg_match('/^\+?[0-9]{8,15}$/', str_replace(' ', '', $_POST['email']))) {
+    if (!empty($_POST['email']) && ($wo['config']['emailValidation'] != '1' || in_array($wo['config']['sms_or_email'], array('sms', 'both'))) && preg_match('/^\+?[0-9]{8,15}$/', str_replace(' ', '', $_POST['email']))) {
         $_POST['email'] = str_replace(' ', '', $_POST['email']);
         $_POST['phone_num'] = $_POST['email'];
         $clean_site_name = preg_replace('/[^a-zA-Z0-9]/', '', $wo['config']['siteName']);
