@@ -2702,6 +2702,13 @@ function Wo_OpenReplyBox(id) {
 // register post comment
 function Wo_RegisterReply(text, comment_id, user_id, event, page_id, type) {
   if(event.keyCode == 13 && event.shiftKey == 0) {
+    event.preventDefault();
+    if (window.woCommentReplying === undefined) {
+      window.woCommentReplying = {};
+    }
+    if (window.woCommentReplying[comment_id]) {
+      return false;
+    }
     comment_wrapper = $('[id=comment_' + comment_id + ']');
     reply_textarea = comment_wrapper.find('.comment-replies');
     textarea_wrapper = reply_textarea.find('.textarea');
@@ -2716,6 +2723,7 @@ function Wo_RegisterReply(text, comment_id, user_id, event, page_id, type) {
       return false;
     }
 
+    window.woCommentReplying[comment_id] = true;
     $.post(Wo_Ajax_Requests_File() + '?f=posts&s=register_reply', {
       comment_id: comment_id,
       text: text,
@@ -2741,11 +2749,19 @@ function Wo_RegisterReply(text, comment_id, user_id, event, page_id, type) {
         comment_wrapper.find('.reply-container:last-child').after(data.html);
         comment_wrapper.find('[id=comment-replies]').html(data.replies_num);
       }
+    }).always(function() {
+      window.woCommentReplying[comment_id] = false;
     });
   }
 }
 // register post comment
 function Wo_RegisterReply2(comment_id, user_id, page_id, type,gif_url = '') {
+  if (window.woCommentReplying === undefined) {
+    window.woCommentReplying = {};
+  }
+  if (window.woCommentReplying[comment_id]) {
+    return false;
+  }
   $('.chat-box-stickers-cont').html('');
   $('#gif-form-'+comment_id).slideUp(200);
     comment_wrapper = $('[id=comment_' + comment_id + ']');
@@ -2763,6 +2779,7 @@ function Wo_RegisterReply2(comment_id, user_id, page_id, type,gif_url = '') {
     if(text == '' && comment_image == '' && gif_url == '') {
       return false;
     }
+    window.woCommentReplying[comment_id] = true;
     $.post(Wo_Ajax_Requests_File() + '?f=posts&s=register_reply', {
       comment_id: comment_id,
       text: text,
@@ -2789,6 +2806,8 @@ function Wo_RegisterReply2(comment_id, user_id, page_id, type,gif_url = '') {
         comment_wrapper.find('.reply-container:last-child').after(data.html);
         comment_wrapper.find('[id=comment-replies]').html(data.replies_num);
       }
+    }).always(function() {
+      window.woCommentReplying[comment_id] = false;
     });
 }
 

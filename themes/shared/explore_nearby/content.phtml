@@ -5671,9 +5671,31 @@ function Wo_ExploreNearbyBindSheetInteractions() {
 		return;
 	}
 
-	$(document).on('mousedown touchstart', '#explore-nearby-sheet-handle, #explore-nearby-sheet-header', Wo_ExploreNearbyStartSheetDrag);
-	$(document).on('mousemove touchmove', Wo_ExploreNearbyMoveSheetDrag);
-	$(document).on('mouseup touchend touchcancel', Wo_ExploreNearbyEndSheetDrag);
+	// Mouse events
+	$(document).on('mousedown', '#explore-nearby-sheet-handle, #explore-nearby-sheet-header', Wo_ExploreNearbyStartSheetDrag);
+	$(document).on('mousemove', Wo_ExploreNearbyMoveSheetDrag);
+	$(document).on('mouseup', Wo_ExploreNearbyEndSheetDrag);
+
+	// Touch events (native to support { passive: false })
+	var handleEl = document.getElementById('explore-nearby-sheet-handle');
+	var headerEl = document.getElementById('explore-nearby-sheet-header');
+
+	if (handleEl) {
+		handleEl.addEventListener('touchstart', Wo_ExploreNearbyStartSheetDrag, { passive: false });
+	}
+	if (headerEl) {
+		headerEl.addEventListener('touchstart', Wo_ExploreNearbyStartSheetDrag, { passive: false });
+	}
+
+	document.addEventListener('touchmove', function(e) {
+		if (WoExploreNearbyState.sheetDragging) {
+			Wo_ExploreNearbyMoveSheetDrag(e);
+		}
+	}, { passive: false });
+
+	document.addEventListener('touchend', Wo_ExploreNearbyEndSheetDrag, { passive: true });
+	document.addEventListener('touchcancel', Wo_ExploreNearbyEndSheetDrag, { passive: true });
+
 	WoExploreNearbyState.sheetBindingsReady = true;
 }
 
@@ -12660,11 +12682,15 @@ jQuery(document).ready(function($) {
 
 	var touchStartY = 0;
 	var touchStartX = 0;
+	var isVerticalSwipe = false;
+	var isFirstTouchMove = false;
 
 	document.addEventListener('touchstart', function(e) {
 		if (e.touches && e.touches[0]) {
 			touchStartY = e.touches[0].clientY;
 			touchStartX = e.touches[0].clientX;
+			isVerticalSwipe = false;
+			isFirstTouchMove = true;
 		}
 	}, { passive: true });
 
@@ -12678,22 +12704,46 @@ jQuery(document).ready(function($) {
 		var deltaY = touchY - touchStartY;
 		var deltaX = touchX - touchStartX;
 
-		if (Math.abs(deltaY) > Math.abs(deltaX)) {
+		if (isFirstTouchMove) {
+			isFirstTouchMove = false;
+			if (Math.abs(deltaY) > Math.abs(deltaX)) {
+				isVerticalSwipe = true;
+			}
+		}
+
+		touchStartY = touchY;
+		touchStartX = touchX;
+
+		if (isVerticalSwipe) {
 			var $scrollable = $(e.target).closest('.is-scrollable, .wo_explore_discovery_search_suggestions, .wo_explore_discovery_sheet_body');
 			if ($scrollable.length > 0) {
 				var el = $scrollable[0];
 				var scrollTop = el.scrollTop;
 				var scrollHeight = el.scrollHeight;
 				var clientHeight = el.clientHeight;
+				var maxScrollTop = scrollHeight - clientHeight;
 
-				if (deltaY > 0 && scrollTop <= 0) {
-					if (e.cancelable) {
-						e.preventDefault();
+				if (deltaY > 0) { // Swiping down (scrolling up)
+					if (scrollTop <= 0) {
+						if (e.cancelable) {
+							e.preventDefault();
+						}
+					} else if (scrollTop - deltaY < 0) {
+						el.scrollTop = 0;
+						if (e.cancelable) {
+							e.preventDefault();
+						}
 					}
-				}
-				else if (deltaY < 0 && (scrollTop + clientHeight >= scrollHeight - 1)) {
-					if (e.cancelable) {
-						e.preventDefault();
+				} else if (deltaY < 0) { // Swiping up (scrolling down)
+					if (scrollTop >= maxScrollTop - 1) {
+						if (e.cancelable) {
+							e.preventDefault();
+						}
+					} else if (scrollTop - deltaY > maxScrollTop - 1) {
+						el.scrollTop = maxScrollTop;
+						if (e.cancelable) {
+							e.preventDefault();
+						}
 					}
 				}
 			} else {

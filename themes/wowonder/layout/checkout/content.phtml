@@ -2,7 +2,13 @@
 	<h2 class="ch_checkout_title"><?php echo $wo['lang']['checkout'] ?></h2>
 	<div class="row">
 		<div class="col-md-5">
-			<h4><?php echo $wo['lang']['delivery_address'] ?></h4>
+			<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; margin-top: 10px;">
+				<h4 style="margin: 0;"><?php echo $wo['lang']['delivery_address'] ?></h4>
+				<button type="button" class="btn btn-main btn-mat btn-sm" data-toggle="modal" data-target="#checkout_add_address_modal" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 12px; font-size: 13px; font-weight: 600; border-radius: 6px; line-height: 1;">
+					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus" style="width: 14px !important; height: 14px !important; display: block; flex-shrink: 0; margin: 0 !important; padding: 0 !important; transform: translateY(1px);"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+					<span style="display: inline-block; line-height: 1;"><?php echo $wo['lang']['add_new_address'] ?></span>
+				</button>
+			</div>
 			<div class="panel panel-white ch_card ch_summary">
 				<div class="checkout_alert"></div>
 
@@ -27,62 +33,62 @@
 					<p><?php echo($wo['lang']['please_add_new_address']); ?></p>
 				<?php } ?>
 			</div>
-			<h4><?php echo $wo['lang']['add_new_address'] ?></h4>
-			<form class="form form-horizontal address_form" method="post" action="#">
-				<div class="panel panel-white ch_card ch_address">
-					<div class="modal_add_address_modal_alert"></div>
-					<div class="clear"></div>
-					<div class="row">
-						<div class="col-md-12">
-							<div class="sun_input">
-								<label><?php echo $wo['lang']['name']; ?></label>
-								<input name="name" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['name']; ?>" value="<?php echo($wo['user']['name']) ?>">
-							</div>
+
+			<!-- Modal Thêm Địa Chỉ Mới -->
+			<div class="modal fade" id="checkout_add_address_modal" role="dialog" data-keyboard="false" style="overflow-y: auto;">
+				<div class="modal-dialog modal-md wow_mat_mdl">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></button>
+							<h4 class="modal-title"><?php echo $wo['lang']['add_new_address'] ?></h4>
 						</div>
-						<div class="col-md-6">
-							<div class="sun_input">
-								<label><?php echo $wo['lang']['phone_number']; ?></label>
-								<input name="phone" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['phone_number']; ?>" value="<?php echo($wo['user']['phone_number']) ?>">
-							</div>
-						</div>
-						<div id="checkout_address_fields_wrapper">
-							<div class="col-md-6">
-								<div class="sun_input">
-									<label><?php echo $wo['lang']['country']; ?></label>
-									<input id="checkout_country" name="country" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['country']; ?>">
+						<form class="form form-horizontal address_form" method="post" action="#">
+							<div class="modal-body twocheckout_modal">
+								<div class="modal_add_address_modal_alert"></div>
+								<div class="clear"></div>
+								<div class="row">
+									<div class="col-md-12">
+										<div class="sun_input">
+											<label><?php echo $wo['lang']['name']; ?></label>
+											<input name="name" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['name']; ?>" value="<?php echo($wo['user']['name']) ?>">
+										</div>
+									</div>
+									<div class="col-md-6">
+										<div class="sun_input">
+											<label><?php echo $wo['lang']['phone_number']; ?></label>
+											<input name="phone" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['phone_number']; ?>" value="<?php echo($wo['user']['phone_number']) ?>">
+										</div>
+									</div>
+									<div id="checkout_address_fields_wrapper" style="width: 100%;">
+										<div class="col-md-6">
+											<div class="sun_input">
+												<label><?php echo $wo['lang']['country']; ?></label>
+												<input id="checkout_country" name="country" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['country']; ?>">
+											</div>
+										</div>
+										<div class="col-md-12">
+											<div class="sun_input">
+												<label><?php echo $wo['lang']['city']; ?></label>
+												<input id="checkout_city" name="city" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>">
+											</div>
+										</div>
+										<div class="col-md-12">
+											<div class="sun_input">
+												<label><?php echo $wo['lang']['address']; ?></label>
+												<input id="checkout_address" name="address" type="text" class="form-control input-md" placeholder="<?php echo $wo['lang']['address']; ?>" autocomplete="off">
+											</div>
+										</div>
+									</div>
 								</div>
+								<div class="clear"></div>
 							</div>
-							<div class="col-md-12">
-								<div class="sun_input">
-									<label><?php echo $wo['lang']['city']; ?></label>
-									<input id="checkout_city" name="city" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>">
-								</div>
+							<div class="modal-footer">
+								<button type="submit" class="btn btn-main btn-mat btn-block"><?php echo $wo['lang']['add']; ?></button>
 							</div>
-							<!-- <div class="col-md-6">
-								<div class="sun_input">
-									<label><?php echo $wo['lang']['zip']; ?></label>
-									<input id="zip" name="zip" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['zip']; ?>">
-								</div>
-							</div> -->
-							<div class="col-md-12">
-								<div class="sun_input">
-									<label><?php echo $wo['lang']['address']; ?></label>
-									<input id="checkout_address" name="address" type="text" class="form-control input-md" placeholder="<?php echo $wo['lang']['address']; ?>" autocomplete="off">
-								</div>
-							</div>
-						</div>
-						<div class="col-md-12" id="checkout_address_card_preview" style="display:none; margin-bottom:15px; margin-top:15px;">
-							<div style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-								<h5 style="margin-top: 0; color: #444; font-weight: 600;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px; color: #48B774;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>Địa chỉ giao hàng đã chọn</h5>
-								<p id="checkout_preview_text" style="font-size: 15px; margin-bottom: 10px; color: #333; line-height: 1.5; font-weight: 500;"></p>
-								<button type="button" id="checkout_change_address_btn" class="btn btn-default btn-sm" style="border: 1px solid #ccc; background: #fff; font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 4px; color: #666;">Thay đổi địa chỉ</button>
-							</div>
-						</div>
+						</form>
 					</div>
-					<div class="clear"></div>
-					<button type="submit" class="btn btn-default btn-block btn-mat"><?php echo $wo['lang']['add']; ?></button>
 				</div>
-			</form>
+			</div>
 		</div>
 		<div class="col-md-7">
 			<div class="panel panel-white ch_card ch_cart">
@@ -122,6 +128,20 @@
 
 <script>
 $(document).ready(function() {
+    // Select address logic
+    var newAddressId = sessionStorage.getItem('new_added_address_id');
+    if (newAddressId) {
+        var radioBtn = $('#choose_adrs_' + newAddressId);
+        if (radioBtn.length > 0) {
+            radioBtn.prop('checked', true).trigger('change');
+            sessionStorage.removeItem('new_added_address_id');
+        }
+    } else {
+        if ($('.payment_address').length > 0 && $('.payment_address:checked').length === 0) {
+            $('.payment_address').first().prop('checked', true).trigger('change');
+        }
+    }
+
     var options = {
       url: Wo_Ajax_Requests_File() + '?f=address&s=add&hash=' + $('.main_session').val(),
         beforeSubmit:  function () {
@@ -164,10 +184,14 @@ $(document).ready(function() {
             $('.modal_add_address_modal_alert').html('<div class="alert alert-success bg-success"><i class="fa fa-check"></i> '+
               data.message
               +'</div>');
+              if (data.address_id) {
+                  sessionStorage.setItem('new_added_address_id', data.address_id);
+              }
               setTimeout(function () {
                 $('.modal_add_address_modal_alert').empty();
-                location.reload();
-              },2000);
+                $('#checkout_add_address_modal').modal('hide');
+                $('#load_checkout').click();
+              }, 1500);
           } else {
             $('.modal_add_address_modal_alert').html('<div class="alert alert-danger bg-danger"> '+
             data.message
