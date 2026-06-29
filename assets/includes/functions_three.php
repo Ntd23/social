@@ -44,7 +44,7 @@ function Wo_RegisterPoint($post_id, $type, $action = '+', $user_id = 0)
 		));
 	}
 	$points               = 0;
-	$dollar_to_point_cost = $wo['config']['dollar_to_point_cost'];
+	$dollar_to_point_cost = !empty($wo['config']['dollar_to_point_cost']) && is_numeric($wo['config']['dollar_to_point_cost']) && $wo['config']['dollar_to_point_cost'] > 0 ? (float)$wo['config']['dollar_to_point_cost'] : 1.0;
 	switch ($type) {
 		case "comments":
 			$query_comments     = "SELECT `id` FROM `" . T_COMMENTS . "` WHERE `post_id` = " . $post_id . " AND `user_id` = " . $user_id;
@@ -1149,7 +1149,8 @@ function Wo_UpdateBalance($user_id = 0, $balance = 0, $type = '+', $withdrawal =
 		$balance = ($user_data['balance'] - $balance);
 		if (!empty($withdrawal)) {
 			if ($balance == 0 && $wo['config']['point_allow_withdrawal'] == 1) {
-				$wallet         = $user_data['points'] / $wo['config']['dollar_to_point_cost'];
+				$dollar_to_point_cost = !empty($wo['config']['dollar_to_point_cost']) && is_numeric($wo['config']['dollar_to_point_cost']) && $wo['config']['dollar_to_point_cost'] > 0 ? (float)$wo['config']['dollar_to_point_cost'] : 1.0;
+				$wallet         = $user_data['points'] / $dollar_to_point_cost;
 				if ($wallet >= $user_data['balance']) {
 					$points = 0;
 				} else {

@@ -194,6 +194,10 @@ module.exports.registerListeners = async (socket, io, ctx) => {
         MainNotificationController(ctx, data, io,socket);
     })
 
+    socket.on("new_comment", async (data) => {
+        socket.broadcast.emit("new_comment", data);
+    })
+
     socket.on("post_notification", async (data) => {
         PostNotificationController(ctx, data, io,socket);
     })

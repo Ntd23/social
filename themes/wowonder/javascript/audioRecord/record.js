@@ -477,7 +477,7 @@ function Wo_RegisterComment(text, post_id, user_id, event, page_id, type,gif_url
           dataForm.append('audio-filename', file.name);
           dataForm.append('audio-blob', file);
         }
-        Wo_InsertComment(dataForm, post_id);
+        Wo_InsertComment(dataForm, post_id, user_id);
       });
     }
 
@@ -495,7 +495,7 @@ function Wo_RegisterComment(text, post_id, user_id, event, page_id, type,gif_url
       dataForm.append('comment_image', comment_image);
       dataForm.append('gif_url', gif_url);
       $('#charsLeft_' + post_id).text($('#charsLeft_' + post_id).attr('data_num'));
-      Wo_InsertComment(dataForm, post_id);
+      Wo_InsertComment(dataForm, post_id, user_id);
     }
   }
 }
@@ -540,7 +540,7 @@ function Wo_RegisterComment2(post_id, user_id, page_id, type,gif_url = '') {
           dataForm.append('audio-filename', file.name);
           dataForm.append('audio-blob', file);
         }
-        Wo_InsertComment(dataForm, post_id);
+        Wo_InsertComment(dataForm, post_id, user_id);
       });
     }
 
@@ -558,12 +558,12 @@ function Wo_RegisterComment2(post_id, user_id, page_id, type,gif_url = '') {
       dataForm.append('comment_image', comment_image);
       dataForm.append('gif_url', gif_url);
       commentScope.find('#charsLeft_' + post_id).text($('#charsLeft_' + post_id).attr('data_num'));
-      Wo_InsertComment(dataForm, post_id);
+      Wo_InsertComment(dataForm, post_id, user_id);
     }
   //}
 }
 
-function Wo_InsertComment(dataForm, post_id) {
+function Wo_InsertComment(dataForm, post_id, user_id) {
   if (!dataForm) { return false; }
   var commentScope = Wo_GetCommentScope(post_id);
   post_wrapper = $('[id=post-' + post_id + ']');
@@ -586,8 +586,8 @@ function Wo_InsertComment(dataForm, post_id) {
   }).done(function (data) {
     $('.wo_comment_combo_' + post_id).removeClass('comment-toggle');
     if (data.status == 200) {
-      if (node_socket_flow == "1") {
-        socket.emit("post_notification", { post_id: post_id, user_id: _getCookie("user_id"), type: "added" });
+      if (typeof Wo_EmitCommentNotifications === 'function') {
+        Wo_EmitCommentNotifications(data, post_id, user_id);
       }
       Wo_CleanRecordNodes();
       commentScope.find('.comment-container:first-child').before(data.html);
@@ -595,11 +595,6 @@ function Wo_InsertComment(dataForm, post_id) {
       post_wrapper.find('[id=comments]').html(data.comments_num);
       post_wrapper.find('.lightbox-no-comments').remove();
       Wo_StopLocalStream();
-      if (data.mention.length > 0 && node_socket_flow == "1") {
-        $.each(data.mention, function( index, value ) {
-          socket.emit("user_notification", { to_id: value, user_id: _getCookie("user_id")});
-        });
-      }
     }
     commentScope.find('.comment-image-con').empty().addClass('hidden');
     commentScope.find('#comment_src_image').val('');

@@ -22,7 +22,7 @@ const PostNotificationController = async (ctx, data, io,socket) => {
   if (data.type == 'removed') {
       notification_type = "new_notification_removed";
   }
-  if (postData.user_id !== user_id) {
+  if (postData && postData.user_id !== user_id) {
       await io.to(postData.user_id).emit(notification_type, { post_id: post_id });
   }
 };

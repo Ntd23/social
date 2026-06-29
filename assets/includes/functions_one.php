@@ -8034,7 +8034,9 @@ function Wo_RegisterActivity($data = array())
     @$user_id = Wo_Secure($data['user_id']);
     @$post_user_id = Wo_Secure($data['post_user_id']);
     @$activity_type = Wo_Secure($data['activity_type']);
-    @$follow_id = Wo_Secure($data['follow_id']);
+    $comment_id = (int)$comment_id;
+    $replay_id = (int)$replay_id;
+    $follow_id = (int)$follow_id;
     $time = time();
     if ($comment_id > 0 || $replay_id > 0) {
     } else {
