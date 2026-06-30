@@ -1,4 +1,58 @@
-<?php // Startup follow step and finish action for onboarding. ?>
+<style>
+.startup-user-card {
+	cursor: pointer;
+	position: relative;
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+.startup-user-card:hover {
+	transform: translateY(-2px);
+}
+.startup-user-card .fndfrnd_user_wrapper {
+	border: 2px solid transparent !important;
+	border-radius: 8px !important;
+	position: relative;
+	transition: border-color 0.2s, background-color 0.2s;
+}
+.startup-user-card.selected .fndfrnd_user_wrapper {
+	border-color: var(--nearby-accent, #2f6df6) !important;
+	background-color: rgba(47, 109, 246, 0.03) !important;
+}
+.startup-user-card .startup-check-badge {
+	position: absolute;
+	top: -8px;
+	right: -8px;
+	width: 24px;
+	height: 24px;
+	background-color: #e0e0e0;
+	color: #fff;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+	z-index: 10;
+	transition: background-color 0.2s, transform 0.2s;
+}
+.startup-user-card.selected .startup-check-badge {
+	background-color: #2f6df6;
+	transform: scale(1.1);
+}
+.startup-select-all-bar {
+	margin-bottom: 20px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
+.startup-select-all-bar button {
+	padding: 6px 14px;
+	font-size: 13px;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+</style>
+
 <div class="row">
 	<div class="col-md-1"></div>
 	<div class="col-md-10">
@@ -21,6 +75,10 @@
 			</div>
 		
 			<div class="add-photo wow_usr_steps">
+				<div class="startup-select-all-bar">
+					<button type="button" class="btn btn-default btn-sm" onclick="toggleSelectAllStartup(true);"><?php echo !empty($wo['lang']['select_all']) ? $wo['lang']['select_all'] : 'Select All'; ?></button>
+					<button type="button" class="btn btn-default btn-sm" onclick="toggleSelectAllStartup(false);"><?php echo !empty($wo['lang']['deselect_all']) ? $wo['lang']['deselect_all'] : 'Deselect All'; ?></button>
+				</div>
 				<div class="row wow_frnd_usr">
 				<?php
 					$user_id = array();
@@ -45,17 +103,49 @@
 
 <script type="text/javascript">
 var wo_follow_submitting = false;
+
+function updateFollowButtonText() {
+	var selectedCount = $('.startup-user-card.selected').length;
+	var button = $('.con-button');
+	var template = "<?php echo $wo['lang']['follow_num']; ?>";
+	var newText = template.replace('{number}', selectedCount);
+	var svgHtml = ' <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>';
+	button.html(newText + svgHtml);
+}
+
+function toggleStartupFollow(element) {
+	$(element).toggleClass('selected');
+	updateFollowButtonText();
+}
+
+function toggleSelectAllStartup(select) {
+	if (select) {
+		$('.startup-user-card').addClass('selected');
+	} else {
+		$('.startup-user-card').removeClass('selected');
+	}
+	updateFollowButtonText();
+}
+
 function Wo_SubmitFollow() {
 	if (wo_follow_submitting) {
 		return;
 	}
+	
+	var selectedUsers = [];
+	$('.startup-user-card.selected').each(function() {
+		selectedUsers.push($(this).attr('data-user-id'));
+	});
+	
+	var users = selectedUsers.join(',');
+	
 	wo_follow_submitting = true;
 	var button = $('.con-button');
 	var originalHtml = button.data('original-html') || button.html();
 	button.data('original-html', originalHtml);
 	button.attr('disabled', true);
 	button.text("<?php echo $wo['lang']['please_wait'];?>");
-	var users = $('#users-id').val() || '';
+	
 	$.ajax({
 		url: Wo_Ajax_Requests_File() + '?f=follow_users',
 		type: 'POST',

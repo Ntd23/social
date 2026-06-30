@@ -1,5 +1,6 @@
-<div class="col-lg-4 col-md-6 nearby_user_wrapper_prnt">
+<div class="col-lg-4 col-md-6 nearby_user_wrapper_prnt startup-user-card selected" data-user-id="<?php echo $wo['result']['user_id']; ?>" onclick="toggleStartupFollow(this);">
 	<div class="fndfrnd_user_wrapper">
+		<div class="startup-check-badge"><i class="fa fa-check"></i></div>
 		<div class="avatar">
 			<a href="<?php echo $wo['result']['url']. $wo['marker'];?>ref=se" data-ajax="?link1=timeline&u=<?php echo $wo['result']['username']?>&ref=se"><img src="<?php echo Wo_GetMedia($wo['result']['avatar_full']);?>?cache=<?php echo $wo['result']['last_avatar_mod'];?>" alt="<?php echo $wo['result']['name']; ?> Profile Picture" /></a>
 			<?php if (!isset($wo['result']['no_btn'])) { ?>

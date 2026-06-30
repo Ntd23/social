@@ -30329,7 +30329,7 @@ j.wo-video-comment-sheet__content {
 
 /* Custom video aspect-ratio dynamic support for mobile/webview */
 @media (max-width: 1024px) {
-    .post .post-file .plyr {
+    .post-file .plyr {
         width: calc(100% + 30px) !important;
         max-width: none !important;
         margin-left: -15px !important;
@@ -30339,18 +30339,18 @@ j.wo-video-comment-sheet__content {
         padding-bottom: 0 !important;
         background: transparent !important;
     }
-    .post .post-file .plyr__video-wrapper {
+    .post-file .plyr__video-wrapper {
         aspect-ratio: auto !important;
         height: auto !important;
         padding-bottom: 0 !important;
         background: transparent !important;
     }
-    .post .post-file .plyr__video-wrapper--fixed-ratio {
+    .post-file .plyr__video-wrapper--fixed-ratio {
         aspect-ratio: auto !important;
         height: auto !important;
         padding-bottom: 0 !important;
     }
-    .post .post-file .plyr video {
+    .post-file .plyr video {
         position: relative !important;
         height: auto !important;
         width: 100% !important;
