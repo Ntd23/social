@@ -573,9 +573,9 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 	<?php if ($wo['user_profile']['banned'] != 1) { ?>
 
 		<!-- Profile Percentage System -->
-		<?php if ($IsOwnerUser === true && array_sum($wo['pr_complition']) < 100): ?>
+		<!-- <?php if ($IsOwnerUser === true && array_sum($wo['pr_complition']) < 100): ?>
 			<?php echo Wo_LoadPage('timeline/profile-completion'); ?>
-		<?php endif; ?>
+		<?php endif; ?> -->
 
 		<div class="col-md-8">
 			<?php
@@ -3248,6 +3248,8 @@ if ($wo['loggedin'] == true) {
 			}, function() {
 				$('.profile-avatar-changer').fadeOut(100);
 			});
+		} else {
+			$('.profile-avatar-changer').show();
 		}
 		if ($(window).width() > 600) {
 			$(".user-cover").hover(function() {
@@ -3255,6 +3257,8 @@ if ($wo['loggedin'] == true) {
 			}, function() {
 				$('.profile-cover-changer').fadeOut(100);
 			});
+		} else {
+			$('.profile-cover-changer').show();
 		}
 
 		$('form.profile-avatar-changer').ajaxForm({

@@ -307,6 +307,13 @@ if ($wo['setting_page'] == 'projects') {
 ?>
 
 <div class="page-margin">
+	<button onclick="window.history.back()" class="btn-back-to-previous" style="margin-bottom: 15px; background: none; border: none; cursor: pointer; padding: 8px 12px; border-radius: 4px; display: flex; align-items: center; gap: 5px; color: #666;">
+		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<line x1="19" y1="12" x2="5" y2="12"></line>
+			<polyline points="12 19 5 12 12 5"></polyline>
+		</svg>
+		<span>Quay lại</span>
+	</button>
 	<div class="row setting-panel" style="position:relative;">
 		<div class="col-md-4 sidebar sett_page wo_new_sett_sidee" id="wo_main_sett_side"><?php echo Wo_LoadPage('setting/user-setting-sidebar');?></div>
 		<div class="col-md-8 sett_page wo_new_sett_pagee" id="wo_main_sett_mid"><?php echo Wo_LoadPage("setting/" . $wo['setting_page']); ?></div>
