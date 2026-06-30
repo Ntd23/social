@@ -33185,3 +33185,35 @@ body .wo_reels_cont .story-img .reels-previous-btn[disabled] {
 .user-request-list #wo_useract_btn {
     padding: 15px 45px !important;
 }
+
+/* Custom video aspect-ratio dynamic support for mobile/webview */
+@media (max-width: 1024px) {
+    .post .post-file .plyr {
+        width: calc(100% + 30px) !important;
+        max-width: none !important;
+        margin-left: -15px !important;
+        margin-right: -15px !important;
+        aspect-ratio: auto !important;
+        height: auto !important;
+        padding-bottom: 0 !important;
+        background: transparent !important;
+    }
+    .post .post-file .plyr__video-wrapper {
+        aspect-ratio: auto !important;
+        height: auto !important;
+        padding-bottom: 0 !important;
+        background: transparent !important;
+    }
+    .post .post-file .plyr__video-wrapper--fixed-ratio {
+        aspect-ratio: auto !important;
+        height: auto !important;
+        padding-bottom: 0 !important;
+    }
+    .post .post-file .plyr video {
+        position: relative !important;
+        height: auto !important;
+        width: 100% !important;
+        max-height: 75vh !important;
+        object-fit: contain !important;
+    }
+}

@@ -3,7 +3,7 @@
 $explore_nearby = !empty($wo['explore_nearby']) ? $wo['explore_nearby'] : array();
 $users_enabled = false;
 $shops_enabled = !empty($explore_nearby['shops_enabled']);
-$default_distance = !empty($explore_nearby['default_distance']) ? (int) $explore_nearby['default_distance'] : 100;
+$default_distance = 3;
 $nearby_users = array();
 $nearby_shops = !empty($explore_nearby['nearby_shops']) ? $explore_nearby['nearby_shops'] : array();
 $nearby_users_count = 0;
@@ -179,9 +179,9 @@ $initial_total_count = ($users_enabled ? $nearby_users_count : 0) + ($shops_enab
 	<?php echo Wo_LoadPage('common_things/leaflet-muted-map-config'); ?>
 	<style>
 	html, body {
-		position: fixed !important;
+		position: absolute !important;
 		width: 100% !important;
-		height: 100% !important;
+		height: calc(100% + 1px) !important;
 		overflow: hidden !important;
 		overscroll-behavior-y: none !important;
 		overscroll-behavior-x: none !important;
@@ -2000,6 +2000,7 @@ var WoExploreNearbyState = {
 	isPlaceSearchMode: false,
 	placeSearchQuery: '',
 	placeSearchResults: [],
+	entitySearchResults: [],
 	previewPointKey: null,
 	previewPointData: null,
 	routeTargetPointKey: null,
@@ -3495,6 +3496,29 @@ function Wo_ExploreNearbyResolveCanonicalPlaceItems(items, canonicalItems, optio
 
 function Wo_ExploreNearbySortItems(items) {
 	return items.sort(function(firstItem, secondItem) {
+		var firstType = String((firstItem && firstItem.type) || '');
+		var secondType = String((secondItem && secondItem.type) || '');
+
+		var getTypePriority = function(type) {
+			if (type === 'page' || type === 'shop') {
+				return 1;
+			}
+			if (type === 'user') {
+				return 2;
+			}
+			if (type === 'place') {
+				return 3;
+			}
+			return 4;
+		};
+
+		var firstPriority = getTypePriority(firstType);
+		var secondPriority = getTypePriority(secondType);
+
+		if (firstPriority !== secondPriority) {
+			return firstPriority - secondPriority;
+		}
+
 		var firstHasDistance = firstItem.distance_value !== null && firstItem.distance_value !== undefined && !isNaN(firstItem.distance_value);
 		var secondHasDistance = secondItem.distance_value !== null && secondItem.distance_value !== undefined && !isNaN(secondItem.distance_value);
 
@@ -3565,11 +3589,49 @@ function Wo_ExploreNearbyMovePinnedOnlyToEnd(items) {
 }
 
 function Wo_ExploreNearbyGetPlaceSearchDisplayItems() {
-	return Wo_ExploreNearbyResolveCanonicalPlaceItems(
-		WoExploreNearbyState.placeSearchResults || [],
-		Wo_ExploreNearbyGetOrderedShopItems(),
-		{}
-	);
+	var query = $.trim(WoExploreNearbyState.placeSearchQuery || '').toLowerCase();
+	var places = WoExploreNearbyState.placeSearchResults || [];
+	var entities = Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.entitySearchResults || []);
+	var shops = Wo_ExploreNearbyGetOrderedShopItems();
+
+	// Strict radius filter of 3km
+	var distanceFilter = function(item) {
+		var dist = parseFloat(item.distance_value);
+		if (isNaN(dist) || dist === null) {
+			return false;
+		}
+		return dist <= 3.0;
+	};
+
+	entities = entities.filter(distanceFilter);
+	shops = shops.filter(distanceFilter);
+	places = places.filter(distanceFilter);
+
+	if (query) {
+		entities = entities.filter(function(item) {
+			var title = String(item.title || '').toLowerCase();
+			var subtitle = String(item.subtitle || '').toLowerCase();
+			var description = String(item.description || '').toLowerCase();
+			var location = String(item.location || '').toLowerCase();
+			return title.indexOf(query) !== -1 || subtitle.indexOf(query) !== -1 || description.indexOf(query) !== -1 || location.indexOf(query) !== -1;
+		});
+
+		shops = shops.filter(function(item) {
+			var title = String(item.title || '').toLowerCase();
+			var subtitle = String(item.subtitle || '').toLowerCase();
+			var description = String(item.description || '').toLowerCase();
+			var location = String(item.location || '').toLowerCase();
+			return title.indexOf(query) !== -1 || subtitle.indexOf(query) !== -1 || description.indexOf(query) !== -1 || location.indexOf(query) !== -1;
+		});
+	}
+
+	var canonicalItems = [].concat(entities, shops);
+	var resolvedPlaces = Wo_ExploreNearbyResolveCanonicalPlaceItems(places, canonicalItems, {
+		dropMatchedDuplicates: true
+	});
+
+	var allItems = [].concat(entities, shops, resolvedPlaces);
+	return Wo_ExploreNearbyMergeUniqueItems([], allItems);
 }
 
 function Wo_ExploreNearbyGetMergedItems() {
@@ -3766,6 +3828,7 @@ function Wo_ExploreNearbyApplyMarkerSelection(point, options) {
 function Wo_ExploreNearbyExitPlaceSearchMode() {
 	var hadChanges = Wo_ExploreNearbyIsPlaceSearchMode() ||
 		Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.placeSearchResults || []).length > 0 ||
+		Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.entitySearchResults || []).length > 0 ||
 		!!WoExploreNearbyState.previewPointKey ||
 		!!WoExploreNearbyState.previewPointData ||
 		!!WoExploreNearbyState.routeTargetPointKey ||
@@ -3774,6 +3837,7 @@ function Wo_ExploreNearbyExitPlaceSearchMode() {
 	WoExploreNearbyState.isPlaceSearchMode = false;
 	WoExploreNearbyState.placeSearchQuery = '';
 	WoExploreNearbyState.placeSearchResults = [];
+	WoExploreNearbyState.entitySearchResults = [];
 	WoExploreNearbyState.previewPointKey = null;
 	WoExploreNearbyState.previewPointData = null;
 	Wo_ExploreNearbyClearRouteTarget();
@@ -4222,12 +4286,33 @@ function Wo_ExploreNearbyGetSuggestionDistanceKm(item) {
 
 function Wo_ExploreNearbySortSuggestions(items) {
 	return (items || []).slice().sort(function(firstItem, secondItem) {
+		var firstType = String((firstItem && firstItem.type) || '');
+		var secondType = String((secondItem && secondItem.type) || '');
+
+		var getTypePriority = function(type) {
+			if (type === 'page' || type === 'shop') {
+				return 1;
+			}
+			if (type === 'user') {
+				return 2;
+			}
+			if (type === 'place') {
+				return 3;
+			}
+			return 4;
+		};
+
+		var firstPriority = getTypePriority(firstType);
+		var secondPriority = getTypePriority(secondType);
+
+		if (firstPriority !== secondPriority) {
+			return firstPriority - secondPriority;
+		}
+
 		var firstDistance = Wo_ExploreNearbyGetSuggestionDistanceKm(firstItem);
 		var secondDistance = Wo_ExploreNearbyGetSuggestionDistanceKm(secondItem);
 		var firstHasDistance = firstDistance !== null && !isNaN(firstDistance);
 		var secondHasDistance = secondDistance !== null && !isNaN(secondDistance);
-		var firstType = String((firstItem && firstItem.type) || '');
-		var secondType = String((secondItem && secondItem.type) || '');
 
 		if (firstHasDistance && secondHasDistance) {
 			if (Math.abs(firstDistance - secondDistance) > 0.01) {
@@ -4238,13 +4323,6 @@ function Wo_ExploreNearbySortSuggestions(items) {
 			return -1;
 		}
 		else if (secondHasDistance) {
-			return 1;
-		}
-
-		if (firstType === 'place' && secondType !== 'place') {
-			return -1;
-		}
-		if (secondType === 'place' && firstType !== 'place') {
 			return 1;
 		}
 
@@ -6899,6 +6977,7 @@ function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
 					WoExploreNearbyState.isPlaceSearchMode = true;
 					WoExploreNearbyState.placeSearchQuery = resolvedInputValue || query;
 					WoExploreNearbyState.placeSearchResults = [];
+					WoExploreNearbyState.entitySearchResults = [];
 					WoExploreNearbyState.previewPointKey = null;
 					WoExploreNearbyState.previewPointData = null;
 					WoExploreNearbyState.activePointKey = null;
@@ -6923,19 +7002,27 @@ function Wo_ExploreNearbyResolveSearchPlace(loadToken) {
 			}
 
 			centerPoint = Wo_ExploreNearbyGetPlaceSearchCenterPoint(anchorItem);
-			return Wo_ExploreNearbySearchPlacesByText(query, centerPoint).then(function(placeResults) {
+			return Promise.all([
+				Wo_ExploreNearbySearchPlacesByText(query, centerPoint),
+				Wo_ExploreNearbyFetchEntitySuggestions(query)
+			]).then(function(results) {
+				var placeResults = results[0];
+				var entityResults = results[1] || [];
+
 				if (loadToken !== WoExploreNearbyState.loadToken) {
 					return {skipNearby: true};
 				}
 
 				if (placeResults === null) {
 					Wo_ExploreNearbyExitPlaceSearchMode();
+					WoExploreNearbyState.entitySearchResults = [];
 					return {skipNearby: false};
 				}
 
 				WoExploreNearbyState.isPlaceSearchMode = true;
 				WoExploreNearbyState.placeSearchQuery = query;
 				WoExploreNearbyState.placeSearchResults = Wo_ExploreNearbyNormalizeDiscoveryItems(placeResults || []);
+				WoExploreNearbyState.entitySearchResults = Wo_ExploreNearbyNormalizeDiscoveryItems(entityResults || []);
 				WoExploreNearbyState.previewPointKey = null;
 				WoExploreNearbyState.previewPointData = null;
 				WoExploreNearbyState.activePointKey = null;
@@ -12690,6 +12777,19 @@ jQuery(document).ready(function($) {
 		if (e.touches && e.touches[0]) {
 			touchStartY = e.touches[0].clientY;
 		}
+
+		var $scrollable = $(e.target).closest('.is-scrollable, .wo_explore_discovery_search_suggestions, .wo_explore_discovery_sheet_body');
+		if ($scrollable.length > 0) {
+			var el = $scrollable[0];
+			var scrollTop = el.scrollTop;
+			var scrollHeight = el.scrollHeight;
+			var clientHeight = el.clientHeight;
+			if (scrollTop === 0) {
+				el.scrollTop = 1;
+			} else if (scrollTop === scrollHeight - clientHeight) {
+				el.scrollTop = scrollHeight - clientHeight - 1;
+			}
+		}
 	}, { passive: true });
 
 	document.addEventListener('touchmove', function(e) {
@@ -12740,5 +12840,13 @@ jQuery(document).ready(function($) {
 			}
 		}
 	}, { passive: false });
+
+	// Prevent native WebView pull-to-refresh by keeping page scroll position at 1px
+	window.scrollTo(0, 1);
+	window.addEventListener('scroll', function() {
+		if (window.scrollY === 0) {
+			window.scrollTo(0, 1);
+		}
+	});
 });
 </script>
