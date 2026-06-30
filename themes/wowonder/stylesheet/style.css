@@ -28159,6 +28159,58 @@ body .navbar-default .dropdown-switch-account>.dropdown-menu .user-avatar>svg {
     .create_head_menu:before {
         display: none;
     }
+
+    /* Responsive avatar buttons - hide crop and eye, move camera to bottom right */
+    .profile-avatar-changer {
+        pointer-events: none;
+        display: block;
+    }
+
+    .wo_profile_pic_hover {
+        z-index: 1;
+    }
+
+    .wo_profile_pic_hover .profile_avatar {
+        background: transparent;
+        pointer-events: none;
+    }
+
+    /* Enable pointer events only for the camera button */
+    .wo_profile_pic_hover .profile_avatar .btn-file {
+        pointer-events: auto;
+    }
+
+    /* Hide all buttons except the first one (camera) */
+    .wo_profile_pic_hover .profile_avatar .btn-file:not(:first-child) {
+        display: none;
+    }
+
+    /* Style the camera button like Facebook */
+    .wo_profile_pic_hover .profile_avatar .btn-file:first-child {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #fff;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        padding: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .wo_profile_pic_hover .profile_avatar .btn-file:first-child svg {
+        width: 18px;
+        height: 18px;
+        color: #000;
+    }
+
+    .wo_profile_pic_hover .profile_avatar .btn-file:first-child:hover {
+        background: #f0f0f0;
+    }
 }
 
 @media (max-width:700px) {
