@@ -29377,13 +29377,6 @@ body .navbar-default .dropdown-switch-account>.dropdown-menu .user-avatar>svg {
 .like-story-lightbox.active svg {
     color: #1da1f2;
 }
-
-
-
-
-
-
-
 .w-check-handler {
     display: flex;
     margin-left: 0.5em;
@@ -30331,5 +30324,42 @@ j.wo-video-comment-sheet__content {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+}
+
+/* Custom video aspect-ratio dynamic support for mobile/webview */
+@media (max-width: 1024px) {
+    .post .post-file .plyr {
+        width: calc(100% + 30px) !important;
+        max-width: none !important;
+        margin-left: -15px !important;
+        margin-right: -15px !important;
+        aspect-ratio: auto !important;
+        height: auto !important;
+        padding-bottom: 0 !important;
+        background: transparent !important;
+    }
+    .post .post-file .plyr__video-wrapper {
+        aspect-ratio: auto !important;
+        height: auto !important;
+        padding-bottom: 0 !important;
+        background: transparent !important;
+    }
+    .post .post-file .plyr__video-wrapper--fixed-ratio {
+        aspect-ratio: auto !important;
+        height: auto !important;
+        padding-bottom: 0 !important;
+    }
+    .post .post-file .plyr video {
+        position: relative !important;
+        height: auto !important;
+        width: 100% !important;
+        max-height: 75vh !important;
+        object-fit: contain !important;
+    }
+}
+@media (max-width: 1024px) {
+    .plyr__controls {
+        padding: 20px !important;
     }
 }
