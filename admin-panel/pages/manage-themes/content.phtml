@@ -28,7 +28,7 @@
 						<div class="card-body">
 							<div class="d-flex align-items=center theme <?php echo ($theme == $wo['config']['theme']) ? ' active' : '';?>">
 								<div class="mr-3">
-									<img src="<?php echo $wo['config']['site_url'].'/themes/'.$themeImg;?>" alt="" width="100">
+									<img src="<?php echo Wo_GetAssetUrl('themes/'.$themeImg);?>" alt="" width="100">
 								</div>
 								<div>
 									<h5 class="card-title mb-2 themeName"><?php echo $themeName;?> <span class="badge badge-secondary themeVirsion" style="vertical-align: text-bottom;">v<?php echo $themeVirsion;?></span></h5>

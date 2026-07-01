@@ -344,6 +344,24 @@ if (!isEnabled('shell_exec')) {
                <i class="fa fa-fw fa-exclamation-triangle"></i> <strong>Thông tin: </strong> Để biết thêm thông tin về cách thiết lập bộ nhớ của bên thứ ba, vui lòng truy cập <a href="https://docs.hisotechgroup.com/#idocs_storage" target="_blank">Tài liệu</a> page.
            </div>
         </div>
+        <div class="col-lg-12 col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Cấu hình Bunny/CDN</h6>
+                    <div class="cdn-settings-alert"></div>
+                    <form class="cdn-settings" method="POST">
+                        <div class="form-group form-float">
+                            <div class="form-line">
+                                <label class="form-label">Bunny/CDN URL</label>
+                                <input type="text" id="cdn_url" name="cdn_url" class="form-control" value="<?php echo htmlspecialchars(!empty($wo['config']['cdn_url']) ? $wo['config']['cdn_url'] : '', ENT_QUOTES, 'UTF-8');?>" placeholder="https://vnseea.b-cdn.net">
+                                <small class="admin-info">Nhập hostname Bunny Pull Zone hoặc CDN tùy chỉnh. Để trống để tải file tĩnh và upload từ domain chính.</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
+                    </form>
+                </div>
+            </div>
+        </div>
         <div class="col-lg-6 col-md-6">
             <div class="card">
                 <div class="card-body">
@@ -1057,8 +1075,14 @@ $(function() {
                 if (data.status == 200) {
                     thisElement.removeClass('warning');
                     thisElement.addClass('success');
+                    if (configName == 'cdn_url') {
+                        $('.cdn-settings-alert').empty();
+                    }
                 } else {
                     thisElement.addClass('error');
+                    if (configName == 'cdn_url') {
+                        $('.cdn-settings-alert').html('<div class="alert alert-danger">'+(data.message || 'Bunny/CDN URL không hợp lệ.')+'</div>');
+                    }
                 }
                 var setTimeOutColor = setTimeout(function () {
                     thisElement.removeClass('success');
