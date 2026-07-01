@@ -264,7 +264,7 @@ function Wo_SaveConfig($update_name, $value)
         return false;
     }
     if (!array_key_exists($update_name, $config)) {
-        if (!in_array($update_name, array('register_vnseea_bonus', 'google_maps_map_id', 'speedsms_access_token', 'speedsms_sender', 'speedsms_sms_type', 'speedsms_webhook_secret', 'speedsms_dry_run'))) {
+        if (!in_array($update_name, array('register_vnseea_bonus', 'google_maps_map_id', 'speedsms_access_token', 'speedsms_sender', 'speedsms_sms_type', 'speedsms_webhook_secret', 'speedsms_dry_run', 'cdn_url'))) {
             return false;
         }
         $update_name = Wo_Secure($update_name);
@@ -1752,7 +1752,8 @@ function Wo_GetMedia($media)
         }
         return 'https://' . $wo['config']['backblaze_bucket_name'] . '.s3.' . $wo['config']['backblaze_bucket_region'] . '.backblazeb2.com/' . $media;
     }
-    return $wo['config']['site_url'] . '/' . $media;
+    $media_base_url = !empty($wo['config']['cdn_url']) ? $wo['config']['cdn_url'] : $wo['config']['site_url'];
+    return rtrim($media_base_url, '/') . '/' . ltrim($media, '/');
 }
 
 function Wo_UploadImage($file, $name, $type, $type_file, $user_id = 0, $placement = '', $ai_post = 0)
@@ -12568,4 +12569,3 @@ function Wo_PayPointOrSend($owner_id=null,$point=0,$to_user_id=null){
 //     }
 //     return $countriesData;
 // }
-

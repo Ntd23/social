@@ -133,6 +133,25 @@ function getLink($string = '') {
     global $wo;
     return rtrim($wo['site_url'] . "/" . $string,"/");
 }
+function Wo_GetAssetUrl($path = '') {
+    global $wo, $site_url;
+    $path = (string)$path;
+    if (filter_var($path, FILTER_VALIDATE_URL)) {
+        return $path;
+    }
+    $base_url = '';
+    if (!empty($wo['config']['asset_url'])) {
+        $base_url = $wo['config']['asset_url'];
+    } else if (!empty($wo['config']['site_url'])) {
+        $base_url = $wo['config']['site_url'];
+    } else {
+        $base_url = $site_url;
+    }
+    if ($path === '') {
+        return rtrim($base_url, '/');
+    }
+    return rtrim($base_url, '/') . '/' . ltrim($path, '/');
+}
 function Wo_CleanCache($user_id = '', $where = 'sidebar') {
     global $wo;
     if ($wo['config']['cache_sidebar'] == 0 || $wo['loggedin'] == false) {
@@ -185,8 +204,7 @@ function Wo_LoadAdminLinkSettings($link = '') {
     return $site_url . '/admin-cp/' . $link;
 }
 function Wo_LoadAdminLink($link = '') {
-    global $site_url;
-    return $site_url . '/admin-panel/' . $link;
+    return Wo_GetAssetUrl('admin-panel/' . ltrim($link, '/'));
 }
 function Wo_SizeUnits($bytes = 0) {
     if ($bytes >= 1073741824) {

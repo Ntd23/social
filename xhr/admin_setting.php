@@ -3198,7 +3198,7 @@ if ($f == 'admin_setting' AND (Wo_IsAdmin() || Wo_IsModerator())) {
         $video_file_full_path = dirname(__DIR__) . "/admin-panel/videos/test.mp4";
         $shell                = shell_exec("$ffmpeg_b -y -i $video_file_full_path -vcodec libx264 -preset " . $wo['config']['convert_speed'] . " -filter:v scale=426:-2 -crf 26 $video_output_full_path_240 2>&1");
         if (file_exists($video_output_full_path_240)) {
-            $data['video_url'] = $wo['config']['site_url'] . '/admin-panel/videos/test_240p_converted.mp4';
+            $data['video_url'] = Wo_GetAssetUrl('admin-panel/videos/test_240p_converted.mp4');
         }
         $data['status'] = 200;
         $data['data']   = $shell;
@@ -3209,6 +3209,10 @@ if ($f == 'admin_setting' AND (Wo_IsAdmin() || Wo_IsModerator())) {
     if ($s == 'update_general_setting' && Wo_CheckSession($hash_id) === true) {
         $saveSetting         = false;
         $delete_follow_table = 0;
+        $data                = array(
+            'status' => 400,
+            'message' => 'No settings were saved.'
+        );
         if (!empty($_FILES) && !empty($_FILES["cloud_file"])) {
             $fileInfo = array(
                 'file' => $_FILES["cloud_file"]["tmp_name"],
@@ -3227,6 +3231,17 @@ if ($f == 'admin_setting' AND (Wo_IsAdmin() || Wo_IsModerator())) {
         foreach ($_POST as $key => $value) {
             if (!empty($value) && in_array($key, $wo['encryptedKeys'])) {
                 $value = '$Ap1_'.openssl_encrypt($value, "AES-128-ECB", $siteEncryptKey);
+            }
+            if ($key == 'cdn_url') {
+                $value = trim($value);
+                if ($value !== '') {
+                    $cdn_url_scheme = parse_url($value, PHP_URL_SCHEME);
+                    if (!filter_var($value, FILTER_VALIDATE_URL) || !in_array(strtolower((string)$cdn_url_scheme), array('http', 'https'))) {
+                        $data['message'] = 'Bunny/CDN URL must be a valid http or https URL.';
+                        break;
+                    }
+                    $value = rtrim($value, '/');
+                }
             }
             if ($key == 'bank' || $key == 'p_paypal' || $key == 'skrill' || $key == 'custom') {
                 if (in_array($value, array(0,1))) {
@@ -3555,6 +3570,12 @@ if ($f == 'admin_setting' AND (Wo_IsAdmin() || Wo_IsModerator())) {
                 //                                                               'two_factor'          => 0));
                 // }
                 $saveSetting = Wo_SaveConfig($key, $value);
+                if ($saveSetting === true && $key == 'cdn_url') {
+                    $config[$key] = $value;
+                    $wo['config'][$key] = $value;
+                    $wo['config']['asset_url'] = !empty($value) ? $value : $wo['config']['site_url'];
+                    resetCache();
+                }
             }
         }
         if ($saveSetting === true) {

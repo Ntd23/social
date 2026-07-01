@@ -51,7 +51,8 @@ $required_config_defaults = array(
     'livekit_api_secret' => '',
     'openrouteservice_api_key' => 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjBlYTc3Mzc0NWZmNTQwYTNiMWIzN2E2OGQzOTlmYmUyIiwiaCI6Im11cm11cjY0In0=',
     'openrouteservice_base_url' => '',
-    'nearby_pinned_pages' => ''
+    'nearby_pinned_pages' => '',
+    'cdn_url' => ''
 );
 foreach ($required_config_defaults as $config_name => $config_value) {
     if (!array_key_exists($config_name, $config)) {
@@ -100,7 +101,18 @@ if (isset($_SESSION["theme"]) && !empty($_SESSION["theme"])) {
 }
 $config["withdrawal_payment_method"] = json_decode($config['withdrawal_payment_method'],true);
 // Config Url
-$config["theme_url"] = $site_url . "/themes/" . $config["theme"];
+$site_url = rtrim($site_url, '/');
+$config['cdn_url'] = !empty($config['cdn_url']) ? trim($config['cdn_url']) : '';
+if (!empty($config['cdn_url'])) {
+    $cdn_url_scheme = parse_url($config['cdn_url'], PHP_URL_SCHEME);
+    if (filter_var($config['cdn_url'], FILTER_VALIDATE_URL) && in_array(strtolower((string)$cdn_url_scheme), array('http', 'https'))) {
+        $config['cdn_url'] = rtrim($config['cdn_url'], '/');
+    } else {
+        $config['cdn_url'] = '';
+    }
+}
+$config["asset_url"] = !empty($config["cdn_url"]) ? $config["cdn_url"] : $site_url;
+$config["theme_url"] = $config["asset_url"] . "/themes/" . $config["theme"];
 $config["site_url"]  = $site_url;
 $wo["site_url"]      = $site_url;
 $config["wasabi_site_url"]         = "https://s3.".$config["wasabi_bucket_region"].".wasabisys.com";

@@ -58,7 +58,7 @@ if (isset($_POST['game'])) {
         // }
 
         if ($upload == true) {
-          $img = $wo['config']['site_url'].'/upload/photos/game-icon.png';
+          $img = Wo_GetMedia('upload/photos/game-icon.png');
           if (!empty($_POST['avatar'])) {
             if (filter_var($_POST['avatar'], FILTER_VALIDATE_URL)) {
                  $img = $_POST['avatar'];
