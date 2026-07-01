@@ -29,6 +29,18 @@ jobs:
             set -e
             cd "${{ secrets.DEPLOY_PATH }}"
             git config --global --add safe.directory "${{ secrets.DEPLOY_PATH }}"
-            git fetch origin main
+            for attempt in 1 2 3 4 5; do
+              if getent hosts github.com >/dev/null 2>&1 && git fetch origin main; then
+                break
+              fi
+
+              if [ "$attempt" = "5" ]; then
+                echo "git fetch origin main failed after 5 attempts"
+                exit 1
+              fi
+
+              echo "git fetch origin main failed, retrying in 5 seconds (attempt $attempt/5)"
+              sleep 5
+            done
             git checkout main
             git pull --ff-only origin main
