@@ -1,4 +1,5 @@
 <?php
+// Description: Handles web registration, validation, and account activation routing.
 if ($f == 'register') {
     if (!empty($_SESSION['user_id'])) {
         $_SESSION['user_id'] = '';
@@ -30,12 +31,18 @@ if ($f == 'register') {
     $birth_year  = isset($_POST['birth_year']) ? (int) $_POST['birth_year'] : 0;
     $birthday    = '0000-00-00';
     
-    // Intercept phone number in the email field
-    if (!empty($_POST['email']) && ($wo['config']['emailValidation'] != '1' || in_array($wo['config']['sms_or_email'], array('sms', 'both'))) && preg_match('/^\+?[0-9]{8,15}$/', str_replace(' ', '', $_POST['email']))) {
+    $is_phone_registration = false;
+
+    // Intercept phone number in the email field.
+    if (!empty($_POST['email']) && preg_match('/^\+?[0-9]{8,15}$/', str_replace(' ', '', $_POST['email']))) {
         $_POST['email'] = str_replace(' ', '', $_POST['email']);
         $_POST['phone_num'] = $_POST['email'];
+        $is_phone_registration = true;
         $clean_site_name = preg_replace('/[^a-zA-Z0-9]/', '', $wo['config']['siteName']);
         $_POST['email'] = $_POST['phone_num'] . '@' . $clean_site_name . '.com';
+    }
+    if (!empty($_POST['phone_num'])) {
+        $is_phone_registration = true;
     }
 
     if (empty($_POST['email']) || empty($_POST['username']) || empty($_POST['password']) || empty($_POST['confirm_password']) || empty($_POST['gender'])) {
@@ -145,8 +152,8 @@ if ($f == 'register') {
         }
 
         $is_shop = (isset($_POST['is_shop']) && $_POST['is_shop'] == '1') ? 1 : 0;
-        $activate = ($wo['config']['emailValidation'] == '1') ? '0' : '1';
-        $requires_sms_verification = ($activate != 1 && !empty($_POST['phone_num']) && in_array($wo['config']['sms_or_email'], array('sms', 'both')));
+        $activate = ($wo['config']['emailValidation'] == '1' && !$is_phone_registration) ? '0' : '1';
+        $requires_sms_verification = false;
         $requires_email_verification = ($activate != 1 && !$requires_sms_verification);
         $code     = md5(rand(1111, 9999) . time());
         $re_data  = array(
