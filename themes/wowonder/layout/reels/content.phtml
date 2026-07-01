@@ -36,12 +36,7 @@
 
 	$(document).ready(function() {
 		window.history.pushState({}, "", "<?php echo $wo['page_url']; ?>");
-        var firstReel = $('.reels_list:not(.hidden)').first();
-        if (!firstReel.length) {
-            firstReel = $('.reels_list').first().removeClass('hidden');
-        }
-        Wo_ReelsActivate(firstReel);
-        Wo_ReelsForceCurrentPlay();
+        Wo_ReelsActivate($('.reels_list:not(.hidden)').first());
         Wo_ReelsLoadNextIfNeeded();
 	});
 
@@ -63,7 +58,6 @@
             return;
         }
         Wo_ReelsPrepareVideo(video, 'auto');
-        video.autoplay = true;
         var playPromise = video.play();
         if (playPromise && typeof playPromise.catch === 'function') {
             playPromise.catch(function() {});
@@ -84,7 +78,7 @@
         var activeIndex = $('.reels_list').index(activeElement);
         $('.reels_list').each(function(index, reel) {
             if (Math.abs(index - activeIndex) > Wo_ReelsKeepDistance) {
-                Wo_ReelsPauseVideo(Wo_ReelsVideo(reel), 'metadata');
+                Wo_ReelsPauseVideo(Wo_ReelsVideo(reel), 'none');
                 $(reel).remove();
             }
         });
@@ -101,18 +95,11 @@
             if ($(reel).is(nextElement)) {
                 Wo_ReelsPlayVideo(video);
             } else {
-                Wo_ReelsPauseVideo(video, 'metadata');
+                Wo_ReelsPauseVideo(video, Math.abs(index - activeIndex) <= 1 ? 'metadata' : 'none');
             }
         });
 
         Wo_ReelsTrimDom(nextElement);
-    }
-
-    function Wo_ReelsForceCurrentPlay() {
-        setTimeout(function() {
-            var video = $('.reels_list:not(.hidden)').first().find('video').get(0) || $('video').get(0);
-            Wo_ReelsPlayVideo(video);
-        }, 100);
     }
 
     function Wo_ReelsBufferedNextCount() {
@@ -131,7 +118,7 @@
 		    if (data.status == 200 && data.html) {
 		    	$(".hidden_reels").append(data.html);
                 $('.reels_list.hidden video').each(function() {
-                    Wo_ReelsPauseVideo(this, 'metadata');
+                    Wo_ReelsPauseVideo(this, 'none');
                 });
 		    }
 	    }).always(function() {
@@ -149,7 +136,6 @@
             $('.loading_reel').html('');
             window.history.pushState({}, "", nextElement.attr('data-reel-url'));
             Wo_ReelsActivate(nextElement);
-            Wo_ReelsForceCurrentPlay();
             Wo_ReelsLoadNextIfNeeded();
         } else {
             $('.loading_reel').html('');
@@ -167,7 +153,6 @@
             $('.loading_reel').html('');
             window.history.pushState({}, "", previousElement.attr('data-reel-url'));
             Wo_ReelsActivate(previousElement);
-            Wo_ReelsForceCurrentPlay();
         } else {
         	$('.loading_reel').html('');
         }
