@@ -7,7 +7,7 @@ if ($f == 'resned_code_ac') {
         }
         if (empty($errors)) {
             $random_activation = Wo_Secure(rand(11111, 99999));
-            $message           = "Your confirmation code is: {$random_activation}";
+            $message           = "Mã xác nhận của bạn là: {$random_activation}";
             $user_id           = $user['user_id'];
             $time_code_sent    = time() + (60 * 60 * 12);
             $query             = mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `sms_code` = '{$random_activation}', `time_code_sent` = '{$time_code_sent}' WHERE `user_id` = {$user_id}");

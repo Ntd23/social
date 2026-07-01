@@ -3,6 +3,8 @@
 <?php
 $IsOwner       = Wo_IsOnwer($wo['user_profile']['user_id']);
 $IsOwnerUser   = Wo_IsOnwerUser($wo['user_profile']['user_id']);
+$timeline_profile_user_id = !empty($wo['user_profile']['user_id']) ? (int) $wo['user_profile']['user_id'] : (!empty($wo['user_profile']['id']) ? (int) $wo['user_profile']['id'] : 0);
+$timeline_viewer_user_id = !empty($wo['user']['id']) ? (int) $wo['user']['id'] : (!empty($wo['user']['user_id']) ? (int) $wo['user']['user_id'] : 0);
 $profile_display_first_name = !empty($wo['user_profile']['first_name']) ? $wo['user_profile']['first_name'] : $wo['user_profile']['name'];
 
 if ($wo['loggedin'] && $IsOwnerUser) {
@@ -897,7 +899,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 								<span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
 										<path fill="currentColor" d="M12,2A3,3 0 0,1 15,5A3,3 0 0,1 12,8A3,3 0 0,1 9,5A3,3 0 0,1 12,2M12,9C13.63,9 15.12,9.35 16.5,10.05C17.84,10.76 18.5,11.61 18.5,12.61V18.38C18.5,19.5 17.64,20.44 15.89,21.19V19C15.89,18.05 15.03,17.38 13.31,16.97C12.75,16.84 12.31,16.78 12,16.78C11.13,16.78 10.3,16.95 9.54,17.3C8.77,17.64 8.31,18.08 8.16,18.61C9.5,19.14 10.78,19.41 12,19.41L13,19.31V21.94L12,22C10.63,22 9.33,21.72 8.11,21.19C6.36,20.44 5.5,19.5 5.5,18.38V12.61C5.5,11.61 6.16,10.76 7.5,10.05C8.88,9.35 10.38,9 12,9M12,11A2,2 0 0,0 10,13A2,2 0 0,0 12,15A2,2 0 0,0 14,13A2,2 0 0,0 12,11Z"></path>
 									</svg></span> <?php echo $wo['lang']['family_members']; ?>
-								<?php if ($wo['user_profile']['user_id'] == $wo['user']['id']): ?>
+								<?php if ($timeline_profile_user_id == $timeline_viewer_user_id): ?>
 									<div class="familly-list-link">
 										<a href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['user_profile']['username'] . '&type=requests'); ?>" data-ajax="?link1=timeline&u=<?php echo $wo['user_profile']['username'] ?>&type=requests"><?php echo $wo['lang']['requests']; ?></a>
 									</div>
@@ -909,6 +911,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 						<div id="family-members-list" class="row" style="margin: 0;">
 							<?php
 							$family = Wo_GetFamaly($wo['user_profile']['user_id'], false, 1);
+							$family = is_array($family) ? $family : array();
 							$i      = 0;
 							if (count($family) > 0) {
 								foreach ($family as $wo['UsersList']) {
@@ -925,7 +928,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 						</div>
 						<div class="clear"></div>
 					</div>
-				<?php } else if ($_GET['type'] == 'requests' && $wo['user_profile']['user_id'] == $wo['user']['id']) { ?>
+				<?php } else if ($_GET['type'] == 'requests' && $timeline_profile_user_id == $timeline_viewer_user_id) { ?>
 					<div class="page-margin wow_content mt-0">
 						<div class="wo_page_hdng pag_neg_padd pag_alone">
 							<div class="wo_page_hdng_innr">
@@ -944,6 +947,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 						<div id="family-requests-list" class="row" style="margin: 0;">
 							<?php
 							$family = Wo_GetFamaly($wo['user_profile']['user_id'], false, 0, true);
+							$family = is_array($family) ? $family : array();
 							if (count($family) > 0) {
 								$i      = 0;
 								foreach ($family as $wo['UsersList']) {
@@ -959,7 +963,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 						</div>
 						<div class="clear"></div>
 					</div>
-					<?php } else if ($_GET['type'] == 'job_apply' && $wo['user_profile']['user_id'] == $wo['user']['id']) {
+					<?php } else if ($_GET['type'] == 'job_apply' && $timeline_profile_user_id == $timeline_viewer_user_id) {
 					$job_apply = Wo_GetApplyJob(array('job_id' => $_GET['id']));
 					if (!empty($job_apply)) { ?>
 						<div id="posts" data-story-page="<?php echo $wo['user_profile']['user_id']; ?>" class="apply_job_info" data_apply_job="<?php echo ($_GET['id']) ?>">
@@ -1592,7 +1596,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 						</div>
 						<?php
 						$array = array('filter_by' => 'all', 'publisher_id' => $wo['user_profile']['user_id'], 'placement' => 'multi_image_post');
-						if ($wo['loggedin'] && $wo['user_profile']['user_id'] == $wo['user']['id']) {
+						if ($wo['loggedin'] && $timeline_profile_user_id == $timeline_viewer_user_id) {
 							$array['anonymous'] = true;
 						}
 						$stories = Wo_GetPosts($array);
@@ -1678,11 +1682,14 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 						<path fill="currentColor" d="M9,11.75A1.25,1.25 0 0,0 7.75,13A1.25,1.25 0 0,0 9,14.25A1.25,1.25 0 0,0 10.25,13A1.25,1.25 0 0,0 9,11.75M15,11.75A1.25,1.25 0 0,0 13.75,13A1.25,1.25 0 0,0 15,14.25A1.25,1.25 0 0,0 16.25,13A1.25,1.25 0 0,0 15,11.75M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,11.71 4,11.42 4.05,11.14C6.41,10.09 8.28,8.16 9.26,5.77C11.07,8.33 14.05,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20Z"></path>
 					</svg>
 					<?php
-					$gender = ucfirst(strtolower($wo['user_profile']['gender']));
-					if (in_array($wo['user_profile']['gender'], array_keys($wo['genders']))) {
-						echo $wo['genders'][$wo['user_profile']['gender']];
+					$profile_gender = !empty($wo['user_profile']['gender']) ? $wo['user_profile']['gender'] : '';
+					$gender_options = !empty($wo['genders']) && is_array($wo['genders']) ? $wo['genders'] : array();
+					$gender = ucfirst(strtolower($profile_gender));
+					if ($profile_gender !== '' && in_array($profile_gender, array_keys($gender_options))) {
+						echo $gender_options[$profile_gender];
 					} else {
-						echo $wo['genders'][array_keys($wo['genders'])[0]];
+						$gender_keys = array_keys($gender_options);
+						echo !empty($gender_keys) ? $gender_options[$gender_keys[0]] : '';
 					}
 					//echo ($gender == 'Male') ? $wo['lang']['male'] : $wo['lang']['female'];
 					?>
@@ -2359,7 +2366,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 						<div></div>
 						<div></div>
 					</div>
-					<button type="button" class="btn  btn-main" id="send-gift-button" data-gift-id="" data-gift-img="" onclick="Wo_SendGiftToUser(<?php echo $wo['user']['id']; ?>,<?php echo $wo['user_profile']['id']; ?>,this)" disabled><?php echo $wo['lang']['send']; ?></button>
+					<button type="button" class="btn  btn-main" id="send-gift-button" data-gift-id="" data-gift-img="" onclick="Wo_SendGiftToUser(<?php echo $timeline_viewer_user_id; ?>,<?php echo $wo['user_profile']['id']; ?>,this)" disabled><?php echo $wo['lang']['send']; ?></button>
 				</div>
 			</div>
 		</div>
