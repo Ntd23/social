@@ -103,6 +103,15 @@ if ($f == 'register') {
         if ($config['reCaptcha'] == 1) {
             if (!isset($_POST['g-recaptcha-response']) || empty($_POST['g-recaptcha-response'])) {
                 $errors = $error_icon . $wo['lang']['reCaptcha_error'];
+            } else {
+                $recaptcha_data = array(
+                    'secret' => $wo['config']['recaptcha_secret_key'],
+                    'response' => $_POST['g-recaptcha-response']
+                );
+                $recaptcha_response = Check_Recaptcha($recaptcha_data);
+                if (empty($recaptcha_response) || empty($recaptcha_response->success)) {
+                    $errors = $error_icon . $wo['lang']['reCaptcha_error'];
+                }
             }
         }
         $gender = 'male';
