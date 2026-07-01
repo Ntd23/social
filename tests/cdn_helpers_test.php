@@ -55,6 +55,17 @@ $wo = array(
 );
 
 assert_true(function_exists('Wo_GetAssetUrl'), 'Wo_GetAssetUrl() should exist.');
+assert_true(function_exists('Wo_IsAppWebViewRequest'), 'Wo_IsAppWebViewRequest() should exist.');
+$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 vnseea-webview';
+$_GET = array();
+assert_true(Wo_IsAppWebViewRequest(), 'Wo_IsAppWebViewRequest() should detect the app user agent token.');
+$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 Safari/604.1';
+$_GET = array('source' => 'app');
+assert_true(Wo_IsAppWebViewRequest(), 'Wo_IsAppWebViewRequest() should detect the app source query.');
+$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 Safari/604.1';
+$_GET = array();
+assert_true(!Wo_IsAppWebViewRequest(), 'Wo_IsAppWebViewRequest() should not match normal browser requests.');
+
 assert_same(
     'https://vnseea.b-cdn.net/themes/wowonder/stylesheet/style.css',
     Wo_GetAssetUrl('/themes/wowonder/stylesheet/style.css'),
@@ -80,7 +91,17 @@ assert_same(
 );
 
 $wo['config']['cdn_url'] = 'https://vnseea.b-cdn.net';
+$wo['config']['asset_url'] = $wo['config']['site_url'];
+$wo['config']['is_app_webview'] = 1;
+assert_same(
+    'https://vnseea.vn/upload/photos/d-avatar.jpg',
+    Wo_GetMedia('upload/photos/d-avatar.jpg'),
+    'Wo_GetMedia() should force local media through site_url for app WebView requests.'
+);
+
+$wo['config']['cdn_url'] = 'https://vnseea.b-cdn.net';
 $wo['config']['asset_url'] = 'https://vnseea.b-cdn.net';
+$wo['config']['is_app_webview'] = 0;
 $wo['config']['amazone_s3'] = 1;
 $wo['config']['bucket_name'] = 'vnseea';
 $wo['config']['amazon_endpoint'] = 'https://media.example.com';
