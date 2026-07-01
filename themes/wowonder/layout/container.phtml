@@ -8,6 +8,16 @@
       <meta name="description" content="<?php echo $wo['description'];?>">
       <meta name="keywords" content="<?php echo $wo['keywords'];?>">
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+      <style id="wo-cookie-consent-disabled">
+         .cc-window,
+         .cc-revoke,
+         [aria-label="cookieconsent"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+         }
+      </style>
       <meta name="pinterest-rich-pin" content="false" />
       <?php
       echo($wo['lang_og_meta']);
@@ -1364,10 +1374,30 @@
           $("#wo_language_modal .language_select .Serbian").append('<span class="language_initial"><img src="<?php echo $wo['config']['theme_url']; ?>/img/flags/serbia.svg"/></span> ');
           $("#wo_language_modal .language_select .Turkish").append('<span class="language_initial"><img src="<?php echo $wo['config']['theme_url']; ?>/img/flags/turkey.svg"/></span> ');
         });
+        window.Wo_RemoveCookieConsentBanner = function () {
+          var nodes = document.querySelectorAll('.cc-window, .cc-revoke, [aria-label="cookieconsent"]');
+          for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i] && nodes[i].parentNode) {
+              nodes[i].parentNode.removeChild(nodes[i]);
+            }
+          }
+        };
+        document.cookie = 'cookieconsent_status=dismiss; path=/; max-age=31536000; SameSite=Lax';
+        if (window.cookieconsent) {
+          window.cookieconsent.initialise = function () {
+            window.Wo_RemoveCookieConsentBanner();
+            return null;
+          };
+        }
+        window.addEventListener('load', window.Wo_RemoveCookieConsentBanner);
+        setTimeout(window.Wo_RemoveCookieConsentBanner, 100);
+        setTimeout(window.Wo_RemoveCookieConsentBanner, 1000);
         <?php echo $wo['config']['footer_cc']; ?>
       </script>
       <?php if ($wo['page'] != 'get_news_feed') { ?>
       <script>
+      /*
+      Cookie consent banner disabled intentionally.
       window.addEventListener("load", function(){
       window.cookieconsent.initialise({
         "palette": {
@@ -1388,6 +1418,7 @@
           "href": "<?php echo Wo_SeoLink('index.php?link1=terms&type=privacy-policy');?>"
         }
       })});
+      */
       </script>
       <?php } ?>
       <?php if ($wo['page'] == 'welcome') {?>
