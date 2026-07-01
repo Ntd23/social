@@ -324,19 +324,23 @@ if (!empty($wo['story']['parent_id'])) {
          <?php 
             if($wo['story']['postType'] == 'profile_picture') { 
                $changed_profile_pic_lang = $wo['lang']['changed_profile_picture_male'];
-               if ($wo['story']['publisher']['gender'] == 'female') {
-                  $changed_profile_pic_lang = $wo['lang']['changed_profile_picture_female'];
-               } else {
-                  $changed_profile_pic_lang = $wo['lang']['changed_profile_picture_male'];
+               if(!empty($wo['story']['publisher']['gender'])) {
+                  if ($wo['story']['publisher']['gender'] == 'female') {
+                     $changed_profile_pic_lang = $wo['lang']['changed_profile_picture_female'];
+                  } else {
+                     $changed_profile_pic_lang = $wo['lang']['changed_profile_picture_male'];
+                  }
                }
                echo $changed_profile_pic_lang;
             } 
             if($wo['story']['postType'] == 'profile_cover_picture') { 
                $changed_profile_cover_pic_lang = $wo['lang']['changed_profile_cover_picture_male'];
-               if ($wo['story']['publisher']['gender'] == 'female') {
-                  $changed_profile_cover_pic_lang = $wo['lang']['changed_profile_cover_picture_female'];
-               } else {
-                  $changed_profile_cover_pic_lang = $wo['lang']['changed_profile_cover_picture_male'];
+               if(!empty($wo['story']['publisher']['gender'])) {
+                  if ($wo['story']['publisher']['gender'] == 'female') {
+                     $changed_profile_cover_pic_lang = $wo['lang']['changed_profile_cover_picture_female'];
+                  } else {
+                     $changed_profile_cover_pic_lang = $wo['lang']['changed_profile_cover_picture_male'];
+                  }
                }
                echo $changed_profile_cover_pic_lang;
             } 
@@ -1031,19 +1035,23 @@ if (!empty($wo['story']['parent_id'])) {
          <?php 
             if($wo['story']['postType'] == 'profile_picture') { 
                $changed_profile_pic_lang = $wo['lang']['changed_profile_picture_male'];
-               if ($wo['story']['publisher']['gender'] == 'female') {
-                  $changed_profile_pic_lang = $wo['lang']['changed_profile_picture_female'];
-               } else {
-                  $changed_profile_pic_lang = $wo['lang']['changed_profile_picture_male'];
+               if(!empty($wo['story']['publisher']['gender'])) {
+                  if ($wo['story']['publisher']['gender'] == 'female') {
+                     $changed_profile_pic_lang = $wo['lang']['changed_profile_picture_female'];
+                  } else {
+                     $changed_profile_pic_lang = $wo['lang']['changed_profile_picture_male'];
+                  }
                }
                echo $changed_profile_pic_lang;
             } 
             if($wo['story']['postType'] == 'profile_cover_picture') { 
                $changed_profile_cover_pic_lang = $wo['lang']['changed_profile_cover_picture_male'];
-               if ($wo['story']['publisher']['gender'] == 'female') {
-                  $changed_profile_cover_pic_lang = $wo['lang']['changed_profile_cover_picture_female'];
-               } else {
-                  $changed_profile_cover_pic_lang = $wo['lang']['changed_profile_cover_picture_male'];
+               if(!empty($wo['story']['publisher']['gender'])) {
+                  if ($wo['story']['publisher']['gender'] == 'female') {
+                     $changed_profile_cover_pic_lang = $wo['lang']['changed_profile_cover_picture_female'];
+                  } else {
+                     $changed_profile_cover_pic_lang = $wo['lang']['changed_profile_cover_picture_male'];
+                  }
                }
                echo $changed_profile_cover_pic_lang;
             } 
