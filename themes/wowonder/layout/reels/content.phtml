@@ -1,3 +1,4 @@
+<?php // English description: Renders the reels page and manages lightweight reel playback/navigation. ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-touch-events/2.0.0/jquery.mobile-events.min.js"></script>
 <div class="loading_reel"></div>
 <div class="hidden_reels">
@@ -30,93 +31,140 @@
         }
         Wo_DeletePost(post_id);
     }
+    var Wo_ReelsRequestingNext = false;
+    var Wo_ReelsKeepDistance = 3;
+
 	$(document).ready(function() {
 		window.history.pushState({}, "", "<?php echo $wo['page_url']; ?>");
-        $($('video')[0]).get(0).play();
+        Wo_ReelsActivate($('.reels_list:not(.hidden)').first());
+        Wo_ReelsLoadNextIfNeeded();
 	});
 
-    function playPauseVideos(nextElement) {
-        $('video').each(function(index) {
-            $(this).get(0).pause();
-        });
-        if ($(nextElement).find('video').length > 0) {
-            $(nextElement).find('video').get(0).play();
+    function Wo_ReelsVideo(reel) {
+        return $(reel).find('video').get(0) || null;
+    }
+
+    function Wo_ReelsPrepareVideo(video, preload) {
+        if (!video) {
+            return;
         }
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.preload = preload;
+    }
+
+    function Wo_ReelsPlayVideo(video) {
+        if (!video) {
+            return;
+        }
+        Wo_ReelsPrepareVideo(video, 'auto');
+        var playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(function() {});
+        }
+    }
+
+    function Wo_ReelsPauseVideo(video, preload) {
+        if (!video) {
+            return;
+        }
+        try {
+            video.pause();
+        } catch (e) {}
+        Wo_ReelsPrepareVideo(video, preload);
+    }
+
+    function Wo_ReelsTrimDom(activeElement) {
+        var activeIndex = $('.reels_list').index(activeElement);
+        $('.reels_list').each(function(index, reel) {
+            if (Math.abs(index - activeIndex) > Wo_ReelsKeepDistance) {
+                Wo_ReelsPauseVideo(Wo_ReelsVideo(reel), 'none');
+                $(reel).remove();
+            }
+        });
+    }
+
+    function Wo_ReelsActivate(nextElement) {
+        if (!nextElement || !nextElement.length) {
+            return;
+        }
+
+        var activeIndex = $('.reels_list').index(nextElement);
+        $('.reels_list').each(function(index, reel) {
+            var video = Wo_ReelsVideo(reel);
+            if ($(reel).is(nextElement)) {
+                Wo_ReelsPlayVideo(video);
+            } else {
+                Wo_ReelsPauseVideo(video, Math.abs(index - activeIndex) <= 1 ? 'metadata' : 'none');
+            }
+        });
+
+        Wo_ReelsTrimDom(nextElement);
+    }
+
+    function Wo_ReelsBufferedNextCount() {
+        var currentIndex = $('.reels_list:not(.hidden)').first().index();
+        return $('.reels_list').filter(function(index) {
+            return index > currentIndex;
+        }).length;
+    }
+
+    function Wo_ReelsLoadNextIfNeeded() {
+        if (Wo_ReelsRequestingNext || Wo_ReelsBufferedNextCount() > 1) {
+            return;
+        }
+        Wo_ReelsRequestingNext = true;
+	    $.get(Wo_Ajax_Requests_File(), {f:'get_next_reel_video','reels_user': "<?php echo($wo['reelOwnerName']) ?>"}, function(data) {
+		    if (data.status == 200 && data.html) {
+		    	$(".hidden_reels").append(data.html);
+                $('.reels_list.hidden video').each(function() {
+                    Wo_ReelsPauseVideo(this, 'none');
+                });
+		    }
+	    }).always(function() {
+            Wo_ReelsRequestingNext = false;
+        });
     }
 
     function Wo_NextReelVideo() {
-    
-        let currentId = parseInt($('.reels_list:not(.hidden)').data('id'));
-
-        $(".reels_list[data-id='" + currentId + "']").addClass('hidden');
-    
-        var currentIndex = $(".reels_list[data-id='" + currentId + "']").index();
-    
-        var nextIndex = currentIndex + 1;
-        var nextElement = $(".reels_list").eq(nextIndex);
+        var currentElement = $('.reels_list:not(.hidden)').first();
+        var nextElement = currentElement.nextAll('.reels_list').first();
     
         if (nextElement.length) {
-            playPauseVideos(nextElement);
-            $('.loading_reel').html('');
+            currentElement.addClass('hidden');
             nextElement.removeClass('hidden');
-            window.history.pushState({}, "", $(nextElement).attr('data-reel-url'));
-            if ($(".reels_list[data-id='" + currentId + "']").length > 2) {
-            	return false;
-            }
-        }
-        else{
             $('.loading_reel').html('');
-            $(".reels_list[data-id='" + currentId + "']").removeClass('hidden');
+            window.history.pushState({}, "", nextElement.attr('data-reel-url'));
+            Wo_ReelsActivate(nextElement);
+            Wo_ReelsLoadNextIfNeeded();
+        } else {
+            $('.loading_reel').html('');
+            Wo_ReelsLoadNextIfNeeded();
         }
-
-	    $.get(Wo_Ajax_Requests_File(), {f:'get_next_reel_video','reels_user': "<?php echo($wo['reelOwnerName']) ?>"}, function(data) {
-		    if (data.status == 200) {
-                $('.story-img').unbind('swipeup', handler);
-                $('.story-img').unbind('swipedown', handler2);
-		    	$(".hidden_reels").append(data.html);
-                $('.story-img').bind('swipeup', handler);
-                $('.story-img').bind('swipedown', handler2);
-		    }
-	    });
     }
 
     function Wo_PreviousReelVideo() {
+        var currentElement = $('.reels_list:not(.hidden)').first();
+        var previousElement = currentElement.prevAll('.reels_list').first();
     
-        let currentId = parseInt($('.reels_list:not(.hidden)').data('id'));
-
-        $(".reels_list[data-id='" + currentId + "']").addClass('hidden');
-    
-        var currentIndex = $(".reels_list[data-id='" + currentId + "']").index();
-        
-        var nextIndex = currentIndex;
-        if (currentIndex > 0) {
-            nextIndex = currentIndex - 1;
-        }
-        
-        var nextElement = $(".reels_list").eq(nextIndex);
-    
-        if (nextElement.length) {
-        	playPauseVideos(nextElement);
-
+        if (previousElement.length) {
+            currentElement.addClass('hidden');
+        	previousElement.removeClass('hidden');
             $('.loading_reel').html('');
-        	nextElement.removeClass('hidden');
-            window.history.pushState({}, "", $(nextElement).attr('data-reel-url'));
-        }
-        else{
+            window.history.pushState({}, "", previousElement.attr('data-reel-url'));
+            Wo_ReelsActivate(previousElement);
+        } else {
         	$('.loading_reel').html('');
-            $(".reels_list[data-id='" + currentId + "']").removeClass('hidden');
         }
     }
     
-    $('.story-img').bind('swipeup', handler);
-    function handler(event) { 
+    $(document).off('swipeup.woReels', '.story-img').on('swipeup.woReels', '.story-img', function(event) {
     	Wo_NextReelVideo();
-    }
+    });
     
-    $('.story-img').bind('swipedown', handler2);
-    function handler2(event) { 
+    $(document).off('swipedown.woReels', '.story-img').on('swipedown.woReels', '.story-img', function(event) {
     	Wo_PreviousReelVideo();
-    }
+    });
     
     function load_ajax_lightbox_emojii(path){
        var emojjii = "😀*😁*😂*🤣*😃*😄*😅*😆*😉*😊*😋*😎*😍*😘*😗*😙*😚*🙂*🤗*🤩*🤔*🤨*😐*😑*😶*🙄*😏*😣*😥*😮*🤐*😯*😪*😫*😴*😌*😛*😜*😝*🤤*😒*😓*😔*😕*🙃*🤑*😲*☹️*🙁*😖*😞*😟*😤*😢*😭*😦*😧*😨*😩*🤯*😬*😰*😱*😳*🤪*😵*😡*😠*🤬*😷*🤒*🤕*🤢*🤮*🤧*😇*🤠*🤡*🤥*🤫*🤭*🧐*🤓*😈*👿*👹*👺*💀*👻*👽*🤖*💩*😺*😸*😹*😻*😼*😽*🙀*😿*😾*👶*👧*🧒*👦*👩*🧑*👨*👵*🧓*👴*👲*💅*🤳*💃*🕺*🕴*👫*👭*👬*💑*🤲*👐*🙌*👏*🤝*👍*👎*👊*✊*🤛*🤜*🤞*✌️*🤟*🤘*👌*👈*👉*👆*👇*☝️*✋*🤚*🖐*🖖*👋*🤙*💪*🖕*✍️*🙏*💍*💄*💋*👄*👅*👂*👃*👣*👁*👀*🧠*🗣*👤*👥";

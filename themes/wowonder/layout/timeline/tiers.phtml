@@ -1,6 +1,9 @@
 <?php
+// Timeline tier profile layout and navigation sections.
 $IsOwner       = Wo_IsOnwer($wo['user_profile']['user_id']);
 $IsOwnerUser   = Wo_IsOnwerUser($wo['user_profile']['user_id']);
+$timeline_profile_user_id = !empty($wo['user_profile']['user_id']) ? (int) $wo['user_profile']['user_id'] : (!empty($wo['user_profile']['id']) ? (int) $wo['user_profile']['id'] : 0);
+$timeline_viewer_user_id = !empty($wo['user']['id']) ? (int) $wo['user']['id'] : (!empty($wo['user']['user_id']) ? (int) $wo['user']['user_id'] : 0);
 $profile_display_first_name = !empty($wo['user_profile']['first_name']) ? $wo['user_profile']['first_name'] : $wo['user_profile']['name'];
 
 if ($wo['loggedin'] && $IsOwnerUser) {
@@ -270,12 +273,15 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 					<li class="list-group-item">
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="feather"><path fill="currentColor" d="M17.58,4H14V2H21V9H19V5.41L15.17,9.24C15.69,10.03 16,11 16,12C16,14.42 14.28,16.44 12,16.9V19H14V21H12V23H10V21H8V19H10V16.9C7.72,16.44 6,14.42 6,12A5,5 0 0,1 11,7C12,7 12.96,7.3 13.75,7.83L17.58,4M11,9A3,3 0 0,0 8,12A3,3 0 0,0 11,15A3,3 0 0,0 14,12A3,3 0 0,0 11,9Z" /></svg>
 						<?php 
-							$gender = ucfirst(strtolower($wo['user_profile']['gender']));
-							if (in_array($wo['user_profile']['gender'], array_keys($wo['genders']))) {
-			                	echo $wo['genders'][$wo['user_profile']['gender']];
+							$profile_gender = !empty($wo['user_profile']['gender']) ? $wo['user_profile']['gender'] : '';
+							$gender_options = !empty($wo['genders']) && is_array($wo['genders']) ? $wo['genders'] : array();
+							$gender = ucfirst(strtolower($profile_gender));
+							if ($profile_gender !== '' && in_array($profile_gender, array_keys($gender_options))) {
+			                	echo $gender_options[$profile_gender];
 			                }
 			                else{
-			                	echo $wo['genders'][array_keys($wo['genders'])[0]];
+			                	$gender_keys = array_keys($gender_options);
+			                	echo !empty($gender_keys) ? $gender_options[$gender_keys[0]] : '';
 			                }
 						?>
 					</li>
@@ -830,7 +836,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 				<div class="list-group profile-lists sun_side_widget">
 					<h3 class="sun_side_widget_title mainpage">
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#3d8cfa" d="M12,2A3,3 0 0,1 15,5A3,3 0 0,1 12,8A3,3 0 0,1 9,5A3,3 0 0,1 12,2M12,9C13.63,9 15.12,9.35 16.5,10.05C17.84,10.76 18.5,11.61 18.5,12.61V18.38C18.5,19.5 17.64,20.44 15.89,21.19V19C15.89,18.05 15.03,17.38 13.31,16.97C12.75,16.84 12.31,16.78 12,16.78C11.13,16.78 10.3,16.95 9.54,17.3C8.77,17.64 8.31,18.08 8.16,18.61C9.5,19.14 10.78,19.41 12,19.41L13,19.31V21.94L12,22C10.63,22 9.33,21.72 8.11,21.19C6.36,20.44 5.5,19.5 5.5,18.38V12.61C5.5,11.61 6.16,10.76 7.5,10.05C8.88,9.35 10.38,9 12,9M12,11A2,2 0 0,0 10,13A2,2 0 0,0 12,15A2,2 0 0,0 14,13A2,2 0 0,0 12,11Z"></path></svg> <?php echo $wo['lang']['family_members'];?>
-						<?php if ($wo['user_profile']['user_id'] == $wo['user']['id']): ?>
+						<?php if ($timeline_profile_user_id == $timeline_viewer_user_id): ?>
 							<span>
 								<a href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['user_profile']['username'] . '&type=requests');?>" data-ajax="?link1=timeline&u=<?php echo $wo['user_profile']['username']?>&type=requests"> <?php echo $wo['lang']['requests']; ?> </a>
 							</span>
@@ -839,6 +845,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 					<div id="family-members-list" class="row" style="margin: 0;">
 						<?php 
 							$family = Wo_GetFamaly($wo['user_profile']['user_id'],false,1);
+							$family = is_array($family) ? $family : array();
 							$i      = 0;
 							if (count($family) > 0) {
 								foreach ($family as $wo['UsersList']) {
@@ -855,7 +862,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 					</div>
 					<div class="clear"></div>
 				</div>
-			<?php } else if ($_GET['type'] == 'requests' && $wo['user_profile']['user_id'] == $wo['user']['id']) { ?>
+			<?php } else if ($_GET['type'] == 'requests' && $timeline_profile_user_id == $timeline_viewer_user_id) { ?>
 				<div class="list-group profile-lists sun_side_widget">
 					<h3 class="sun_side_widget_title mainpage">
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#3d8cfa" d="M10.63,14.1C12.23,10.58 16.38,9.03 19.9,10.63C23.42,12.23 24.97,16.38 23.37,19.9C22.24,22.4 19.75,24 17,24C14.3,24 11.83,22.44 10.67,20H1V18C1.06,16.86 1.84,15.93 3.34,15.18C4.84,14.43 6.72,14.04 9,14C9.57,14 10.11,14.05 10.63,14.1V14.1M9,4C10.12,4.03 11.06,4.42 11.81,5.17C12.56,5.92 12.93,6.86 12.93,8C12.93,9.14 12.56,10.08 11.81,10.83C11.06,11.58 10.12,11.95 9,11.95C7.88,11.95 6.94,11.58 6.19,10.83C5.44,10.08 5.07,9.14 5.07,8C5.07,6.86 5.44,5.92 6.19,5.17C6.94,4.42 7.88,4.03 9,4M17,22A5,5 0 0,0 22,17A5,5 0 0,0 17,12A5,5 0 0,0 12,17A5,5 0 0,0 17,22M16,14H17.5V16.82L19.94,18.23L19.19,19.53L16,17.69V14Z"></path></svg> <?php echo $wo['lang']['requests'];?>
@@ -866,6 +873,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 					<div id="family-requests-list" class="row" style="margin: 0;">
 						<?php 
 							$family = Wo_GetFamaly($wo['user_profile']['user_id'],false,0,true);
+							$family = is_array($family) ? $family : array();
 							if (count($family) > 0) {
 								$i      = 0;
 								foreach ($family as $wo['UsersList']) {
@@ -882,7 +890,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 					</div>
 					<div class="clear"></div>
 				</div>
-			<?php }else if ($_GET['type'] == 'job_apply' && $wo['user_profile']['user_id'] == $wo['user']['id']) {
+			<?php }else if ($_GET['type'] == 'job_apply' && $timeline_profile_user_id == $timeline_viewer_user_id) {
 				$job_apply = Wo_GetApplyJob(array('job_id' => $_GET['id']));
 			if (!empty($job_apply)) { ?>
 				<div id="posts" data-story-page="<?php echo $wo['user_profile']['user_id'];?>" class="apply_job_info" data_apply_job="<?php echo($_GET['id']) ?>">
@@ -928,7 +936,7 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 						</div>
 						<?php
 						$array = array('filter_by' => 'all','publisher_id' => $wo['user_profile']['user_id'],'placement' => 'multi_image_post');
-					    if ($wo['loggedin'] && $wo['user_profile']['user_id'] == $wo['user']['id']) {
+					    if ($wo['loggedin'] && $timeline_profile_user_id == $timeline_viewer_user_id) {
 					    	$array['anonymous'] = true;
 					    }
 							$stories = Wo_GetPosts($array); 

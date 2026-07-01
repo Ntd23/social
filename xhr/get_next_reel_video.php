@@ -1,10 +1,11 @@
 <?php
+// English description: Returns lightweight next reel HTML for incremental reel navigation.
 if ($f == 'get_next_reel_video') {
     $wo['config']['second_post_button'] = 'disabled';
     $videos = [];
     $html = '';
     $postsData = array(
-        'limit' => 3,
+        'limit' => 1,
         'filter_by' => 'local_video',
         'order' => 'rand',
         'is_reel' => 'only',
