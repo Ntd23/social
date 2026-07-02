@@ -1167,7 +1167,7 @@ if ($f == 'posts') {
                 'placement' => 'multi_image_post'
             );
             if (!$wo['loggedin']) {
-                $postsData = array('filter_by' => 'all','publisher_id' => $user_id,'placement' => 'multi_image_post','after_post_id' => Wo_Secure($_GET['after_post_id']));
+                $postsData = array('filter_by' => 'all','limit' => 10,'publisher_id' => $user_id,'placement' => 'multi_image_post','after_post_id' => Wo_Secure($_GET['after_post_id']));
             }
             $get_posts = Wo_GetPosts($postsData);
             $is_api    = false;

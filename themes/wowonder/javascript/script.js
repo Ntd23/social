@@ -811,7 +811,6 @@ function Wo_GetMorePosts() {
   var more_posts = $('#load-more-posts');
   var filter_by_more = $('#load-more-filter').find('.filter-by-more').attr('data-filter-by');
     var after_post_id = $('#posts').find('div.post[data-post-id]:last').attr('data-post-id');
-console.log("WoWonder Debug: after_post_id =", after_post_id);
   var page_id = 0;
   var user_id = 0;
   var group_id = 0;
@@ -882,7 +881,6 @@ console.log("WoWonder Debug: after_post_id =", after_post_id);
     ad_id: ad_id,
     story_id:story_id
   }, function (data) {
-  console.log("WoWonder Debug: AJAX success, response length = ", data.length);
     if (data.length == 0) {
       $('body').attr('no-more-posts', "true");
       $('#load-more-posts').html('<div class="white-loading list-group"><div class="cs-loader"><div class="no-more-posts-to-show">' + $('#get_no_posts_name').val() + '</div></div>');
