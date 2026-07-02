@@ -3441,8 +3441,8 @@ header .barloading {
 }
 
 .profile-container {
-    /* padding-right: 15px;
-    padding-left: 15px */
+    padding-right: 15px;
+    padding-left: 15px
 }
 
 .profile-container .card {

@@ -1,4 +1,5 @@
 <?php
+// Description: Displays the media lightbox for the Wowonder theme.
 $wo['story']['model_type'] = 'image';
 $query = $wo['story']['id'];
 $query_two = !empty($wo['reelOwnerName']) ? $wo['reelOwnerName'] : '';
@@ -9,6 +10,10 @@ if (strpos($wo['story']['postFile'], ',') !== false) {
 }
 if (!empty($wo['story']['postSticker'])) {
     $image = $wo['story']['postSticker'];
+}
+$download_filename = basename(parse_url($image, PHP_URL_PATH));
+if (empty($download_filename)) {
+    $download_filename = 'vnseea-image.jpg';
 }
 if (!empty($wo['story']['postFile']) && (strpos($wo['story']['postFile'], '.mp4') !== false || strpos($wo['story']['postFile'], '.mkv') !== false || strpos($wo['story']['postFile'], '.avi') !== false || strpos($wo['story']['postFile'], '.webm') || strpos($wo['story']['postFile'], '.mov') || strpos($wo['story']['postFile'], '.m3u8') !== false)) {
     $wo['story']['model_type'] = 'video';
@@ -162,7 +167,7 @@ if ($wo['config']['shout_box_system'] == 1 && $wo['story']['postPrivacy'] == 4) 
             <?php if ($wo['story']['blur'] == 0) { ?>
                 <span class="lbox_topbar_child">
          <span>
-         <a href="<?php echo $image; ?>" download><?php echo $wo['lang']['download']; ?></a>
+         <a href="<?php echo $image; ?>" download="<?php echo htmlspecialchars($download_filename, ENT_QUOTES, 'UTF-8'); ?>" class="js-lightbox-download" data-download-url="<?php echo htmlspecialchars($image, ENT_QUOTES, 'UTF-8'); ?>" data-download-name="<?php echo htmlspecialchars($download_filename, ENT_QUOTES, 'UTF-8'); ?>"><?php echo $wo['lang']['download']; ?></a>
          </span>
          <span class="middot">·</span>
          <span>
@@ -710,6 +715,56 @@ function handler2(event) {
         window.history.pushState({}, "", newURL);
         <?php } ?>
     }
+</script>
+<script>
+$(document).off('click.woLightboxDownload', '.js-lightbox-download').on('click.woLightboxDownload', '.js-lightbox-download', function(event) {
+    var downloadUrl = $(this).attr('data-download-url') || this.href;
+    var downloadName = $(this).attr('data-download-name') || 'vnseea-image.jpg';
+    var userAgent = navigator.userAgent || '';
+    var isAndroidWebView = /Android/i.test(userAgent) && (/\bwv\b/i.test(userAgent) || /Version\/[\d.]+.*Chrome\/[\d.]+.*Mobile Safari/i.test(userAgent));
+
+    if (!downloadUrl) {
+        return;
+    }
+
+    if (window.Android && typeof window.Android.downloadFile === 'function') {
+        event.preventDefault();
+        window.Android.downloadFile(downloadUrl, downloadName);
+        return;
+    }
+
+    if (window.VNSEEA && typeof window.VNSEEA.downloadFile === 'function') {
+        event.preventDefault();
+        window.VNSEEA.downloadFile(downloadUrl, downloadName);
+        return;
+    }
+
+    if (!isAndroidWebView || typeof fetch !== 'function' || !window.URL || !window.URL.createObjectURL) {
+        return;
+    }
+
+    event.preventDefault();
+    fetch(downloadUrl, { credentials: 'include' }).then(function(response) {
+        if (!response.ok) {
+            throw new Error('download failed');
+        }
+        return response.blob();
+    }).then(function(blob) {
+        var blobUrl = window.URL.createObjectURL(blob);
+        var tempLink = document.createElement('a');
+        tempLink.href = blobUrl;
+        tempLink.download = downloadName;
+        tempLink.target = '_blank';
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+        setTimeout(function() {
+            window.URL.revokeObjectURL(blobUrl);
+        }, 1000);
+    }).catch(function() {
+        window.open(downloadUrl, '_blank');
+    });
+});
 </script>
 <style>
   /* Chỉ áp dụng khi JS bật cho mobile */
