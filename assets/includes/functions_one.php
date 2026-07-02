@@ -1752,7 +1752,13 @@ function Wo_GetMedia($media)
         }
         return 'https://' . $wo['config']['backblaze_bucket_name'] . '.s3.' . $wo['config']['backblaze_bucket_region'] . '.backblazeb2.com/' . $media;
     }
-    $media_base_url = !empty($wo['config']['cdn_url']) ? $wo['config']['cdn_url'] : $wo['config']['site_url'];
+    if (!empty($wo['config']['is_app_webview'])) {
+        $media_base_url = $wo['config']['site_url'];
+    } else if (!empty($wo['config']['asset_url'])) {
+        $media_base_url = $wo['config']['asset_url'];
+    } else {
+        $media_base_url = !empty($wo['config']['cdn_url']) ? $wo['config']['cdn_url'] : $wo['config']['site_url'];
+    }
     return rtrim($media_base_url, '/') . '/' . ltrim($media, '/');
 }
 

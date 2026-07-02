@@ -133,6 +133,21 @@ function getLink($string = '') {
     global $wo;
     return rtrim($wo['site_url'] . "/" . $string,"/");
 }
+function Wo_IsAppWebViewRequest() {
+    $user_agent = !empty($_SERVER['HTTP_USER_AGENT']) ? (string)$_SERVER['HTTP_USER_AGENT'] : '';
+    if ($user_agent !== '' && stripos($user_agent, 'vnseea-webview') !== false) {
+        return true;
+    }
+
+    $source = '';
+    if (isset($_GET['source'])) {
+        $source = $_GET['source'];
+    } else if (isset($_REQUEST['source'])) {
+        $source = $_REQUEST['source'];
+    }
+
+    return !is_array($source) && strtolower(trim((string)$source)) === 'app';
+}
 function Wo_GetAssetUrl($path = '') {
     global $wo, $site_url;
     $path = (string)$path;

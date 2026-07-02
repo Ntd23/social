@@ -111,7 +111,8 @@ if (!empty($config['cdn_url'])) {
         $config['cdn_url'] = '';
     }
 }
-$config["asset_url"] = !empty($config["cdn_url"]) ? $config["cdn_url"] : $site_url;
+$config["is_app_webview"] = Wo_IsAppWebViewRequest() ? 1 : 0;
+$config["asset_url"] = ($config["is_app_webview"] == 1 || empty($config["cdn_url"])) ? $site_url : $config["cdn_url"];
 $config["theme_url"] = $config["asset_url"] . "/themes/" . $config["theme"];
 $config["site_url"]  = $site_url;
 $wo["site_url"]      = $site_url;
