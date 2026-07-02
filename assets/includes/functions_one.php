@@ -7254,10 +7254,9 @@ function Wo_GetPosts($data = array('filter_by' => 'all', 'after_post_id' => 0, '
     if (!$wo['loggedin']) {
         $query_text .= " AND `postPrivacy` = '0'";
     }
-    // Temporarily disable pagination by setting limit to 10000
-    $data['limit'] = 10000;
-    $limit = 10000;
-    $limit = Wo_Secure($data['limit']);
+    $limit = (!empty($data['limit']) && is_numeric($data['limit'])) ? (int) $data['limit'] : 5;
+    $limit = max(1, $limit);
+    $limit = Wo_Secure($limit);
     $last_ad = 0;
     if (!empty($data['ad-id'])) {
         $last_ad = $data['ad-id'];
