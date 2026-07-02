@@ -7,7 +7,7 @@ if ($f == 'recover') {
             $errors = $error_icon . $wo['lang']['email_invalid_characters'];
         } else if (Wo_EmailExists($_POST['recoveremail']) === false) {
             $errors = $error_icon . $wo['lang']['email_not_found'];
-        } else if ($config['reCaptcha'] == 1) {
+        } else if ($config['reCaptcha'] == 1 && empty($wo['config']['is_app_webview'])) {
             if (!isset($_POST['g-recaptcha-response']) || empty($_POST['g-recaptcha-response'])) {
                 $errors = $error_icon . $wo['lang']['reCaptcha_error'];
             }

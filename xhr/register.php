@@ -30,6 +30,12 @@ if ($f == 'register') {
     $birth_month = isset($_POST['birth_month']) ? (int) $_POST['birth_month'] : 0;
     $birth_year  = isset($_POST['birth_year']) ? (int) $_POST['birth_year'] : 0;
     $birthday    = '0000-00-00';
+    $user_agent = !empty($_SERVER['HTTP_USER_AGENT']) ? (string) $_SERVER['HTTP_USER_AGENT'] : '';
+    $is_trusted_app_webview = ($user_agent !== '' && stripos($user_agent, 'vnseea-webview') !== false);
+    $blocked_spam_email_domains = array(
+        'buyfensi.com',
+        'gmx.com'
+    );
     
     $is_phone_registration = false;
 
@@ -63,6 +69,18 @@ if ($f == 'register') {
         }
         if (preg_match_all('~@(.*?)(.*)~', $_POST['email'], $matches) && !empty($matches[2]) && !empty($matches[2][0]) && Wo_IsBanned($matches[2][0])) {
             $errors = $error_icon . $wo['lang']['email_provider_banned'];
+        }
+        $email_domain = '';
+        if (!empty($_POST['email']) && strpos($_POST['email'], '@') !== false) {
+            $email_domain = strtolower(trim(substr(strrchr($_POST['email'], '@'), 1)));
+        }
+        if (!empty($email_domain)) {
+            foreach ($blocked_spam_email_domains as $blocked_domain) {
+                if ($email_domain === $blocked_domain || substr($email_domain, -1 * (strlen($blocked_domain) + 1)) === '.' . $blocked_domain) {
+                    $errors = $error_icon . $wo['lang']['email_provider_banned'];
+                    break;
+                }
+            }
         }
         if (Wo_CheckIfUserCanRegister($wo['config']['user_limit']) === false) {
             $errors = $error_icon . $wo['lang']['limit_exceeded'];
@@ -107,7 +125,8 @@ if ($f == 'register') {
                 $birthday = sprintf('%04d-%02d-%02d', $birth_year, $birth_month, $birth_day);
             }
         }
-        if ($config['reCaptcha'] == 1) {
+        $require_recaptcha = ($config['reCaptcha'] == 1 && empty($is_trusted_app_webview));
+        if ($require_recaptcha) {
             if (!isset($_POST['g-recaptcha-response']) || empty($_POST['g-recaptcha-response'])) {
                 $errors = $error_icon . $wo['lang']['reCaptcha_error'];
             } else {
@@ -122,7 +141,7 @@ if ($f == 'register') {
             }
         }
         $gender = 'male';
-        if (in_array($_POST['gender'], array_keys($wo['genders']))) {
+        if (!empty($_POST['gender']) && in_array($_POST['gender'], array_keys($wo['genders']))) {
             $gender = $_POST['gender'];
         }
         if (!empty($fields) && count($fields) > 0) {

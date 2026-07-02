@@ -1006,13 +1006,19 @@ function Wo_OpenFirstFilteredVideo(attempt) {
     return false;
   }
 
-  try {
-    player.fullscreen.enter();
-    if (typeof player.play === "function") {
-      var playPromise = player.play();
-      if (playPromise && typeof playPromise.catch === "function") {
-        playPromise.catch(function () {});
-      }
+	  try {
+	    player.fullscreen.enter();
+	    if (typeof window.Wo_PlayOverlayPlayerWithRetry === "function") {
+	      window.Wo_PlayOverlayPlayerWithRetry(player, {
+	        reason: "first_filtered_video",
+	        forceUnmuted: true,
+	        delay: 40
+	      });
+	    } else if (typeof player.play === "function") {
+	      var playPromise = player.play();
+	      if (playPromise && typeof playPromise.catch === "function") {
+	        playPromise.catch(function () {});
+	      }
     }
     return true;
   } catch (err) {}
@@ -4912,30 +4918,214 @@ function FileListItems (files) {
     }
     return null;
   }
-  function pauseOtherPlayers(activePostId) {
-    if (!window.wo_players) return;
-    Object.keys(window.wo_players).forEach(function (postId) {
-      if (postId == activePostId) return;
-      var player = window.wo_players[postId];
+	  function pauseOtherPlayers(activePostId) {
+	    if (!window.wo_players) return;
+	    Object.keys(window.wo_players).forEach(function (postId) {
+	      if (postId == activePostId) return;
+	      var player = window.wo_players[postId];
       if (player && typeof player.pause === "function") {
         player.pause();
-      }
-    });
-  }
+	      }
+	    });
+	  }
 
-  var overlayState = window.wo_video_overlay_state || {
-    shell: null,
-    stage: null,
-    activePlayer: null,
+	  function isAndroidAppWebView() {
+	    var ua = navigator.userAgent || "";
+	    var isAndroid = /Android/i.test(ua);
+	    if (!isAndroid) {
+	      return false;
+	    }
+	    var body = document.body;
+	    var hasAppClass =
+	      body &&
+	      body.classList &&
+	      body.classList.contains("app-view");
+	    return hasAppClass || /\bwv\b|; wv\)|vnseea-webview/i.test(ua);
+	  }
+
+	  function getOverlayPlayerMedia(player) {
+	    if (!player) {
+	      return null;
+	    }
+	    if (player.media) {
+	      return player.media;
+	    }
+	    var container = getPlayerContainer(player);
+	    return container ? container.querySelector("video") : null;
+	  }
+
+	  function prepareOverlayPlayerForAutoplay(player, options) {
+	    options = options || {};
+	    var media = getOverlayPlayerMedia(player);
+	    var shouldMute = !!options.forceMuted;
+	    var shouldUnmute = !!options.forceUnmuted;
+
+	    if (media) {
+	      media.playsInline = true;
+	      media.setAttribute("playsinline", "playsinline");
+	      media.setAttribute("webkit-playsinline", "webkit-playsinline");
+	      if (shouldMute) {
+	        media.muted = true;
+	        media.defaultMuted = true;
+	        media.setAttribute("muted", "muted");
+	      } else if (shouldUnmute) {
+	        media.muted = false;
+	        media.defaultMuted = false;
+	        media.removeAttribute("muted");
+	      }
+	    }
+
+	    if (player) {
+	      if (shouldMute) {
+	        try {
+	          player.muted = true;
+	        } catch (e) {}
+	        try {
+	          player.volume = 0;
+	        } catch (e) {}
+	      } else if (shouldUnmute) {
+	        try {
+	          player.muted = false;
+	        } catch (e) {}
+	        try {
+	          if (!player.volume || player.volume <= 0) {
+	            player.volume = 1;
+	          }
+	        } catch (e) {}
+	      }
+	    }
+
+	    return media;
+	  }
+
+	  function attemptOverlayPlayerPlay(player, options, onFail, onSuccess) {
+	    var playPromise;
+	    prepareOverlayPlayerForAutoplay(player, options);
+	    try {
+	      playPromise = player && typeof player.play === "function" ? player.play() : null;
+	    } catch (error) {
+	      onFail(error);
+	      return;
+	    }
+	    if (playPromise && typeof playPromise.then === "function") {
+	      playPromise.then(function () {
+	        if (typeof onSuccess === "function") {
+	          onSuccess();
+	        }
+	      }).catch(onFail);
+	    } else if (typeof onSuccess === "function") {
+	      onSuccess();
+	    }
+	  }
+
+	  function playOverlayPlayerWithRetry(player, options) {
+	    options = options || {};
+	    if (!player || typeof player.play !== "function") {
+	      return false;
+	    }
+
+	    var media = prepareOverlayPlayerForAutoplay(player, options);
+	    var container = getPlayerContainer(player);
+	    var retried = false;
+	    var retryScheduled = false;
+	    var playStarted = false;
+	    var retryTimer = null;
+	    var retryEvents = "loadedmetadata canplay canplaythrough";
+	    var successEvents = "playing play";
+
+	    var cleanup = function () {
+	      if (media) {
+	        $(media).off(retryEvents, retry);
+	        $(media).off(successEvents, markStarted);
+	      }
+	      if (retryTimer) {
+	        clearTimeout(retryTimer);
+	        retryTimer = null;
+	      }
+	    };
+
+	    var markStarted = function () {
+	      playStarted = true;
+	      cleanup();
+	    };
+
+	    var showFailure = function () {
+	      cleanup();
+	      if (container && options.showFailure !== false) {
+	        showToast(container, options.failureMessage || "Nhấn để phát video");
+	      }
+	    };
+
+	    var retry = function () {
+	      if (playStarted) {
+	        cleanup();
+	        return;
+	      }
+	      if (retried) {
+	        showFailure();
+	        return;
+	      }
+	      retried = true;
+	      attemptOverlayPlayerPlay(player, options, showFailure, markStarted);
+	    };
+
+	    var waitThenRetry = function () {
+	      if (retryScheduled || playStarted) {
+	        return;
+	      }
+	      retryScheduled = true;
+	      if (media && media.readyState >= 2) {
+	        retry();
+	        return;
+	      }
+	      if (media) {
+	        $(media).one(retryEvents, retry);
+	      }
+	      retryTimer = setTimeout(function () {
+	        if (media) {
+	          $(media).off(retryEvents, retry);
+	        }
+	        retry();
+	      }, options.manual ? 1200 : 1800);
+	    };
+
+	    var startPlay = function () {
+	      if (media) {
+	        $(media).one(successEvents, markStarted);
+	      }
+	      attemptOverlayPlayerPlay(player, options, waitThenRetry, markStarted);
+	    };
+
+	    if (options.defer === false) {
+	      startPlay();
+	    } else if (window.requestAnimationFrame) {
+	      window.requestAnimationFrame(function () {
+	        setTimeout(startPlay, typeof options.delay === "number" ? options.delay : 40);
+	      });
+	    } else {
+	      setTimeout(startPlay, typeof options.delay === "number" ? options.delay : 40);
+	    }
+
+	    return true;
+	  }
+
+	  window.Wo_PlayOverlayPlayerWithRetry = playOverlayPlayerWithRetry;
+
+	  var overlayState = window.wo_video_overlay_state || {
+	    shell: null,
+	    stage: null,
+	    activePlayer: null,
     activePostId: null,
     feedOrder: [],
     escBound: false,
-    historyPushed: false,
-    wheelLocked: false,
-    touchStartY: null,
-    touchStartX: null,
-    touchStartFromDismissZone: false,
-    touchTracking: false,
+	    historyPushed: false,
+	    wheelLocked: false,
+	    switching: false,
+	    switchTimer: null,
+	    touchStartY: null,
+	    touchStartX: null,
+	    touchStartFromDismissZone: false,
+	    touchTracking: false,
   };
   window.wo_video_overlay_state = overlayState;
 
@@ -4958,13 +5148,64 @@ function FileListItems (files) {
     return;
   }
 
-  function isReelsPlayerContainer(container) {
-    return !!(
-      container &&
-      container.closest &&
-      container.closest(".reels_list, .wo_reels_cont")
-    );
-  }
+	  function isReelsPlayerContainer(container) {
+	    return !!(
+	      container &&
+	      container.closest &&
+	      container.closest(".reels_list, .wo_reels_cont")
+	    );
+	  }
+
+	  function clearOverlayMotionClasses(container) {
+	    if (!container || !container.classList) return;
+	    container.classList.remove(
+	      "wo-video-overlay-leaving-up",
+	      "wo-video-overlay-leaving-down",
+	      "wo-video-overlay-entering-up",
+	      "wo-video-overlay-entering-down",
+	      "wo-video-overlay-entered"
+	    );
+	  }
+
+	  function clearOverlaySwitchState() {
+	    if (overlayState.switchTimer) {
+	      clearTimeout(overlayState.switchTimer);
+	      overlayState.switchTimer = null;
+	    }
+	    overlayState.switching = false;
+	    if (overlayState.stage && overlayState.stage.classList) {
+	      overlayState.stage.classList.remove(
+	        "is-switching",
+	        "is-loading-next",
+	        "is-switch-up",
+	        "is-switch-down"
+	      );
+	    }
+	  }
+
+	  function beginOverlaySwitch(direction) {
+	    clearOverlaySwitchState();
+	    overlayState.switching = true;
+	    if (overlayState.stage && overlayState.stage.classList) {
+	      overlayState.stage.classList.add(
+	        "is-switching",
+	        "is-loading-next",
+	        direction === "down" ? "is-switch-down" : "is-switch-up"
+	      );
+	    }
+	    var currentContainer = getPlayerContainer(overlayState.activePlayer);
+	    if (currentContainer && currentContainer.classList) {
+	      clearOverlayMotionClasses(currentContainer);
+	      currentContainer.classList.add(
+	        direction === "down"
+	          ? "wo-video-overlay-leaving-down"
+	          : "wo-video-overlay-leaving-up"
+	      );
+	    }
+	    overlayState.switchTimer = setTimeout(function () {
+	      clearOverlaySwitchState();
+	    }, 1800);
+	  }
 
   function getPlayerContainer(player) {
     if (!player || !player.elements) return null;
@@ -5104,11 +5345,11 @@ function FileListItems (files) {
     overlayState.stage = shell.querySelector(".wo-video-fullscreen-stage");
 
     shell.addEventListener(
-      "wheel",
-      function (e) {
-        if (!overlayState.activePlayer || overlayState.wheelLocked) {
-          return;
-        }
+	      "wheel",
+	      function (e) {
+	        if (!overlayState.activePlayer || overlayState.wheelLocked || overlayState.switching) {
+	          return;
+	        }
         if (Math.abs(e.deltaY) < 24) {
           return;
         }
@@ -5118,10 +5359,10 @@ function FileListItems (files) {
 
         e.preventDefault();
         overlayState.wheelLocked = true;
-        changeOverlayVideoByOffset(e.deltaY > 0 ? 1 : -1);
-        setTimeout(function () {
-          overlayState.wheelLocked = false;
-        }, 420);
+	        changeOverlayVideoByOffset(e.deltaY > 0 ? 1 : -1);
+	        setTimeout(function () {
+	          overlayState.wheelLocked = false;
+	        }, 420);
       },
       { passive: false },
     );
@@ -5226,13 +5467,16 @@ function FileListItems (files) {
           return;
         }
 
-        if (Math.abs(deltaY) < 60 || Math.abs(deltaY) < Math.abs(deltaX)) {
-          return;
-        }
+	        if (Math.abs(deltaY) < 60 || Math.abs(deltaY) < Math.abs(deltaX)) {
+	          return;
+	        }
+	        if (overlayState.switching) {
+	          return;
+	        }
 
-        // Match existing reels/lightbox behavior:
-        // swipe up => next video below, swipe down => previous video above.
-        changeOverlayVideoByOffset(deltaY < 0 ? 1 : -1);
+	        // Match existing reels/lightbox behavior:
+	        // swipe up => next video below, swipe down => previous video above.
+	        changeOverlayVideoByOffset(deltaY < 0 ? 1 : -1);
       },
       { passive: true },
     );
@@ -5339,9 +5583,10 @@ function FileListItems (files) {
     return placeholder;
   }
 
-  function restorePlayerToFeed(player) {
-    var container = getPlayerContainer(player);
-    if (!container) return;
+	  function restorePlayerToFeed(player) {
+	    var container = getPlayerContainer(player);
+	    if (!container) return;
+	    clearOverlayMotionClasses(container);
 
     if (player.__wo_overlay_media && player.__wo_overlay_ended_handler) {
       player.__wo_overlay_media.removeEventListener(
@@ -5439,12 +5684,13 @@ function FileListItems (files) {
     return true;
   }
 
-  function closeActiveVideoOverlay(shouldResumeObservedVideos) {
-    if (!overlayState.activePlayer) {
-      return;
-    }
+	  function closeActiveVideoOverlay(shouldResumeObservedVideos) {
+	    if (!overlayState.activePlayer) {
+	      return;
+	    }
 
-    closeOverlayCommentSheet();
+	    clearOverlaySwitchState();
+	    closeOverlayCommentSheet();
 
     var player = overlayState.activePlayer;
     restorePlayerToFeed(player);
@@ -5543,44 +5789,80 @@ function FileListItems (files) {
     return null;
   }
 
-  function switchOverlayToPost(targetPostId, currentPlayer) {
-    if (!targetPostId || !currentPlayer) {
-      closeActiveVideoOverlay();
-      return;
-    }
+	  function switchOverlayToPost(targetPostId, currentPlayer, offset) {
+	    if (!targetPostId || !currentPlayer) {
+	      clearOverlaySwitchState();
+	      closeActiveVideoOverlay();
+	      return;
+	    }
 
-    var preservedMuted = currentPlayer.muted;
-    var preservedVolume = currentPlayer.volume;
+	    var preservedMuted = currentPlayer.muted;
+	    var preservedVolume = currentPlayer.volume;
+	    var direction = offset < 0 ? "down" : "up";
+	    var currentContainer = getPlayerContainer(currentPlayer);
 
-    scrollToVideoPost(targetPostId);
+	    beginOverlaySwitch(direction);
 
-    setTimeout(function () {
-      waitForPlayerByPostId(targetPostId, function (nextPlayer) {
-        if (!nextPlayer || nextPlayer === currentPlayer) {
-          closeActiveVideoOverlay();
-          return;
-        }
+	    scrollToVideoPost(targetPostId);
 
-        openVideoOverlay(nextPlayer);
+	    setTimeout(function () {
+	      waitForPlayerByPostId(targetPostId, function (nextPlayer) {
+	        if (!nextPlayer || nextPlayer === currentPlayer) {
+	          if (currentContainer) {
+	            clearOverlayMotionClasses(currentContainer);
+	            showToast(currentContainer, "Không tải được video tiếp theo");
+	          }
+	          clearOverlaySwitchState();
+	          return;
+	        }
 
-        try {
-          nextPlayer.muted = preservedMuted;
-          nextPlayer.volume = preservedVolume;
-          nextPlayer.currentTime = 0;
-        } catch (err) {}
+	        openVideoOverlay(nextPlayer);
+	        var nextContainer = getPlayerContainer(nextPlayer);
+	        if (nextContainer && nextContainer.classList) {
+	          clearOverlayMotionClasses(nextContainer);
+	          nextContainer.classList.add(
+	            direction === "down"
+	              ? "wo-video-overlay-entering-down"
+	              : "wo-video-overlay-entering-up"
+	          );
+	          nextContainer.offsetHeight;
+	          requestAnimationFrame(function () {
+	            nextContainer.classList.remove(
+	              "wo-video-overlay-entering-up",
+	              "wo-video-overlay-entering-down"
+	            );
+	            nextContainer.classList.add("wo-video-overlay-entered");
+	          });
+	        }
 
-        var playPromise = nextPlayer.play();
-        if (playPromise && typeof playPromise.catch === "function") {
-          playPromise.catch(function () {});
-        }
-      });
-    }, 260);
-  }
+	        try {
+	          nextPlayer.muted = false;
+	          nextPlayer.volume = preservedVolume && preservedVolume > 0 ? preservedVolume : 1;
+	          nextPlayer.currentTime = 0;
+	        } catch (err) {}
 
-  function changeOverlayVideoByOffset(offset) {
-    if (!overlayState.activePlayer || !offset) {
-      return;
-    }
+	        playOverlayPlayerWithRetry(nextPlayer, {
+	          forceUnmuted: true,
+	          reason: "overlay_switch",
+	          delay: 60
+	        });
+	        if (overlayState.stage && overlayState.stage.classList) {
+	          overlayState.stage.classList.remove("is-loading-next");
+	        }
+	        setTimeout(function () {
+	          if (nextContainer) {
+	            clearOverlayMotionClasses(nextContainer);
+	          }
+	          clearOverlaySwitchState();
+	        }, 280);
+	      });
+	    }, 260);
+	  }
+
+	  function changeOverlayVideoByOffset(offset) {
+	    if (!overlayState.activePlayer || !offset || overlayState.switching) {
+	      return;
+	    }
 
     var feedOrder =
       overlayState.feedOrder && overlayState.feedOrder.length
@@ -5637,8 +5919,8 @@ function FileListItems (files) {
       "order=" + feedOrder.join(" > "),
     );
 
-    switchOverlayToPost(feedOrder[targetIndex], overlayState.activePlayer);
-  }
+	    switchOverlayToPost(feedOrder[targetIndex], overlayState.activePlayer, offset);
+	  }
 
   function playNextFullscreenVideo(currentPlayer) {
     var currentContainer = getPlayerContainer(currentPlayer);
@@ -6185,5 +6467,3 @@ function FileListItems (files) {
     }
   });
 })();
-
-

@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="<?php echo($wo['lang_attr']); ?>" translate="no">
+<html lang="<?php echo($wo['lang_attr']); ?>" translate="no"<?php echo !empty($wo['config']['is_app_webview']) ? ' class="app-view-root"' : ''; ?>>
    <head>
+      <?php
+      $app_asset_version = '20260702j';
+      $app_asset_cache = !empty($wo['config']['is_app_webview']) ? '&app_asset=' . $app_asset_version : '';
+      ?>
       <title><?php echo $wo['title'];?></title>
       <meta name="google" content="notranslate">
       <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
       <meta name="title" content="<?php echo $wo['title'];?>">
       <meta name="description" content="<?php echo $wo['description'];?>">
       <meta name="keywords" content="<?php echo $wo['keywords'];?>">
-      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1<?php echo !empty($wo['config']['is_app_webview']) ? ', minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover' : ', maximum-scale=1'; ?>">
       <style id="wo-cookie-consent-disabled">
          .cc-window,
          .cc-revoke,
@@ -178,13 +182,13 @@
          <link rel="canonical" href="<?php echo($link_text) ?>" />
       <?php } ?>
       <link rel="shortcut icon" type="image/png" href="<?php echo $wo['config']['theme_url'];?>/img/icon.png"/>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/general-style-plugins.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>">
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/general-style-plugins.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>">
       <?php if($wo['language_type'] == 'rtl' && $wo['page'] != 'welcome') { ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/bootsrap-rtl.min.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>">
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/style_rtl.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>">
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/bootsrap-rtl.min.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>">
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/style_rtl.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>">
       <?php } ?>
       <?php if ($wo['page'] == 'create_blog' || $wo['page'] == 'edit-blog' || $wo['page'] == 'create-ai-blog') { ?>
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/tinymce/js/tinymce/tinymce.min.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/tinymce/js/tinymce/tinymce.min.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
       <?php } ?>
 
       <style>
@@ -199,41 +203,110 @@
       </style>
 
       <?php if ($wo['page'] == 'welcome') { ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/welcome.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>">
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/welcome.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>">
       <?php } else { ?>
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/twilio-video.min.js?version=<?php echo $wo['config']['version']; ?>"></script>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/style.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>">
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/twilio-video.min.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/style.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>&reelsv=20260701a">
       <?php } ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/font-awesome-4.7.0/css/font-awesome.min.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>">
+      <?php if (!empty($wo['config']['is_app_webview'])) { ?>
+      <link rel="stylesheet" href="<?php echo rtrim($wo['config']['site_url'], '/');?>/themes/wowonder/stylesheet/app-view.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>&appv=<?php echo $app_asset_version; ?>">
+      <style>
+        body.app-view {
+          --app-shell-accent: <?php echo !empty($wo['config']['btn_background_color']) ? $wo['config']['btn_background_color'] : '#2563eb'; ?>;
+          --app-shell-header-bg: <?php echo !empty($wo['config']['header_background']) ? $wo['config']['header_background'] : '#0866ff'; ?>;
+          --app-shell-surface: #ffffff;
+          --app-shell-ink: #0f172a;
+        }
+      </style>
+      <script id="vnseea-app-webview-gesture-guard">
+        (function () {
+          var touchStartX = 0;
+          var touchStartY = 0;
+          var startedOnMap = false;
+          var mapGestureSelector = [
+            '#map',
+            '.leaflet-container',
+            '.gm-style',
+            '.explore-nearby-map',
+            '.wo_explore_map',
+            '.wow_frnd_map'
+          ].join(',');
+
+          function allowsNativeGesture(target) {
+            if (!target || typeof target.closest !== 'function') {
+              return false;
+            }
+            return !!target.closest(mapGestureSelector);
+          }
+
+          function preventDocumentZoom(event) {
+            if (allowsNativeGesture(event.target)) {
+              return;
+            }
+            event.preventDefault();
+          }
+
+          document.addEventListener('gesturestart', preventDocumentZoom, { passive: false });
+          document.addEventListener('gesturechange', preventDocumentZoom, { passive: false });
+          document.addEventListener('gestureend', preventDocumentZoom, { passive: false });
+          document.addEventListener('touchstart', function (event) {
+            if (!event.touches || event.touches.length !== 1) {
+              startedOnMap = allowsNativeGesture(event.target);
+              return;
+            }
+            touchStartX = event.touches[0].clientX;
+            touchStartY = event.touches[0].clientY;
+            startedOnMap = allowsNativeGesture(event.target);
+          }, { passive: true });
+          document.addEventListener('touchmove', function (event) {
+            if (allowsNativeGesture(event.target) || startedOnMap) {
+              return;
+            }
+            if (event.touches && event.touches.length > 1) {
+              event.preventDefault();
+              return;
+            }
+            if (event.touches && event.touches.length === 1) {
+              var horizontalDistance = Math.abs(event.touches[0].clientX - touchStartX);
+              var verticalDistance = Math.abs(event.touches[0].clientY - touchStartY);
+              if (horizontalDistance > 8 && horizontalDistance > verticalDistance * 1.15) {
+                event.preventDefault();
+              }
+            }
+          }, { passive: false });
+        })();
+      </script>
+      <?php } ?>
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/font-awesome-4.7.0/css/font-awesome.min.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>">
 
 	  <?php if ($wo['page'] == 'messages') { ?>
-	  <link href="<?php echo $wo['config']['theme_url'];?>/stylesheet/Krub.css?version=<?php echo $wo['config']['version']; ?>" rel="stylesheet">
+	  <link href="<?php echo $wo['config']['theme_url'];?>/stylesheet/Krub.css?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" rel="stylesheet">
 	  <?php } ?>
 
      <?php if ($wo['page'] == 'welcome' && $wo['language_type'] == 'rtl') { ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/welcome_rtl.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>">
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/welcome_rtl.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>">
       <?php } ?>
 
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/jquery-3.1.1.min.js?version=<?php echo $wo['config']['version']; ?>"></script>
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/jquery.ui.touch-punch.min.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/jquery-3.1.1.min.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/jquery.ui.touch-punch.min.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
 
       <?php //if ($wo['page'] == 'ads'): ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/bootstrap-select.min.css?version=<?php echo $wo['config']['version']; ?>">
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/bootstrap-select.min.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/bootstrap-select.min.css?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>">
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/bootstrap-select.min.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
       <?php //endif; ?>
 
 	  <?php //if ($wo['page'] == 'friends_nearby'): ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/leaflet.css?version=<?php echo $wo['config']['version']; ?>">
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/leaflet.css?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>">
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/leaflet.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
       <?php //endif; ?>
 
       <?php if ($wo['page'] == 'forum') { ?>
-        <script src="<?php echo $wo['config']['theme_url'];?>/javascript/forum/script.master.js?version=<?php echo $wo['config']['version']; ?>"></script>
-        <script src="<?php echo $wo['config']['theme_url'];?>/javascript/forum/forum.ajax.js?version=<?php echo $wo['config']['version']; ?>"></script>
+        <script src="<?php echo $wo['config']['theme_url'];?>/javascript/forum/script.master.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
+        <script src="<?php echo $wo['config']['theme_url'];?>/javascript/forum/forum.ajax.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
       <?php } ?>
 
       <?php //if ($wo['page'] == 'movies' || $wo['page'] == 'watch_movie') { ?>
-        <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/movies/style.movies.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>" />
+        <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/movies/style.movies.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" />
       <?php //} ?>
 
       <?php if (isset($wo['bbcodeditor']) && $wo['bbcodeditor']):?>
@@ -241,17 +314,17 @@
       <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/javascript/bbcode/jquery.bbcode.css" media="all"> -->
       <?php endif ?>
       <?php if ($wo['config']['checkout_payment'] == 'yes') { ?>
-        <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/2co.min.js?version=<?php echo $wo['config']['version']; ?>"></script>
+        <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/2co.min.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
       <?php } ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/player/fluidplayer.min.css?version=<?php echo $wo['config']['version']; ?>" type="text/css"/>
-      <script src="<?php echo $wo['config']['theme_url'];?>/player/fluidplayer.min.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/player/fluidplayer.min.css?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" type="text/css"/>
+      <script src="<?php echo $wo['config']['theme_url'];?>/player/fluidplayer.min.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
 
-	  <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/player/plyr.css?version=<?php echo $wo['config']['version']; ?>" type="text/css"/>
-      <script src="<?php echo $wo['config']['theme_url'];?>/player/plyr.js?version=<?php echo $wo['config']['version']; ?>"></script>
+	  <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/player/plyr.css?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" type="text/css"/>
+      <script src="<?php echo $wo['config']['theme_url'];?>/player/plyr.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
 
       <?php if ($wo['loggedin'] == true && $wo['page'] == 'home' && $wo['config']['web_push'] == 1) { ?>
-      <link rel="manifest" href="<?php echo $wo['config']['theme_url'];?>/javascript/OneSignalSDKFiles/manifest.json?version=<?php echo $wo['config']['version']; ?>">
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/OneSignalSDK.js?version=<?php echo $wo['config']['version']; ?>" async='async'></script>
+      <link rel="manifest" href="<?php echo $wo['config']['theme_url'];?>/javascript/OneSignalSDKFiles/manifest.json?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>">
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/OneSignalSDK.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" async='async'></script>
       <script>
         var push_user_id = '';
         var my_id = '<?php echo $wo['user']['web_device_id'] ?>';
@@ -285,8 +358,8 @@
       <?php echo $wo['config']['styles_cc']; ?>
       </style>
       <?php if ($wo['config']['classified'] == 1) { ?>
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/html2pdf.bundle.js?version=<?php echo $wo['config']['version']; ?>"></script>
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/qrcode.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/html2pdf.bundle.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/qrcode.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
       <?php } ?>
 
       <?php if ($wo['config']['cashfree_payment'] == 'yes') { ?>
@@ -304,6 +377,32 @@
          }
 
          var websiteUrl = "<?php echo $wo['config']['site_url'];?>";
+         function Wo_AppView_SyncPageClass(page) {
+            if (!$('body').hasClass('app-view')) {
+               return;
+            }
+            var safe_page = (page || '').toString().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+            var current_classes = ($('body').attr('class') || '').split(/\s+/);
+            var next_classes = [];
+            for (var i = 0; i < current_classes.length; i++) {
+               if (current_classes[i] && current_classes[i].indexOf('page-') !== 0) {
+                  next_classes.push(current_classes[i]);
+               }
+            }
+            if (safe_page) {
+               next_classes.push('page-' + safe_page);
+            }
+            $('body').attr('class', next_classes.join(' '));
+         }
+         function Wo_AppView_SyncFeedFilterClass() {
+            if (!$('body').hasClass('app-view')) {
+               return;
+            }
+            var has_visible_filter = $('#filterby-post').filter(function() {
+               return $(this).is(':visible');
+            }).length > 0;
+            $('html, body').toggleClass('has-feed-filter', has_visible_filter);
+         }
          $(function() {
             <?php if ($wo['loggedin'] == true && $wo['config']['find_friends'] == 1) {?>
               <?php if ($wo['user']['last_location_update'] < time() || $wo['user']['last_location_update'] > strtotime('+6 hours')): ?>
@@ -314,6 +413,8 @@
             <?php } ?>
            var box = $('#contnet');
            var ISAPI = $('#ISAPI').val();
+           Wo_AppView_SyncFeedFilterClass();
+           setTimeout(Wo_AppView_SyncFeedFilterClass, 0);
            $(document).on('click', 'a[data-ajax]', function(e) {
             if (typeof(check_wallet) != 'undefined') {
               clearInterval(check_wallet);
@@ -346,6 +447,8 @@
                         $('#load-more-posts').hide();
                         json_data = JSON.parse($('#json-data').val());
                         if (json_data.page == 'home') {
+                            Wo_AppView_SyncPageClass(json_data.page);
+                            Wo_AppView_SyncFeedFilterClass();
                             document.getElementById('posts').innerHTML = '<div class="posts_load"><div class="wo_loading_post"><div class="lightui1-shimmer"> <div class="_2iwr"></div> <div class="_2iws"></div> <div class="_2iwt"></div> <div class="_2iwu"></div> <div class="_2iwv"></div> <div class="_2iww"></div> <div class="_2iwx"></div> <div class="_2iwy"></div> <div class="_2iwz"></div> <div class="_2iw-"></div> <div class="_2iw_"></div> <div class="_2ix0"></div> </div></div><div class="wo_loading_post"><div class="lightui1-shimmer"> <div class="_2iwr"></div> <div class="_2iws"></div> <div class="_2iwt"></div> <div class="_2iwu"></div> <div class="_2iwv"></div> <div class="_2iww"></div> <div class="_2iwx"></div> <div class="_2iwy"></div> <div class="_2iwz"></div> <div class="_2iw-"></div> <div class="_2iw_"></div> <div class="_2ix0"></div> </div></div></div>';
                             loadposts();
                             window.history.pushState({state:'new'},'', websiteUrl);
@@ -380,6 +483,7 @@
                          window.location.href = $clicked_link.attr('href');
                          return false;
                      }
+                     Wo_AppView_SyncPageClass(json_data.page);
                      if (json_data.welcome_page == 1 || json_data.redirect == 1) {
                          window.location.href = websiteUrl;
                          return false;
@@ -396,6 +500,8 @@
                      }
                      //document.getElementById('#contnet').innerHTML = data;
                      box.html(data);
+                     Wo_AppView_SyncFeedFilterClass();
+                     setTimeout(Wo_AppView_SyncFeedFilterClass, 0);
                      if (json_data.is_css_file == 1) {
                        $('.styled-profile').remove();
                        $('footer').append(json_data.css_file);
@@ -530,23 +636,23 @@
       <?php }?>
 
     <?php if ($_COOKIE['mode'] == 'night') { ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/dark.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>" id="night-mode-css">
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/dark.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" id="night-mode-css">
     <?php } ?>
     <?php if($wo['config']['googleLogin'] != 0): ?>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <?php endif; ?>
     <?php if ($wo['config']['agora_live_video'] == 1 || $wo['config']['agora_chat_video'] == 1) { ?>
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/agora.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/agora.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
     <?php } ?>
     <?php if ($wo['config']['live_video'] == 1 && !empty($wo['config']['agora_app_id']) && !empty($wo['config']['agora_customer_id']) && !empty($wo['config']['agora_customer_certificate'])) { ?>
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/hls.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/hls.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
     <?php } ?>
-    <script crossorigin="anonymous" src="<?php echo $wo['config']['theme_url'];?>/javascript/sdk.js?version=<?php echo $wo['config']['version']; ?>"></script>
+    <script crossorigin="anonymous" src="<?php echo $wo['config']['theme_url'];?>/javascript/sdk.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
     <?php if ($wo['config']['braintree_payment'] == '1') { ?>
     <script src="https://js.braintreegateway.com/web/dropin/1.36.0/js/dropin.js"></script>
     <?php } ?>
 
-    <script src="<?php echo $wo['config']['theme_url'];?>/javascript/socket.io.js?version=<?php echo $wo['config']['version']; ?>"></script>
+    <script src="<?php echo $wo['config']['theme_url'];?>/javascript/socket.io.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
       <script>
       let nodejs_system = "<?php echo $wo['config']['node_socket_flow']; ?>";
       let socket = null
@@ -859,35 +965,48 @@
       });
       </script>
       <?php if ($wo['config']['job_system'] == 1 || $wo['config']['blogs'] == 1 || $wo['config']['website_mode'] == 'linkedin') { ?>
-        <script src="<?php echo $wo['config']['theme_url'];?>/javascript/bootstrap-tagsinput-latest/src/bootstrap-tagsinput.js?version=<?php echo $wo['config']['version']; ?>"></script>
+        <script src="<?php echo $wo['config']['theme_url'];?>/javascript/bootstrap-tagsinput-latest/src/bootstrap-tagsinput.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
       <?php } ?>
 
 	  <?php if ($wo['config']['website_mode'] == 'askfm') { ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/website_mode/askfm.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>" />
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/website_mode/askfm.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/website_mode/askfm.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" />
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/website_mode/askfm.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
     <?php }elseif ($wo['config']['website_mode'] == 'twitter') { ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/website_mode/twitter.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>" />
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/website_mode/twitter.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/website_mode/twitter.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" />
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/website_mode/twitter.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
     <?php }elseif ($wo['config']['website_mode'] == 'instagram') { ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/website_mode/instagram.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>" />
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/website_mode/instagram.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/website_mode/instagram.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" />
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/website_mode/instagram.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
     <?php }elseif ($wo['config']['website_mode'] == 'linkedin') { ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/website_mode/linkedin.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>" />
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/website_mode/linkedin.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/website_mode/linkedin.css<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" />
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/website_mode/linkedin.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
     <?php } ?>
 
-	<script src="<?php echo $wo['config']['theme_url'];?>/javascript/flickity.pkgd.min.js?version=<?php echo $wo['config']['version']; ?>"></script>
+	<script src="<?php echo $wo['config']['theme_url'];?>/javascript/flickity.pkgd.min.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
   <?php if ($wo['config']['yandex_map'] == 1) { ?>
       <script src="https://api-maps.yandex.ru/2.1/?lang=en_RU&amp;apikey=<?php echo $wo['config']['yandex_map_api'];?>" type="text/javascript"></script>
       <?php } ?>
-      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/javascript/green-audio-player/green-audio-player.css?version=<?php echo $wo['config']['version']; ?>" />
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/green-audio-player/green-audio-player.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/javascript/green-audio-player/green-audio-player.css?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>" />
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/green-audio-player/green-audio-player.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
 
-		<link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/flatpickr.min.css?version=<?php echo $wo['config']['version']; ?>">
-		<script src="<?php echo $wo['config']['theme_url'];?>/javascript/flatpickr.js?version=<?php echo $wo['config']['version']; ?>"></script>
+		<link rel="stylesheet" href="<?php echo $wo['config']['theme_url'];?>/stylesheet/flatpickr.min.css?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>">
+		<script src="<?php echo $wo['config']['theme_url'];?>/javascript/flatpickr.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
    </head>
 
-   <body <?php if ($wo['config']['chatSystem'] == 0) { ?> chat-off="true" <?php } ?>>
+   <?php
+      $app_body_classes = array();
+      if (!empty($wo['config']['is_app_webview'])) {
+        $app_body_classes[] = 'app-view';
+        if (!empty($wo['page'])) {
+          $app_page_slug = trim(preg_replace('/[^a-z0-9_-]+/i', '-', strtolower((string)$wo['page'])), '-');
+          if (!empty($app_page_slug)) {
+            $app_body_classes[] = 'page-' . $app_page_slug;
+          }
+        }
+        $app_body_classes[] = !empty($wo['loggedin']) ? 'app-logged-in' : 'app-guest';
+      }
+   ?>
+   <body <?php if ($wo['config']['chatSystem'] == 0) { ?> chat-off="true" <?php } ?> class="<?php echo implode(' ', $app_body_classes); ?>">
       <input type="hidden" id="get_no_posts_name" value="<?php echo($wo['lang']['no_more_posts']); ?>">
     <?php $loadPage = Wo_LoadPage('thirdparty/theme-changer'); echo (!empty($loadPage)) ? $loadPage : '';?>
     <div id="focus-overlay"></div>
@@ -980,12 +1099,12 @@
     <?php } ?>
 
       <!-- JS FILES -->
-      <?php if ($wo['config']['reCaptcha'] == 1) { ?>
+      <?php if ($wo['config']['reCaptcha'] == 1 && empty($wo['config']['is_app_webview'])) { ?>
       <script type="text/javascript" src='https://www.google.com/recaptcha/api.js'></script>
       <?php } ?>
       <?php if ($wo['loggedin'] == false) { ?>
 
-      <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/welcome.js<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>"></script>
+      <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/welcome.js<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
       <?php } ?>
       <?php
        if ($wo['config']['node_socket_flow'] == "1")
@@ -1007,7 +1126,7 @@
       ?>
       <script>window.wo_google_maps_map_id = <?php echo json_encode(!empty($wo['config']['google_maps_map_id']) ? $wo['config']['google_maps_map_id'] : ''); ?>;</script>
       <style>#wo-video-overlay-debug{display:none!important;}</style>
-      <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/script.js<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>&v=1.8"></script>
+      <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/script.js<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>&v=1.8&reelsv=20260701a"></script>
       <script>
         (function () {
           function removeVideoOverlayDebug() {
@@ -1034,8 +1153,8 @@
       }
       </style>
       <?php } ?>
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/audioRecord/recorder.js?version=<?php echo $wo['config']['version']; ?>"></script>
-      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/audioRecord/record.js?version=<?php echo $wo['config']['version']; ?>"></script>
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/audioRecord/recorder.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
+      <script src="<?php echo $wo['config']['theme_url'];?>/javascript/audioRecord/record.js?version=<?php echo $wo['config']['version'] . $app_asset_cache; ?>"></script>
       <?php } ?>
       <?php if ($wo['page'] == 'timeline' && $wo['loggedin'] == true && $wo['config']['css_upload'] == 1) { ?>
       <?php if (!empty($wo['user_profile']['css_file']) && file_exists($wo['user_profile']['css_file'])) {?>
