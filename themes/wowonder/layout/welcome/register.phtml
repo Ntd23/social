@@ -233,7 +233,7 @@ $fields = Wo_GetWelcomeFileds();
 					?>
 					
 					
-					<?php if ($wo['config']['reCaptcha'] == 1) { ?>
+					<?php if ($wo['config']['reCaptcha'] == 1 && empty($wo['config']['is_app_webview'])) { ?>
 						<div class="form-group" style="margin-top:10px;">
 							<div class="g-recaptcha" data-sitekey="<?php echo $wo['config']['reCaptchaKey'] ?>"></div>
 						</div>

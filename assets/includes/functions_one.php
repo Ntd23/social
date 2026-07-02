@@ -1715,6 +1715,21 @@ function Wo_GetMedia($media)
     if (empty($media)) {
         return '';
     }
+    $media = (string) $media;
+    if (filter_var($media, FILTER_VALIDATE_URL)) {
+        if (!empty($wo['config']['cdn_url']) && !empty($wo['config']['site_url'])) {
+            $media_url_parts = parse_url($media);
+            $site_url_parts = parse_url($wo['config']['site_url']);
+            $media_host = !empty($media_url_parts['host']) ? strtolower((string)$media_url_parts['host']) : '';
+            $site_host = !empty($site_url_parts['host']) ? strtolower((string)$site_url_parts['host']) : '';
+            $media_path = !empty($media_url_parts['path']) ? (string)$media_url_parts['path'] : '';
+            if ($media_host === $site_host && strpos($media_path, '/upload/') === 0) {
+                $media_query = !empty($media_url_parts['query']) ? '?' . $media_url_parts['query'] : '';
+                return rtrim($wo['config']['cdn_url'], '/') . $media_path . $media_query;
+            }
+        }
+        return $media;
+    }
     if ($wo['config']['amazone_s3'] == 1) {
         if (empty($wo['config']['bucket_name'])) {
             return $wo['config']['site_url'] . '/' . $media;
@@ -1752,8 +1767,8 @@ function Wo_GetMedia($media)
         }
         return 'https://' . $wo['config']['backblaze_bucket_name'] . '.s3.' . $wo['config']['backblaze_bucket_region'] . '.backblazeb2.com/' . $media;
     }
-    if (!empty($wo['config']['is_app_webview'])) {
-        $media_base_url = $wo['config']['site_url'];
+    if (preg_match('/^\\/?upload\\//', $media) && !empty($wo['config']['cdn_url'])) {
+        $media_base_url = $wo['config']['cdn_url'];
     } else if (!empty($wo['config']['asset_url'])) {
         $media_base_url = $wo['config']['asset_url'];
     } else {

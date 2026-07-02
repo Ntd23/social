@@ -1,0 +1,68 @@
+/* English description: Minimal WebView compatibility styles. The mobile website remains the source of truth. */
+
+/* Global WebView safety: do not create a second app theme. */
+body.app-view {
+  overflow-x: hidden;
+  background: #fff;
+  -webkit-text-size-adjust: 100%;
+}
+
+body.app-view,
+body.app-view .content-container,
+body.app-view #contnet {
+  max-width: 100%;
+}
+
+body.app-view .content-container {
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+body.app-view img,
+body.app-view video,
+body.app-view iframe,
+body.app-view canvas {
+  max-width: 100%;
+}
+
+/* Keep form controls readable in iOS WebView without changing form layout. */
+body.app-view input,
+body.app-view textarea,
+body.app-view select,
+body.app-view button {
+  font-size: 16px;
+}
+
+/* Component-scoped overflow fixes for content that can naturally exceed mobile width. */
+body.app-view .table-responsive,
+body.app-view .wallet_transactions {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.app-view .wow_wallet_trans {
+  max-width: 100%;
+}
+
+/* Map/explore surfaces should keep native pan and pinch gestures available. */
+body.app-view.page-explore-nearby #map,
+body.app-view.page-explore-nearby .wo_explore_discovery_page,
+body.app-view.page-explore-nearby .explore-nearby-map,
+body.app-view.page-explore-nearby .explore-nearby-sheet {
+  touch-action: pan-x pan-y pinch-zoom;
+  overscroll-behavior: contain;
+}
+
+/* Hide only global overlays that do not belong inside the deployed app shell. */
+body.app-view .theme-settings,
+body.app-view .cc-window,
+body.app-view .ads-navbar-wrapper {
+  display: none !important;
+}
+
+@supports (padding: max(0px)) {
+  body.app-view .content-container {
+    padding-left: max(0px, env(safe-area-inset-left, 0px));
+    padding-right: max(0px, env(safe-area-inset-right, 0px));
+  }
+}

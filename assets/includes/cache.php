@@ -37,7 +37,12 @@ class Cache {
             if ($handle) {
                 $variable = fread($handle, filesize($fileName));
                 fclose($handle);
-                return unserialize($variable);
+                $data = @unserialize($variable);
+                if (serialize($data) !== $variable) {
+                    @unlink($fileName);
+                    return null;
+                }
+                return $data;
             }
             return null;
         } else {
@@ -46,10 +51,17 @@ class Cache {
     }
     function write($fileName, $variable) {
         $fileName = 'cache/' . $fileName;
-        $handle   = fopen($fileName, 'a');
-        if ($handle) {
-            fwrite($handle, serialize($variable));
-            fclose($handle);
+        $dir      = dirname($fileName);
+        if (!is_dir($dir)) {
+            $oldmask = umask(0);
+            @mkdir($dir, 0777, true);
+            @umask($oldmask);
+        }
+        $tmpFile = $fileName . '.' . getmypid() . '.tmp';
+        if (file_put_contents($tmpFile, serialize($variable), LOCK_EX) !== false) {
+            @rename($tmpFile, $fileName);
+        } else {
+            @unlink($tmpFile);
         }
     }
     function delete($fileName) {

@@ -27096,7 +27096,7 @@ body .navbar-default .dropdown-switch-account>.dropdown-menu .user-avatar>svg {
 
 .reels_list {
     display: block !important;
-    transition: all 0.3s ease;
+    transition: transform 0.26s ease, opacity 0.26s ease, visibility 0.26s ease;
     position: fixed;
     z-index: 99;
     height: calc(100dvh - 48px);
@@ -27104,14 +27104,45 @@ body .navbar-default .dropdown-switch-account>.dropdown-menu .user-avatar>svg {
     right: 0;
     bottom: 0;
     left: 0;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
     background: #000;
+    will-change: transform, opacity;
 }
 
 .reels_list.hidden {
     opacity: 0;
     visibility: hidden;
-    transform: translateY(100%);
+    transform: translate3d(0, 100%, 0);
+}
+
+.reels_list.is-current {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+}
+
+.reels_list.is-entering-up {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, 100%, 0);
+}
+
+.reels_list.is-entering-down {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, -100%, 0);
+}
+
+.reels_list.is-leaving-up {
+    opacity: 0.9;
+    visibility: visible;
+    transform: translate3d(0, -100%, 0);
+}
+
+.reels_list.is-leaving-down {
+    opacity: 0.9;
+    visibility: visible;
+    transform: translate3d(0, 100%, 0);
 }
 
 .reels_list .wo_reels_cont {
@@ -29916,6 +29947,24 @@ div#modal_light_box {
     inset: 0;
     overflow: hidden;
 }
+.wo-video-fullscreen-stage.is-loading-next::after {
+    content: "Đang tải video...";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 6;
+    transform: translate(-50%, -50%);
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.58);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    pointer-events: none;
+    opacity: 0;
+    animation: woVideoSwitchLoading 0.18s ease 0.18s forwards;
+}
 .wo-video-overlay-placeholder {
     width: 100%;
 }
@@ -29929,6 +29978,29 @@ div#modal_light_box {
     margin: 0 !important;
     background: #000 !important;
     z-index: 2;
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.24s ease, opacity 0.24s ease;
+    will-change: transform, opacity;
+}
+.wo-video-overlay-player.wo-video-overlay-leaving-up {
+    transform: translate3d(0, -22%, 0) scale(0.98);
+    opacity: 0.46;
+}
+.wo-video-overlay-player.wo-video-overlay-leaving-down {
+    transform: translate3d(0, 22%, 0) scale(0.98);
+    opacity: 0.46;
+}
+.wo-video-overlay-player.wo-video-overlay-entering-up {
+    transform: translate3d(0, 100%, 0);
+    opacity: 0.28;
+}
+.wo-video-overlay-player.wo-video-overlay-entering-down {
+    transform: translate3d(0, -100%, 0);
+    opacity: 0.28;
+}
+.wo-video-overlay-player.wo-video-overlay-entered {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
 }
 .wo-video-overlay-player .plyr__video-wrapper,
 .wo-video-overlay-player .plyr__poster,
@@ -29938,6 +30010,14 @@ div#modal_light_box {
 }
 .wo-video-overlay-player .plyr__video-wrapper video {
     object-fit: contain;
+}
+@keyframes woVideoSwitchLoading {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 .wo-video-comment-sheet {
     position: fixed;

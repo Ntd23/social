@@ -1,0 +1,228 @@
+/* English description: Minimal WebView compatibility styles. The mobile website remains the source of truth. */
+
+/* Global WebView safety: do not create a second app theme. */
+html.app-view-root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
+}
+
+html.app-view-root body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
+body.app-view {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  touch-action: pan-y;
+}
+
+body.app-view,
+body.app-view .content-container,
+body.app-view #contnet,
+body.app-view .container,
+body.app-view .page-margin,
+body.app-view .wow_content,
+body.app-view .post,
+body.app-view .publisher-box,
+body.app-view .posts_load {
+  max-width: 100%;
+  min-width: 0;
+}
+
+body.app-view .content-container,
+body.app-view #contnet,
+body.app-view .page-margin {
+  overflow-x: hidden;
+}
+
+@supports (overflow: clip) {
+  body.app-view .content-container,
+  body.app-view #contnet,
+  body.app-view .page-margin {
+    overflow-x: clip;
+  }
+}
+
+body.app-view .content-container {
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Match the mobile website gutter on normal content pages. Full-screen views are excluded below. */
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .page-margin,
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .content-container > .page-margin,
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .row.page-margin,
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .content-container > .row.page-margin {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .page-margin > .row,
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .content-container > .page-margin > .row,
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .row.page-margin,
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .content-container > .row.page-margin {
+  margin-left: 0;
+  margin-right: 0;
+  width: auto;
+}
+
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .page-margin > .row > [class*="col-"],
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .content-container > .page-margin > .row > [class*="col-"],
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .row.page-margin > [class*="col-"],
+body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .content-container > .row.page-margin > [class*="col-"] {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+body.app-view .lightbox-container,
+body.app-view .video-fullscreen-overlay,
+body.app-view .wo-video-overlay,
+body.app-view .story_lightbox {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+body.app-view img,
+body.app-view video,
+body.app-view iframe,
+body.app-view canvas {
+  max-width: 100%;
+}
+
+/* Keep form controls readable in iOS WebView without changing form layout. */
+body.app-view input,
+body.app-view textarea,
+body.app-view select,
+body.app-view button {
+  font-size: 16px;
+}
+
+/* Component-scoped overflow fixes for content that can naturally exceed mobile width. */
+body.app-view .table-responsive,
+body.app-view .wallet_transactions {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.app-view .wow_wallet_trans {
+  max-width: 100%;
+}
+
+/* Map/explore surfaces should keep native pan and pinch gestures available. */
+body.app-view.page-explore-nearby #map,
+body.app-view.page-explore-nearby .wo_explore_discovery_page,
+body.app-view.page-explore-nearby .explore-nearby-map,
+body.app-view.page-explore-nearby .explore-nearby-sheet {
+  touch-action: pan-x pan-y pinch-zoom;
+  overscroll-behavior: contain;
+}
+
+/* Hide only global overlays that do not belong inside the deployed app shell. */
+body.app-view .theme-settings,
+body.app-view .cc-window,
+body.app-view .ads-navbar-wrapper {
+  display: none !important;
+}
+
+@supports (padding: max(0px)) {
+  body.app-view .content-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .page-margin,
+  body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .content-container > .page-margin,
+  body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .row.page-margin,
+  body.app-view:not(.page-reels):not(.page-video-api):not(.page-explore-nearby) #contnet > .content-container > .row.page-margin {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+}
+
+/* Let the shared mobile sticky filter from style.css work inside iOS/Android WebView.
+   The class is synced from the actual DOM because app navigation can replace content
+   without a full page reload. */
+html.app-view-root.has-feed-filter,
+html.app-view-root.has-feed-filter body.app-view,
+body.app-view.has-feed-filter .content-container,
+body.app-view.has-feed-filter #contnet,
+body.app-view.has-feed-filter .page-margin,
+body.app-view.has-feed-filter .row {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+}
+
+body.app-view.has-feed-filter #filterby-post {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 46px !important;
+  z-index: 9;
+}
+
+body.app-view.page-timeline #filterby-post,
+body.app-view.page-page #filterby-post,
+body.app-view.page-group #filterby-post,
+body.app-view.page-event #filterby-post,
+body.app-view.page-events #filterby-post {
+  display: none !important;
+}
+
+/* Welcome/login/register forms: use real borders because some iOS WebViews do not paint box-shadow-only fields reliably. */
+body.app-view.page-welcome .wow_form_fields input,
+body.app-view.page-welcome .wow_form_fields textarea,
+body.app-view.page-welcome .wow_form_fields select,
+body.app-view.page-welcome .wow_form_fields > .bootstrap-select.btn-group > .dropdown-toggle {
+  border: 1px solid #d4d8e1 !important;
+  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04) !important;
+  background-color: #fff !important;
+}
+
+body.app-view.page-welcome .wow_form_fields input,
+body.app-view.page-welcome .wow_form_fields textarea {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+body.app-view.page-welcome .wow_form_fields input:focus,
+body.app-view.page-welcome .wow_form_fields textarea:focus,
+body.app-view.page-welcome .wow_form_fields select:focus,
+body.app-view.page-welcome .wow_form_fields > .bootstrap-select.btn-group > .dropdown-toggle:focus {
+  border-color: #8ec5e8 !important;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.16) !important;
+}
+
+body.app-view.page-welcome .pw-wrap input {
+  padding-right: 46px !important;
+}
+
+/* If an old app page still contains reCAPTCHA markup, do not reserve dead space in the WebView. Backend bypass is patched separately. */
+body.app-view.page-welcome .g-recaptcha,
+body.app-view.page-welcome .g-recaptcha iframe {
+  display: none !important;
+}
+
+body.app-view.page-welcome .g-recaptcha,
+body.app-view.page-welcome .g-recaptcha + div {
+  margin: 0 !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+@supports selector(:has(*)) {
+  body.app-view.page-welcome .form-group:has(.g-recaptcha) {
+    margin: 0 !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+}
