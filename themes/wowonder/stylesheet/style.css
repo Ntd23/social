@@ -2105,7 +2105,7 @@ textarea.postText {
 }
 
 .content-container {
-    margin-top: 45px
+    /* margin-top: 45px */
 }
 
 .page-margin {
@@ -3441,8 +3441,8 @@ header .barloading {
 }
 
 .profile-container {
-    padding-right: 15px;
-    padding-left: 15px
+    /* padding-right: 15px;
+    padding-left: 15px */
 }
 
 .profile-container .card {
@@ -27802,7 +27802,7 @@ body .navbar-default .dropdown-switch-account>.dropdown-menu .user-avatar>svg {
     .container,
     .header-fixed1000,
     .header-fixed1200 {
-        width: 97%
+        width: 100%
     }
 
     .messages-container .message-media video {
