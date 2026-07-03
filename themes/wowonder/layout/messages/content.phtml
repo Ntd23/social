@@ -3016,11 +3016,21 @@ $('.delete-icon').empty();
       const $row = $(this).closest('[data-id]');
       const label_id = parseInt($row.data('id'), 10) || 0;
       const attached = $row.hasClass('is-attached');
+      const labelName = $row.find('.flex-fill').text().trim();
+      const labelColor = $row.find('span').first().css('background-color') || '#3b82f6';
+      const action = attached ? 'detach' : 'attach';
 
       (attached ? apiDetach(label_id) : apiAttach(label_id)).done(function(res) {
         if (res && res.status === 200) {
           // LUÔN refresh toàn bộ danh sách để đồng bộ với DB
           loadAssign();
+          $(document).trigger('tags:userTagToggled', {
+            targetId: TARGET.id,
+            labelId: label_id,
+            labelName: labelName,
+            labelColor: labelColor,
+            action: action
+          });
         } else {
           alert((res && res.error) || 'Thao tác thất bại.');
         }
@@ -3055,6 +3065,7 @@ $('.delete-icon').empty();
           $('#chat-tag-new-name').val('');
           loadManage(); // refresh tab quản lý
           loadAssign(); // và refresh tab gán để có thẻ mới
+          $(document).trigger('tags:labelsChanged');
         } else {
           alert((res && res.error) || 'Không tạo được thẻ.');
         }
@@ -3083,6 +3094,7 @@ $('.delete-icon').empty();
         if (res && res.status === 200) {
           loadManage();
           loadAssign(); // cập nhật cả tab assign
+          $(document).trigger('tags:labelsChanged');
         } else {
           alert((res && res.error) || 'Không xoá được.');
         }
@@ -3104,6 +3116,7 @@ $('.delete-icon').empty();
           closeSafeModal('#chatTagDeleteConfirmModal');
           loadManage();
           loadAssign(); // cập nhật cả tab assign
+          $(document).trigger('tags:labelsChanged');
         } else {
           alert((res && res.error) || 'Không xoá được.');
         }
@@ -3369,6 +3382,76 @@ $(function() {
       refreshTagFilterSelect(opts || {
         preserve: true
       });
+    });
+
+    $(document).off('tags:userTagToggled.woChatTags').on('tags:userTagToggled.woChatTags', function(e, data) {
+      const targetId = data.targetId;
+      const labelName = data.labelName;
+      const labelColor = data.labelColor;
+      const action = data.action;
+
+      // 1. Cập nhật giao diện bên /messages nếu có
+      const $msgItem = $(`#messages-recipient-${targetId} .user_tag`);
+      if ($msgItem.length) {
+        if (action === 'attach') {
+          if ($msgItem.find(`.user_tag_badge[title="${labelName}"]`).length === 0) {
+            const $badge = $('<span>', {
+              class: 'badge user_tag_badge',
+              title: labelName,
+              css: {
+                background: labelColor,
+                width: '12px',
+                height: '12px',
+                display: 'inline-block',
+                borderRadius: '3px',
+                border: '1px solid #e5e7eb',
+                marginRight: '4px'
+              }
+            });
+            const $btn = $msgItem.find('.btn-open-tag-modal');
+            if ($btn.length) {
+              $badge.insertBefore($btn);
+            } else {
+              $msgItem.append($badge);
+            }
+          }
+        } else {
+          $msgItem.find(`.user_tag_badge[title="${labelName}"]`).remove();
+        }
+      }
+
+      // 2. Cập nhật giao diện bên chat sidebar nếu có
+      const $chatItem = $(`#online_${targetId} .user_tag`);
+      if ($chatItem.length) {
+        if (action === 'attach') {
+          let found = false;
+          $chatItem.find('.badge.user_tag').each(function() {
+            if ($(this).attr('title') === labelName) {
+              found = true;
+            }
+          });
+          if (!found) {
+            const $badge = $('<span>', {
+              class: 'badge user_tag',
+              title: labelName,
+              html: '&nbsp;',
+              css: {
+                background: labelColor,
+                width: '30px',
+                display: 'inline-block'
+              }
+            });
+            $chatItem.append($badge).append('<br>');
+          }
+        } else {
+          $chatItem.find('.badge.user_tag').each(function() {
+            if ($(this).attr('title') === labelName) {
+              $(this).next('br').remove();
+              $(this).remove();
+            }
+          });
+        }
+      }
     });
     window.MessagesMultiSubmitLegacy = function(e) {
       e.preventDefault();
