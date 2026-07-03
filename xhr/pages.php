@@ -65,7 +65,7 @@ if ($f == 'pages') {
             if (strlen($_POST['page_name']) < 5 OR strlen($_POST['page_name']) > 32) {
                 $errors[] = $error_icon . $wo['lang']['page_name_characters_length'];
             }
-            if (!preg_match('/^[\w]+$/', $_POST['page_name'])) {
+            if (!preg_match('/^[\w-]+$/', $_POST['page_name'])) {
                 $errors[] = $error_icon . $wo['lang']['page_name_invalid_characters'];
             }
             if (empty($_POST['page_category'])) {
@@ -300,7 +300,7 @@ if ($f == 'pages') {
                 if (strlen($_POST['page_name']) < 5 || strlen($_POST['page_name']) > 32) {
                     $errors[] = $error_icon . $wo['lang']['page_name_characters_length'];
                 }
-                if (!preg_match('/^[\w]+$/', $_POST['page_name'])) {
+                if (!preg_match('/^[\w-]+$/', $_POST['page_name'])) {
                     $errors[] = $error_icon . $wo['lang']['page_name_invalid_characters'];
                 }
                 if (empty($_POST['page_category'])) {

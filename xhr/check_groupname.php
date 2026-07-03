@@ -12,7 +12,7 @@ if ($f == 'check_groupname') {
         } else if (strlen($group_name) > 32) {
             $data['status']  = 500;
             $data['message'] = $wo['lang']['too_long'];
-        } else if (!preg_match('/^[\w]+$/', $_GET['groupname'])) {
+        } else if (!preg_match('/^[\w-]+$/', $_GET['groupname'])) {
             $data['status']  = 600;
             $data['message'] = $wo['lang']['username_invalid_characters_2'];
         } else {

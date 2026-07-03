@@ -14,7 +14,7 @@ if ($f == 'groups') {
             if (strlen($_POST['group_name']) < 5 OR strlen($_POST['group_name']) > 32) {
                 $errors[] = $error_icon . $wo['lang']['group_name_characters_length'];
             }
-            if (!preg_match('/^[\w]+$/', $_POST['group_name'])) {
+            if (!preg_match('/^[\w-]+$/', $_POST['group_name'])) {
                 $errors[] = $error_icon . $wo['lang']['group_name_invalid_characters'];
             }
             if (empty($_POST['category'])) {
@@ -224,7 +224,7 @@ if ($f == 'groups') {
                 if (strlen($_POST['group_name']) < 5 || strlen($_POST['group_name']) > 32) {
                     $errors[] = $error_icon . $wo['lang']['group_name_characters_length'];
                 }
-                if (!preg_match('/^[\w]+$/', $_POST['group_name'])) {
+                if (!preg_match('/^[\w-]+$/', $_POST['group_name'])) {
                     $errors[] = $error_icon . $wo['lang']['group_name_invalid_characters'];
                 }
                 if (empty($_POST['group_category'])) {
