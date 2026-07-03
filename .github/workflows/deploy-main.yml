@@ -44,3 +44,4 @@ jobs:
             done
             git checkout main
             git pull --ff-only origin main
+            git rev-parse --short=12 HEAD > .deploy_asset_version

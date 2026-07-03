@@ -115,6 +115,27 @@ $config["is_app_webview"] = Wo_IsAppWebViewRequest() ? 1 : 0;
 $config["asset_url"] = ($config["is_app_webview"] == 1 || empty($config["cdn_url"])) ? $site_url : $config["cdn_url"];
 $config["theme_url"] = $config["asset_url"] . "/themes/" . $config["theme"];
 $config["site_url"]  = $site_url;
+$asset_version_file = dirname(dirname(__DIR__)) . '/.deploy_asset_version';
+$asset_version = '';
+if (is_readable($asset_version_file)) {
+    $asset_version = trim((string) file_get_contents($asset_version_file));
+}
+if ($asset_version === '') {
+    $git_head_file = dirname(dirname(__DIR__)) . '/.git/HEAD';
+    if (is_readable($git_head_file)) {
+        $git_head = trim((string) file_get_contents($git_head_file));
+        if (strpos($git_head, 'ref: ') === 0) {
+            $git_ref_file = dirname(dirname(__DIR__)) . '/.git/' . trim(substr($git_head, 5));
+            if (is_readable($git_ref_file)) {
+                $asset_version = trim((string) file_get_contents($git_ref_file));
+            }
+        } else {
+            $asset_version = $git_head;
+        }
+    }
+}
+$asset_version = preg_replace('/[^A-Za-z0-9_.-]/', '', (string) $asset_version);
+$config["asset_version"] = ($asset_version !== '') ? substr($asset_version, 0, 12) : date('YmdHis', filemtime(__FILE__));
 $wo["site_url"]      = $site_url;
 $config["wasabi_site_url"]         = "https://s3.".$config["wasabi_bucket_region"].".wasabisys.com";
 if (!empty($config["wasabi_bucket_name"])) {

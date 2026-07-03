@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+<!-- Description: Main Wowonder HTML container that loads shared assets, metadata, and page content. -->
 <html lang="<?php echo($wo['lang_attr']); ?>" translate="no"<?php echo !empty($wo['config']['is_app_webview']) ? ' class="app-view-root"' : ''; ?>>
    <head>
       <?php
-      $app_asset_version = '20260702j';
-      $app_asset_cache = !empty($wo['config']['is_app_webview']) ? '&app_asset=' . $app_asset_version : '';
+      $app_asset_version = !empty($wo['config']['asset_version']) ? $wo['config']['asset_version'] : $wo['config']['version'];
+      $app_asset_cache = '&asset=' . $app_asset_version;
       ?>
       <title><?php echo $wo['title'];?></title>
       <meta name="google" content="notranslate">

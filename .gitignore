@@ -1,3 +1,4 @@
+# Description: Ignores generated runtime files, local configuration, and deployment-only cache artifacts.
 /changes
 /cache
 /upload
@@ -11,3 +12,4 @@
 /nodejs/models/wo_langs.js
 /config.php
 /xhr/logs/speedsms_dry_run.log
+/.deploy_asset_version

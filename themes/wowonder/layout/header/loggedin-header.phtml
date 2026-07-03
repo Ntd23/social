@@ -1,4 +1,5 @@
 <?php
+// Description: Renders the logged-in Wowonder header, notifications, user menu, and WebView-only app actions.
 $header_display_first_name = !empty($wo['user']['first_name']) ? $wo['user']['first_name'] : $wo['user']['name'];
 $notification_alert     = Wo_CountNotifications(array(
 	'unread' => true,
