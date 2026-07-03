@@ -1,8 +1,19 @@
+<style>
+.modal-dialog.profile-picture {
+   max-width: 600px !important;
+   width: 90% !important;
+   margin: 30px auto;
+}
+.modal-dialog.profile-picture img {
+   width: 100% !important;
+   height: auto !important;
+}
+</style>
 <div id="ProfileImageModal-<?php echo $wo['user_profile']['user_id'];?>" class="modal fade image-modal" tabindex="-1" role="dialog" aria-hidden="true">
    <div class="modal-dialog profile-picture">
       <div class="modal-content">
          <div class="modal-body">
-            <img src="<?php echo $wo['user_profile']['avatar'];?>" id="updateImage-<?php echo $wo['user_profile']['user_id']?>"  class="img-responsive">
+            <img src="<?php echo Wo_GetMedia($wo['user_profile']['avatar_full']);?>" id="updateImage-<?php echo $wo['user_profile']['user_id']?>"  class="img-responsive">
          </div>
       </div>
    </div>

@@ -12,7 +12,7 @@ if ($f == 'check_pagename') {
         } else if (strlen($pagename) > 32) {
             $data['status']  = 500;
             $data['message'] = $wo['lang']['too_long'];
-        } else if (!preg_match('/^[\w]+$/', $_GET['pagename'])) {
+        } else if (!preg_match('/^[\w-]+$/', $_GET['pagename'])) {
             $data['status']  = 600;
             $data['message'] = $wo['lang']['username_invalid_characters_2'];
         } else {

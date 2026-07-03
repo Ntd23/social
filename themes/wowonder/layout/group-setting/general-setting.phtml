@@ -42,7 +42,7 @@
 			</div>
 		</div>
 		<div class="wow_form_fields">
-			<label for="group_name"><?php echo $wo['lang']['group'];?> URL</label>
+			<label for="group_name"><?php echo $wo['lang']['group_link'];?></label>
 			<div class="input-group">
 				<span class="input-group-addon"><?php echo $wo['config']['site_url'];?>/</span>
 				<input id="group_name" name="group_name" type="text" value="<?php echo $wo['setting']['group_name']?>" onkeyup="Wo_CheckGroupname(this.value, <?php echo $wo['setting']['id'];?>);" autocomplete="off">
@@ -116,3 +116,36 @@ $(function() {
   });
 });
 </script>
+<style>
+.setting-general-form .wow_form_fields .input-group {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    gap: 0;
+}
+.setting-general-form .wow_form_fields .input-group > * {
+    margin: 0 !important;
+}
+.setting-general-form .wow_form_fields .input-group .input-group-addon {
+    background: #f5f5f5;
+    border: 1px solid #ced4da;
+    border-right: 0;
+    border-radius: 4px 0 0 4px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    font-size: 14px;
+    width: auto !important;
+    box-shadow: none;
+}
+.setting-general-form .wow_form_fields .input-group #group_name {
+    border: 1px solid #ced4da;
+    border-left: 0;
+    border-radius: 0 4px 4px 0;
+    flex: 1 1 auto;
+    padding: 8px 12px;
+    height: 40px;
+    box-shadow: none;
+}
+</style>
