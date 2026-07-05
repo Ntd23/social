@@ -4792,4 +4792,61 @@ $(function() {
   }
 }
 
+html, body, #wo_nw_msg_page, .messages-container {
+  overscroll-behavior-y: contain !important;
+}
+
+#wo_msg_right_prt .text-sender-container {
+  height: 100% !important;
+}
+
+#wo_msg_right_prt .text-sender-container .messagejoint {
+  height: calc(100% - 83px) !important;
+}
+
+@media (max-width: 520px) {
+  #wo_msg_right_prt .text-sender-container .messagejoint {
+    height: calc(100% - 60px) !important;
+  }
+}
+
 </style>
+
+<script type="text/javascript">
+$(document).ready(function() {
+  function adjustChatHeight() {
+    if (window.innerWidth <= 768) {
+      var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      var headerHeight = $('.navbar-default').outerHeight() || 45;
+      var newHeight = vh - headerHeight;
+      $('#wo_msg_right_prt').css('height', newHeight + 'px');
+      
+      // Auto scroll to bottom
+      if ($('.messages-container').length) {
+        $('.messages-container').scrollTop($('.messages-container')[0].scrollHeight);
+      }
+    } else {
+      $('#wo_msg_right_prt').css('height', '');
+    }
+  }
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', adjustChatHeight);
+    window.visualViewport.addEventListener('scroll', adjustChatHeight);
+  } else {
+    $(window).on('resize', adjustChatHeight);
+  }
+
+  // Initial height adjust
+  adjustChatHeight();
+
+  // Scroll to bottom on input focus with delay to allow keyboard transition
+  $(document).on('focus', '#sendMessage', function() {
+    setTimeout(function() {
+      if ($('.messages-container').length) {
+        $('.messages-container').scrollTop($('.messages-container')[0].scrollHeight);
+      }
+    }, 250);
+  });
+});
+</script>
