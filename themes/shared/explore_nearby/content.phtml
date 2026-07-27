@@ -1994,6 +1994,7 @@ var WoExploreNearbyState = {
 	searchPlaceCache: {},
 	searchPlacePending: {},
 	selectedAnchorItem: null,
+	sharedLocationItem: null,
 	relatedPlaceItems: [],
 	relatedPlacesCache: {},
 	relatedPlacesToken: 0,
@@ -3635,6 +3636,24 @@ function Wo_ExploreNearbyGetPlaceSearchDisplayItems() {
 	return Wo_ExploreNearbyMergeUniqueItems([], allItems);
 }
 
+function Wo_ExploreNearbyPrependSharedLocationItem(items) {
+	var resultItems = Array.isArray(items) ? items.slice() : [];
+	var sharedItems = Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.sharedLocationItem ? [WoExploreNearbyState.sharedLocationItem] : []);
+	var duplicateIndex = -1;
+
+	if (!sharedItems.length) {
+		return resultItems;
+	}
+
+	duplicateIndex = Wo_ExploreNearbyFindDuplicateItemIndex(resultItems, sharedItems[0]);
+	if (duplicateIndex !== -1) {
+		resultItems.splice(duplicateIndex, 1);
+	}
+	resultItems.unshift(sharedItems[0]);
+
+	return resultItems;
+}
+
 function Wo_ExploreNearbyGetMergedItems() {
 	if (Wo_ExploreNearbyIsPlaceSearchMode()) {
 		var placeSearchItems = Wo_ExploreNearbySortItems(Wo_ExploreNearbyGetPlaceSearchDisplayItems());
@@ -3647,7 +3666,7 @@ function Wo_ExploreNearbyGetMergedItems() {
 			}
 			placeSearchItems.unshift(selectedPlaceAnchorItem);
 		}
-		return placeSearchItems;
+		return Wo_ExploreNearbyPrependSharedLocationItem(placeSearchItems);
 	}
 
 	var mergedItems = [];
@@ -3675,7 +3694,7 @@ function Wo_ExploreNearbyGetMergedItems() {
 		dedupedItems.unshift(selectedAnchorItem);
 	}
 
-	return dedupedItems;
+	return Wo_ExploreNearbyPrependSharedLocationItem(dedupedItems);
 }
 
 function Wo_ExploreNearbyGetVisiblePoints() {
@@ -3721,9 +3740,11 @@ function Wo_ExploreNearbyGetTotalResultsCount() {
 		return Wo_ExploreNearbyGetMergedItems().length;
 	}
 
-	return (WoExploreNearbyState.usersEnabled ? (WoExploreNearbyState.usersCount || 0) : 0) +
+	var serverTotal = (WoExploreNearbyState.usersEnabled ? (WoExploreNearbyState.usersCount || 0) : 0) +
 		(WoExploreNearbyState.shopsEnabled ? (WoExploreNearbyState.shopsCount || 0) : 0) +
 		Wo_ExploreNearbyNormalizeDiscoveryItems(WoExploreNearbyState.relatedPlaceItems || []).length;
+
+	return Math.max(serverTotal, Wo_ExploreNearbyGetMergedItems().length);
 }
 
 function Wo_ExploreNearbyGetLoadedResultsCount() {
@@ -7201,6 +7222,7 @@ function Wo_ExploreNearbyApplySharedLocationFromUrl() {
 	}
 
 	pointKey = Wo_ExploreNearbyGetItemKey(sharedLocationItem);
+	WoExploreNearbyState.sharedLocationItem = sharedLocationItem;
 	WoExploreNearbyState.selectedAnchorItem = sharedLocationItem;
 	WoExploreNearbyState.activePointKey = pointKey;
 	WoExploreNearbyState.activePointData = sharedLocationItem;
@@ -7223,11 +7245,14 @@ function Wo_ExploreNearbyResolveSharedLocationFromUrl(sharedLocationItem) {
 		if (!resolvedItem || !Wo_ExploreNearbyHasValidCoordinates(resolvedItem.lat, resolvedItem.lng)) {
 			return;
 		}
-		if (Wo_ExploreNearbyGetItemKey(WoExploreNearbyState.selectedAnchorItem) !== sharedPointKey) {
+		if (Wo_ExploreNearbyGetItemKey(WoExploreNearbyState.sharedLocationItem) !== sharedPointKey) {
 			return;
 		}
 
-		WoExploreNearbyState.selectedAnchorItem = resolvedItem;
+		WoExploreNearbyState.sharedLocationItem = resolvedItem;
+		if (Wo_ExploreNearbyGetItemKey(WoExploreNearbyState.selectedAnchorItem) === sharedPointKey) {
+			WoExploreNearbyState.selectedAnchorItem = resolvedItem;
+		}
 		WoExploreNearbyState.activePointKey = sharedPointKey;
 		WoExploreNearbyState.activePointData = resolvedItem;
 		WoExploreNearbyState.pendingFocusPointKey = sharedPointKey;
@@ -8149,6 +8174,7 @@ function Wo_ExploreNearbyRefreshLoadedItemDistances() {
 	hasChanges = Wo_ExploreNearbyRefreshStateItemDistances(WoExploreNearbyState.shopsItems || []) || hasChanges;
 	hasChanges = Wo_ExploreNearbyRefreshStateItemDistances(WoExploreNearbyState.relatedPlaceItems || []) || hasChanges;
 	hasChanges = Wo_ExploreNearbyRefreshStateItemDistances(WoExploreNearbyState.placeSearchResults || []) || hasChanges;
+	hasChanges = Wo_ExploreNearbyRefreshStateItemDistances(WoExploreNearbyState.sharedLocationItem ? [WoExploreNearbyState.sharedLocationItem] : []) || hasChanges;
 
 	return hasChanges;
 }
