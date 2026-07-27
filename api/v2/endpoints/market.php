@@ -84,6 +84,7 @@ elseif ($_POST['type'] == 'buy') {
 		foreach ($wo['insert'] as $key => $value) {
             $hash_id = uniqid(rand(11111,999999));
             $total = 0;
+            $total_points = 0;
             $total_commission = 0;
             $total_final_price = 0;
             foreach ($value as $key2 => $value2) {
@@ -93,6 +94,7 @@ elseif ($_POST['type'] == 'buy') {
                     $store_commission = round((($wo['config']['store_commission'] * ($value2['price'] * $value2['units'])) / 100), 2);
                 }
                 $total += ($value2['price'] * $value2['units']);
+                $total_points += (!empty($value2['point']) ? ((float) $value2['point'] * $value2['units']) : 0);
                 $total_commission += $store_commission;
                 $total_final_price += ($value2['price'] * $value2['units']) - $store_commission;
                     
@@ -108,9 +110,7 @@ elseif ($_POST['type'] == 'buy') {
                                            'address_id' => $wo['address']->id,
                                            'time' => time()));
             }
-            $db->where('user_id',$wo['user']['user_id'])->update(T_USERS,array('wallet' => $db->dec($total)));
-
-            cache($wo['user']['user_id'], 'users', 'delete');
+            Wo_UpdateUserWalletValue($wo['user']['user_id'], -$total, -$total_points);
             //$db->where('user_id',$key)->update(T_USERS,array('balance' => $db->inc($total_final_price)));
             $notes = $wo['lang']['product_purchase'];
             $notes_2 = $wo['lang']['product_sale'];
@@ -119,7 +119,7 @@ elseif ($_POST['type'] == 'buy') {
             $db->insert(T_PURCHAES,array('user_id' => $wo['user']['user_id'],
                                              'order_hash_id' => $hash_id,
                                              'price' => $total,
-                                             'data' => json_encode(array('name' => !empty($wo['main_product']) && !empty($wo['main_product']['name']) ? $wo['main_product']['name'] : '')),
+                                             'data' => json_encode(array('name' => !empty($wo['main_product']) && !empty($wo['main_product']['name']) ? $wo['main_product']['name'] : '', 'point' => $total_points)),
                                              'commission' => $total_commission,
                                              'final_price' => $total_final_price,
                                              'time' => time()));
@@ -148,6 +148,7 @@ elseif ($_POST['type'] == 'buy') {
 elseif ($_POST['type'] == 'checkout') {
 	$wo['items'] = $db->where('user_id', $wo['user']['id'])->get(T_USERCARD);
 	$wo['total'] = 0;
+	$wo['total_points'] = 0;
 	$data = [];
 	if (!empty($wo['items'])) {
 	    foreach ($wo['items'] as $key => $wo['item']) {
@@ -157,13 +158,15 @@ elseif ($_POST['type'] == 'checkout') {
 	        } else {
 	            $wo['total'] += ($wo['product']['price'] * $wo['item']->units);
 	        }
+	        $wo['total_points'] += (!empty($wo['product']['point']) ? ((float) $wo['product']['point'] * $wo['item']->units) : 0);
 	        $data[] = $wo['product'];
 	    }
 	}
 	$response_data = array(
         'api_status' => 200,
         'data' => $data,
-        'total' => $wo['total']
+        'total' => $wo['total'],
+        'total_points' => $wo['total_points']
     );
 }
 elseif ($_POST['type'] == 'purchased') {

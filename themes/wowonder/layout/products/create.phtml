@@ -92,7 +92,7 @@
 					<div class="app-general-alert setting-update-alert"></div>
 
 					<div class="row">
-						<div class="col-md-8">
+						<div class="col-md-4">
 							<div class="wow_form_fields">
 								<label for="name"><?php echo $wo['lang']['name'] ?></label>
 								<input id="name" name="name" type="text" value="">
@@ -102,6 +102,12 @@
 							<div class="wow_form_fields">
 								<label for="price"><?php echo $wo['lang']['price']; ?></label>
 								<input id="price" name="price" type="text" placeholder="0.00" value="">
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="wow_form_fields">
+								<label for="point">Điểm</label>
+								<input id="point" name="point" type="number" min="0" step="1" placeholder="0" value="">
 							</div>
 						</div>
 					</div>
@@ -233,7 +239,8 @@
 						</div>
 					</div>
 					<div class="hidden">
-						<input type="file" id="product-photos" accept="image/x-png, image/gif, image/jpeg"
+						<input type="file" id="product-photos"
+							accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,image/avif,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.avif"
 							name="postPhotos[]" multiple="multiple">
 					</div>
 					<input type="hidden" name="id" class="form-control input-md" value="">
@@ -299,11 +306,9 @@
 			let self = this;
 			//Get count of selected files
 			var product_countFiles = $(this)[0].files.length;
-			var product_imgPath = $(this)[0].value;
-			var extn = product_imgPath.substring(product_imgPath.lastIndexOf('.') + 1).toLowerCase();
 			var product_image_holder = $(self).parents('#create-product-modal').find("#productimage-holder");
 			//product_image_holder.empty();
-			if (extn == "gif" || extn == "png" || extn == "jpg" || extn == "jpeg") {
+			if (product_countFiles > 0) {
 				if (typeof (FileReader) != "undefined") {
 					//loop for each file selected for uploaded.
 					for (var i = 0; i < product_countFiles; i++) {
@@ -925,7 +930,10 @@
 				if (data.status == 200) {
 					$("#productimage-holder").empty();
 					imgArray = [];
-					if (data.message) {
+					if (data.href) {
+						window.location.href = data.href;
+					}
+					else if (data.message) {
 						$('.app-general-alert').html('<div class="alert alert-success">' + data.message + '</div>');
 						setTimeout(function () {
 							$('.app-general-alert').html('');
@@ -933,7 +941,7 @@
 						}, 3000);
 					}
 					else {
-						window.location.href = data.href;
+						window.location.reload();
 					}
 				} else {
 					var errors = data.errors.join("<br>");

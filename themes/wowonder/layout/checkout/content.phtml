@@ -116,7 +116,7 @@
 					<div class="divider border-bottom"></div>
 
 					<h4><?php echo $wo['lang']['total'] ?></h4>
-					<p><?php echo $wo['config']['currency_symbol_array'][$wo['config']['currency']]; ?><?php echo $wo['total']; ?></p>
+					<p><?php echo $wo['config']['currency']; ?><?php echo $wo['total']; ?><?php echo (!empty($wo['total_points']) && $wo['total_points'] !== '0') ? '+' . $wo['total_points'] . ' VNSEEA' : ''; ?></p>
 					<div class="divider border-bottom"></div>
 					<button type="button" class="btn btn-success btn-mat buy_button" onclick="BuyProducts('hide','<?php echo $wo['total']; ?>')" <?php if (empty($wo['addresses'])) { ?>disabled="true"<?php } ?>>Đặt hàng</button>
 					<svg width="371" height="218" viewBox="0 0 371 218" fill="none" xmlns="http://www.w3.org/2000/svg"><path opacity="0.4" d="M275.008 41.3416C307.369 28.1561 375.43 47.6713 391.786 57.0941L410.44 43.2371L532.518 -219.202L71.3192 -143.669C60.4225 -120.263 39.7451 -60.5365 44.2096 -8.88462C49.7902 55.6802 112.183 99.047 174.223 94.1242C232.5 89.5 234.557 57.8234 275.008 41.3416Z" fill="#48B774" stroke="white"/><path d="M300.467 72.6242C332.827 59.4387 663.274 90.2678 679.63 99.6906L766.842 -127.791L557.976 -187.919L96.7778 -112.387C85.881 -88.9802 65.2036 -29.2539 69.6681 22.398C75.2487 86.9628 136.92 125.407 199.682 125.407C262.5 125.407 260.016 89.1061 300.467 72.6242Z" stroke="#48B774" stroke-width="6"/></svg>

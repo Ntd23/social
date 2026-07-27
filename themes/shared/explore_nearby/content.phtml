@@ -2126,6 +2126,7 @@ var defaultUserTypeLabel = <?php echo json_encode($user_type_label, $json_flags)
 var defaultShopTypeLabel = <?php echo json_encode($shop_type_label, $json_flags); ?>;
 var defaultPageTypeLabel = <?php echo json_encode((!empty($wo['lang']['page']) ? $wo['lang']['page'] : 'Page'), $json_flags); ?>;
 var defaultPlaceTypeLabel = <?php echo json_encode($place_type_label, $json_flags); ?>;
+var exploreNearbyShareBaseUrl = <?php echo json_encode(Wo_SeoLink('index.php?link1=explore-nearby'), $json_flags); ?>;
 var pinnedBadgeLabel = <?php echo (!empty($wo['language']) && $wo['language'] === 'vietnamese') ? "'Ghim'" : "'Pinned'"; ?>;
 var focusMapTitle = <?php echo json_encode($wo['lang']['show_location'], $json_flags); ?>;
 var mobileCloseLabel = 'Close';
@@ -2177,7 +2178,7 @@ var mapZoomOutLabel = <?php echo json_encode((!empty($wo['lang']['zoom_out']) ? 
 var cardMyLocationLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Vị trí của tôi' : 'My location', $json_flags); ?>;
 var cardDirectionsLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Chỉ đường' : 'Directions', $json_flags); ?>;
 var cardStartGoingLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Bắt đầu đi' : 'Start going', $json_flags); ?>;
-var cardShareLabel = <?php echo json_encode((!empty($wo['lang']['share']) ? $wo['lang']['share'] : ((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Chia sẻ' : 'Share')), $json_flags); ?>;
+var cardShareLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Chia sẻ vị trí' : 'Share location', $json_flags); ?>;
 var cardShareCopiedLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đã chép link' : 'Link copied', $json_flags); ?>;
 var navigationStatusActiveLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đang dẫn đường' : 'Navigating', $json_flags); ?>;
 var navigationStatusStartingLabel = <?php echo json_encode((!empty($wo['language']) && $wo['language'] === 'vietnamese') ? 'Đang chuẩn bị lộ trình' : 'Preparing route', $json_flags); ?>;
@@ -7101,17 +7102,141 @@ function Wo_ExploreNearbyGetDirectionsUrl(point) {
 }
 
 function Wo_ExploreNearbyGetShareUrl(point) {
-	var directUrl = $.trim((point && point.url) || '');
+	var placeId = Wo_ExploreNearbyGetDiscoveryPlaceId(point || {});
+	var location = $.trim((point && (point.location_dynamic || point.location)) || '');
+	var title = $.trim((point && (point.title || point.name)) || '');
+	var lat = parseFloat(point && point.lat);
+	var lng = parseFloat(point && point.lng);
+	var params = ['shared_location=1'];
 
-	if (directUrl) {
-		return directUrl;
+	if (!point) {
+		return '';
 	}
 
-	if (Wo_ExploreNearbyCanGetDirections(point)) {
-		return Wo_ExploreNearbyGetDirectionsUrl(point);
+	if (Wo_ExploreNearbyHasValidCoordinates(lat, lng)) {
+		params.push('slat=' + encodeURIComponent(lat.toFixed(7)));
+		params.push('slng=' + encodeURIComponent(lng.toFixed(7)));
+	}
+	if (placeId) {
+		params.push('splace=' + encodeURIComponent(placeId));
+	}
+	if (title) {
+		params.push('stitle=' + encodeURIComponent(title));
+	}
+	if (location) {
+		params.push('saddress=' + encodeURIComponent(location));
 	}
 
-	return '';
+	if (params.length === 1) {
+		return '';
+	}
+
+	return exploreNearbyShareBaseUrl + (exploreNearbyShareBaseUrl.indexOf('?') === -1 ? '?' : '&') + params.join('&');
+}
+
+function Wo_ExploreNearbyGetQueryParameter(name) {
+	var parameterName = String(name || '');
+	var queryString = window.location.search || '';
+	var match = null;
+
+	if (!parameterName) {
+		return '';
+	}
+
+	if (typeof URLSearchParams !== 'undefined') {
+		return $.trim((new URLSearchParams(queryString)).get(parameterName) || '');
+	}
+
+	match = queryString.match(new RegExp('[?&]' + parameterName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^&]*)'));
+	return match ? $.trim(decodeURIComponent(String(match[1] || '').replace(/\+/g, ' '))) : '';
+}
+
+function Wo_ExploreNearbyGetSharedLocationFromUrl() {
+	var lat = parseFloat(Wo_ExploreNearbyGetQueryParameter('slat'));
+	var lng = parseFloat(Wo_ExploreNearbyGetQueryParameter('slng'));
+	var placeId = Wo_ExploreNearbyGetQueryParameter('splace');
+	var title = Wo_ExploreNearbyGetQueryParameter('stitle');
+	var location = Wo_ExploreNearbyGetQueryParameter('saddress');
+	var hasCoordinates = Wo_ExploreNearbyHasValidCoordinates(lat, lng);
+	var keySource = '';
+
+	if (Wo_ExploreNearbyGetQueryParameter('shared_location') !== '1') {
+		return null;
+	}
+	if (!hasCoordinates && !placeId && !location) {
+		return null;
+	}
+
+	title = title || location || defaultPlaceTypeLabel;
+	keySource = placeId || (hasCoordinates ? (lat.toFixed(7) + ',' + lng.toFixed(7)) : (location || title));
+
+	return {
+		item_key: 'place|shared|' + encodeURIComponent(keySource),
+		offset_id: 0,
+		type: 'place',
+		type_label: defaultPlaceTypeLabel,
+		title: title,
+		subtitle: defaultPlaceTypeLabel,
+		description: '',
+		avatar: '',
+		url: '',
+		ajax_url: '',
+		place_id: placeId,
+		location: location,
+		location_dynamic: location,
+		distance_value: null,
+		distance_text: '',
+		lat: hasCoordinates ? lat : null,
+		lng: hasCoordinates ? lng : null,
+		is_self: false
+	};
+}
+
+function Wo_ExploreNearbyApplySharedLocationFromUrl() {
+	var sharedLocationItem = Wo_ExploreNearbyGetSharedLocationFromUrl();
+	var pointKey = '';
+
+	if (!sharedLocationItem) {
+		return null;
+	}
+
+	pointKey = Wo_ExploreNearbyGetItemKey(sharedLocationItem);
+	WoExploreNearbyState.selectedAnchorItem = sharedLocationItem;
+	WoExploreNearbyState.activePointKey = pointKey;
+	WoExploreNearbyState.activePointData = sharedLocationItem;
+	WoExploreNearbyState.pendingFocusPointKey = pointKey;
+	WoExploreNearbyState.pendingMapFocusPoint = $.extend({}, sharedLocationItem, {
+		zoom: 17
+	});
+
+	return sharedLocationItem;
+}
+
+function Wo_ExploreNearbyResolveSharedLocationFromUrl(sharedLocationItem) {
+	var sharedPointKey = Wo_ExploreNearbyGetItemKey(sharedLocationItem);
+
+	if (!sharedLocationItem || Wo_ExploreNearbyHasValidCoordinates(sharedLocationItem.lat, sharedLocationItem.lng)) {
+		return;
+	}
+
+	Wo_ExploreNearbyResolvePointCoordinates(sharedLocationItem).then(function(resolvedItem) {
+		if (!resolvedItem || !Wo_ExploreNearbyHasValidCoordinates(resolvedItem.lat, resolvedItem.lng)) {
+			return;
+		}
+		if (Wo_ExploreNearbyGetItemKey(WoExploreNearbyState.selectedAnchorItem) !== sharedPointKey) {
+			return;
+		}
+
+		WoExploreNearbyState.selectedAnchorItem = resolvedItem;
+		WoExploreNearbyState.activePointKey = sharedPointKey;
+		WoExploreNearbyState.activePointData = resolvedItem;
+		WoExploreNearbyState.pendingFocusPointKey = sharedPointKey;
+		WoExploreNearbyState.pendingMapFocusPoint = $.extend({}, resolvedItem, {
+			zoom: 17
+		});
+		Wo_ExploreNearbyUpdateUi();
+		Wo_ExploreNearbyRenderCurrentMap(sharedPointKey);
+	}).catch(function() {});
 }
 
 function Wo_ExploreNearbyCopyTextToClipboard(text) {
@@ -7185,6 +7310,12 @@ function Wo_ExploreNearbySharePointByKey(pointKey, button) {
 	var point = Wo_ExploreNearbyResolvePointByKey(pointKey, false);
 	var shareUrl = Wo_ExploreNearbyGetShareUrl(point);
 	var shareTitle = $.trim((point && (point.title || point.name)) || '');
+	var shareLocation = $.trim((point && (point.location_dynamic || point.location)) || '');
+	var shareText = shareTitle;
+
+	if (shareLocation && shareLocation !== shareTitle) {
+		shareText = shareTitle ? (shareTitle + ' - ' + shareLocation) : shareLocation;
+	}
 
 	if (!shareUrl) {
 		return;
@@ -7193,7 +7324,7 @@ function Wo_ExploreNearbySharePointByKey(pointKey, button) {
 	if (navigator.share && typeof navigator.share === 'function') {
 		navigator.share({
 			title: shareTitle || cardShareLabel,
-			text: shareTitle || '',
+			text: shareText || cardShareLabel,
 			url: shareUrl
 		}).catch(function(error) {
 			if (error && error.name === 'AbortError') {
@@ -12423,6 +12554,8 @@ function Wo_ExploreNearbyLoadMore() {
 }
 
 jQuery(document).ready(function($) {
+	var sharedLocationItem = null;
+
 	function initMap() {
 		if (<?php echo ($wo['config']['google_map'] == 1) ? 'true' : 'false'; ?> && Wo_ExploreNearbyCreateGoogleMap()) {
 			Wo_ExploreNearbyRenderCurrentMap();
@@ -12436,6 +12569,7 @@ jQuery(document).ready(function($) {
 		});
 	}
 
+	sharedLocationItem = Wo_ExploreNearbyApplySharedLocationFromUrl();
 	Wo_ExploreNearbyUpdateViewportHeight();
 	Wo_ExploreNearbyUpdateMapGestureClass();
 	Wo_ExploreNearbyInitSheetOnboarding();
@@ -12447,6 +12581,7 @@ jQuery(document).ready(function($) {
 	Wo_ExploreNearbyUpdateMapZoomControls();
 	Wo_ExploreNearbyRefreshSpeechAvailability();
 	initMap();
+	Wo_ExploreNearbyResolveSharedLocationFromUrl(sharedLocationItem);
 	setTimeout(Wo_ExploreNearbyRefreshMapSize, 60);
 	Wo_ExploreNearbySetSheetSnap(Wo_ExploreNearbyGetFixedSheetSnapMode(), false);
 	Wo_ExploreNearbyUpdateUi();

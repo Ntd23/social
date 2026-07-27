@@ -37,15 +37,16 @@ if (empty($error_code)) {
     $product_category    = Wo_Secure($_POST['product_category']);
     $product_description = Wo_Secure($_POST['product_description']);
     $product_location    = Wo_Secure($_POST['product_location']);
-    $product_price       = Wo_Secure($_POST['product_price']);
+    $product_price_value = Wo_Secure($_POST['product_price']);
+    $product_point       = (!empty($_POST['product_point']) && is_numeric($_POST['product_point'])) ? (float) $_POST['product_point'] : 0;
     $lat       = (!empty($_POST['lat'])) ? Wo_Secure($_POST['lat']) : 0;
     $lng       = (!empty($_POST['lng'])) ? Wo_Secure($_POST['lng']) : 0;
     $product_type        = (!empty($_POST['product_type'])) ? 1 : 0;
     
-    if ($product_price == '0.00') {
+    if ($product_price_value == '0.00') {
         $error_code    = 4;
         $error_message = 'Please choose a price for your product';
-    } else if (!is_numeric($product_price)) {
+    } else if (!is_numeric($product_price_value)) {
         $error_code    = 5;
         $error_message = 'Please choose a correct value for your price';
     }
@@ -87,7 +88,7 @@ if (empty($error_code)) {
             'name' => $product_title,
             'category' => $product_category,
             'description' => $product_description,
-            'price' => $product_price,
+            'price' => mysqli_real_escape_string($sqlConnect, Wo_BuildPricePointJson($product_price_value, $product_point)),
             'location' => $product_location,
             'type' => $product_type,
             'currency' => $currency,

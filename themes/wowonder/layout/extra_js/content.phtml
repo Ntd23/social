@@ -1485,11 +1485,15 @@ function BuyProducts(type = 'show',price) {
     $('.checkout_alert').html("<div class='alert alert-danger bg-danger'><i class='fa fa-info-circle'></i> <?php echo($wo['lang']['please_add_address']); ?></div>");
     return false;
   }
-  if ($('input[name=choose-address]:checked').length < 1) {
+  var $selectedAddress = $('.payment_address:checked');
+  if ($selectedAddress.length < 1) {
+    $selectedAddress = $('.payment_address').first().prop('checked', true).trigger('change');
+  }
+  var address_id = $.trim($selectedAddress.val() || '');
+  if (!address_id) {
     $('.checkout_alert').html("<div class='alert alert-danger bg-danger'><i class='fa fa-info-circle'></i> <?php echo($wo['lang']['please_select_address']); ?></div>");
     return false;
   }
-  address_id = $('input[name=choose-address]:checked').val();
   if (type == 'hide') {
         $('#buy_product_modal').find('.btn-mat').html("Đặt hàng");
         $('#buy_product_modal').find('.btn-mat').attr('onclick', "BuyProducts('show','"+price+"')");
