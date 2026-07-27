@@ -430,6 +430,13 @@ function Wo_FormatProductPoint($point = 0)
 
 	return (floor($point) == $point) ? number_format($point, 0, '.', ',') : number_format($point, 2, '.', ',');
 }
+function Wo_FormatProductDisplayAmount($amount = 0)
+{
+	$amount = is_numeric($amount) ? (float) $amount : 0;
+	$decimals = (floor($amount) == $amount) ? 0 : 2;
+
+	return number_format($amount, $decimals, '.', ',');
+}
 function Wo_BuildPricePointJson($price = 0, $point = 0)
 {
 	$price = is_numeric($price) ? (float) $price : 0;
@@ -531,12 +538,15 @@ function Wo_GetProduct($id = 0)
 	$fetched_data['price_input_format'] = (floor((float) $fetched_data['price']) == (float) $fetched_data['price']) ? number_format((float) $fetched_data['price'], 0, '.', '') : rtrim(rtrim(number_format((float) $fetched_data['price'], 2, '.', ''), '0'), '.');
 	$fetched_data['point_format'] = Wo_FormatProductPoint($fetched_data['point']);
 	$currency_text = (!empty($wo['currencies'][$fetched_data['currency']]['text'])) ? $wo['currencies'][$fetched_data['currency']]['text'] : $wo['config']['classified_currency'];
-	$fetched_data['price_display'] = $currency_text . $fetched_data['price_format'];
-	$fetched_data['price_text_display'] = $fetched_data['price_display'];
+	$currency_text = strtoupper(trim((string) $currency_text));
+	$fetched_data['price_money_display'] = Wo_FormatProductDisplayAmount($fetched_data['price']) . ' ' . $currency_text;
+	$fetched_data['point_display'] = '';
+	$fetched_data['price_text_display'] = $fetched_data['price_money_display'];
 	if ((float) $fetched_data['point'] > 0) {
-		$fetched_data['price_display'] .= '+' . $fetched_data['point_format'] . ' VNSEEA';
-		$fetched_data['price_text_display'] = $fetched_data['price_display'];
+		$fetched_data['point_display'] = $fetched_data['point_format'] . ' VNSEEA';
+		$fetched_data['price_text_display'] .= "\n" . $fetched_data['point_display'];
 	}
+	$fetched_data['price_display'] = nl2br(htmlspecialchars($fetched_data['price_text_display'], ENT_QUOTES, 'UTF-8'), false);
 	return $fetched_data;
 }
 function Wo_DeleteProductImage($id)
