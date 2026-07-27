@@ -69,7 +69,7 @@
 			<div class="page-margin wow_content wow_sett_content">
 				<form class="create-album-form form-horizontal" method="post">
 					<div class="row">
-						<div class="col-md-8">
+						<div class="col-md-4">
 							<div class="wow_form_fields">
 								<label for="name"><?php echo $wo['lang']['name'] ?></label>
 								<input id="name" name="name" type="text" value="<?php echo $wo['product']['name'] ?>">
@@ -80,6 +80,13 @@
 								<label for="price"><?php echo $wo['lang']['price']; ?></label>
 								<input id="price" name="price" type="text" placeholder="0.00"
 									value="<?php echo $wo['product']['price_input_format'] ?>">
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="wow_form_fields">
+								<label for="point">Điểm</label>
+								<input id="point" name="point" type="number" min="0" step="1" placeholder="0"
+									value="<?php echo (!empty($wo['product']['point']) ? $wo['product']['point'] : 0); ?>">
 							</div>
 						</div>
 					</div>
@@ -216,7 +223,8 @@
 					</div>
 
 					<div class="hidden">
-						<input type="file" id="publisher-photos" accept="image/x-png, image/gif, image/jpeg"
+						<input type="file" id="publisher-photos"
+							accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,image/avif,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.avif"
 							name="postPhotos[]" multiple="multiple">
 					</div>
 
@@ -297,11 +305,9 @@
 			uploaded_deleted_images = [];
 			//Get count of selected files
 			var product_countFiles = $(this)[0].files.length;
-			var product_imgPath = $(this)[0].value;
-			var extn = product_imgPath.substring(product_imgPath.lastIndexOf('.') + 1).toLowerCase();
 			var product_image_holder = $("#uploaded-productimage-holder");
 			product_image_holder.empty();
-			if (extn == "gif" || extn == "png" || extn == "jpg" || extn == "jpeg") {
+			if (product_countFiles > 0) {
 				if (typeof (FileReader) != "undefined") {
 					//loop for each file selected for uploaded.
 					for (var i = 0; i < product_countFiles; i++) {

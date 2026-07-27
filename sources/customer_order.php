@@ -21,12 +21,14 @@ if (empty($wo['orders'])) {
 $wo['total']             = 0;
 $wo['total_commission']  = 0;
 $wo['total_final_price'] = 0;
+$wo['total_points']      = 0;
 $wo['address_id']        = 0;
 foreach ($wo['orders'] as $key => $wo['order']) {
     $wo['order']->product = Wo_GetProduct($wo['order']->product_id);
     $wo['total'] += $wo['order']->price;
     $wo['total_commission'] += $wo['order']->commission;
     $wo['total_final_price'] += $wo['order']->final_price;
+    $wo['total_points'] += (!empty($wo['order']->product['point']) ? ((float) $wo['order']->product['point'] * $wo['order']->units) : 0);
     $wo['address_id']  = $wo['order']->address_id;
     $wo['can_review']  = 0;
     $wo['is_reviewed'] = 0;
@@ -37,6 +39,7 @@ foreach ($wo['orders'] as $key => $wo['order']) {
     $wo['html'] .= Wo_LoadPage('customer_order/list');
 }
 $wo['total']       = number_format($wo['total'], 2);
+$wo['total_points'] = Wo_FormatProductPoint($wo['total_points']);
 $wo['address']     = $db->where('id', $wo['address_id'])->getOne(T_USER_ADDRESS);
 $wo['refund']      = $db->where('order_hash_id', $wo['hash_id'])->getOne(T_REFUND);
 $wo['description'] = $wo['config']['siteDesc'];

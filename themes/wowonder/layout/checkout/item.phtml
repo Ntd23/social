@@ -3,7 +3,7 @@
 		<a href="<?php echo $wo['product']['user_data']['url'];?>" data-ajax="?link1=timeline&u=<?php echo $wo['product']['user_data']['username'];?>">
 			<img src="<?php echo $wo['product']['images'][0]['image']?>">
 		</a>
-		<div><?php echo (!empty($wo['currencies'][$wo['product']['currency']]['symbol'])) ? $wo['currencies'][$wo['product']['currency']]['symbol'] : $wo['config']['classified_currency_s'];?><?php echo $wo['product']['price']?></div>
+		<div><?php echo $wo['product']['price_display']; ?></div>
 	</div>
     <div class="prod_info">
         <h4><a href="<?php echo $wo['product']['url'];?>" data-ajax="?link1=post&id=<?php echo $wo['product']['seo_id']?>"><?php echo $wo['product']['name'];?></a></h4>

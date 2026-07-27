@@ -979,6 +979,7 @@ function marketBuyValidation()
     }
 
     $total = 0;
+    $total_points = 0;
     $wo['insert'] = array();
     foreach ($wo['items'] as $key => $item) {
         $product = $wo['main_product'] = Wo_GetProduct($item->product_id);
@@ -992,6 +993,7 @@ function marketBuyValidation()
             else{
                 $total += ($product['price'] * $item->units);
             }
+            $total_points += (!empty($product['point']) ? ((float) $product['point'] * $item->units) : 0);
             if (!in_array($product['user_id'], array_keys($wo['insert']))) {
                 $f_price = $product['price'];
                 if (!empty($wo['config']['exchange']) && !empty($wo['config']['exchange'][$wo['currencies'][$product['currency']]['text']])) {
@@ -1000,6 +1002,7 @@ function marketBuyValidation()
                 $wo['insert'][$product['user_id']] = array();
                 $wo['insert'][$product['user_id']][] = array('product_id' => $product['id'],
                                                        'price' => $f_price,
+                                                       'point' => !empty($product['point']) ? (float) $product['point'] : 0,
                                                        'units' => $item->units);
             }
             else{
@@ -1009,6 +1012,7 @@ function marketBuyValidation()
                 }
                 $wo['insert'][$product['user_id']][] = array('product_id' => $product['id'],
                                                        'price' => $f_price,
+                                                       'point' => !empty($product['point']) ? (float) $product['point'] : 0,
                                                        'units' => $item->units);
             }
         }
@@ -1017,7 +1021,8 @@ function marketBuyValidation()
         }
     }
 
-    if ($wo['user']['wallet'] < $total) {
+    $wallet_data = Wo_NormalizeWalletValue(!empty($wo['user']['wallet']) ? $wo['user']['wallet'] : 0);
+    if ($wallet_data['price'] < $total || $wallet_data['point'] < $total_points) {
         throw new Exception("please top up your wallet");
     }
 

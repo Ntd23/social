@@ -328,6 +328,118 @@ function Wo_ParsePriceByCurrency($value, $currency = 0)
 
 	return $normalized === '' ? '0' : $normalized;
 }
+if (!function_exists('Wo_ProductColumnExists')) {
+	function Wo_ProductColumnExists($column_name = '') {
+		global $sqlConnect;
+
+		if (empty($column_name)) {
+			return false;
+		}
+
+		static $product_columns = null;
+		if ($product_columns === null) {
+			$product_columns = array();
+			$query = mysqli_query($sqlConnect, "SHOW COLUMNS FROM " . T_PRODUCTS);
+			if ($query) {
+				while ($column = mysqli_fetch_assoc($query)) {
+					if (!empty($column['Field'])) {
+						$product_columns[$column['Field']] = true;
+					}
+				}
+			}
+		}
+
+		return !empty($product_columns[$column_name]);
+	}
+}
+function Wo_NormalizeProductPrice($price = '', $fallback_price = 0)
+{
+	$data = array(
+		'price' => is_numeric($fallback_price) ? (float) $fallback_price : 0,
+		'point' => 0
+	);
+
+	if (is_numeric($price)) {
+		$data['price'] = max((float) $price, 0);
+		return $data;
+	}
+
+	if (!empty($price) && is_string($price)) {
+		$price_text = html_entity_decode($price, ENT_QUOTES, 'UTF-8');
+		$decoded = json_decode($price_text, true);
+		if (is_array($decoded)) {
+			if (isset($decoded['price']) && is_numeric($decoded['price'])) {
+				$data['price'] = max((float) $decoded['price'], 0);
+			}
+			if (isset($decoded['point']) && is_numeric($decoded['point'])) {
+				$data['point'] = max((float) $decoded['point'], 0);
+			}
+		}
+		else {
+			if (preg_match('/(?:^|[{,\s])price\s*:\s*([0-9]+(?:\.[0-9]+)?)/i', $price_text, $match)) {
+				$data['price'] = max((float) $match[1], 0);
+			}
+			if (preg_match('/(?:^|[{,\s])point\s*:\s*([0-9]+(?:\.[0-9]+)?)/i', $price_text, $match)) {
+				$data['point'] = max((float) $match[1], 0);
+			}
+		}
+	}
+
+	return $data;
+}
+function Wo_NormalizeWalletValue($wallet = '')
+{
+	return Wo_NormalizeProductPrice($wallet, $wallet);
+}
+function Wo_BuildWalletJson($price = 0, $point = 0)
+{
+	return Wo_BuildPricePointJson($price, $point);
+}
+function Wo_UpdateUserWalletValue($user_id = 0, $price_delta = 0, $point_delta = 0)
+{
+	global $sqlConnect;
+
+	$user_id = (int) $user_id;
+	if ($user_id <= 0) {
+		return false;
+	}
+
+	$query = mysqli_query($sqlConnect, "SELECT `wallet` FROM " . T_USERS . " WHERE `user_id` = {$user_id} LIMIT 1");
+	if (!$query || mysqli_num_rows($query) === 0) {
+		return false;
+	}
+
+	$user = mysqli_fetch_assoc($query);
+	$wallet = Wo_NormalizeWalletValue(!empty($user['wallet']) ? $user['wallet'] : 0);
+	$wallet['price'] = max($wallet['price'] + (float) $price_delta, 0);
+	$wallet['point'] = max($wallet['point'] + (float) $point_delta, 0);
+	$wallet_json = mysqli_real_escape_string($sqlConnect, Wo_BuildWalletJson($wallet['price'], $wallet['point']));
+	$updated = mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `wallet` = '{$wallet_json}' WHERE `user_id` = {$user_id}");
+	if ($updated) {
+		cache($user_id, 'users', 'delete');
+	}
+
+	return (bool) $updated;
+}
+function Wo_FormatProductPoint($point = 0)
+{
+	$point = is_numeric($point) ? (float) $point : 0;
+	if ($point <= 0) {
+		return '0';
+	}
+
+	return (floor($point) == $point) ? number_format($point, 0, '.', ',') : number_format($point, 2, '.', ',');
+}
+function Wo_BuildPricePointJson($price = 0, $point = 0)
+{
+	$price = is_numeric($price) ? (float) $price : 0;
+	$point = is_numeric($point) ? (float) $point : 0;
+
+	return json_encode(array(
+		'price' => max($price, 0),
+		'point' => max($point, 0)
+	), JSON_UNESCAPED_SLASHES);
+}
 function Wo_RegisterProduct($registration_data)
 {
 	global $wo, $sqlConnect;
@@ -410,8 +522,21 @@ function Wo_GetProduct($id = 0)
 	$fetched_data['user_data']     = Wo_UserData($fetched_data['user_id']);
 	$fetched_data['rating']        = $db->where('product_id', $fetched_data['id'])->getValue(T_PRODUCT_REVIEW, "FLOOR(sum(star)/count(id))");
 	$fetched_data['reviews_count'] = $db->where('product_id', $fetched_data['id'])->getValue(T_PRODUCT_REVIEW, "count(id)");
+	$product_price = Wo_NormalizeProductPrice($fetched_data['price']);
+	$fetched_data['raw_price'] = $fetched_data['price'];
+	$fetched_data['price'] = $product_price['price'];
+	$fetched_data['point'] = $product_price['point'];
+	$fetched_data['price_point'] = $product_price;
 	$fetched_data['price_format'] = Wo_FormatPriceByCurrency($fetched_data['price'], $fetched_data['currency']);
-	$fetched_data['price_input_format'] = $fetched_data['price_format'];
+	$fetched_data['price_input_format'] = (floor((float) $fetched_data['price']) == (float) $fetched_data['price']) ? number_format((float) $fetched_data['price'], 0, '.', '') : rtrim(rtrim(number_format((float) $fetched_data['price'], 2, '.', ''), '0'), '.');
+	$fetched_data['point_format'] = Wo_FormatProductPoint($fetched_data['point']);
+	$currency_text = (!empty($wo['currencies'][$fetched_data['currency']]['text'])) ? $wo['currencies'][$fetched_data['currency']]['text'] : $wo['config']['classified_currency'];
+	$fetched_data['price_display'] = $currency_text . $fetched_data['price_format'];
+	$fetched_data['price_text_display'] = $fetched_data['price_display'];
+	if ((float) $fetched_data['point'] > 0) {
+		$fetched_data['price_display'] .= '+' . $fetched_data['point_format'] . ' VNSEEA';
+		$fetched_data['price_text_display'] = $fetched_data['price_display'];
+	}
 	return $fetched_data;
 }
 function Wo_DeleteProductImage($id)
@@ -834,6 +959,9 @@ function Wo_GetProducts($filter_data = array())
 	if (mysqli_num_rows($sql)) {
 		while ($fetched_data = mysqli_fetch_assoc($sql)) {
 			$products           = Wo_GetProduct($fetched_data['id']);
+			if (empty($products) || !is_array($products)) {
+				continue;
+			}
 			$products['seller'] = Wo_UserData($fetched_data['user_id']);
 			$data[]             = $products;
 		}

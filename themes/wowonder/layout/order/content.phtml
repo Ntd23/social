@@ -71,7 +71,7 @@
 					<h4><?php echo $wo['lang']['payments'] ?></h4>
 					<div class="cust_order_prices">
 						<h4><?php echo $wo['lang']['subtotal']; ?></h4>
-						<p><?php echo $wo['config']['currency_symbol_array'][$wo['config']['currency']].$wo['total']; ?></p>
+						<p><?php echo $wo['config']['currency'] . $wo['total']; ?><?php echo (!empty($wo['total_points']) && $wo['total_points'] !== '0') ? '+' . $wo['total_points'] . ' VNSEEA' : ''; ?></p>
 					</div>
 					
 					<div class="cust_order_prices">

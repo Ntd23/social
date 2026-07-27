@@ -5,7 +5,7 @@
       </div>
       <div class="produc_info">
       	 <span title="<?php echo $wo['product']['name']; ?>"><?php echo $wo['product']['name']; ?></span>
-		 <h4><?php echo (!empty($wo['currencies'][$wo['product']['currency']]['symbol'])) ? $wo['currencies'][$wo['product']['currency']]['symbol'] : $wo['config']['classified_currency_s'];?><?php echo $wo['product']['price_format']; ?></h4>
+		 <h4><?php echo $wo['product']['price_display']; ?></h4>
       </div>
 	</a>
 </div>
