@@ -13348,7 +13348,7 @@ table.wow_pymnt_table .label-danger {
 
 .wo_market .market_bottom .product {
     padding-right: 10px;
-    height: 357px;
+    height: auto;
     padding-left: 10px;
 }
 
@@ -13480,6 +13480,9 @@ table.wow_pymnt_table .label-danger {
     text-align: center;
     margin: 0 0 2px;
     letter-spacing: normal;
+    line-height: 1.35;
+    overflow: visible;
+    white-space: normal;
 }
 
 /*Find Friends*/
